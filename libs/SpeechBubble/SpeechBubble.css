@@ -1,0 +1,100 @@
+.speech-bubble-container {
+  position: absolute;
+  filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.5));
+  border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px !important;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.5s ease-in-out, visibility 0s linear 0.5s;
+  z-index: 99 !important;
+}
+
+.speech-bubble-container.visible {
+  opacity: 1;
+  visibility: visible;
+  transition: opacity 0.5s ease-in-out;
+}
+
+.speech {
+  background-color: #fff;
+  border: solid 2px #fff;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px !important;
+  display: inline-block;
+  margin: .5em;
+  padding: .5em 1em;
+  position: relative;
+  transform: rotateY(-15deg) skewY(-0.5deg);
+  box-shadow: inset 1px 1px 1px #fff, 1px 3px 1px #000;
+  filter: drop-shadow(-2px -2px 0px rgba(0, 0, 0, 1));
+}
+
+/* Default tail: bottom-left */
+.speech:before,
+.speech:after {
+  border: solid 12px transparent;
+  border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px !important;
+  content: "";
+  height: 0;
+  position: absolute;
+  width: 0;
+
+}
+
+.speech:before {
+  border-left-color: #000;
+  border-top-color: #000;
+  transform: skew(-15deg);
+}
+
+.speech:after {
+  border-width: 10px;
+  border-left-color: #fff;
+  border-top-color: #fff;
+  transform: skew(-15deg);
+}
+
+/* Tail positions */
+.tail-bottom-left:before {
+  bottom: -24px;
+  left: 24px;
+}
+
+.tail-bottom-left:after {
+  bottom: -19px;
+  left: 27px;
+}
+
+.tail-bottom-right:before {
+  bottom: -24px;
+  right: 24px;
+  transform: skew(15deg);
+}
+
+.tail-bottom-right:after {
+  bottom: -19px;
+  right: 27px;
+  transform: skew(15deg);
+}
+
+.tail-top-left:before {
+  top: -24px;
+  left: 24px;
+  transform: skew(15deg) rotate(180deg);
+}
+
+.tail-top-left:after {
+  top: -19px;
+  left: 27px;
+  transform: skew(15deg) rotate(180deg);
+}
+
+.tail-top-right:before {
+  top: -24px;
+  right: 24px;
+  transform: skew(-15deg) rotate(180deg);
+}
+
+.tail-top-right:after {
+  top: -19px;
+  right: 27px;
+  transform: skew(-15deg) rotate(180deg);
+}

@@ -1,0 +1,231 @@
+:root {
+    --fade-color: black;
+    --neon-text-color: rgb(23, 158, 199);
+    --neon-border-color: rgb(199, 10, 206);
+    --slide-width: 65vw;
+    --slide-height: 70vh;
+}
+
+/* SECTION CONTAINER */
+.section-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: whitesmoke;
+    overflow: hidden;
+}
+
+/* CAROUSEL WRAPPER */
+.carousel-wrapper {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* NAV BUTTONS */
+.carousel-nav {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: white;
+    padding: 20px;
+    font-size: 2rem;
+    cursor: pointer;
+    z-index: 10;
+    transition: all 0.2s ease;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 60px;
+    height: 60px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.carousel-nav:hover {
+    background: var(--neon-text-color);
+    color: black;
+    box-shadow: 0 0 15px var(--neon-text-color);
+}
+
+.carousel-nav.prev { left: 20px; }
+.carousel-nav.next { right: 20px; }
+
+/* TRACK CONTAINER */
+.carousel-track-container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    overflow: hidden;
+    perspective: 1000px;
+}
+
+/* TRACK */
+.carousel-track {
+    padding: 0;
+    margin: 0;
+    list-style: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); /* Centered initially */
+    display: flex;
+    align-items: center;
+    gap: 40px; /* Space between slides */
+    transition: transform 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* SLIDE */
+.carousel-slide {
+    width: var(--slide-width);
+    height: var(--slide-height);
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.5s ease;
+    opacity: 0.5;
+    transform: scale(0.9);
+    pointer-events: none; /* Disable interaction on inactive slides */
+}
+
+.carousel-slide.active-slide {
+    opacity: 1;
+    transform: scale(1);
+    pointer-events: all;
+    z-index: 5;
+}
+
+/* INNER CARD STYLING (Reused) */
+.shadow-wrapper {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 100%;
+    height: 100%;
+    border-radius: 4px;
+    box-shadow: 0 10px 50px rgba(0, 0, 0, 0.6);
+    background: var(--fade-color);
+    border: 2px solid black;
+    overflow: hidden;
+}
+
+.video-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    background-color: var(--fade-color);
+    overflow: hidden;
+}
+
+/* IMAGES */
+.hero-image-wrapper {
+    position: absolute;
+    top: 0;
+    right: -10%; /* Offset for style */
+    height: 100%;
+    width: 120%;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, white 40%);
+    mask-image: linear-gradient(to right, transparent 0%, white 40%);
+}
+
+.cover-image, .active-image {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 1s ease;
+}
+
+/* Make active image sit on top */
+.active-image {
+    z-index: 1;
+}
+
+.overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to right, var(--fade-color) 15%, transparent 60%);
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* TEXT CONTENT */
+.logo-container {
+    position: absolute;
+    top: 40%;
+    left: 8%;
+    transform: translateY(-50%);
+    z-index: 3;
+    width: 80%;
+}
+
+.series-title {
+    font-family: var(--font-family-comicbook-bold, sans-serif);
+    font-size: 4rem;
+    color: whitesmoke;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    margin: 0;
+    text-shadow: 0 0 10px rgba(0,0,0,0.5);
+}
+
+.series-description {
+    position: absolute;
+    top: 55%;
+    left: 8%;
+    z-index: 3;
+    color: #ccc;
+    font-family: 'Consolas', monospace;
+    font-size: 1rem;
+    max-width: 40%;
+    line-height: 1.5;
+    text-shadow: 1px 1px 2px black;
+}
+
+/* BUTTON */
+.get-started-btn-hero {
+    position: absolute;
+    bottom: 15%;
+    left: 8%;
+    padding: 15px 40px;
+    background: var(--neon-text-color);
+    color: black;
+    font-family: var(--font-family-comicbook-bold, sans-serif);
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    text-decoration: none;
+    border: 2px solid transparent;
+    z-index: 9;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 20px rgba(23, 158, 199, 0.4);
+    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+}
+
+.get-started-btn-hero:hover {
+    background: transparent;
+    color: var(--neon-text-color);
+    border-color: var(--neon-text-color);
+    box-shadow: 0 0 30px rgba(23, 158, 199, 0.6);
+}
+
+/* GLITCH ANIMATION (Simplified) */
+.glitch-text {
+    position: relative;
+}
+
+@media (max-width: 1024px) {
+    :root {
+        --slide-width: 85vw;
+        --slide-height: 60vh;
+    }
+    .series-title { font-size: 2.5rem; }
+    .series-description { max-width: 60%; font-size: 0.9rem; }
+}

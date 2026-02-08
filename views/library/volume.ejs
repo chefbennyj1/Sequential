@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title><%= series.title %> - Vol <%= volume.index %></title>
+  <link rel="stylesheet" href="/views/public/styles/fonts.css">
+  <link rel="stylesheet" href="/views/library/library.css"> 
+  <style>
+      body { background: #111; color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
+      .container { max-width: 1200px; width: 100%; padding: 40px; }
+      h1 { font-family: var(--font-family-comicbook-bold); text-transform: uppercase; font-size: 3rem; margin-bottom: 10px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
+      h2 { font-family: 'Consolas', monospace; color: #888; margin-top: 0; margin-bottom: 40px; }
+      
+      .list { display: flex; flex-direction: column; gap: 15px; }
+      
+      .chapter-item { 
+          background: #222; 
+          border: 1px solid #444; 
+          border-radius: 4px; 
+          padding: 20px;
+          display: flex;
+          align-items: center;
+          justify-content: space-between;
+          text-decoration: none;
+          color: white;
+          transition: all 0.2s;
+      }
+      .chapter-item:hover { background: #2a2a2a; border-color: var(--neon-border-color); padding-left: 25px; }
+      
+      .chapter-title { font-family: var(--font-family-comicbook-bold); font-size: 1.5rem; letter-spacing: 1px; }
+      .chapter-meta { font-family: 'Consolas', monospace; color: #666; }
+      
+      .play-icon { font-size: 1.5rem; opacity: 0; transition: opacity 0.2s; }
+      .chapter-item:hover .play-icon { opacity: 1; color: var(--neon-border-color); }
+
+      .back-link { position: absolute; top: 20px; left: 20px; color: #888; text-decoration: none; font-family: 'Consolas', monospace; }
+      .back-link:hover { color: white; }
+  </style>
+</head>
+<body>
+    <a href="/library/series/<%= series._id %>" class="back-link">&larr; Back to Volumes</a>
+    
+    <div class="container">
+        <h1><%= series.title %></h1>
+        <h2>Volume <%= volume.index %>: <%= volume.title %></h2>
+        
+        <div class="list">
+            <% volume.chapters.forEach(chap => { %>
+                <a href="/viewer?id=<%= volume._id %>&chapter=<%= chap.chapterNumber %>" class="chapter-item">
+                    <div>
+                        <div class="chapter-title">Chapter <%= chap.chapterNumber %></div>
+                        <div class="card-meta"><%= chap.title || "Untitled" %></div>
+                    </div>
+                    <div class="play-icon">▶</div>
+                </a>
+            <% }) %>
+        </div>
+    </div>
+</body>
+</html>

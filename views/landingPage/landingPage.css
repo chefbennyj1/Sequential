@@ -1,0 +1,323 @@
+:root {
+    --fade-color: whitesmoke;
+    --neon-text-color-blue: rgb(23, 158, 199);
+    --neon-border-color-purple: rgb(199, 10, 206);
+}
+
+/* GLOBAL LOGO (e.g. in Header) */
+.logo-container {
+    color: var(-neon-border-color-purple);
+    text-transform: uppercase;
+    font-size: 1.2rem;
+    letter-spacing: 0.2em;
+    font-family: var(--font-family-mangat-bold);
+    z-index: 2;
+}
+
+/* HERO LOGO (Inside the video container) */
+.video-container .logo-container {
+    font-size: 2em;
+    letter-spacing: 0.5em;
+    position: absolute;
+    top: 20%;
+    left: 5%;
+
+    z-index: 2;
+    transform-style: preserve-3d;
+    /* transform: translate(-50%, -50%) perspective(400px) rotateY(25deg) rotateX(22deg) skew(25deg); */
+
+    transition: all .1s ease-in-out;
+    color: whitesmoke;
+    font-weight: 700;
+    /* -webkit-text-stroke: 3px rgb(54, 54, 54);
+    text-stroke: 3px rgb(23, 158, 199); */
+
+
+}
+
+/* Shadow for the Hero Logo */
+.video-container .logo-container::after {
+    content: "";
+    position: absolute;
+    bottom: -20px;
+    left: 5%;
+    border-radius: 50%;
+    height: 10px;
+    width: 90%;
+    box-shadow: 0px 40px 30px 0px rgba(187, 106, 206, 0.4);
+    transition: all .1s ease-in-out;
+    z-index: -1;
+    animation: float 10s infinite ease;
+}
+
+@keyframes float {
+    50% {
+
+        transform: perspective(400px) rotateY(15deg);
+    }
+}
+
+@keyframes shadow {
+    50% {
+        scale: .8;
+        bottom: 45%;
+        left: -5%;
+        height: 10%;
+        width: 100%;
+
+    }
+}
+
+.landing-page {
+    background-size: cover;
+    overflow: hidden;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    /* Center vertically */
+    inset: 0;
+    z-index: 3;
+    background: whitesmoke;
+}
+
+.landing-page .shadow-wrapper {
+    position: relative;
+    height: 75vh;
+    width: 75vw;
+    border-radius: 4px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    background: var(--fade-color);
+    transform: translate(-50%, -50%);
+    left: 50%;
+    top: 50%;
+    border: 3px solid black;
+}
+
+.landing-page .video-container {
+    position: relative;
+    height: 100%;
+    width: 100%;
+    border-radius: 4px;
+    /* Match parent radius */
+    overflow: hidden;
+    /* clip-path handled by JS for reveal */
+    background-color: var(--fade-color);
+}
+
+
+
+.overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 2;
+    background: var(--fade-color);
+}
+
+
+#hero-image-wrapper {
+    position: absolute;
+    top: 0;
+    right: -15%;
+    left: auto;
+    height: 100%;
+    width: auto;
+    z-index: 2;
+    -webkit-mask-image: linear-gradient(to right, transparent 0%, white 50%);
+    mask-image: linear-gradient(to right, transparent 0%, white 50%);
+}
+
+
+#hero-image {
+
+    height: 120%;
+    width: auto;
+    object-fit: contain;
+    display: block;
+}
+
+.overlay {
+    background: linear-gradient(to right, var(--fade-color) 10%, transparent 40%);
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+}
+
+.btn.get-started-btn-hero {
+    position: absolute;
+    bottom: 15%;
+    left: 10%;
+    width: 15vw;
+    height: 10vh;
+    z-index: 9;
+}
+
+
+@media (max-width: 1024px) {
+    .logo-container {
+        font-size: 1.2em;
+    }
+}
+
+@media (max-width: 450px) {
+    .logo-container {
+        font-size: 1.2em;
+    }
+
+    .video-container .logo-container {
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+    }
+}
+
+@keyframes glitch {
+
+    2%,
+    64% {
+        transform: translate(2px, 0) skew(0deg);
+
+        .logo-container {
+            -webkit-text-stroke: 1px white;
+            text-stroke: 1px white;
+        }
+    }
+
+    4%,
+    60% {
+        transform: translate(-2px, 0) skew(0deg);
+
+        .logo-container {
+            -webkit-text-stroke: 1px rgb(23, 158, 199);
+            text-stroke: 1px rgb(23, 158, 199);
+        }
+    }
+
+    62% {
+        transform: translate(0, 0) skew(5deg);
+
+        .logo-container {
+            -webkit-text-stroke: 1px rgb(199, 10, 206);
+            text-stroke: 1px rgb(199, 10, 206);
+        }
+
+    }
+}
+
+#logo {
+    /* animation: flicker 1.5s infinite alternate; */
+    font-size: 1.1em;
+    padding: 0.5em;
+    background: linear-gradient(185deg, #0a4a6e 0%, #0a4a6e 50%, var(--neon-text-color-blue) 50%, var(--neon-text-color-blue) 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+    display: inline-block;
+    text-stroke: 2px black;
+    -webkit-text-stroke: 2px black;
+}
+
+#subtitle {
+    font-size: 0.7em;
+    padding: 0.5em;
+    color: rgb(199, 10, 206);
+    font-family: var(--font-family-comic-bold);
+    text-stroke: 2px black;
+    -webkit-text-stroke: 2px black;
+    text-shadow: 2px 2px 2px black;
+}
+
+/* #logo:before,
+#logo:after {
+    content: attr(title);
+    position: absolute;
+    left: 0;
+}
+
+#logo:before {
+    animation: glitchTop 1s linear infinite;
+    clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%);
+    -webkit-clip-path: polygon(0 0, 100% 0, 100% 33%, 0 33%);
+}
+
+@keyframes glitchTop {
+
+    2%,
+    64% {
+        transform: translate(2px, -2px);
+    }
+
+    4%,
+    60% {
+        transform: translate(-2px, 2px);
+    }
+
+    62% {
+        transform: translate(13px, -1px) skew(-13deg);
+    }
+}
+
+#logo:after {
+    animation: glitchBotom 1.5s linear infinite;
+    clip-path: polygon(0 67%, 100% 67%, 100% 100%, 0 100%);
+    -webkit-clip-path: polygon(0 67%, 100% 67%, 100% 100%, 0 100%);
+}
+
+@keyframes glitchBotom {
+
+    2%,
+    64% {
+        transform: translate(-2px, 0);
+    }
+
+    4%,
+    60% {
+        transform: translate(-2px, 0);
+    }
+
+    62% {
+        transform: translate(-22px, 5px) skew(21deg);
+    }
+} */
+
+@keyframes flicker {
+
+    0%,
+    19%,
+    21%,
+    23%,
+    25%,
+    54%,
+    56%,
+    100% {
+
+        text-shadow:
+            -0.2rem -0.2rem 1rem #fff,
+            0.2rem 0.2rem 1rem #fff,
+            0 0 2rem var(--neon-text-color),
+            0 0 4rem var(--neon-text-color),
+            0 0 6rem var(--neon-text-color),
+            0 0 8rem var(--neon-text-color),
+            0 0 10rem var(--neon-text-color);
+
+        box-shadow:
+            0 0 .5rem #fff,
+            inset 0 0 .5rem #fff,
+            0 0 2rem var(--neon-border-color),
+            inset 0 0 2rem var(--neon-border-color),
+            0 0 4rem var(--neon-border-color),
+            inset 0 0 4rem var(--neon-border-color);
+    }
+
+    20%,
+    24%,
+    55% {
+        text-shadow: none;
+        box-shadow: none;
+    }
+}

@@ -1,0 +1,41 @@
+<button class="small back-to-studio-btn" style="margin-bottom: 15px;">&larr; Back to Studio</button>
+
+<div class="scheduled-tasks-container">
+    
+    <!-- LEFT: Library Roots Manager -->
+    <div class="task-panel">
+        <h3>Library Source Manager</h3>
+        <p>Configure physical directories to watch for comic series.</p>
+
+        <!-- List -->
+        <div id="library-roots-list" class="roots-list">
+            <!-- Injected via JS -->
+            <div style="color: #666; font-style: italic;">Loading roots...</div>
+        </div>
+
+        <!-- Add New Form -->
+        <div class="add-root-form">
+            <h4>Add New Watch Folder</h4>
+            <div class="input-field">
+                <input type="text" id="new-root-name" placeholder="Name (e.g. External Drive D)" class="mono-input">
+            </div>
+            <div class="input-field">
+                <input type="text" id="new-root-path" placeholder="Absolute Path (e.g. D:\Comics)" class="mono-input">
+            </div>
+            <button id="add-root-btn" class="small" style="width: 100%;">+ Add Root</button>
+        </div>
+    </div>
+
+    <!-- RIGHT: Scanner & Logs -->
+    <div class="task-panel">
+        <div class="scanner-header">
+            <h3 style="margin: 0;">System Scanner</h3>
+            <button id="run-scan-btn" class="update__btn">Run Scan Now</button>
+        </div>
+        
+        <div id="scanner-log" class="scanner-log">
+            <span class="log-placeholder">> System ready.<br>> Waiting for command...</span>
+        </div>
+    </div>
+
+</div>

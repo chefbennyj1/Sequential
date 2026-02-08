@@ -1,0 +1,336 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="/views/public/styles/fonts.css" />
+    <title>My Website</title>
+    <link rel="stylesheet" href="/views/page.css" />
+  </head>
+
+  <body class="viewer-page">
+    <header>
+      <div class="logo-wrapper">
+        <div class="logo-container">
+          <div id="header-logo" data-text="NO//:OVERFLOW" class="">
+            N0//:0VERFL0W
+          </div>
+        </div>
+      </div>
+      <nav></nav>
+      <div class="page-nav-buttons">
+        <a href="/library/series/<%= volume.series._id %>/volume/<%= volume._id %>" class="nav-button btn"
+          >Chapters <ion-icon size="large" name="library"></ion-icon
+        ></a>
+        <button id="load-prev-btn" class="nav-button btn">
+          <ion-icon size="large" name="play-back"></ion-icon> Previous Page
+        </button>
+        <button id="load-next-btn" class="nav-button btn">
+          Next Page <ion-icon size="large" name="play-forward"></ion-icon>
+        </button>
+        <button id="reload-page-btn" class="nav-button btn">
+          Reload page <ion-icon size="large" name="reload-circle"></ion-icon>
+        </button>
+      </div>
+    </header>
+
+    <div class="scroll-wrapper" data-current-page="0" data-total-pages=""></div>
+
+    <script>
+      // Global configuration from server
+      window.APP_CONFIG = <%- JSON.stringify(config) %>;
+      // Default to "Comic Mode" (Static, Immediate Speech Bubbles)
+      // Remove this line to return to "Motion Comic Mode" (Video/Timed Audio)
+      window.GEMINI_COMIC_MODE = true; 
+    </script>
+
+    <div
+      id="global-audio-data"
+      data-global-audio="<%= JSON.stringify(globalBackgroundAudio) %>"
+      style="display: none"
+    >
+      <div
+        id="global-page-transition-audio-data"
+        data-global-page-transition-audio="<%= JSON.stringify(globalPageTransitionAudio) %>"
+        style="display: none"
+      ></div>
+    </div>
+
+    <script type="module">
+      import { initPageManager } from "/services/public/PageManager.js";
+      import { getLastVisitedPage, setLastVisitedPage } from "/libs/Utility.js";
+
+      (async () => {
+        const params = new URLSearchParams(window.location.search);
+        const volumeId = params.get("id");
+        let chapterNumber = params.get("chapter");
+
+        // Default to Chapter 1 if not specified
+        if (!chapterNumber) {
+            chapterNumber = "1";
+            // Update URL to reflect default
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.set("chapter", "1");
+            window.history.replaceState({ path: newUrl.href }, "", newUrl.href);
+        }
+
+        if (!volumeId) {
+             document.body.innerHTML = "<h1>Error: Volume ID is missing.</h1>";
+             return;
+        }
+
+        var chapter = await getChapterData(volumeId, chapterNumber);
+
+        if (!chapter || !chapter.pages || chapter.pages.length === 0) {
+          document.body.innerHTML =
+            "<h1>Error: Chapter data or pages not found.</h1>";
+          return;
+        }
+
+        // Sort pages numerically
+        chapter.pages.sort((a, b) => {
+          return a.index - b.index;
+        });
+
+        console.log(`Chapter Title: ${chapter.title}`);
+
+        const scrollWrapper = document.querySelector(".scroll-wrapper");
+        if (!scrollWrapper) {
+          return;
+        }
+
+        // 1. Create all section containers
+        chapter.pages.forEach((page, index) => {
+          const section = document.createElement("section");
+          section.id = `section-${index}`;
+          section.classList.add(
+            `section-${index}`,
+            "scroll-section",
+            "page-container",
+          );
+          scrollWrapper.appendChild(section);
+        });
+
+        // 1b. Delegated Event Listener for URL Updates & Last Visited Page
+        // Audio logic is now handled by pageInitializer.js via PageManager
+        document.addEventListener("view_visible", async (e) => {
+            // Filter: Make sure it's one of our page sections
+            if (!e.target.classList.contains('page-container')) return;
+
+            const currentPageIndex = e.detail.index;
+            // Scope resume logic to BOTH Volume and Chapter
+            const storageKey = `${volumeId}_${chapterNumber}`;
+            setLastVisitedPage(storageKey, currentPageIndex);
+            
+            if (!chapter.pages[currentPageIndex]) return;
+
+            const parts = chapter.pages[currentPageIndex].path.split("/");
+            // Use the folder name (second to last part) as the pageId
+            const currentPageId = parts[parts.length - 2];
+            const pageNum = currentPageId.replace('page', '');
+
+            // Update URL with current page
+            const newUrl = new URL(window.location.href);
+            newUrl.searchParams.set("page", pageNum);
+            window.history.replaceState({ path: newUrl.href }, "", newUrl.href);
+        });
+
+        const pages = chapter.pages.map((page, index) => ({
+          ...page, // Spread all cached data (layoutId, mediaData, sceneData)
+          html: page.path,
+          containerId: `section-${index}`,
+        }));
+
+        const pageManager = initPageManager(pages);
+
+        // --- NEW ---
+        const loadNextBtn = document.getElementById("load-next-btn");
+        loadNextBtn.addEventListener("click", async (e) => {
+          // Made async to await resetFullAudioState
+          e.preventDefault();
+          
+          const nextPageIndex = pageManager.currentPageIndex + 1;
+          if (nextPageIndex < pages.length) {
+            await pageManager.goToPage(nextPageIndex);
+          }
+        });
+
+        const loadPrevBtn = document.getElementById("load-prev-btn");
+        loadPrevBtn.addEventListener("click", async (e) => {
+          // Made async to await resetFullAudioState
+          e.preventDefault();
+
+          const prevPageIndex = pageManager.currentPageIndex - 1;
+          if (prevPageIndex >= 0) {
+            await pageManager.goToPage(prevPageIndex);
+          }
+        });
+
+        const reloadPageBtn = document.getElementById("reload-page-btn");
+        reloadPageBtn.addEventListener("click", async (e) => {
+          e.preventDefault();
+
+          console.log("Reload Page button clicked. Syncing from disk and reloading current page.");
+          
+          const currentPage = pages[pageManager.currentPageIndex];
+          if (!currentPage) {
+              console.error("Cannot reload: Current page index is invalid or page data is missing.");
+              return;
+          }
+
+          const parts = currentPage.html.split("/");
+          const pageId = parts[parts.length - 2];
+          const chapterId = parts[parts.length - 3];
+
+          try {
+              const res = await fetch(`/api/editor/sync-page/${volumeId}/${chapterId}/${pageId}`, { method: 'POST' });
+              
+              if (res.status === 401) {
+                  window.location.href = '/login';
+                  return;
+              }
+
+              const result = await res.json();
+              if (result.ok && result.page) {
+                  console.log("Sync successful, updating local cache.");
+                  // Update local page data with fresh server data
+                  pages[pageManager.currentPageIndex] = {
+                      ...pages[pageManager.currentPageIndex],
+                      layoutId: result.page.layoutId,
+                      mediaData: result.page.mediaData,
+                      sceneData: result.page.sceneData
+                  };
+              }
+          } catch (err) {
+              console.error("Failed to sync page data:", err);
+          }
+
+          window.audioStateManager.stopBackgroundAudio(0);
+          window.audioStateManager.stopDialogueAudio();
+          // After resetting audio and syncing data, tell the pageLoader to reload the current page.
+          await pageManager.goToPage(pageManager.currentPageIndex);
+        });
+        // --- END NEW ---
+
+        // 2. Determine initial page and load it *before* initializing the scroller
+        let initialPageIndex = 0;
+        const pageParam = params.get("page");
+
+        if (pageParam) {
+          // Try to find by pageId (e.g. page8) or by index (e.g. 8)
+          const foundIndex = chapter.pages.findIndex((p) => {
+            const parts = p.path.split("/");
+            const pageId = parts[parts.length - 2];
+            return pageId === pageParam || p.index.toString() === pageParam;
+          });
+          if (foundIndex !== -1) {
+            initialPageIndex = foundIndex;
+          }
+        } else if (document.referrer.includes("/dashboard")) {
+          initialPageIndex = 0;
+        } else {
+          const lastPageIndex = getLastVisitedPage(chapterNumber);
+          if (lastPageIndex !== null) {
+            const pageIndex = parseInt(lastPageIndex, 10);
+            if (
+              !isNaN(pageIndex) &&
+              pageIndex >= 0 &&
+              pageIndex < chapter.pages.length
+            ) {
+              initialPageIndex = pageIndex;
+            }
+          }
+        }
+        console.log(`Initial page starting on: ${initialPageIndex}`);
+        await pageManager.goToPage(initialPageIndex);
+
+        // 3. Now initialize the scroller
+        // const smoothScroller = new SmoothScroller({
+        //     sectionSelector: '.scroll-section',
+        //     pageLoader: backgroundAudio
+        // });
+
+        window.dispatchEvent(
+          new CustomEvent("sectionsloadedcomplete", { detail: "" }),
+        );
+      })();
+
+      // Auto-hide navigation bar logic
+      const header = document.querySelector("header");
+      let hideTimeout;
+
+      // Only apply this behavior if on the viewer page
+      if (document.body.classList.contains("viewer-page")) {
+        document.addEventListener("mousemove", () => {
+          // Show header and cursor
+          header.classList.add("is-visible");
+          document.body.classList.remove("cursor-hidden");
+
+          // Clear the previous timeout
+          clearTimeout(hideTimeout);
+
+          // Set a new timeout to hide the header and cursor
+          hideTimeout = setTimeout(() => {
+            header.classList.remove("is-visible");
+            document.body.classList.add("cursor-hidden");
+          }, 2000); // 2 second delay before hiding
+        });
+      }
+
+      async function getChapterData(volumeId, chapterNumber) {
+        try {
+          const res = await fetch(
+            `/api/volume/${volumeId}/chapter/${chapterNumber}`,
+          );
+
+          if (res.status === 401) {
+            window.location.href = '/login';
+            return;
+          }
+
+          const data = await res.json();
+
+          if (!data.ok) {
+            console.error("Failed to load view:", data.message);
+            return;
+          }
+
+          return data.view;
+        } catch (err) {
+          console.error("Error fetching chapter data:", err);
+          return;
+        }
+      }
+
+      // Keyboard navigation for previous/next page
+      document.addEventListener("keydown", (e) => {
+        if (e.key === "ArrowRight") {
+          e.preventDefault(); // Prevent browser scroll
+          document.getElementById("load-next-btn").click();
+        } else if (e.key === "ArrowLeft") {
+          e.preventDefault(); // Prevent browser scroll
+          document.getElementById("load-prev-btn").click();
+        }
+      });
+    </script>
+
+    <!-- Icon Packages -->
+    <script
+      type="module"
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"
+    ></script>
+    <script
+      nomodule
+      src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"
+    ></script>
+
+    <!--Lenis smooth scrolling-->
+    <!-- <script src="libs/lenis.min.js"></script> -->
+
+    <!-- JS files -->
+    <!-- <script type="module" src="libs/SmoothScroller.js"></script> -->
+  </body>
+</html>

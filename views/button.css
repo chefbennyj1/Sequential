@@ -1,0 +1,98 @@
+
+.btn {
+  position: relative;;
+  background-image: radial-gradient(lightblue 33%, transparent 34%), radial-gradient(lightblue 33%, transparent 34%) !important;
+  background: rgba(255, 255, 255, 0.79);
+  background-size: 5px 5px;
+  background-position: 0 0, 2.5px 2.5px;
+  border: solid 2px black;
+  box-shadow: 5px 5px 5px rgba(0,0,0,0.65);
+  padding: 2px;
+  font-family: inherit;
+  color: #000;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  font-family: var(--font-family-comic);
+}
+
+/* 💡 Keep your subtle movement + shadow change */
+.btn:hover {
+  /* transform: translate(-1px, 1px); */
+  box-shadow: 8px 8px 15px #000;
+  cursor: pointer;
+}
+.btn:active {
+  transform: translate(1px, -1px);
+  box-shadow: 2px 2px 5px #000;
+}
+/* Gradient pulse lives here */
+/* .btn::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 200px;
+  height: 200px;
+  background: radial-gradient(circle, #fff 10%, transparent 70%);
+  transform: translate(-50%, -50%) scale(0);
+  transition: transform 0.4s ease, opacity 0.4s ease;
+  border-radius: 50%;
+  opacity: 0.5;
+  pointer-events: none;
+  z-index: 1;
+  left: var(--x, 50%);
+  top: var(--y, 50%);
+} */
+
+.btn:hover::before {
+  transform: translate(-50%, -50%) scale(1.2);
+}
+
+
+
+.glass-filter {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  backdrop-filter: blur(3px);
+  filter: url(#lg-dist-2);
+  isolation: isolate;
+  pointer-events: none;
+}
+
+.glass-overlay {
+  position: absolute;
+  /* inset: 0; */
+  width: 25vw;
+  height: 25vh;
+  z-index: 1;
+  background: var(--lg-bg-color);
+  pointer-events: none;
+}
+
+.glass-specular {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  border-radius: inherit;
+  overflow: hidden;
+  box-shadow: inset 1px 1px 0 var(--lg-highlight),
+    inset 0 0 5px var(--lg-highlight);
+  pointer-events: none;
+}
+
+.glass-content {
+  position: relative;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 1rem 1.5rem 0.9rem;
+  pointer-events: none;
+}
+
+.glass-content--inline {
+  flex: 1 1 auto;
+  justify-content: space-between;
+}

@@ -1,0 +1,63 @@
+/* --- File Browser Modal & Grid Items --- */
+
+.modal-content {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+}
+
+.file-browser-item {
+    cursor: pointer;
+    text-align: center;
+    background: #1a1a1a;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #333;
+    transition: all 0.2s ease;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.file-browser-item:hover {
+    border-color: var(--accent);
+    background: #252525;
+    transform: translateY(-2px);
+}
+
+.file-browser-item .preview-container {
+    position: relative;
+    width: 100%;
+    height: 80px;
+    margin-bottom: 8px;
+    background: #000;
+    border-radius: 4px;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.file-browser-item img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.file-browser-item .file-name {
+    font-size: 0.8rem;
+    color: var(--text);
+    word-break: break-all;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+.file-browser-item.active {
+    border-color: var(--accent);
+    background: rgba(0, 170, 255, 0.1);
+}

@@ -1,0 +1,40 @@
+<div class="section-container">
+    <div class="carousel-wrapper">
+        <div class="carousel-nav prev" id="prevBtn"><ion-icon name="chevron-back-outline"></ion-icon></div>
+        
+        <div class="carousel-track-container">
+            <ul class="carousel-track" id="libraryTrack">
+                <!-- Library Items Injected Here -->
+            </ul>
+        </div>
+
+        <div class="carousel-nav next" id="nextBtn"><ion-icon name="chevron-forward-outline"></ion-icon></div>
+    </div>
+    
+    <!-- Template for a Library Item -->
+    <template id="library-item-template">
+        <li class="carousel-slide">
+            <div class="shadow-wrapper">
+                <div class="video-container">
+                    <div class="hero-image-wrapper">
+                        <!-- Cover Image (Static) -->
+                        <img class="cover-image" src="" alt="Cover" />
+                        <!-- Active Slide Image (Dynamic) -->
+                        <img class="active-image" src="" alt="Active" style="opacity: 0;" />
+                    </div>
+                    <div class="overlay"></div>
+                    
+                    <div class="logo-container">
+                        <h1 class="series-title glitch-text" title="">TITLE</h1>
+                    </div>
+                    
+                    <div class="series-info">
+                        <p class="series-description"></p>
+                    </div>
+
+                    <a href="#" class="btn get-started-btn-hero">READ NOW</a>
+                </div>
+            </div>
+        </li>
+    </template>
+</div>

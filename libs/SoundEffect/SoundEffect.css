@@ -1,0 +1,57 @@
+.sound-effect-container {
+    position: absolute;
+    pointer-events: none;
+    z-index: 100;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    opacity: 0;
+    visibility: hidden;
+    transform: scale(0.5);
+    transition: opacity 0.2s ease-out, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), visibility 0s linear 0.2s;
+    filter: drop-shadow(5px 5px 0px rgba(0,0,0,1));
+}
+
+.sound-effect-container.visible {
+    opacity: 1 !important;
+    visibility: visible;
+    transform: scale(1.2) rotate(-5deg); /* Slight rotation and bigger pop */
+    transition: opacity 0.2s ease-out, transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), visibility 0s linear 0s;
+}
+
+.sound-effect-bg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 1;
+    background: radial-gradient(circle, #fff700 0%, #ff9900 100%);
+    
+    /* Jagged Burst Shape */
+    clip-path: polygon(
+        10% 0%, 15% 15%, 30% 0%, 35% 20%, 50% 0%, 55% 15%, 70% 0%, 80% 20%, 95% 0%, 
+        85% 30%, 100% 40%, 85% 50%, 100% 60%, 85% 70%, 100% 90%, 80% 85%, 
+        70% 100%, 55% 85%, 50% 100%, 35% 85%, 20% 100%, 15% 85%, 0% 100%, 
+        10% 70%, 0% 60%, 15% 50%, 0% 40%, 10% 30%
+    );
+}
+
+.sound-effect-text {
+    font-family: 'Impact', 'Arial Black', sans-serif;
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: #fff;
+    text-transform: uppercase;
+    text-shadow: 
+        4px 4px 0px #000,
+        -1px -1px 0 #000,  
+        1px -1px 0 #000,
+        -1px 1px 0 #000,
+        1px 1px 0 #000;
+    letter-spacing: 2px;
+    position: relative;
+    z-index: 9999; /* Way on top of the BG */
+    padding: 30px 50px;
+    white-space: nowrap;
+}

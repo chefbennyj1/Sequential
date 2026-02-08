@@ -1,0 +1,282 @@
+@import url('/views/button.css');
+:root {
+  --background-color: #11292a;
+  --background-light-color: #fff;
+  --text-color: hsl(0, 0%, 100%);
+  --color-one: #943A00;
+  --color-two: #FCBE5B;
+  --color-three: #3EA4DF;
+  --color-four: #FCF8EE;
+  --color-five: #033B64;
+  --lg-bg-color: rgba(255, 255, 255, 0.05);
+  --lg-bg-color-2: rgb(172, 70, 0, 0.2);
+  --lg-highlight: rgba(255, 255, 255, 0.75);
+  
+
+}
+
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+  /* scroll-snap-type: y proximity; */
+}
+html,
+body {
+  height: 100%;
+  scroll-behavior: smooth;
+  scroll-snap-type: y proximity;
+  width:100dvw;
+  overflow:hidden;
+}
+
+
+html {
+  
+  font-family: var(--font-family-comic-bold);
+  /* Create a snapping rule on the html element */
+  /* scroll-snap-type: y proximity; */
+  /* position: relative; */
+  
+}
+
+body {
+  overflow-x: hidden;
+  background: var(--background-light-color);    
+}
+
+body.cursor-hidden {
+  cursor: none;
+}
+
+
+
+/* LOADING SCREEEN */
+#loading-page {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100dvw;
+  height: 100dvh;
+  display: flex;
+  background-color: white;
+   justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  text-align: center;
+  z-index: 99;
+  overflow:hidden;
+}
+#loading-page .loading-text {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+#loading-page .loading-text span {
+  font-family: var(--font-family-sans-serif);
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-weight: 300;
+  text-transform: uppercase;
+  font-size: 1em;
+  letter-spacing: 0.5em;
+  animation: blur 1.8s calc(var(--i) / 5 * 1s) alternate infinite;
+}
+
+.checkbox-container {
+  display:flex;
+}
+.checkbox-container input {
+  transform: scale(1.2);
+  cursor: pointer;
+  margin-right: 1em;
+}
+
+@keyframes blur {
+  to {
+    filter: blur(1px);
+    /* transform: scale(1.2); */
+  }
+}
+
+
+.logo-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.scroll-wrapper {
+  /* height: calc(100dvh * 3); */
+  position: relative;
+  width:100dvw;
+}
+
+
+/* HEADER */
+header {
+  background-image: radial-gradient(lightblue 33%, transparent 34%), radial-gradient(lightblue 33%, transparent 34%) !important;
+  background: rgba(255, 255, 255, 0.79);
+  background-size: 5px 5px;
+  background-position: 0 0, 2.5px 2.5px;
+  border: solid 2px black;
+  box-shadow: 5px 5px 5px rgba(0,0,0,0.65);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 10vh;
+  overflow: hidden;
+  
+  top: 0;
+  position: fixed;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+  height:8dvh;
+  font-family: var(--font-family-comic-bold);
+}
+
+/* Autohide Nav Bar for Viewer Page */
+.viewer-page header {
+    /* Start with the header hidden (slid up) */
+    transform: translateY(-100%);
+    transition: transform 0.4s ease-in-out;
+}
+
+.viewer-page header.is-visible {
+    /* Slide the header back into view */
+    transform: translateY(0);
+}
+
+
+
+
+header .logo-container {
+  font-optical-sizing: auto;
+  font-style: normal;
+  font-weight: 300;
+  text-transform: uppercase;
+  letter-spacing: 0.5em;
+  caret-color: #262626;
+  position: relative;
+  z-index: 2;
+  overflow: hidden;
+  display: block;
+  font-size: 1rem;
+  left: 5%;
+  color: var(--color-five);
+}
+
+header .page-nav-buttons {
+  display: flex;
+  gap: 20px;
+}
+
+.nav-button.btn {
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Adjust as needed for spacing between text and icon */
+}
+
+.page-nav-buttons a.nav-button.btn {
+  text-decoration: none; /* Remove underline from the link button */
+}
+
+#logo {
+  display: flex;
+}
+.audio-btn {
+  display: flex;
+  align-items: flex-end; /* bottom align */
+  gap: 4px;
+  height: 25px;
+  width: 40px;
+  border-bottom: 1px solid black;
+  border-left: 1px solid black;
+  cursor: pointer;
+}
+.audio-btn .label {
+  right:40px;
+  position:absolute;
+}
+.audio-bar {
+  width: 3px;
+  height: 100%; /* base height to scale from */
+  background: var(--color-five);
+  transform-origin: bottom; /* scale grows upward */
+  transform: scaleY(0.1);
+  transition: transform 0.1s linear;
+  border-radius: 2px;
+}
+
+section {
+  position:fixed;
+  height: 100dvh;
+  top:0;
+  left:0;
+  inset:0;
+  background: transparent;
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
+  transform-origin: center center;
+  display:flex;
+  justify-content: center;
+  visibility: hidden;
+  /* Default width for single page mode */
+  width: 100dvw;
+}
+section .section-container{
+   
+
+}
+section.active {
+  visibility: visible;
+  z-index:1;
+}
+section.active .section-container{
+  opacity:1;
+}
+.section-container {
+  height: 100%; /* Fill parent section */
+  width: 100%; /* Fill parent section */
+  position: relative;
+  background: transparent;
+}
+
+
+
+
+
+
+
+
+@keyframes zoom-scroll-in {
+  0% {
+    filter: blur(5rem);
+    transform: scale(0);
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  100% {
+    filter: blur(0);
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+  }
+}
+@keyframes zoom-scroll-out {
+  0% {
+    filter: blur(0);
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  100% {
+    filter: blur(3rem);
+    transform: scale(1.5);
+    opacity: 0;
+    visibility: hidden;
+  }
+}

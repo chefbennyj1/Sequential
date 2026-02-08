@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/views/public/styles/fonts.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+ 
+  <title>Dashboard</title>
+
+</head>
+
+<body>
+ 
+  <section id="dashboard" class="dashboard active"></section>
+
+  <script>
+    // Global configuration from server
+    window.APP_CONFIG = <%- JSON.stringify(config) %>;
+  </script>
+
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+
+   <!-- Icon Packages -->
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+  <!-- GSAP core -->
+  <!-- <script src="/libs/gsap/gsap.min.js"></script> -->
+  <!--Plugin-->
+  <!-- <script src="/libs/gsap/SplitText.min.js"></script> -->
+
+  <!--Lenis smooth scrolling-->
+  <!-- <script src="https://unpkg.com/lenis@1.2.3/dist/lenis.min.js"></script> -->
+
+ <script type="module">
+    import { loadSection } from "/services/public/PageManager.js"
+    import { loadCSS, loadScript } from "/libs/Utility.js";
+    import { init as initDashboard } from '/views/dashboard/dashboard.js'; // Import dashboard's init
+    (async () => {
+
+      await loadSection('dashboard', '/views/dashboard/dashboard.html', false);
+      await loadScript('/views/dashboard/components/CardBuilder/CardBuilder.js');
+      await loadCSS('/views/dashboard/dashboard.css');
+      await loadCSS('/views/dashboard/components.css');
+      await loadCSS('/views/dashboard/editors.css');
+      await loadCSS('/views/dashboard/components/CardBuilder/CardBuilder.css');
+      await loadCSS('/views/dashboard/components/SceneEditor/SceneEditor.css');
+      await loadCSS('/views/dashboard/components/CharacterLab/CharacterLab.css');
+      await loadCSS('/views/dashboard/components/ScheduledTasks/ScheduledTasks.css');
+      await loadCSS('/views/dashboard/components/FileBrowser/FileBrowser.css');
+      await loadCSS('/views/dashboard/components/LayoutBrowser/LayoutBrowser.css');
+      
+      const dashboardContainer = document.getElementById('dashboard');
+      if (dashboardContainer) {
+        await initDashboard(dashboardContainer); // Call dashboard's init function
+      }
+
+    })();
+
+ </script>
+
+</body>
+
+</html>

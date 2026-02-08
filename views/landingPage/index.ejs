@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/views/public/styles/fonts.css">
+  <title>My Website</title>
+</head>
+
+<body>
+  <header>
+    <div class="logo-wrapper">
+      <div class="logo-container">
+        <div id="header-logo" data-text="SEQUENTIAL" class="">SEQUENTIAL</div>
+      </div>
+    </div>
+    <nav>
+    </nav>
+  </header>
+
+  <div id="loading-page">
+    <div class="initializing-text-container">
+      <div class="initializing-progress"></div>
+      <div class="initializing-text"></div>
+    </div>
+    <a id="enter-btn" href="" style="display:none">[ enter ]</a>
+  </div>
+
+  <canvas id="tube-cursor"></canvas>
+
+  <section id="landing-page" class="landing-page scroll-section active"></section>
+
+  <script type="module">
+    import { loadSection } from '/services/public/PageManager.js';
+    import { init as landingPageInit } from '/views/landingPage/landingPage.js';
+    import { imageMaskReveal, preloadMediaAssets, loadCSS, loadScript } from '/libs/Utility.js';
+
+    (async () => {
+      await loadSection('landing-page', '/views/landingPage/landingPage.html', false);
+
+      const landingPageSection = document.getElementById('landing-page');
+      await landingPageInit(landingPageSection);
+
+      await loadCSS('/views/landingPage/landingPage.css');
+      await loadCSS('/libs/TiltEffect/tiltEffects.css');
+
+      // loading page elements
+      let loader = document.getElementById("loading-page");
+      let enterBtn = loader.querySelector('#enter-btn');
+
+      //global audio
+      //window.transitionAudio = new Audio('/audio/transition_audio.mp3');
+      //window.bgAudio = new Audio('/audio/background.mp3');
+      //window.storyName = new Audio('/audio/no_overflow_hacker.mp3');
+
+      //window.bgAudio.loop = true;
+
+      window.audioEnabled = true;
+      localStorage.setItem('globalAudioEnabled', 'true');
+
+      handleLoadingText(enterBtn);
+
+      enterBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        
+        gsap.to(loader, {
+          duration: 1,
+          opacity: 0,
+          y: -50,
+          ease: "power2.inOut",
+          onComplete: () => {
+            loader.style.display = "none";
+          }
+        });
+
+        const landingPage = document.querySelector('.landing-page');
+        landingPage.classList.add('active');
+
+        landingPage.dispatchEvent(new CustomEvent('start-slideshow'));
+
+        const videoContainer = landingPage.querySelectorAll('.video-container');
+        const gifUrl = "/libs/panel_mask_image.gif";
+        imageMaskReveal(videoContainer, gifUrl);
+
+      });
+    })();
+
+    function handleLoadingText(enterBtn) {
+      enterBtn.style.display = "block";
+      gsap.fromTo(enterBtn, 
+        { opacity: 0, y: 20 }, 
+        { opacity: 1, y: 0, duration: 1, delay: 0.5, ease: "power2.out" }
+      );
+    }
+  </script>
+
+  <!-- Icon Packages -->
+  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
+  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
+
+  <!-- GSAP core -->
+  <script src="libs/gsap/gsap.min.js"></script>
+  <script src="libs/gsap/ScrambleTextPlugin.min.js"></script>
+
+  <!--Lenis smooth scrolling-->
+  <script src="libs/lenis.min.js"></script>
+
+  <!-- JS files -->
+  <!-- <script type="module" scripts="/SmoothScroller.js"></script> -->
+
+
+
+</body>
+
+</html>

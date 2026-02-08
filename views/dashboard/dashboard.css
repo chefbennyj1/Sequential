@@ -1,0 +1,775 @@
+:root {
+  --bg: #303030;
+  --panel: #111;
+  --border: #222;
+  --text: #eee;
+  --muted: #777;
+  --accent: #00aaff;
+  --side-bar-width: 220px
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  height: 100dvh;
+}
+
+.dashboard {
+  display: flex;
+  width: 100%;
+}
+
+/* Sidebar */
+
+.sidebar.open {
+  width: var(--side-bar-width);
+  transform: translateX(0px);
+  /* start off-screen */
+}
+
+.sidebar {
+  width: var(--side-bar-width);
+  background: linear-gradient(135deg, #1a1a1a 0%, var(--bg) 100%);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 0 20px 20px;
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.7);
+  transform: translateX(-160px);
+  transition: all 0.5s ease-in-out;
+  z-index: 99;
+}
+
+/* The vertical accent line - REMOVED */
+/* .sidebar::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: var(--accent);
+  z-index: 1;
+} */
+
+.logo {
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+  text-shadow: 2px 2px 0px #000;
+  padding-right: 20px;
+}
+
+.sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  position: relative;
+  z-index: 2;
+  /* Sit above the sidebar line */
+}
+
+.sidebar li {
+  padding: 12px 20px;
+  cursor: pointer;
+  color: var(--muted);
+  transition: color 0.3s;
+  display: flex;
+  justify-content: space-between;
+  position: relative;
+  border-top-left-radius: 20px;
+  border-bottom-left-radius: 20px;
+}
+
+.sidebar li.active,
+.sidebar li:hover {
+  color: var(--text);
+}
+
+.sidebar li.active {
+  color: var(--accent);
+  font-weight: 600;
+
+
+  border-right: none;
+  /* Keep it open to the right */
+  box-shadow: -5px 5px 15px rgba(0, 0, 0, 0.3);
+  z-index: 3;
+}
+
+/* User area */
+.user {
+  border-top: 1px solid var(--border);
+  padding: 15px 20px 0 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+  z-index: 2;
+}
+
+
+.user .avatar:hover {
+  opacity: 0.8;
+  cursor: pointer;
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+}
+
+
+/* Dropdown styling */
+.user .dropdown {
+  position: absolute;
+  display: flex;
+  bottom: 60px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg);
+  border: 1px solid #e5e5e5;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  opacity: 0;
+  pointer-events: none;
+  flex-direction: column;
+  min-width: 160px;
+  padding: 8px 0;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.user .dropdown a,
+.user .dropdown button {
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  padding: 10px 16px;
+  font-size: 14px;
+  color: #fff;
+  cursor: pointer;
+}
+
+.user .dropdown a {
+  text-decoration: none;
+}
+
+.user .dropdown a:hover,
+.user .dropdown button:hover {
+  background: #f5f5f5;
+  color: #303030;
+}
+
+.user .dropdown.show {
+  opacity: 1;
+  transform: translate(-50%, -50%);
+  pointer-events: all;
+  transition: all 1s;
+
+}
+
+
+/* Main content */
+.main {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100dvh;
+}
+
+.main-content {
+  width: 100dvw;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  padding: 80px 20px 20px 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+.dashboard-section {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.account-settings {
+  width: 100%;
+  max-width: 500px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+/* Account section */
+.account-info .profile {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.profile-pic {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+}
+
+.meta {
+  border-top: 1px solid var(--border);
+  margin-top: 20px;
+  padding-top: 10px;
+  color: var(--muted);
+  font-size: 0.9em;
+}
+
+/* ===========================
+   Account Form Styling
+   =========================== */
+
+.account-settings {
+  max-width: 500px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 32px;
+  margin-top: 20px;
+}
+
+.account-settings h3 {
+  font-weight: 500;
+  font-size: 1.2rem;
+  margin-bottom: 24px;
+  color: var(--text);
+}
+
+/* Input Field */
+.input-field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.input-field label {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+.input-field input,
+.input-field textarea {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, background 0.2s;
+  font-family: inherit;
+}
+
+.input-field input:focus,
+.input-field textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #111;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group select,
+.input-field select,
+#mediaActionsList select {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  color: var(--text);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, background 0.2s;
+  width: 100%;
+  /* Make select boxes take full width of their container */
+  -webkit-appearance: none;
+  /* Remove default browser styling for selects */
+  -moz-appearance: none;
+  appearance: none;
+  background-image: url('data:image/svg+xml;charset=US-ASCII,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22292.4%22%20height%3D%22292.4%22%3E%3Cpath%20fill%3D%22%23FFFFFF%22%20d%3D%22M287%2069.4a17.6%2017.6%200%200%200-13-5.4H18.4c-5%200-9.3%201.8-12.9%205.4A17.6%2017.6%200%200%200%200%2082.2c0%205%201.8%209.3%205.4%2012.9l128%20127.9c3.6%203.6%207.8%205.4%2012.8%205.4s9.2-1.8%2012.8-5.4L287%2095c3.5-3.5%205.4-7.8%205.4-12.8%200-5-1.9-9.2-5.5-12.8z%22%2F%3E%3C%2Fsvg%3E');
+  background-repeat: no-repeat;
+  background-position: right 10px top 50%;
+  background-size: 10px auto;
+  cursor: pointer;
+}
+
+.form-group select:focus,
+.input-field select:focus,
+#mediaActionsList select:focus {
+  outline: none;
+  border-color: var(--accent);
+  background: #111;
+}
+
+.form-group label {
+  color: var(--muted);
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+/* Error message */
+.error-message {
+  color: #ff6b6b;
+  font-size: 0.8rem;
+  margin-top: 4px;
+  height: 14px;
+}
+
+/* Buttons */
+button {
+  background: var(--bg);
+  color: white;
+  border: 1px solid #555;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-radius: 4px;
+  font-family: 'Consolas', monospace;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+button:hover {
+  background: #444;
+  border-color: #777;
+}
+
+button.small {
+  padding: 4px 10px;
+  font-size: 0.8rem;
+}
+
+/* Submit Button */
+.update__btn {
+  background: var(--accent);
+  border: 1px solid var(--accent);
+  color: #fff;
+}
+
+.update__btn:hover {
+  background: #0088cc;
+  border-color: #0088cc;
+}
+
+/* ===========================
+   Dashboard Form Styling
+   =========================== */
+/* Chapters moved to components.css */
+
+/* Header Override for Dark Dashboard */
+header {
+  background-image: radial-gradient(rgba(0, 170, 255, 0.2) 33%, transparent 34%), radial-gradient(rgba(0, 170, 255, 0.2) 33%, transparent 34%) !important;
+  background-color: #111 !important;
+  border-bottom: 2px solid var(--accent) !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.8) !important;
+}
+
+header .logo-container {
+  color: var(--accent) !important;
+  text-shadow: 2px 2px 0px #000;
+}
+
+header .nav-button {
+  color: #fff;
+  text-decoration: none;
+  font-size: 0.9rem;
+  margin-left: 20px;
+  opacity: 0.7;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+header .nav-button:hover {
+  opacity: 1;
+  background: none;
+  border: none;
+}
+
+/* Fix for checkbox visibility and styling */
+input[type="checkbox"] {
+  accent-color: var(--accent);
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+input[type="checkbox"]:focus {
+  outline: 1px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* --- Dashboard Helper Classes --- */
+
+/* Layout */
+.flex-row {
+  display: flex;
+}
+
+.flex-row-center {
+  display: flex;
+  align-items: center;
+}
+
+.flex-between {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.flex-column {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-center {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.flex-wrap {
+  flex-wrap: wrap;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.gap-5 {
+  gap: 5px;
+}
+
+.gap-10 {
+  gap: 10px;
+}
+
+.gap-15 {
+  gap: 15px;
+}
+
+.gap-20 {
+  gap: 20px;
+}
+
+.gap-25 {
+  gap: 25px;
+}
+
+/* Spacing */
+.margin-b-10 {
+  margin-bottom: 10px;
+}
+
+.margin-b-15 {
+  margin-bottom: 15px;
+}
+
+.margin-b-20 {
+  margin-bottom: 20px;
+}
+
+.margin-b-30 {
+  margin-bottom: 30px;
+}
+
+.margin-b-40 {
+  margin-bottom: 40px;
+}
+
+.margin-t-5 {
+  margin-top: 5px;
+}
+
+.padding-20 {
+  padding: 20px;
+}
+
+.padding-30 {
+  padding: 30px;
+}
+
+.padding-40-20 {
+  padding: 40px 20px;
+}
+
+.padding-40-0 {
+  padding: 40px 0;
+}
+
+/* Sizing */
+.width-100 {
+  width: 100%;
+}
+
+.width-200 {
+  width: 200px;
+}
+
+.max-width-800 {
+  max-width: 800px;
+}
+
+/* Typography */
+.text-center {
+  text-align: center;
+}
+
+.text-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-uppercase {
+  text-transform: uppercase;
+}
+
+.letter-spacing-1 {
+  letter-spacing: 1px;
+}
+
+.letter-spacing-05 {
+  letter-spacing: 0.5px;
+}
+
+.font-size-07 {
+  font-size: 0.7rem;
+}
+
+.font-size-075 {
+  font-size: 0.75rem;
+}
+
+.font-size-08 {
+  font-size: 0.8rem;
+}
+
+.font-size-09 {
+  font-size: 0.9rem;
+}
+
+.font-size-1-1 {
+  font-size: 1.1rem;
+}
+
+.font-size-1-4 {
+  font-size: 1.4rem;
+}
+
+.font-bold {
+  font-weight: bold;
+}
+
+.font-500 {
+  font-weight: 500;
+}
+
+.mono {
+  font-family: 'Consolas', monospace;
+}
+
+/* Colors & Borders */
+.text-muted {
+  color: var(--muted);
+}
+
+.text-accent {
+  color: var(--accent);
+}
+
+.bg-dark {
+  background: var(--bg);
+}
+
+.bg-deep {
+  background: var(--bg);
+}
+
+.bg-panel {
+  background: var(--bg);
+}
+
+.bg-select {
+  background: var(--bg);
+  padding: 2em;
+}
+
+.border-accent {
+  border: 1px solid var(--accent);
+}
+
+.border-dim {
+  border: 1px solid #333;
+}
+
+.border-bright {
+  border: 1px solid #444;
+}
+
+.border-radius-4 {
+  border-radius: 4px;
+}
+
+.border-radius-8 {
+  border-radius: 8px;
+}
+
+.border-radius-12 {
+  border-radius: 12px;
+}
+
+/* Special UI Elements */
+.divider-v {
+  width: 1px;
+  height: 25px;
+  background: #333;
+}
+
+.gov-select {
+  padding: 5px;
+  border-radius: 4px;
+  background: var(--bg);
+  color: white;
+  border: 1px solid #555;
+}
+
+.gov-color-input {
+  height: 35px;
+  width: 40px;
+  padding: 0;
+  border: none;
+  cursor: pointer;
+  background: none;
+}
+
+.audio-config-row {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  background: var(--bg);
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid #333;
+}
+
+.btn-apply {
+  background: var(--accent) !important;
+  color: white !important;
+  border: none !important;
+  padding: 5px 15px !important;
+}
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  z-index: 2000;
+  justify-content: center;
+  align-items: center;
+}
+
+#fileBrowserModal {
+  z-index: 2001;
+}
+
+.saving-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.7);
+  z-index: 10000;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  color: white;
+}
+
+/* UI Containers */
+.narrow-container {
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* Volume Number Picker Styling */
+.volume-input {
+  width: 60px;
+  background: #111 !important;
+  border: 1px solid #444 !important;
+  color: var(--accent) !important;
+  padding: 5px !important;
+  border-radius: 4px !important;
+  font-family: 'Consolas', monospace !important;
+  font-weight: bold !important;
+  text-align: center !important;
+  outline: none !important;
+  transition: all 0.2s !important;
+}
+
+.volume-input:focus {
+  border-color: var(--accent) !important;
+  box-shadow: 0 0 5px rgba(0, 170, 255, 0.3) !important;
+}
+
+/* Customizing the spin buttons (arrows) */
+.volume-input::-webkit-inner-spin-button,
+.volume-input::-webkit-outer-spin-button {
+  opacity: 1 !important;
+  filter: invert(1) !important;
+  cursor: pointer !important;
+}
