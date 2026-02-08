@@ -40,7 +40,7 @@
   height: 100%;
   margin-top: 0;
   font-family: var(--font-family-comic);
-  font-size: clamp(1rem, 1.5vw, 1.2rem);
+  font-size: clamp(0.9rem, 1.3vw, 1.1rem);
   
 }
 
