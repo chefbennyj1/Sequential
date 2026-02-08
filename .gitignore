@@ -5,3 +5,8 @@ Thumbs.db
 cache/
 .gemini/
 *.log
+*.mp4
+*.webm
+*.avi
+*.mov
+*.mkv

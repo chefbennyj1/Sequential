@@ -19,11 +19,15 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
     const animate = async () => { 
         const myAnimationId = currentAnimationId;
 
-        audioVisualItemsToAnimate.forEach(item => {
-            if (item.loop) return;
-            if (item.hide) item.hide();
-            if (item.pause) item.pause();
-        });
+        // In Sequential mode, we don't want to hide previous items.
+        // We only hide/pause items that are explicitly NOT part of the cumulative reveal if needed,
+        // but for a comic experience, we usually want them to stay.
+        
+        // audioVisualItemsToAnimate.forEach(item => {
+        //     if (item.loop) return;
+        //     if (item.hide) item.hide();
+        //     if (item.pause) item.pause();
+        // });
 
         if (currentAudioElement) {
             currentAudioElement.pause();
@@ -140,9 +144,12 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
         if (myAnimationId !== currentAnimationId) return;
 
         // 4. Clean up & Next
+        // We DON'T hide the item in Sequential mode to keep the comic page intact
+        /*
         if (audioVisualItem.hide && !audioVisualItem.loop) {
             audioVisualItem.hide();
         }
+        */
 
         if (container && audioVisualItem.options) {
             const event = new CustomEvent('cueEnded', {
@@ -301,13 +308,29 @@ export async function initScene(container, pageInfo, sceneData) {
 
         // Gemini Comic Mode: Immediate Render
         const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.get('mode') === 'comic' || window.GEMINI_COMIC_MODE) {
+        const forceComicMode = urlParams.get('mode') === 'comic' || window.GEMINI_COMIC_MODE || true; // Default to true for Sequential Server
+
+        if (forceComicMode) {
             console.log("Comic Mode Active: Showing all bubbles immediately.");
             audioVisualItemsToAnimate.forEach(item => {
                 if (item.show) item.show();
                 // Ensure text is visible immediately
                 if (item.element) item.element.style.visibility = 'visible'; 
             });
+            
+            // Dispatch shown events for all items immediately so any linked media actions trigger
+            audioVisualItemsToAnimate.forEach(item => {
+                if (container && item.options) {
+                    const event = new CustomEvent('dialogueAudioStarted', {
+                        detail: { 
+                            dialogueItem: item.options,
+                            duration: 0 
+                        }
+                    });
+                    container.dispatchEvent(event);
+                }
+            });
+
             return { 
                 cleanup: () => {
                      audioVisualItemsToAnimate.forEach(item => {

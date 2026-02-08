@@ -1,100 +1,137 @@
+/* Sequential Comic Server - Super Bubble Styles */
+
+:root {
+    --bubble-bg-one: #fff;
+    --bubble-bg-two: #e0e0e0;
+    --bubble-border: #000;
+    --bubble-text: #000;
+    --bubble-font: "Comic Book", "Bangers", cursive;
+    --bubble-border-width: 2px;
+    --tail-size: 30px;
+}
+
 .speech-bubble-container {
-  position: absolute;
-  filter: drop-shadow(3px 3px 3px rgba(0, 0, 0, 0.5));
-  border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px !important;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.5s ease-in-out, visibility 0s linear 0.5s;
-  z-index: 99 !important;
+    position: absolute;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    max-width: 350px;
+    min-width: 150px;
+    width: fit-content;
+    z-index: 100;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease-in-out, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    transform: scale(0.8) translateY(10px);
 }
 
 .speech-bubble-container.visible {
-  opacity: 1;
-  visibility: visible;
-  transition: opacity 0.5s ease-in-out;
+    opacity: 1;
+    visibility: visible;
+    transform: scale(1) translateY(0);
 }
 
-.speech {
-  background-color: #fff;
-  border: solid 2px #fff;
-  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px !important;
-  display: inline-block;
-  margin: .5em;
-  padding: .5em 1em;
-  position: relative;
-  transform: rotateY(-15deg) skewY(-0.5deg);
-  box-shadow: inset 1px 1px 1px #fff, 1px 3px 1px #000;
-  filter: drop-shadow(-2px -2px 0px rgba(0, 0, 0, 1));
+.super-bubble {
+    position: relative;
+    padding: 20px 30px;
+    background-color: var(--bubble-bg-one);
+    background-image: radial-gradient(var(--bubble-bg-two) 25%, transparent 26%),
+                      radial-gradient(var(--bubble-bg-two) 25%, transparent 26%);
+    background-size: 6px 6px;
+    background-position: 0 0, 3px 3px;
+    border: var(--bubble-border-width) solid var(--bubble-border);
+    border-radius: 50% / 40%;
+    box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
+    text-align: center;
+    font-family: var(--bubble-font);
+    font-size: 1.1em;
+    line-height: 1.3;
+    color: var(--bubble-text);
+    word-wrap: break-word;
+    transform: rotate(-1deg);
 }
 
-/* Default tail: bottom-left */
-.speech:before,
-.speech:after {
-  border: solid 12px transparent;
-  border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px !important;
-  content: "";
-  height: 0;
-  position: absolute;
-  width: 0;
-
+/* Wobbly Border Effect */
+.super-bubble::before {
+    content: "";
+    position: absolute;
+    inset: -4px;
+    border: 1.5px solid var(--bubble-border);
+    border-radius: 52% / 42%;
+    transform: rotate(1.5deg);
+    pointer-events: none;
+    z-index: -1;
 }
 
-.speech:before {
-  border-left-color: #000;
-  border-top-color: #000;
-  transform: skew(-15deg);
+.super-bubble::after {
+    content: "";
+    position: absolute;
+    inset: -2px;
+    border: 1px solid var(--bubble-border);
+    border-radius: 48% / 38%;
+    transform: rotate(-1.5deg);
+    pointer-events: none;
+    z-index: -1;
 }
 
-.speech:after {
-  border-width: 10px;
-  border-left-color: #fff;
-  border-top-color: #fff;
-  transform: skew(-15deg);
+/* Tail Construction */
+.tail-container {
+    position: absolute;
+    width: var(--tail-size);
+    height: var(--tail-size);
+    z-index: -2; /* Sit behind the bubble */
 }
 
-/* Tail positions */
-.tail-bottom-left:before {
-  bottom: -24px;
-  left: 24px;
+.tail-shape {
+    width: 100%;
+    height: 100%;
+    background-color: var(--bubble-bg-one);
+    background-image: radial-gradient(var(--bubble-bg-two) 25%, transparent 26%),
+                      radial-gradient(var(--bubble-bg-two) 25%, transparent 26%);
+    background-size: 6px 6px;
+    background-position: 0 0, 3px 3px;
+    border-left: var(--bubble-border-width) solid var(--bubble-border);
+    border-bottom: var(--bubble-border-width) solid var(--bubble-border);
 }
 
-.tail-bottom-left:after {
-  bottom: -19px;
-  left: 27px;
+/* Tail Positions */
+.tail-bottom-left {
+    bottom: -15px;
+    left: 20%;
+    transform: skewX(-20deg) rotate(-10deg);
 }
 
-.tail-bottom-right:before {
-  bottom: -24px;
-  right: 24px;
-  transform: skew(15deg);
+.tail-bottom-right {
+    bottom: -15px;
+    right: 20%;
+    transform: scaleX(-1) skewX(-20deg) rotate(-10deg);
 }
 
-.tail-bottom-right:after {
-  bottom: -19px;
-  right: 27px;
-  transform: skew(15deg);
+.tail-top-left {
+    top: -15px;
+    left: 20%;
+    transform: scaleY(-1) skewX(-20deg) rotate(-10deg);
 }
 
-.tail-top-left:before {
-  top: -24px;
-  left: 24px;
-  transform: skew(15deg) rotate(180deg);
+.tail-top-right {
+    top: -15px;
+    right: 20%;
+    transform: scale(-1) skewX(-20deg) rotate(-10deg);
 }
 
-.tail-top-left:after {
-  top: -19px;
-  left: 27px;
-  transform: skew(15deg) rotate(180deg);
+/* Internal Monologue / Thought Bubble Style override */
+.speech-bubble-container.monologue .super-bubble {
+    background-image: none;
+    background-color: rgba(0, 0, 0, 0.85);
+    color: #fff;
+    border-radius: 5px;
+    border: 1px solid #444;
+    font-style: italic;
+    transform: none;
 }
 
-.tail-top-right:before {
-  top: -24px;
-  right: 24px;
-  transform: skew(-15deg) rotate(180deg);
-}
-
-.tail-top-right:after {
-  top: -19px;
-  right: 27px;
-  transform: skew(-15deg) rotate(180deg);
+.speech-bubble-container.monologue .super-bubble::before,
+.speech-bubble-container.monologue .super-bubble::after,
+.speech-bubble-container.monologue .tail-container {
+    display: none;
 }
