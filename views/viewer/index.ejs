@@ -42,22 +42,7 @@
     <script>
       // Global configuration from server
       window.APP_CONFIG = <%- JSON.stringify(config) %>;
-      // Default to "Comic Mode" (Static, Immediate Speech Bubbles)
-      // Remove this line to return to "Motion Comic Mode" (Video/Timed Audio)
-      window.GEMINI_COMIC_MODE = true; 
     </script>
-
-    <div
-      id="global-audio-data"
-      data-global-audio="<%= JSON.stringify(globalBackgroundAudio) %>"
-      style="display: none"
-    >
-      <div
-        id="global-page-transition-audio-data"
-        data-global-page-transition-audio="<%= JSON.stringify(globalPageTransitionAudio) %>"
-        style="display: none"
-      ></div>
-    </div>
 
     <script type="module">
       import { initPageManager } from "/services/public/PageManager.js";

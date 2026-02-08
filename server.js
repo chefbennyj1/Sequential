@@ -58,6 +58,10 @@ app.use(async (req, res, next) => {
     gcsBaseUrl: process.env.GCS_BASE_URL
   };
 
+  // Static Comic Server: No background audio
+  res.locals.globalBackgroundAudio = [];
+  res.locals.globalPageTransitionAudio = null;
+
   if (req.session.userId) {
     try {
       res.locals.user = await User.findById(req.session.userId);
