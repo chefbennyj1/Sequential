@@ -1,0 +1,53 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Split Sidebar Inverted (2a Merged)
+    
+    Based on Split_Sidebar_Inverted.
+    Changes:
+    - Bottom Row: Panels 2a and 2b are merged into a single wider panel (New 2a).
+    - Bottom Row: The old 2c becomes the New 2b.
+*/
+.page-layout.layout-split-sidebar-inverted-merged-2a {
+    display: grid;
+    grid-template-columns: repeat(18, 1fr);
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+}
+
+/* Left Sidebar (Tall) */
+.layout-split-sidebar-inverted-merged-2a .panel-1a {
+    grid-column: 1 / 5;
+    grid-row: 1 / 3;
+}
+
+/* Top Row (Large Panels - 1b, 1c) */
+.layout-split-sidebar-inverted-merged-2a .panel-1b {
+    grid-column: 5 / 12;
+    grid-row: 1 / 2;
+}
+.layout-split-sidebar-inverted-merged-2a .panel-1c {
+    grid-column: 12 / 19;
+    grid-row: 1 / 2;
+}
+
+/* Bottom Row (Merged 2a) */
+.layout-split-sidebar-inverted-merged-2a .panel-2a {
+    grid-column: 5 / 11; /* Spans old 2a + 2b (5-8 + 8-11) */
+    grid-row: 2 / 3;
+}
+
+/* Bottom Row (Old 2c becomes 2b) */
+.layout-split-sidebar-inverted-merged-2a .panel-2b {
+    grid-column: 11 / 19;
+    grid-row: 2 / 3;
+}
+</style>
+<div class="section-container page-layout layout-split-sidebar-inverted-merged-2a">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>

@@ -1,0 +1,50 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Grid 3x2 (Three columns, Two rows)
+    Refactored to explicit grid syntax.
+*/
+.page-layout.layout-three-col-two-row-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 10px;
+}
+
+/* Row 1 */
+.layout-three-col-two-row-grid .panel-1a { 
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+.layout-three-col-two-row-grid .panel-1b { 
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+}
+.layout-three-col-two-row-grid .panel-1c { 
+    grid-column: 3 / 4;
+    grid-row: 1 / 2;
+}
+
+/* Row 2 */
+.layout-three-col-two-row-grid .panel-2a { 
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+.layout-three-col-two-row-grid .panel-2b { 
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+}
+.layout-three-col-two-row-grid .panel-2c { 
+    grid-column: 3 / 4;
+    grid-row: 2 / 3;
+}
+</style>
+<div class="section-container page-layout layout-three-col-two-row-grid">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+    <div class="panel panel-2c"></div>
+</div>

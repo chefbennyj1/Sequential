@@ -55,13 +55,6 @@ router.get('/images/volumes/*path', isAuth, MediaController.serveImage); // Lega
 router.get("/images/:series/:volume/:chapter/:page/assets/:file", isAuth, MediaController.servePageImage);
 router.get("/api/images/:series/:volume/:chapter/:pageId/assets/:file", isAuth, MediaController.servePageImage); 
 
-router.get('/stream/video/:series/:volume/:chapter/:pageId/:fileName', isAuth, MediaController.streamVideo);
-router.get('/videos/:series/:volume/:chapter/:pageId/assets/video/:fileName', isAuth, MediaController.servePublicVideo);
-router.get('/videos/:series/:volume/:chapter/:pageId/assets/:fileName', isAuth, MediaController.servePublicVideo); // Optional fallback
-
-router.get('/thumbnails/video/:series/:volume/:chapter/:pageId/:fileName', isAuth, MediaController.serveVideoThumbnail);
-router.get('/audio/:series/:volume/:chapter/:pageId/assets/:fileName', isAuth, MediaController.servePublicAudio);
-
 // --- SCENE & MEDIA DATA ROUTES ---
 router.get('/scene/:series/:volume/:chapter/:pageId', isAuth, MediaController.getScene);
 router.get('/media/:series/:volume/:chapter/:pageId', isAuth, MediaController.getMedia);

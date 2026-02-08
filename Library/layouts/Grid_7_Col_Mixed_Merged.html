@@ -1,0 +1,60 @@
+<style>
+    @import url('/layouts/styles/base-comic-layout.css');
+
+    /* 
+    Layout: 7-Track Mixed Grid (Merged Top Left)
+    
+    Based on Grid_7_Col_Mixed.
+    Changes:
+    - Panels 1a and 1b are merged into a single wide panel (Panel 1a).
+    - Panel 1a now spans Columns 1-6.
+*/
+    .page-layout.layout-seven-col-mixed-merged {
+        display: grid;
+        grid-template-columns: repeat(12, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    /* --- Row 1 --- */
+
+    /* Top Left Merged: Spans cols 1-6 */
+    .layout-seven-col-mixed-merged .panel-1a {
+        grid-column: 1 / 6;
+        grid-row: 1 / 2;
+    }
+
+    /* Middle Span: Cols 6-9 */
+    .layout-seven-col-mixed-merged .panel-1b {
+        grid-column: 6 / 9;
+        grid-row: 1 / 3;
+    }
+
+    /* Top Right */
+    .layout-seven-col-mixed-merged .panel-1c {
+        grid-column: 9 / 13;
+        grid-row: 1 / 2;
+    }
+
+    /* --- Row 2 --- */
+
+    /* Bottom Left: Wide 16:9 */
+    .layout-seven-col-mixed-merged .panel-2a {
+        grid-column: 1 / 6;
+        grid-row: 2 / 3;
+    }
+
+    /* Bottom Right */
+    .layout-seven-col-mixed-merged .panel-2b {
+        grid-column: 9 / 13;
+        grid-row: 2 / 3;
+    }
+</style>
+<div class="section-container page-layout layout-seven-col-mixed-merged">
+    <div class="panel panel-1a"></div>
+    <!-- Panel 1b removed (merged into 1a) -->
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>

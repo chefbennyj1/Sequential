@@ -1,0 +1,34 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: 3 Vertical Columns (9:16)
+    Refactored to explicit grid syntax.
+*/
+.page-layout.layout-three-col-vertical-9x16 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: 1fr;
+    gap: 10px;
+}
+
+.layout-three-col-vertical-9x16 .panel-1a {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+
+.layout-three-col-vertical-9x16 .panel-1b {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+}
+
+.layout-three-col-vertical-9x16 .panel-1c {
+    grid-column: 3 / 4;
+    grid-row: 1 / 2;
+}
+</style>
+<div class="section-container page-layout layout-three-col-vertical-9x16">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+</div>

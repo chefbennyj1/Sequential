@@ -1,0 +1,82 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Masonry Mixed
+    A 12-column complex grid creating an interlocking "Masonry" look.
+    Perfect for montage sequences or chaotic action.
+*/
+.page-layout.layout-masonry-mixed {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(12, 1fr); /* Granular rows for varying heights */
+    gap: 12px;
+}
+
+/* 1. Tall Anchor (Top Left) */
+.layout-masonry-mixed .panel-1a {
+    grid-column: 1 / 5;
+    grid-row: 1 / 7;
+}
+
+/* 2. Wide Hero (Top Right) */
+.layout-masonry-mixed .panel-1b {
+    grid-column: 5 / 13;
+    grid-row: 1 / 5;
+}
+
+/* 3. Small Detail (Middle Right A) */
+.layout-masonry-mixed .panel-1c {
+    grid-column: 5 / 9;
+    grid-row: 5 / 8;
+}
+
+/* 4. Small Detail (Middle Right B) */
+.layout-masonry-mixed .panel-1d {
+    grid-column: 9 / 13;
+    grid-row: 5 / 8;
+}
+
+/* 5. Medium Square (Bottom Left) */
+.layout-masonry-mixed .panel-2a {
+    grid-column: 1 / 5;
+    grid-row: 7 / 11;
+}
+
+/* 6. Tall Slim (Bottom Center) */
+.layout-masonry-mixed .panel-2b {
+    grid-column: 5 / 8;
+    grid-row: 8 / 13;
+}
+
+/* 7. Large Block (Bottom Right) */
+.layout-masonry-mixed .panel-2c {
+    grid-column: 8 / 13;
+    grid-row: 8 / 12;
+}
+
+/* 8. Footer Strip (Bottom Left/Center) */
+.layout-masonry-mixed .panel-2d {
+    grid-column: 1 / 5;
+    grid-row: 11 / 13;
+}
+
+/* 9. Tiny corner filler (Bottom Right Corner) */
+.layout-masonry-mixed .panel-2e {
+    grid-column: 8 / 13;
+    grid-row: 12 / 13;
+}
+
+</style>
+<div class="section-container page-layout layout-masonry-mixed">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-1d"></div>
+    
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+    <div class="panel panel-2c"></div>
+    <div class="panel panel-2d"></div>
+    <div class="panel panel-2e"></div>
+</div>

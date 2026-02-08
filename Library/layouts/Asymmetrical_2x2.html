@@ -1,0 +1,45 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Asymmetrical 2x2
+    Refactored to explicit grid syntax.
+    Grid: 12x12
+*/
+.page-layout.layout-asymmetrical-2x2-grid {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(12, 1fr);
+    gap: 10px;
+}
+
+/* Top Left (Big) */
+.layout-asymmetrical-2x2-grid .panel-1a { 
+    grid-column: 1 / 7;
+    grid-row: 1 / 7; 
+}
+
+/* Top Right (Big) */
+.layout-asymmetrical-2x2-grid .panel-1b {
+    grid-column: 7 / 13;
+    grid-row: 1 / 7;
+}
+
+/* Bottom Left (Narrow) */
+.layout-asymmetrical-2x2-grid .panel-2a {
+    grid-column: 1 / 5;
+    grid-row: 7 / 13;
+}
+
+/* Bottom Right (Wide) */
+.layout-asymmetrical-2x2-grid .panel-2b {
+    grid-column: 5 / 13;
+    grid-row: 7 / 13;
+}
+</style>
+<div class="section-container page-layout layout-asymmetrical-2x2-grid">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>

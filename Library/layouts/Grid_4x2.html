@@ -1,0 +1,60 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/*
+    Layout: Grid 4x2 (Four columns, Two rows)
+    Refactored to explicit grid syntax and standard panel naming.
+*/
+.page-layout.layout-four-col-two-row-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 10px;
+}
+
+/* Row 1 */
+.layout-four-col-two-row-grid .panel-1a { 
+    grid-column: 1 / 2;
+    grid-row: 1 / 2; 
+}
+.layout-four-col-two-row-grid .panel-1b { 
+    grid-column: 2 / 3;
+    grid-row: 1 / 2; 
+}
+.layout-four-col-two-row-grid .panel-1c { 
+    grid-column: 3 / 4;
+    grid-row: 1 / 2; 
+}
+.layout-four-col-two-row-grid .panel-1d { 
+    grid-column: 4 / 5;
+    grid-row: 1 / 2; 
+}
+
+/* Row 2 */
+.layout-four-col-two-row-grid .panel-2a { 
+    grid-column: 1 / 2;
+    grid-row: 2 / 3; 
+}
+.layout-four-col-two-row-grid .panel-2b { 
+    grid-column: 2 / 3;
+    grid-row: 2 / 3; 
+}
+.layout-four-col-two-row-grid .panel-2c { 
+    grid-column: 3 / 4;
+    grid-row: 2 / 3; 
+}
+.layout-four-col-two-row-grid .panel-2d { 
+    grid-column: 4 / 5;
+    grid-row: 2 / 3; 
+}
+</style>
+<div class="section-container page-layout layout-four-col-two-row-grid">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-1d"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+    <div class="panel panel-2c"></div>
+    <div class="panel panel-2d"></div>
+</div>

@@ -1,0 +1,38 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Vertical Strips 4
+    Grid: 4x4
+*/
+.page-layout.layout-four-strip-vertical {  
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 10px;
+}
+
+/* All panels span full height */
+.layout-four-strip-vertical .panel-1a { 
+    grid-column: 1 / 2;
+    grid-row: 1 / 5; 
+}
+.layout-four-strip-vertical .panel-1b { 
+    grid-column:  2 / 3;
+    grid-row: 1 / 5; 
+}
+.layout-four-strip-vertical .panel-1c { 
+    grid-column: 3 / 4;
+    grid-row: 1 / 5; 
+}
+.layout-four-strip-vertical .panel-1d { 
+    grid-column: 4 / 5;
+    grid-row: 1 / 5; 
+}
+</style>
+<div class="section-container page-layout layout-four-strip-vertical">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-1d"></div>
+</div>

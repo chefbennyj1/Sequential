@@ -1,0 +1,22 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Standard Page (Single Panel)
+    Refactored to explicit grid syntax.
+*/
+.page-layout.layout-standard-page {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    gap: 0;
+}
+
+.layout-standard-page .panel-1a {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+</style>
+<div class="section-container page-layout layout-standard-page">
+    <div class="panel panel-1a"></div>
+</div>

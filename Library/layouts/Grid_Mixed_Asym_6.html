@@ -1,0 +1,61 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+.layout-mixed-asym-6 {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(12, 1fr);
+}
+
+/* TOP ROW */
+/* Panel 1a: 16:9 (Left) */
+.layout-mixed-asym-6 .panel-1a {
+    grid-column: 1 / 5;
+    grid-row: 1 / 7;
+}
+
+/* Panel 1b: 9:16 (Center Tall - Spans both rows to keep ratio) */
+.layout-mixed-asym-6 .panel-1b {
+    grid-column: 5 / 8;
+    grid-row: 1 / 5;
+}
+
+/* Panel 1c: Banner Long (Right) */
+.layout-mixed-asym-6 .panel-1c {
+    grid-column: 8 / 13;
+    grid-row: 1 / 5;
+}
+
+/* BOTTOM ROW */
+/* Panel 2a: 16:9 (Bottom Left) */
+.layout-mixed-asym-6 .panel-2a {
+    grid-column: 1 / 5;
+    grid-row: 7 / 13;
+}
+
+/* Panel 2b: 16:9 (Bottom Right Side A) */
+.layout-mixed-asym-6 .panel-2b {
+    grid-column: 5 / 10;
+    grid-row: 5 / 13;
+}
+
+/* Panel 2c: 16:9 (Bottom Right Side B) */
+.layout-mixed-asym-6 .panel-2c {
+    grid-column: 10 / 13;
+    grid-row: 5 / 13;
+}
+
+/* Preview helper: make the tall panel stand out in the browser */
+.mini-map-container .panel-1b {
+    background: rgba(var(--accent-rgb), 0.1) !important;
+}
+</style>
+
+<div class="section-container page-layout layout-mixed-asym-6">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+    <div class="panel panel-2c"></div>
+</div>

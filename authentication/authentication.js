@@ -45,6 +45,7 @@ router.post('/login', loginLimiter, async (req, res) => {
     }
 
     req.session.isAuth = true;
+    req.session.userId = user._id;
     req.session.user = {
       id: user._id,
       name: user.username,

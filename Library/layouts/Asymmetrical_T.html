@@ -1,0 +1,57 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Asymmetrical T
+    Refactored to explicit grid syntax.
+    Grid: 7 columns, 4 rows.
+*/
+.page-layout.layout-asymmetrical-t-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 10px;
+}
+
+/* Left Column (Tall) */
+.layout-asymmetrical-t-grid .panel-1a { 
+    grid-column: 1 / 3;
+    grid-row: 1 / 5;
+}
+
+/* Center Column (Tall) */
+.layout-asymmetrical-t-grid .panel-1b { 
+    grid-column: 3 / 5; 
+    grid-row: 1 / 5; 
+}
+
+/* Top Right */
+.layout-asymmetrical-t-grid .panel-1c {
+    grid-column: 5 / 8;
+    grid-row: 1 / 3;
+}
+
+/* Bottom Right (Split into 2a and 2b to use available divs) */
+.layout-asymmetrical-t-grid .panel-2a {
+    grid-column: 5 / 8;
+    grid-row: 3 / 4; 
+}
+.layout-asymmetrical-t-grid .panel-2b {
+    grid-column: 5 / 8;
+    grid-row: 4 / 5;
+}
+
+/* Extra panel (Hidden or stacked) */
+.layout-asymmetrical-t-grid .panel-2c {
+    display: none; 
+}
+
+</style>
+<div class="section-container page-layout layout-asymmetrical-t-grid">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+    <div class="panel panel-2c"></div>
+</div>

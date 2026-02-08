@@ -1,0 +1,63 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Grid Mixed V2 (24-Column Granular)
+    Strict indentation and explicit syntax.
+*/
+.page-layout.layout-mixed-v2 {
+    display: grid;
+    grid-template-columns: repeat(24, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 15px;
+}
+
+/* TOP ROW */
+/* 16:9 ratio (~8 units) */
+.layout-mixed-v2 .panel-1a {
+    grid-column: 1 / 9;
+    grid-row: 1 / 2;
+}
+
+/* 9:16 ratio (Narrow - ~3 units) */
+.layout-mixed-v2 .panel-1b {
+    grid-column: 9 / 12;
+    grid-row: 1 / 2;
+}
+
+/* Banner (Spans the rest: 13 units) */
+.layout-mixed-v2 .panel-1c {
+    grid-column: 12 / 25;
+    grid-row: 1 / 2;
+}
+
+/* BOTTOM ROW */
+/* Three equal 16:9 panels (8 units each) */
+.layout-mixed-v2 .panel-2a {
+    grid-column: 1 / 9;
+    grid-row: 2 / 3;
+}
+
+.layout-mixed-v2 .panel-2b {
+    grid-column: 9 / 17;
+    grid-row: 2 / 3;
+}
+
+.layout-mixed-v2 .panel-2c {
+    grid-column: 17 / 25;
+    grid-row: 2 / 3;
+}
+
+/* Label helper for the narrow panel */
+.mini-map-container .panel-1b::after {
+    font-size: 24px !important;
+}
+</style>
+<div class="section-container page-layout layout-mixed-v2">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+    <div class="panel panel-2c"></div>
+</div>

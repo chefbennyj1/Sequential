@@ -1,0 +1,40 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Four Panel Grid (2x2)
+    Refactored to explicit grid syntax.
+*/
+.page-layout.layout-four-panel-grid {  
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 10px;
+}
+
+/* Row 1 */
+.layout-four-panel-grid .panel-1a { 
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+.layout-four-panel-grid .panel-1b { 
+    grid-column: 2 / 3; 
+    grid-row: 1 / 2;
+}
+
+/* Row 2 */
+.layout-four-panel-grid .panel-2a { 
+    grid-column: 1 / 2;
+    grid-row: 2 / 3; 
+}
+.layout-four-panel-grid .panel-2b { 
+    grid-column: 2 / 3; 
+    grid-row: 2 / 3; 
+}
+</style>
+<div class="section-container page-layout layout-four-panel-grid">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>

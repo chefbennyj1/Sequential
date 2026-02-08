@@ -1,0 +1,48 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Grid 4 Col Middle Span (Modified)
+    Merged 1c and 1d into a single panel.
+*/
+.page-layout.layout-four-column-middle-span-merged {
+    display: grid;
+    /* 4 columns: 1.25fr 1fr 1.25fr 1.25fr */
+    grid-template-columns: 1.25fr 1fr 1.25fr 1.25fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+}
+
+/* Row 1 */
+.layout-four-column-middle-span-merged .panel-1a { 
+    grid-column: 1 / 2; 
+    grid-row: 1 / 2; 
+}
+.layout-four-column-middle-span-merged .panel-1b { 
+    grid-column: 2 / 3; 
+    grid-row: 1 / 3; 
+}
+/* Merged Panel 1c (formerly 1c + 1d) */
+.layout-four-column-middle-span-merged .panel-1c { 
+    grid-column: 3 / 5; 
+    grid-row: 1 / 2; 
+}
+
+/* Row 2 */
+.layout-four-column-middle-span-merged .panel-2a { 
+    grid-column: 1 / 2; 
+    grid-row: 2 / 3; 
+}
+.layout-four-column-middle-span-merged .panel-2b { 
+    grid-column: 3 / 5; 
+    grid-row: 2 / 3; 
+}
+
+</style>
+<div class="section-container page-layout layout-four-column-middle-span-merged">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>
