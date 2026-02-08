@@ -37,7 +37,7 @@
   background: #fff;
   position: relative;
   /* needed for absolute overlay */
-  height: 100dvh;
+  height: 100%;
   margin-top: 0;
   font-family: var(--font-family-comic);
   font-size: clamp(1rem, 1.5vw, 1.2rem);
@@ -61,6 +61,8 @@ video {
   object-fit: cover;
   height:105%;
   width:105%;
+  top: 0;
+  left: 0;
   position: absolute;
 }
 img {
@@ -68,6 +70,7 @@ img {
   height:100%;
   object-fit: cover;
   top:0;
+  left:0;
   position:absolute;
 }
 
