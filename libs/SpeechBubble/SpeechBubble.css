@@ -149,7 +149,7 @@
 }
 .tail-top-left::after {
     border-left-color: var(--bubble-bg-one);
-    border-top-color: var(--bubble-bg-one);
+    border-bottom-color: var(--bubble-bg-one);
     bottom: -12px;
     left: 2px;
     border-width: 12px;
