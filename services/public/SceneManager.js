@@ -12,22 +12,9 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
     let currentAudioElement = null;
     let itemEndedListener = null;
     let timeoutId = null;
-    
-    // Map to store resolve functions for media actions that are "blocking" execution
-    const pendingMediaActionResolvers = new Map();
 
     const animate = async () => { 
         const myAnimationId = currentAnimationId;
-
-        // In Sequential mode, we don't want to hide previous items.
-        // We only hide/pause items that are explicitly NOT part of the cumulative reveal if needed,
-        // but for a comic experience, we usually want them to stay.
-        
-        // audioVisualItemsToAnimate.forEach(item => {
-        //     if (item.loop) return;
-        //     if (item.hide) item.hide();
-        //     if (item.pause) item.pause();
-        // });
 
         if (currentAudioElement) {
             currentAudioElement.pause();
@@ -82,7 +69,6 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
                     resolve();
                 };
 
-                // NEW: Handle Audio Errors (e.g., 404 Missing File) to prevent hanging
                 const itemErrorListener = (e) => {
                     console.warn(`SceneManager: Audio failed to load/play (${currentAudioElement.src}). Skipping cue audio.`);
                     resolve();
@@ -105,9 +91,7 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
                     }, duration);
                 })
                 .catch(e => {
-                    // This catches play() rejections (e.g. NotAllowedError or 404 if browser detects early)
                     console.warn(`SceneManager audio play() rejected:`, e);
-                    // Resolve immediately to show the text anyway
                     resolve();
                 });
             }
@@ -118,7 +102,7 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
             }
         }));
 
-        // Trigger Media Action with calculated duration
+        // Trigger Media Action with calculated duration (Note: MediaActions removed from editor, but event kept for other listeners)
         if (container && audioVisualItem.options) { 
             const event = new CustomEvent('dialogueAudioStarted', {
                 detail: { 
@@ -129,33 +113,16 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
             container.dispatchEvent(event);
         }
 
-        // A. Media Action Wait (Optional)
-        if (audioVisualItem.options && audioVisualItem.options.mediaAction && audioVisualItem.options.mediaAction.waitForCompletion) {
-             console.log(`SceneManager: Waiting for media action completion for item ${audioVisualItem.options.id}`);
-             waitPromises.push(new Promise(resolve => {
-                 pendingMediaActionResolvers.set(audioVisualItem.options.id, resolve);
-            }));
-        }
-
         // 3. Wait for all conditions to be met
         await Promise.all(waitPromises);
 
         // Abort if a new animation has taken over
         if (myAnimationId !== currentAnimationId) return;
 
-        // 4. Clean up & Next
-        // We DON'T hide the item in Sequential mode to keep the comic page intact
-        /*
-        if (audioVisualItem.hide && !audioVisualItem.loop) {
-            audioVisualItem.hide();
-        }
-        */
-
         if (container && audioVisualItem.options) {
             const event = new CustomEvent('cueEnded', {
                 detail: { dialogueItem: audioVisualItem.options }
             });
-            console.log(`SceneManager: Dispatching cueEnded for item ${audioVisualItem.options?.id}`);
             container.dispatchEvent(event);
         }
 
@@ -181,10 +148,6 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
         clearTimeout(timeoutId);
         currentIndex = 0;
         
-        // Reset any pending resolvers
-        pendingMediaActionResolvers.forEach(resolve => resolve());
-        pendingMediaActionResolvers.clear();
-
         animate();
     };
 
@@ -198,10 +161,6 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
         }
         clearTimeout(timeoutId);
         
-        // Resolve any pending media actions so they don't hang if re-initialized
-        pendingMediaActionResolvers.forEach(resolve => resolve());
-        pendingMediaActionResolvers.clear();
-
         audioVisualItemsToAnimate.forEach(item => {
             if (item.destroy) {
                 item.destroy();
@@ -216,16 +175,7 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
         audioVisualItemsToAnimate.length = 0;
     };
 
-    const signalMediaActionCompletion = (id) => {
-        if (pendingMediaActionResolvers.has(id)) {
-            console.log(`SceneManager: Received completion signal for ${id}`);
-            const resolve = pendingMediaActionResolvers.get(id);
-            resolve();
-            pendingMediaActionResolvers.delete(id);
-        }
-    };
-
-    return { cleanup, restart: startAnimation, signalMediaActionCompletion };
+    return { cleanup, restart: startAnimation };
 }
 
 export async function initScene(container, pageInfo, sceneData) {
@@ -306,19 +256,14 @@ export async function initScene(container, pageInfo, sceneData) {
             return orderA - orderB;
         });
 
-        // Gemini Comic Mode: Immediate Render
-        const urlParams = new URLSearchParams(window.location.search);
-        const forceComicMode = urlParams.get('mode') === 'comic' || window.GEMINI_COMIC_MODE || true; // Default to true for Sequential Server
+        constforceComicMode = true; // Default to true for Sequential Server
 
         if (forceComicMode) {
-            console.log("Comic Mode Active: Showing all bubbles immediately.");
             audioVisualItemsToAnimate.forEach(item => {
                 if (item.show) item.show();
-                // Ensure text is visible immediately
                 if (item.element) item.element.style.visibility = 'visible'; 
             });
             
-            // Dispatch shown events for all items immediately so any linked media actions trigger
             audioVisualItemsToAnimate.forEach(item => {
                 if (container && item.options) {
                     const event = new CustomEvent('dialogueAudioStarted', {

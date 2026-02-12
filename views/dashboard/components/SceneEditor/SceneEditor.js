@@ -6,7 +6,6 @@
 
 import { fetchSceneData, saveSceneData, fetchPagePanels, fetchSeriesAPI, fetchCharactersAPI, saveMediaAPI, fetchAmbientMedia } from '../../studio/js/ApiService.js';
 import { updateUrlState } from '../../studio/js/Navigation.js';
-import { renderMediaActions, initMediaEditor } from '../../studio/js/MediaEditor.js';
 import { openFileBrowser } from '../FileBrowser/FileBrowser.js';
 
 let currentSceneData = [];
@@ -187,15 +186,6 @@ function renderSceneTree() {
             }
         }
 
-        let mediaIcons = '';
-        if (item.mediaAction && item.mediaAction.length > 0) {
-            const actions = Array.isArray(item.mediaAction) ? item.mediaAction : [item.mediaAction];
-            actions.forEach(action => {
-                if (action.type === 'image') mediaIcons += '<ion-icon name="image-outline" title="Image Action"></ion-icon>';
-                else if (action.type === 'Playlist') mediaIcons += '<ion-icon name="layers-outline" title="Playlist Action"></ion-icon>';
-            });
-        }
-
         li.innerHTML = `
             <div class="item-main">
                 <div class="item-header">
@@ -203,9 +193,6 @@ function renderSceneTree() {
                     <div style="display:flex; align-items:center;">
                         ${avatarHtml}
                         ${char ? `<span class="item-char">${char}</span>` : ''}
-                    </div>
-                    <div class="item-media-icons" style="margin-left:auto; display:flex; gap:5px; color:var(--accent);">
-                        ${mediaIcons}
                     </div>
                 </div>
                 ${previewText ? `<div class="item-text">${previewText}</div>` : ''}
@@ -296,33 +283,6 @@ function populateFormWithItem(item) {
 
     togglePropVisibility(item.displayType?.type);
 
-    const mediaActionContainer = document.getElementById('mediaActionsList');
-    const mediaActionCallbacks = {
-        onUpdate: (idx, key, val) => {
-            const action = currentSceneData[selectedItemIndex].mediaAction[idx];
-            action[key] = val;
-            if (key === 'type') {
-                if (val === 'image') {
-                    delete action.items; delete action.loop; delete action.posterName; delete action.syncToDialogue; delete action.action;
-                } else if (val === 'Playlist') {
-                    delete action.fileName; delete action.loop; delete action.syncToDialogue; delete action.posterName; delete action.action;
-                    if (!action.items) action.items = [];
-                }
-            }
-            populateFormWithItem(currentSceneData[selectedItemIndex]);
-        },
-        onRemove: (idx) => {
-            currentSceneData[selectedItemIndex].mediaAction.splice(idx, 1);
-            populateFormWithItem(currentSceneData[selectedItemIndex]);
-        },
-        onBrowse: (type, cb) => {
-            const active = getActiveAssets();
-            openFileBrowser(type, currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, cb, 'page', null, active);
-        },
-        availablePanels: availablePanels
-    };
-    renderMediaActions(mediaActionContainer, item.mediaAction, mediaActionCallbacks, { ...currentSceneInfo, series: activeSeriesId }, currentSceneData, selectedItemIndex);
-
     const mainPanelInput = document.getElementById('prop-panel');
     if (mainPanelInput) {
         mainPanelInput.setAttribute('list', 'availablePanelsList');
@@ -391,8 +351,6 @@ function togglePropVisibility(type) {
 }
 
 export function initSceneEditor() {
-    initMediaEditor(); 
-
     document.getElementById('closeSceneEditorBtn').onclick = () => {
         document.querySelector('.scene-editor').classList.add('hidden');
         document.querySelector('.page-builder').classList.remove('hidden');
@@ -441,18 +399,6 @@ export function initSceneEditor() {
             renderSceneTree();
         }
     };
-
-    const addAction = (type) => {
-        if (selectedItemIndex === -1) return;
-        const item = currentSceneData[selectedItemIndex];
-        if (!item.mediaAction) item.mediaAction = [];
-        const newAction = { type: type, panel: '', fileName: '', action: 'load' };
-        item.mediaAction.push(newAction);
-        populateFormWithItem(item);
-    };
-
-    document.getElementById('addMediaImageBtn').onclick = () => addAction('image');
-    document.getElementById('addMediaPlaylistBtn').onclick = () => addAction('Playlist');
 
     document.getElementById('sceneItemForm').addEventListener('input', (e) => {
         if(e.target.id?.startsWith('prop-')) updateSceneItemFromForm();
