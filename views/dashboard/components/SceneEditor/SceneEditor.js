@@ -292,6 +292,7 @@ function populateFormWithItem(item) {
     document.getElementById('prop-bottom').value = p.bottom || '';
     document.getElementById('prop-tail').value = p.tailPosition || '';
     document.getElementById('prop-tail-skew').value = p.tailSkew || '';
+    document.getElementById('prop-tail-height').value = p.tailHeight || '';
     document.getElementById('prop-duration').value = item.duration || '';
     document.getElementById('prop-panel-effect').value = item.panelEffect || '';
 
@@ -370,7 +371,8 @@ function updateSceneItemFromForm() {
         right: document.getElementById('prop-right').value,
         bottom: document.getElementById('prop-bottom').value,
         tailPosition: document.getElementById('prop-tail').value,
-        tailSkew: document.getElementById('prop-tail-skew').value
+        tailSkew: document.getElementById('prop-tail-skew').value,
+        tailHeight: document.getElementById('prop-tail-height').value
     };
     if (item.displayType.type === 'Pause') {
         item.duration = parseInt(document.getElementById('prop-duration').value) || 1000;
@@ -456,6 +458,19 @@ export function initSceneEditor() {
     document.getElementById('addMediaImageBtn').onclick = () => addAction('image');
     document.getElementById('addMediaPlaylistBtn').onclick = () => addAction('Playlist');
 
+    document.getElementById('targetTailTipBtn').onclick = () => {
+        const panel = document.getElementById('prop-panel').value;
+        if (!panel) return alert("Select a panel first.");
+        
+        // Switch to Visual Editor tab if not there
+        openVisualEditor(currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId);
+        
+        const iframe = document.getElementById('pagePreviewFrame');
+        if (iframe) {
+            iframe.contentWindow.postMessage({ type: 'startTargetingMode', panel }, '*');
+        }
+    };
+
     document.getElementById('sceneItemForm').addEventListener('input', (e) => {
         if(e.target.id?.startsWith('prop-')) updateSceneItemFromForm();
     });
@@ -480,6 +495,63 @@ export function initVisualEditor() {
     };
     window.addEventListener('message', (e) => {
         if (e.data.type === 'panelSelected') loadPanelEditor(e.data);
+        
+        if (e.data.type === 'tipTargeted') {
+            // Logic to calculate skew and scale
+            const xStr = e.data.x; // e.g. "45.50%"
+            const yStr = e.data.y; // e.g. "80.20%"
+            
+            const targetX = parseFloat(xStr);
+            const targetY = parseFloat(yStr);
+            
+            // We need to know where the bubble is positioned to calculate the vector
+            const topStr = document.getElementById('prop-top').value || "0%";
+            const leftStr = document.getElementById('prop-left').value || "0%";
+            const bottomStr = document.getElementById('prop-bottom').value;
+            const rightStr = document.getElementById('prop-right').value;
+            
+            const tailPos = document.getElementById('prop-tail').value || 'bottom-left';
+            
+            // Heuristic for attachment points (approx center of bubble corners)
+            // This is a simplification since we don't have the bubble's actual width/height here.
+            // We'll assume the bubble is roughly 30% wide and 15% tall for calculation purposes.
+            let baseX = parseFloat(leftStr);
+            let baseY = parseFloat(topStr);
+            
+            if (rightStr) baseX = 100 - parseFloat(rightStr) - 15; // Rough offset
+            if (bottomStr) baseY = 100 - parseFloat(bottomStr) - 7;
+            
+            // Adjust based on tail corner
+            if (tailPos.includes('right')) baseX += 25; else baseX += 5;
+            if (tailPos.includes('bottom')) baseY += 12; else baseY -= 2;
+
+            const dx = targetX - baseX;
+            const dy = targetY - baseY;
+            
+            // Skew calculation: tan(theta) = dx / dy
+            // CSS skewX is inverted relative to vertical
+            let skew = 0;
+            if (Math.abs(dy) > 0.1) {
+                const rad = Math.atan2(dx, Math.abs(dy));
+                skew = (rad * 180 / Math.PI);
+                // Flip for top tails because they grow "up"
+                if (tailPos.includes('top')) skew = -skew;
+            }
+            
+            // Scale calculation: distance based on standard tail size (30px)
+            // 1% of a standard 1080p height is ~10px. 30px is ~3%.
+            const dist = Math.sqrt(dx*dx + dy*dy);
+            const scale = (dist / 3).toFixed(2);
+            
+            document.getElementById('prop-tail-skew').value = skew.toFixed(1) + "deg";
+            document.getElementById('prop-tail-height').value = scale;
+            
+            // Return to Scene Editor tab
+            document.querySelectorAll('.dashboard-section').forEach(s => s.classList.add('hidden'));
+            document.querySelector('.scene-editor').classList.remove('hidden');
+            
+            updateSceneItemFromForm();
+        }
     });
 }
 

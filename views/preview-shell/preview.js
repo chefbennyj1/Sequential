@@ -5,8 +5,11 @@ export async function init(container, params) {
 
     // --- 1. Resizer ---
     function fitContainer() {
-        const sectionContainer = container.querySelector('.section-container');
+        const sectionContainer = container.querySelector('.section-container') || container.querySelector('.page-layout');
         if (!sectionContainer) return;
+        
+        // Add the pageId class so page.css selectors match
+        sectionContainer.classList.add(pageId);
         
         sectionContainer.style.transform = 'none';
         const padding = 40;
@@ -93,7 +96,8 @@ export async function init(container, params) {
     // --- 4. Loader ---
     async function loadExistingMedia() {
         try {
-            const res = await fetch(`/api/media/${volume}/${chapter}/${pageId}`);
+            const series = params.series || 'No_Overflow';
+            const res = await fetch(`/api/media/${series}/${volume}/${chapter}/${pageId}`);
             const data = await res.json();
             
             if (data.ok && data.media && Array.isArray(data.media.media)) {
@@ -102,12 +106,13 @@ export async function init(container, params) {
                     if (!panel) return;
 
                     let el;
+                    const series = params.series || 'No_Overflow';
                     if (item.type === 'image') {
                         el = document.createElement('img');
-                        el.src = `/api/images/No_Overflow/${volume}/${chapter}/${pageId}/assets/${item.fileName}`;
+                        el.src = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${item.fileName}`;
                     } else if (item.type === 'video') {
                         el = document.createElement('video');
-                        el.src = `/api/videos/No_Overflow/${volume}/${chapter}/${pageId}/assets/${item.fileName}`;
+                        el.src = `/api/videos/${series}/${volume}/${chapter}/${pageId}/assets/${item.fileName}`;
                         el.muted = true;
                         el.controls = true;
                     }
@@ -167,6 +172,29 @@ export async function init(container, params) {
                 const label = p.querySelector('.panel-label');
                 activeUploadTarget = { panel: p, panelClass: pClass, label: label };
                 fileInput.click();
+            }
+        }
+
+        if (e.data.type === 'startTargetingMode') {
+            container.classList.add('targeting-mode');
+            const targetPanel = container.querySelector(e.data.panel);
+            if (targetPanel) {
+                const onClick = (evt) => {
+                    const rect = targetPanel.getBoundingClientRect();
+                    const x = ((evt.clientX - rect.left) / rect.width) * 100;
+                    const y = ((evt.clientY - rect.top) / rect.height) * 100;
+                    
+                    window.parent.postMessage({
+                        type: 'tipTargeted',
+                        panel: e.data.panel,
+                        x: x.toFixed(2) + '%',
+                        y: y.toFixed(2) + '%'
+                    }, '*');
+                    
+                    container.classList.remove('targeting-mode');
+                    targetPanel.removeEventListener('click', onClick, true);
+                };
+                targetPanel.addEventListener('click', onClick, true);
             }
         }
     });

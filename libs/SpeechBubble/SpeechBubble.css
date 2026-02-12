@@ -85,7 +85,8 @@
     height: 0;
     z-index: 10;
     pointer-events: none;
-    transform: skewX(var(--tail-skew, var(--default-skew, 0deg)));
+    /* Use scaleY for length, skewX for direction */
+    transform: skewX(var(--tail-skew, var(--default-skew, 0deg))) scaleY(var(--tail-scale, 1));
 }
 
 .tail-container::before,
@@ -102,6 +103,7 @@
     --default-skew: -15deg;
     bottom: -5px; /* Pushed down 5px */
     left: 20%;
+    transform-origin: center top;
 }
 .tail-bottom-left::before {
     border-left-color: var(--bubble-border);
@@ -121,6 +123,7 @@
     --default-skew: 15deg;
     bottom: -5px; /* Pushed down 5px */
     right: 20%;
+    transform-origin: center top;
 }
 .tail-bottom-right::before {
     border-right-color: var(--bubble-border);
@@ -141,6 +144,7 @@
     --default-skew: 15deg;
     top: -5px; /* Pushed up 5px */
     left: 20%;
+    transform-origin: center bottom;
 }
 .tail-top-left::before {
     border-left-color: var(--bubble-border);
@@ -160,6 +164,7 @@
     --default-skew: -15deg;
     top: -5px; /* Pushed up 5px */
     right: 20%; /* Fixed: was left: 80% */
+    transform-origin: center bottom;
 }
 .tail-top-right::before {
     border-right-color: var(--bubble-border);

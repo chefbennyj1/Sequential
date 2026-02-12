@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="/Library/No_Overflow/Volumes/<%= volume %>/<%= chapter %>/<%= pageId %>/page.css">
 </head>
 <body class="preview-mode">
+    <div class="targeting-overlay">TARGETING MODE: CLICK PANEL TO SET TAIL TIP</div>
     <input type="file" id="globalPanelUpload" style="display:none" accept="image/*,video/*">
 
     <div id="preview-container">
@@ -23,6 +24,7 @@
             
             const container = document.getElementById('preview-container');
             const params = {
+                series: "<%= typeof series !== 'undefined' ? series : 'No_Overflow' %>",
                 volume: "<%= volume %>",
                 chapter: "<%= chapter %>",
                 pageId: "<%= pageId %>"

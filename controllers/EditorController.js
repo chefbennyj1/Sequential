@@ -323,7 +323,7 @@ exports.servePreview = async (req, res) => {
         ? fs.readFileSync(templatePath, 'utf8') 
         : `<div class="page-layout ${layoutId}">Layout Not Found</div>`;
 
-    res.render("preview-shell/preview", { volume, chapter, pageId, content });
+    res.render("preview-shell/preview", { series, volume, chapter, pageId, content });
   } catch (err) {
       console.error("Preview Error:", err);
       res.status(500).send("Error serving preview");
