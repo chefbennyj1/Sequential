@@ -16,17 +16,15 @@
     <div class="logo-wrapper">
       <div class="logo-container">
         <a href="/" class="logo-link">
-            <div id="header-logo" data-text="SEQUENTIAL" class="">SEQUENTIAL</div>
+          <div id="header-logo" data-text="SEQUENTIAL" class="">SEQUENTIAL</div>
         </a>
       </div>
     </div>
     <nav>
-        <a href="/dashboard" class="dashboard-nav-link">DASHBOARD</a>
+      <a href="/dashboard" class="dashboard-nav-link">DASHBOARD</a>
     </nav>
   </header>
 
-  <canvas id="tube-cursor"></canvas>
-  
   <section id="library-page" class="library-page scroll-section active"></section>
 
   <script type="module">
@@ -42,7 +40,7 @@
 
       await loadCSS('/views/library/library.css');
       await loadCSS('/libs/TiltEffect/tiltEffects.css');
-      
+
       const libraryPage = document.querySelector('.library-page');
       libraryPage.classList.add('active');
     })();
@@ -54,50 +52,7 @@
 
   <!-- GSAP core -->
   <script src="libs/gsap/gsap.min.js"></script>
-  
-  <script>
-    (() => {
-      const canvas = document.getElementById('tube-cursor');
-      const ctx = canvas.getContext('2d');
-      let width = canvas.width = window.innerWidth;
-      let height = canvas.height = window.innerHeight;
-      window.addEventListener('resize', () => {
-        width = canvas.width = window.innerWidth;
-        height = canvas.height = window.innerHeight;
-      });
-      const points = [];
-      const maxPoints = 30;
-      let mouse = { x: width / 2, y: height / 2 };
-      window.addEventListener('mousemove', e => {
-        mouse.x = e.clientX;
-        mouse.y = e.clientY;
-      });
-      function lerp(a, b, t) {
-        return a + (b - a) * t;
-      }
-      function draw() {
-        ctx.clearRect(0, 0, width, height);
-        points.unshift({ x: mouse.x, y: mouse.y });
-        if (points.length > maxPoints) points.pop();
-        for (let i = 0; i < points.length - 1; i++) {
-          const p0 = points[i];
-          const p1 = points[i + 1];
-          const t = i / points.length;
-          const radius = lerp(10, 2, t);
-          ctx.beginPath();
-          ctx.moveTo(p0.x, p0.y);
-          ctx.lineTo(p1.x, p1.y);
-          ctx.strokeStyle = `hsla(${200 + t * 50}, 100%, 60%, ${1 - t})`;
-          ctx.lineWidth = radius;
-          ctx.shadowColor = `hsla(200,100%,70%,0.5)`;
-          ctx.shadowBlur = 8;
-          ctx.stroke();
-        }
-        requestAnimationFrame(draw);
-      }
-      draw();
-    })();
-  </script>
+
 </body>
 
 </html>

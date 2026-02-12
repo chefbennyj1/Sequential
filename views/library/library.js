@@ -70,20 +70,20 @@ function renderCarousel() {
         slide.querySelector('.series-title').title = series.title; // For glitch attr
         slide.querySelector('.series-description').textContent = series.description || "No description available.";
 
-                        // Button Link
-                        const btn = slide.querySelector('.get-started-btn-hero');
-                        
-                        // Link to the Series Detail Page
-                        if (series._id) {
-                            btn.href = `/library/series/${series._id}`; 
-                        } else {
-                            // Fallback
-                            btn.href = '#';
-                            btn.textContent = "COMING SOON";
-                            btn.style.opacity = 0.5;
-                            btn.style.cursor = "default";
-                        }                
-                // Store images data on the element for easy access        slide.dataset.images = JSON.stringify(series.images || []);
+        // Button Link
+        const btn = slide.querySelector('.get-started-btn-hero');
+
+        // Link to the Series Detail Page
+        if (series._id) {
+            btn.href = `/library/series/${series._id}`;
+        } else {
+            // Fallback
+            btn.href = '#';
+            btn.textContent = "COMING SOON";
+            btn.style.opacity = 0.5;
+            btn.style.cursor = "default";
+        }
+        // Store images data on the element for easy access        slide.dataset.images = JSON.stringify(series.images || []);
         slide.dataset.index = index;
 
         track.appendChild(slide);
