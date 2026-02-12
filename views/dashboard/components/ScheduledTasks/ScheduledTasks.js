@@ -23,8 +23,8 @@ export default class ScheduledTaskView {
         const backBtn = this.container.querySelector('.back-to-studio-btn');
         if (backBtn) {
             backBtn.addEventListener('click', () => {
-                this.container.style.display = 'none';
-                document.querySelector('.studio').style.display = 'block';
+                this.container.classList.add('hidden');
+                document.querySelector('.studio').classList.remove('hidden');
             });
         }
     }
@@ -37,18 +37,18 @@ export default class ScheduledTaskView {
             if (data.ok) {
                 this.renderRoots(data.roots);
             } else {
-                this.rootsList.innerHTML = `<div style="color:red">Error: ${data.message}</div>`;
+                this.rootsList.innerHTML = `<div class="text-accent">Error: ${data.message}</div>`;
             }
         } catch (e) {
             console.error(e);
-            this.rootsList.innerHTML = `<div style="color:red">Failed to load roots.</div>`;
+            this.rootsList.innerHTML = `<div class="text-accent">Failed to load roots.</div>`;
         }
     }
 
     renderRoots(roots) {
         this.rootsList.innerHTML = '';
         if (roots.length === 0) {
-            this.rootsList.innerHTML = '<div style="color:#666;">No roots configured.</div>';
+            this.rootsList.innerHTML = '<div class="text-muted">No roots configured.</div>';
             return;
         }
 

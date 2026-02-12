@@ -25,7 +25,7 @@ export async function openFileBrowser(type, volume, chapter, pageId, callback, i
     const searchInput = document.getElementById('fbSearchInput');
 
     if (modal) {
-        modal.style.display = 'flex';
+        modal.classList.add('active');
         uploadInput.accept = type === 'image' ? 'image/*' : (type === 'audio' ? 'audio/*' : 'video/*');
         
         // Reset filters
@@ -42,7 +42,7 @@ async function refreshFileBrowser() {
     const status = document.getElementById('fileBrowserStatus');
     const scope = document.getElementById('fbScopeSelect').value;
 
-    grid.innerHTML = '<p style="color:#aaa;">Loading...</p>';
+    grid.innerHTML = '<p class="text-muted">Loading...</p>';
     status.textContent = `Browsing ${fileBrowserCurrentType}s (${scope})...`;
 
     const data = await fetchPageAssets(
@@ -57,7 +57,7 @@ async function refreshFileBrowser() {
         allFiles = data.files || [];
         applyFiltersAndSort();
     } else {
-        grid.innerHTML = `<p style="color:red;">Error: ${data.message}</p>`;
+        grid.innerHTML = `<p class="text-accent">Error: ${data.message}</p>`;
         allFiles = [];
     }
 }
@@ -86,7 +86,7 @@ function renderFileBrowserGrid(files) {
     grid.innerHTML = '';
 
     if (files.length === 0) {
-        grid.innerHTML = '<p style="color:#aaa;">No files found.</p>';
+        grid.innerHTML = '<p class="text-muted">No files found.</p>';
         return;
     }
 
@@ -123,24 +123,24 @@ function renderFileBrowserGrid(files) {
         if (fileBrowserCurrentType === 'image') {
             preview = `
                 <div class="preview-container">
-                    <img src="${assetUrl}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div style="display: none; align-items: center; justify-content: center; width: 100%; height: 100%;">
-                        <ion-icon name="image-outline" style="font-size: 2rem; color: #666;"></ion-icon>
+                    <img src="${assetUrl}" onerror="this.classList.add('asset-preview-hidden'); this.nextElementSibling.classList.remove('asset-preview-hidden');">
+                    <div class="asset-preview-fallback asset-preview-hidden">
+                        <ion-icon name="image-outline" class="asset-preview-icon"></ion-icon>
                     </div>
                 </div>`;
         } else if (fileBrowserCurrentType === 'video') {
             preview = `
                 <div class="preview-container">
                     <img src="${assetUrl}" 
-                         style="position: absolute; top: 0; left: 0; width:100%; height:100%; object-fit:cover; border-radius: 4px; display:none; z-index: 2;"
-                         onload="this.style.display='block'; this.nextElementSibling.style.display='none';"
-                         onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                    <div style="display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; z-index: 1;">
-                        <ion-icon name="videocam-outline" style="font-size: 2rem; color: #666;"></ion-icon>
+                         class="asset-preview-video asset-preview-hidden"
+                         onload="this.classList.remove('asset-preview-hidden'); this.nextElementSibling.classList.add('asset-preview-hidden');"
+                         onerror="this.classList.add('asset-preview-hidden'); this.nextElementSibling.classList.remove('asset-preview-hidden');">
+                    <div class="asset-preview-video-container">
+                        <ion-icon name="videocam-outline" class="asset-preview-icon"></ion-icon>
                     </div>
                 </div>`;
         } else if (fileBrowserCurrentType === 'audio') {
-            preview = `<div class="preview-container"><ion-icon name="musical-notes-outline" style="font-size: 2rem; color: #666;"></ion-icon></div>`;
+            preview = `<div class="preview-container"><ion-icon name="musical-notes-outline" class="asset-preview-icon"></ion-icon></div>`;
         }
 
         div.innerHTML = `${preview}<div class="file-name">${file.name}</div>`;
@@ -161,7 +161,7 @@ function renderFileBrowserGrid(files) {
 
 export function closeFileBrowser() {
     const modal = document.getElementById('fileBrowserModal');
-    if (modal) modal.style.display = 'none';
+    if (modal) modal.classList.remove('active');
     fileBrowserCallback = null;
 }
 

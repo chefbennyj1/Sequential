@@ -26,7 +26,7 @@ export async function setActivePage(vol, chap, page) {
 
     if (!toolbar || !display) return;
 
-    toolbar.style.display = 'block';
+    toolbar.classList.remove('hidden');
     display.textContent = `${vol} / ${chap} / ${page}`;
 
     // Link context to buttons

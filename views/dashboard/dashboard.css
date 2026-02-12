@@ -39,6 +39,7 @@ body {
 .dashboard {
   display: flex;
   width: 100%;
+  height: 100%;
 }
 
 /* Sidebar */
@@ -51,8 +52,11 @@ body {
 
 .sidebar {
   width: var(--side-bar-width);
+  height: 100dvh;
   background: linear-gradient(135deg, #1a1a1a 0%, var(--bg) 100%);
-  position: relative;
+  position: fixed;
+  top: 0;
+  left: 0;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -60,7 +64,7 @@ body {
   box-shadow: 5px 0 15px rgba(0, 0, 0, 0.7);
   transform: translateX(-160px);
   transition: all 0.5s ease-in-out;
-  z-index: 99;
+  z-index: 1000;
 }
 
 /* The vertical accent line - REMOVED */
@@ -206,7 +210,8 @@ body {
 }
 
 .main-content {
-  width: 100dvw;
+  flex: 1;
+  width: auto;
   height: 100dvh;
   display: flex;
   flex-direction: column;
@@ -215,6 +220,7 @@ body {
   padding: 80px 20px 20px 20px;
   box-sizing: border-box;
   overflow-y: auto;
+  margin-left: 60px; /* Peek-a-boo trigger area */
 }
 
 .dashboard-section {
@@ -764,6 +770,43 @@ input[type="checkbox"]:focus {
   display: none !important;
 }
 
+.asset-preview-hidden {
+  display: none !important;
+}
+
+.asset-preview-fallback {
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  width: 100%; 
+  height: 100%;
+}
+
+.asset-preview-video {
+  position: absolute; 
+  top: 0; 
+  left: 0; 
+  width: 100%; 
+  height: 100%; 
+  object-fit: cover; 
+  border-radius: 4px; 
+  z-index: 2;
+}
+
+.asset-preview-icon {
+  font-size: 2rem; 
+  color: #666;
+}
+
+.asset-preview-video-container {
+  display: flex; 
+  align-items: center; 
+  justify-content: center; 
+  width: 100%; 
+  height: 100%; 
+  z-index: 1;
+}
+
 /* --- Dashboard Helper Classes --- */
 
 /* Layout */
@@ -1036,6 +1079,10 @@ input[type="checkbox"]:focus {
   z-index: 2000;
   justify-content: center;
   align-items: center;
+}
+
+.modal-overlay.active {
+  display: flex;
 }
 
 #fileBrowserModal {

@@ -241,8 +241,8 @@ function handleDrop(e) {
 function selectSceneItem(index) {
     selectedItemIndex = index;
     renderSceneTree();
-    document.getElementById('sceneItemEditor').style.display = 'block';
-    document.getElementById('sceneItemPlaceholder').style.display = 'none';
+    document.getElementById('sceneItemEditor').classList.remove('hidden');
+    document.getElementById('sceneItemPlaceholder').classList.add('hidden');
     populateFormWithItem(currentSceneData[index]);
 }
 
@@ -292,6 +292,7 @@ function populateFormWithItem(item) {
     document.getElementById('prop-bottom').value = p.bottom || '';
     document.getElementById('prop-tail').value = p.tailPosition || '';
     document.getElementById('prop-duration').value = item.duration || '';
+    document.getElementById('prop-panel-effect').value = item.panelEffect || '';
 
     togglePropVisibility(item.displayType?.type);
 
@@ -350,7 +351,7 @@ function updateSceneItemFromForm() {
     
     const select = document.getElementById('prop-character-select');
     const input = document.getElementById('prop-character');
-    if (select && select.style.display !== 'none' && select.value) {
+    if (select && !select.classList.contains('hidden') && select.value) {
         item.characterId = select.value;
         item.character = select.options[select.selectedIndex].text;
     } else {
@@ -359,6 +360,8 @@ function updateSceneItemFromForm() {
     }
 
     item.text = document.getElementById('prop-text').value;
+    item.panelEffect = document.getElementById('prop-panel-effect').value;
+
     item.placement = {
         panel: document.getElementById('prop-panel').value,
         top: document.getElementById('prop-top').value,
@@ -378,21 +381,21 @@ function togglePropVisibility(type) {
         char: document.querySelector('.prop-group-character'),
         text: document.querySelector('.prop-group-text'),
         dur: document.querySelector('.prop-group-duration'),
-        place: document.querySelector('.prop-group-placement')
+        place: document.querySelector('.props-group')
     };
     const isPause = type === 'Pause';
-    if (groups.char) groups.char.style.display = isPause ? 'none' : 'block';
-    if (groups.text) groups.text.style.display = isPause ? 'none' : 'block';
-    if (groups.place) groups.place.style.display = isPause ? 'none' : 'block';
-    if (groups.dur) groups.dur.style.display = isPause ? 'block' : 'none';
+    if (groups.char) isPause ? groups.char.classList.add('hidden') : groups.char.classList.remove('hidden');
+    if (groups.text) isPause ? groups.text.classList.add('hidden') : groups.text.classList.remove('hidden');
+    if (groups.place) isPause ? groups.place.classList.add('hidden') : groups.place.classList.remove('hidden');
+    if (groups.dur) isPause ? groups.dur.classList.remove('hidden') : groups.dur.classList.add('hidden');
 }
 
 export function initSceneEditor() {
     initMediaEditor(); 
 
     document.getElementById('closeSceneEditorBtn').onclick = () => {
-        document.querySelector('.scene-editor').style.display = 'none';
-        document.querySelector('.page-builder').style.display = 'block';
+        document.querySelector('.scene-editor').classList.add('hidden');
+        document.querySelector('.page-builder').classList.remove('hidden');
     };
 
     document.getElementById('addItemBtn').onclick = () => {
@@ -433,8 +436,8 @@ export function initSceneEditor() {
         if (selectedItemIndex !== -1 && confirm("Are you sure?")) {
             currentSceneData.splice(selectedItemIndex, 1);
             selectedItemIndex = -1;
-            document.getElementById('sceneItemEditor').style.display = 'none';
-            document.getElementById('sceneItemPlaceholder').style.display = 'block';
+            document.getElementById('sceneItemEditor').classList.add('hidden');
+            document.getElementById('sceneItemPlaceholder').classList.remove('hidden');
             renderSceneTree();
         }
     };
@@ -462,16 +465,16 @@ export function initSceneEditor() {
 }
 
 export function openVisualEditor(volume, chapter, pageId) {
-    document.querySelectorAll('.dashboard-section').forEach(s => s.style.display = 'none');
-    document.querySelector('.layout-editor').style.display = 'block';
+    document.querySelectorAll('.dashboard-section').forEach(s => s.classList.add('hidden'));
+    document.querySelector('.layout-editor').classList.remove('hidden');
     const iframe = document.getElementById('pagePreviewFrame');
     if (iframe) iframe.src = `/api/editor/preview/${activeSeriesId}/${volume}/${chapter}/${pageId}`;
 }
 
 export function initVisualEditor() {
     document.getElementById('closeEditorBtn').onclick = () => {
-        document.querySelector('.layout-editor').style.display = 'none';
-        document.querySelector('.page-builder').style.display = 'block';
+        document.querySelector('.layout-editor').classList.add('hidden');
+        document.querySelector('.page-builder').classList.remove('hidden');
     };
     window.addEventListener('message', (e) => {
         if (e.data.type === 'panelSelected') loadPanelEditor(e.data);

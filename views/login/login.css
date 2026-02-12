@@ -15,9 +15,16 @@ body {
 }
 
 
+.section-container {
+  position: relative;
+  width: 100dvw;
+  height: 100dvh;
+  overflow: hidden;
+}
+
 .bg-container {
   position: absolute;
-  top: 55%;
+  top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
   z-index: -1;
@@ -45,7 +52,7 @@ body {
   background-position: center center;
   background-repeat: no-repeat;
   transition: opacity 1s ease-in-out;
-  background: url(/views/login/135c430e-de1d-4664-8229-c42a9f856f89_5521487.png) center center / cover no-repeat;
+  background: url(/views/login/background.png) center center / cover no-repeat;
 }
 
 .login {
@@ -60,41 +67,14 @@ body {
   position: absolute;
   top: 50%;
   left: 50%;
-  /* background-image: radial-gradient(gray 33%, transparent 34%), radial-gradient(gray 33%, transparent 34%) !important;
-  background: rgba(255, 255, 255, 0.79);
-  background-size: 5px 5px;
-  background-position: 0 0, 2.5px 2.5px; */
-  visibility: hidden;
-
-
+  transform: translate(-50%, -50%);
+  display: none;
 }
 
-.login-form-container {
-  transform: translate(-100%, -50%);
-}
-
-.register-form-container {
-  transform: translate(-50%, -45%);
-  min-width: 20dvw;
-}
-
-@media (max-width: 468px) {
-
-  .login-form-container,
-  .register-form-container {
-    transform: translate(-50%, -50%);
-  }
-}
-
-.login-form-container.active {
-  z-index: 1;
-  visibility: visible;
-
-}
-
+.login-form-container.active,
 .register-form-container.active {
-  z-index: 0;
-  visibility: visible;
+  display: block;
+  z-index: 1;
 }
 
 /* --- Autofill Fix --- */
@@ -107,13 +87,8 @@ input:-webkit-autofill:active {
   background: -webkit-linear-gradient(top, rgba(255, 255, 255, 0) 0%, rgba(0, 0, 0, 0) 100%);
 }
 
-.active {
-  visibility: visible;
-  z-index: 1;
-}
-
 .hidden {
-  visibility: hidden !important;
+  display: none !important;
 }
 
 .back-btn {
@@ -125,13 +100,12 @@ input:-webkit-autofill:active {
 
 input,
 button {
-  background-image: radial-gradient(yellow 33%, transparent 34%), radial-gradient(yellow 33%, transparent 34%) !important;
   background: rgba(255, 255, 255, 0.79);
+  background-image: radial-gradient(yellow 33%, transparent 34%), radial-gradient(yellow 33%, transparent 34%) !important;
   background-size: 5px 5px;
   background-position: 0 0, 2.5px 2.5px;
   border: solid 2px black;
   box-shadow: 5px 5px 8px #000;
-  padding: 2px;
   font-family: inherit;
   color: #000;
   padding: 12px;

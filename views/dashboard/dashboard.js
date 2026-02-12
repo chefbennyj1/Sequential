@@ -77,7 +77,7 @@ export async function init(container) {
             updateUrlState({ tab: page });
             
             // Hide all sections first
-            allSections.forEach(s => s.style.display = 'none');
+            allSections.forEach(s => s.classList.add('hidden'));
             
             // Handle Sidebar Active State
             container.querySelector('.sidebar li.active')?.classList.remove('active');
@@ -85,40 +85,39 @@ export async function init(container) {
             
             // Show target section
             const sec = container.querySelector(`.${page}`);
-            if (sec) sec.style.display = 'block';
+            if (sec) sec.classList.remove('hidden');
         }
 
         // Account Settings Link (in User Menu)
         if (target.id === 'accountSettingsBtn') {
             e.preventDefault();
-            allSections.forEach(s => s.style.display = 'none');
-            container.querySelector('.user').style.display = 'block';
+            allSections.forEach(s => s.classList.add('hidden'));
+            container.querySelector('.user.dashboard-section').classList.remove('hidden');
             updateUrlState({ tab: 'user' });
         }
 
         // STUDIO HUB: Mode Cards
-        // Clicking a card in the Studio Hub opens the specific tool
         if (target.classList.contains('mode-card') && target.closest('.studio')) {
             const targetPage = target.dataset.target;
             if (!targetPage) return;
 
             // Hide Studio Hub
-            container.querySelector('.studio').style.display = 'none';
+            container.querySelector('.studio').classList.add('hidden');
             
             // Show Target Section
             const targetSection = container.querySelector(`.${targetPage}`);
             if (targetSection) {
-                targetSection.style.display = 'block';
+                targetSection.classList.remove('hidden');
                 
-                // Trigger any necessary population logic
                 if (targetPage === 'edit-volume') populateVolumeSelect('volumeSelect');
                 if (targetPage === 'page-builder') { 
                     populateVolumeSelect('builderVolumeSelect'); 
                     populateLayoutSelect(); 
-                    // Ensure the internal mode selection is visible if not in a specific sub-mode
                     const modeSel = document.getElementById('pageBuilderModeSelection');
-                    if (modeSel && modeSel.style.display === 'none' && !document.getElementById('createPageContainer').style.display && !document.getElementById('editPageContainer').style.display) {
-                         modeSel.style.display = 'block';
+                    const createCont = document.getElementById('createPageContainer');
+                    const editCont = document.getElementById('editPageContainer');
+                    if (modeSel && modeSel.classList.contains('hidden') && createCont.classList.contains('hidden') && editCont.classList.contains('hidden')) {
+                         modeSel.classList.remove('hidden');
                     }
                 }
             }
@@ -126,32 +125,27 @@ export async function init(container) {
 
         // BACK TO STUDIO Buttons
         if (target.classList.contains('back-to-studio-btn')) {
-            // Hide current section (parent dashboard-section)
             const currentSection = target.closest('.dashboard-section');
-            if (currentSection) currentSection.style.display = 'none';
-            
-            // Show Studio Hub
-            const studioSection = container.querySelector('.studio');
-            if (studioSection) studioSection.style.display = 'block';
+            if (currentSection) currentSection.classList.add('hidden');
+            container.querySelector('.studio').classList.remove('hidden');
         }
 
-        // Page Builder Internal Mode Cards (Create vs Edit Page)
-        // These are inside .page-builder, not .studio
+        // Page Builder Internal Mode Cards
         if (target.closest('#modeCreateBtn')) {
             populateVolumeSelect('builderVolumeSelect');
             populateLayoutSelect();
-            document.getElementById('pageBuilderModeSelection').style.display = 'none';
-            document.getElementById('createPageContainer').style.display = 'block';
+            document.getElementById('pageBuilderModeSelection').classList.add('hidden');
+            document.getElementById('createPageContainer').classList.remove('hidden');
         }
         if (target.closest('#modeEditBtn')) {
             populateVolumeSelect('editVolumeSelect');
-            document.getElementById('pageBuilderModeSelection').style.display = 'none';
-            document.getElementById('editPageContainer').style.display = 'block';
+            document.getElementById('pageBuilderModeSelection').classList.add('hidden');
+            document.getElementById('editPageContainer').classList.remove('hidden');
         }
         if (target.classList.contains('mode-back-btn')) { 
-            document.getElementById('pageBuilderModeSelection').style.display = 'block'; 
-            document.getElementById('createPageContainer').style.display = 'none'; 
-            document.getElementById('editPageContainer').style.display = 'none'; 
+            document.getElementById('pageBuilderModeSelection').classList.remove('hidden'); 
+            document.getElementById('createPageContainer').classList.add('hidden'); 
+            document.getElementById('editPageContainer').classList.add('hidden'); 
         }
 
         // Load Page Tools
@@ -221,14 +215,14 @@ export async function init(container) {
 
             if (!vol || !chap || !pageId || !layout) {
                 status.textContent = "Please fill all fields.";
-                status.style.color = "red";
+                status.className = "builder-status text-accent";
                 return;
             }
 
             btn.disabled = true;
             btn.textContent = "Creating...";
             status.textContent = "Processing...";
-            status.style.color = "#aaa";
+            status.className = "builder-status text-muted";
 
             try {
                 const res = await fetch('/api/editor/create-page', {
@@ -240,17 +234,16 @@ export async function init(container) {
                 
                 if (data.ok) {
                     status.textContent = "Success! Page created.";
-                    status.style.color = "lightgreen";
-                    // Auto-load
+                    status.className = "builder-status text-accent font-bold";
                     setActivePage(vol, chap, pageId);
                     updateUrlState({ tab: 'page-builder', vol, chap, page: pageId });
                 } else {
                     status.textContent = "Error: " + data.message;
-                    status.style.color = "red";
+                    status.className = "builder-status text-accent";
                 }
             } catch (err) {
                 status.textContent = "Request Failed.";
-                status.style.color = "red";
+                status.className = "builder-status text-accent";
             } finally {
                 btn.disabled = false;
                 btn.textContent = "Create Page Structure";

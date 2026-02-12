@@ -1,4 +1,5 @@
 @import url('/views/button.css');
+
 :root {
   --background-color: #11292a;
   --background-light-color: #fff;
@@ -11,7 +12,7 @@
   --lg-bg-color: rgba(255, 255, 255, 0.05);
   --lg-bg-color-2: rgb(172, 70, 0, 0.2);
   --lg-highlight: rgba(255, 255, 255, 0.75);
-  
+
 
 }
 
@@ -21,28 +22,30 @@
   box-sizing: border-box;
   /* scroll-snap-type: y proximity; */
 }
+
 html,
 body {
   height: 100%;
   scroll-behavior: smooth;
   scroll-snap-type: y proximity;
-  width:100dvw;
-  overflow:hidden;
+  width: 100dvw;
+  overflow: hidden;
 }
 
 
 html {
-  
+
   font-family: var(--font-family-comic-bold);
   /* Create a snapping rule on the html element */
   /* scroll-snap-type: y proximity; */
   /* position: relative; */
-  
+
 }
 
 body {
   overflow-x: hidden;
-  background: #0a0a0a; /* Deep black for cinematic focus */
+  background: #0a0a0a;
+  /* Deep black for cinematic focus */
 }
 
 body.cursor-hidden {
@@ -60,18 +63,20 @@ body.cursor-hidden {
   height: 100dvh;
   display: flex;
   background-color: white;
-   justify-content: center;
+  justify-content: center;
   align-items: center;
   flex-direction: column;
   text-align: center;
   z-index: 99;
-  overflow:hidden;
+  overflow: hidden;
 }
+
 #loading-page .loading-text {
-    display: flex;
-    justify-content: center;
-    align-items: center;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
+
 #loading-page .loading-text span {
   font-family: var(--font-family-sans-serif);
   font-optical-sizing: auto;
@@ -84,8 +89,9 @@ body.cursor-hidden {
 }
 
 .checkbox-container {
-  display:flex;
+  display: flex;
 }
+
 .checkbox-container input {
   transform: scale(1.2);
   cursor: pointer;
@@ -109,7 +115,7 @@ body.cursor-hidden {
 .scroll-wrapper {
   /* height: calc(100dvh * 3); */
   position: relative;
-  width:100dvw;
+  width: 100dvw;
 }
 
 
@@ -120,32 +126,32 @@ header {
   background-size: 5px 5px;
   background-position: 0 0, 2.5px 2.5px;
   border: solid 2px black;
-  box-shadow: 5px 5px 5px rgba(0,0,0,0.65);
+  box-shadow: 5px 5px 5px rgba(0, 0, 0, 0.65);
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 15px 10vh;
   overflow: hidden;
-  
+
   top: 0;
   position: fixed;
   left: 0;
   width: 100%;
   z-index: 1000;
-  height:8dvh;
+  height: 8dvh;
   font-family: var(--font-family-comic-bold);
 }
 
 /* Autohide Nav Bar for Viewer Page */
 .viewer-page header {
-    /* Start with the header hidden (slid up) */
-    transform: translateY(-100%);
-    transition: transform 0.4s ease-in-out;
+  /* Start with the header hidden (slid up) */
+  transform: translateY(-100%);
+  transition: transform 0.4s ease-in-out;
 }
 
 .viewer-page header.is-visible {
-    /* Slide the header back into view */
-    transform: translateY(0);
+  /* Slide the header back into view */
+  transform: translateY(0);
 }
 
 
@@ -164,6 +170,7 @@ header .logo-container {
   display: block;
   font-size: 1rem;
   left: 5%;
+  width: 100%;
   color: var(--color-five);
 }
 
@@ -175,19 +182,23 @@ header .page-nav-buttons {
 .nav-button.btn {
   display: flex;
   align-items: center;
-  gap: 5px; /* Adjust as needed for spacing between text and icon */
+  gap: 5px;
+  /* Adjust as needed for spacing between text and icon */
 }
 
 .page-nav-buttons a.nav-button.btn {
-  text-decoration: none; /* Remove underline from the link button */
+  text-decoration: none;
+  /* Remove underline from the link button */
 }
 
 #logo {
   display: flex;
 }
+
 .audio-btn {
   display: flex;
-  align-items: flex-end; /* bottom align */
+  align-items: flex-end;
+  /* bottom align */
   gap: 4px;
   height: 25px;
   width: 40px;
@@ -195,48 +206,53 @@ header .page-nav-buttons {
   border-left: 1px solid black;
   cursor: pointer;
 }
+
 .audio-btn .label {
-  right:40px;
-  position:absolute;
+  right: 40px;
+  position: absolute;
 }
+
 .audio-bar {
   width: 3px;
-  height: 100%; /* base height to scale from */
+  height: 100%;
+  /* base height to scale from */
   background: var(--color-five);
-  transform-origin: bottom; /* scale grows upward */
+  transform-origin: bottom;
+  /* scale grows upward */
   transform: scaleY(0.1);
   transition: transform 0.1s linear;
   border-radius: 2px;
 }
 
 section {
-  position:fixed;
+  position: fixed;
   height: 100dvh;
-  top:0;
-  left:0;
-  inset:0;
+  top: 0;
+  left: 0;
+  inset: 0;
   background: transparent;
   scroll-snap-align: start;
   scroll-snap-stop: always;
   transform-origin: center center;
-  display:flex;
+  display: flex;
   justify-content: center;
-  align-items: flex-start; /* Align to top */
+  align-items: flex-start;
+  /* Align to top */
   visibility: hidden;
   width: 100%;
   animation: zoom-scroll-out 0.8s ease-in-out forwards;
 }
-section .section-container{
-   
 
-}
+section .section-container {}
+
 section.active {
   visibility: visible;
-  z-index:1;
+  z-index: 1;
   animation: zoom-scroll-in 0.8s ease-in-out forwards;
 }
-section.active .section-container{
-  opacity:1;
+
+section.active .section-container {
+  opacity: 1;
 }
 
 section.entering {
@@ -278,6 +294,7 @@ section.exiting {
     visibility: visible;
   }
 }
+
 @keyframes zoom-scroll-out {
   0% {
     filter: blur(0);
@@ -292,4 +309,82 @@ section.exiting {
     opacity: 0;
     visibility: hidden;
   }
+}
+
+/* --- Panel Effects (Memories / Visualizations) --- */
+
+.panel-effect-memory img,
+.panel-effect-memory video {
+    filter: grayscale(80%) contrast(1.1) brightness(0.9) sepia(20%) hue-rotate(160deg) !important;
+    transition: filter 1s ease-in-out;
+}
+
+.panel-effect-memory::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /* Horizontal Scanlines */
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 170, 255, 0.05) 50%);
+    background-size: 100% 4px;
+    z-index: 1; /* Keep below bubbles (usually z-index 10+) */
+    pointer-events: none;
+    opacity: 0.5;
+}
+
+.panel-effect-memory::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    /* Inner Blue Glow */
+    box-shadow: inset 0 0 80px rgba(0, 170, 255, 0.2);
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* Subtle pulse for active memory media */
+.panel-effect-memory.active-memory img,
+.panel-effect-memory.active-memory video {
+    animation: memory-pulse 4s infinite alternate ease-in-out;
+}
+
+@keyframes memory-pulse {
+    from { filter: grayscale(80%) brightness(0.9) hue-rotate(160deg); }
+    to { filter: grayscale(70%) brightness(1.05) hue-rotate(170deg); }
+}
+
+.panel-effect-haze img,
+.panel-effect-haze video {
+    filter: blur(2px) brightness(1.1) saturate(1.3) contrast(0.9) !important;
+    transition: filter 1.5s ease-in-out;
+}
+
+.panel-effect-glitch img,
+.panel-effect-glitch video {
+    filter: contrast(1.4) brightness(1.2) !important;
+    animation: panel-glitch-jitter 0.2s infinite alternate;
+}
+
+.panel-effect-glitch {
+    position: relative;
+}
+
+/* Moving glitch overlay behind bubbles */
+.panel-effect-glitch::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: inherit;
+    filter: hue-rotate(90deg) opacity(0.3);
+    transform: translateX(2px);
+    z-index: 1;
+    pointer-events: none;
+}
+
+@keyframes panel-glitch-jitter {
+    0% { transform: translate(0,0) skew(0deg); filter: hue-rotate(0deg); }
+    20% { transform: translate(-1px, 1px) skew(1deg); }
+    40% { transform: translate(1px, -1px) skew(-1deg); filter: hue-rotate(10deg); }
+    60% { transform: translate(-2px, 0) skew(0deg); }
+    80% { transform: translate(2px, 1px) skew(2deg); filter: hue-rotate(-10deg); }
+    100% { transform: translate(0,0) skew(0deg); }
 }

@@ -89,6 +89,11 @@
 }
 
 .landing-page {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
     background-size: cover;
     overflow: hidden;
     background-position: center;
@@ -96,8 +101,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    /* Center vertically */
-    inset: 0;
     z-index: 3;
     background: whitesmoke;
 }
@@ -109,9 +112,6 @@
     border-radius: 4px;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     background: var(--fade-color);
-    transform: translate(-50%, -50%);
-    left: 50%;
-    top: 50%;
     border: 3px solid black;
 }
 

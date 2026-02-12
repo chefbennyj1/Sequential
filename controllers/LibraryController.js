@@ -125,8 +125,23 @@ async function processSeriesForLanding(series) {
 
     const firstVolumeId = getFirstVolumeId(series);
     const seriesDir = resolveSeriesDir(series);
-    const coverImage = await resolveCoverImage(seriesDir, series.folderName, 'folder');
-    const carouselImages = await resolveCarouselImages(seriesDir, series.folderName, coverImage);
+    
+    // 1. Resolve Carousel Images
+    const carouselImages = await resolveCarouselImages(seriesDir, series.folderName);
+    
+    // 2. Resolve Cover Image with smarter fallback
+    let coverImage = await resolveCoverImage(seriesDir, series.folderName, 'folder');
+    
+    // If folder.png is missing (returns the static fallback), check folder1.png
+    if (coverImage === '/views/public/images/folder.png') {
+        const altCover = await resolveCoverImage(seriesDir, series.folderName, 'folder1');
+        if (altCover !== '/views/public/images/folder.png') {
+            coverImage = altCover;
+        } else if (carouselImages.length > 0) {
+            // Use the first image found in the carousel scan as the cover
+            coverImage = carouselImages[0];
+        }
+    }
 
     return {
         _id: series._id,
@@ -134,7 +149,7 @@ async function processSeriesForLanding(series) {
         folderName: series.folderName,
         description: series.description,
         coverImage,
-        images: carouselImages,
+        images: carouselImages.length > 0 ? carouselImages : [coverImage],
         firstVolumeId
     };
 }
@@ -145,7 +160,7 @@ function getFirstVolumeId(series) {
     return series.volumes[0]._id;
 }
 
-async function resolveCarouselImages(seriesDir, folderName, defaultCover) {
+async function resolveCarouselImages(seriesDir, folderName) {
     try {
         const files = await fs.readdir(seriesDir);
         const folderImageRegex = /^folder(\d+)\.(png|jpg|jpeg|gif|webp)$/i;
@@ -158,10 +173,8 @@ async function resolveCarouselImages(seriesDir, folderName, defaultCover) {
                 return numA - numB;
             });
         
-        if (imageFiles.length === 0) return [defaultCover];
-        
         return imageFiles.map(file => `/Library/${folderName}/${file}`);
     } catch {
-        return [defaultCover];
+        return [];
     }
 }

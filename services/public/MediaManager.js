@@ -60,6 +60,14 @@ export function initMedia(container, pageInfo, mediaDataArray) {
                 }
                 img.style.objectFit = 'cover';
                 panel.appendChild(img);
+
+                // Apply Panel Effect if specified in media.json
+                if (media.panelEffect) {
+                    // We need a way to call applyPanelEffect from here, 
+                    // or just apply the class directly since we are in public services.
+                    panel.classList.add(`panel-effect-${media.panelEffect}`);
+                    if (media.panelEffect === 'memory') panel.classList.add('active-memory');
+                }
             } else if (media.type === 'video') {
                 const video = document.createElement('video');
                 video.muted = media.audioEnabled !== true; // Default to muted unless explicitly enabled
@@ -113,6 +121,12 @@ export function initMedia(container, pageInfo, mediaDataArray) {
                 video.style.objectFit = 'cover';
                 panel.appendChild(video);
                 videoElements.push(video);
+
+                // Apply Panel Effect if specified
+                if (media.panelEffect) {
+                    panel.classList.add(`panel-effect-${media.panelEffect}`);
+                    if (media.panelEffect === 'memory') panel.classList.add('active-memory');
+                }
             } else if (media.type === 'Playlist') {
                 // Instantiate PlaylistManager directly for background playlists
                 const pm = new PlaylistManager(panel, media, pageInfo);

@@ -1,0 +1,47 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Grid 4 Left Span (Merged Bottom)
+    
+    Variation of the Left Span grid where the two bottom-right panels are merged into one wide frame.
+    - Panel 1a: Tall vertical strip on the left.
+    - Panel 1b & 1c: Top-right side-by-side pair.
+    - Panel 2a: Wide merged panel at the bottom right.
+*/
+.page-layout.layout-grid-4-left-span-merged {
+    display: grid;
+    grid-template-columns: 1.2fr 2fr 2fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+}
+
+/* Left Panel: Tall (Vertical Strip) */
+.layout-grid-4-left-span-merged .panel-1a {
+    grid-column: 1 / 2;
+    grid-row: 1 / 3; /* Spans 2 rows */
+}
+
+/* Top Right Pair */
+.layout-grid-4-left-span-merged .panel-1b {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+}
+.layout-grid-4-left-span-merged .panel-1c {
+    grid-column: 3 / 4;
+    grid-row: 1 / 2;
+}
+
+/* Bottom Right Merged: Wide 16:9 style */
+.layout-grid-4-left-span-merged .panel-2a {
+    grid-column: 2 / 4; /* Spans both middle and right columns */
+    grid-row: 2 / 3;
+}
+</style>
+
+<div class="section-container page-layout layout-grid-4-left-span-merged">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+</div>

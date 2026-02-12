@@ -64,6 +64,7 @@ function createMediaActionRow(action, idx) {
         contentCol.appendChild(createFileControlsRow(action, idx));
         if (action.type === 'image') {
             contentCol.appendChild(createMotionControls(action, idx));
+            contentCol.appendChild(createEffectControls(action, idx));
         }
     }
 
@@ -239,6 +240,29 @@ function createMotionControls(action, idx) {
     return row;
 }
 
+function createEffectControls(action, idx) {
+    const row = document.createElement('div');
+    row.className = 'media-motion-row'; // Reuse motion row styling for consistency
+
+    const label = document.createElement('span');
+    label.className = 'media-motion-label';
+    label.textContent = 'EFFECT';
+    row.appendChild(label);
+
+    const effectSelect = createSelect(['none', 'memory', 'haze', 'glitch'], action.panelEffect || 'none', (val) => {
+        if (val === 'none') {
+            delete action.panelEffect;
+        } else {
+            action.panelEffect = val;
+        }
+        triggerUpdate(idx, 'panelEffect', action.panelEffect);
+    });
+    effectSelect.className = 'gov-select flex-1';
+    row.appendChild(effectSelect);
+
+    return row;
+}
+
 function createPlaylistControls(action, idx) {
     const wrapper = document.createElement('div');
     wrapper.className = 'flex-column gap-10 width-100';
@@ -310,7 +334,7 @@ export function openPlaylistEditor(action, onSave) {
     const modal = document.getElementById('playlistEditorModal');
     document.getElementById('playlistGlobalDuration').value = action.globalDuration || 2000;
     renderPlaylistItems();
-    if (modal) modal.style.display = 'flex';
+    if (modal) modal.classList.add('active');
 }
 
 function renderPlaylistItems() {
@@ -337,7 +361,7 @@ function renderPlaylistItems() {
 export function initMediaEditor() {
     document.getElementById('closePlaylistEditorBtn').onclick = () => {
         const modal = document.getElementById('playlistEditorModal');
-        if (modal) modal.style.display = 'none';
+        if (modal) modal.classList.remove('active');
         if (currentPlaylistAction) {
             currentPlaylistAction.globalDuration = parseInt(document.getElementById('playlistGlobalDuration').value) || 2000;
             if (onPlaylistSave) onPlaylistSave(currentPlaylistAction);

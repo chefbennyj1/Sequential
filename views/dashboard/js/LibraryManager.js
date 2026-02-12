@@ -139,11 +139,11 @@ export async function showVolumesForSeries(seriesId) {
         librarySection.appendChild(volumesDisplay);
     }
     volumesDisplay.innerHTML = `
-        <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px;">
+        <div class="flex-row-center gap-20 margin-b-20">
             <button class="small" id="backToSeriesBtn">&larr; Back to Library</button>
-            <h2 style="margin:0;">${series.title} - Volumes</h2>
+            <h2 class="props-header">${series.title} - Volumes</h2>
         </div>
-        <div class="volumes-grid row" style="display:flex; flex-wrap:wrap; gap:20px;"></div>
+        <div class="volumes-grid row flex-row flex-wrap gap-20"></div>
     `;
     const volumesGrid = volumesDisplay.querySelector('.volumes-grid');
     series.volumes.forEach(volume => {
@@ -160,13 +160,13 @@ export async function showVolumesForSeries(seriesId) {
         volumesGrid.appendChild(card);
     });
     document.getElementById('backToSeriesBtn').onclick = () => {
-        volumesDisplay.style.display = 'none';
-        libraryRow.style.display = 'flex';
+        volumesDisplay.classList.add('hidden');
+        libraryRow.classList.remove('hidden');
     };
-    libraryRow.style.display = 'none';
-    volumesDisplay.style.display = 'block';
+    libraryRow.classList.add('hidden');
+    volumesDisplay.classList.remove('hidden');
     const chaptersDisplay = document.querySelector('.chapters-display');
-    if (chaptersDisplay) chaptersDisplay.style.display = 'none';
+    if (chaptersDisplay) chaptersDisplay.classList.add('hidden');
 }
 
 /**
@@ -186,9 +186,9 @@ export async function showChaptersForVolume(volumeId) {
         librarySection.appendChild(chaptersDisplay);
     }
     chaptersDisplay.innerHTML = `
-        <div style="display:flex; align-items:center; gap:20px; margin-bottom:20px;">
+        <div class="flex-row-center gap-20 margin-b-20">
             <button class="small" id="backToVolumesBtn">&larr; Back to Volumes</button>
-            <h2 style="margin:0;">${volume.title} - Chapters</h2>
+            <h2 class="props-header">${volume.title} - Chapters</h2>
         </div>
         <div class="chapters-grid"></div>
     `;
@@ -201,16 +201,16 @@ export async function showChaptersForVolume(volumeId) {
         chaptersGrid.appendChild(card);
     });
     document.getElementById('backToVolumesBtn').onclick = () => {
-        chaptersDisplay.style.display = 'none';
+        chaptersDisplay.classList.add('hidden');
         if (volumesDisplay) {
-            volumesDisplay.style.display = 'block';
+            volumesDisplay.classList.remove('hidden');
         } else {
             const libraryRow = document.querySelector('.library .row');
-            if (libraryRow) libraryRow.style.display = 'flex';
+            if (libraryRow) libraryRow.classList.remove('hidden');
         }
     };
-    if (volumesDisplay) volumesDisplay.style.display = 'none';
+    if (volumesDisplay) volumesDisplay.classList.add('hidden');
     const libraryRow = document.querySelector('.library .row');
-    if (libraryRow) libraryRow.style.display = 'none';
-    chaptersDisplay.style.display = 'block';
+    if (libraryRow) libraryRow.classList.add('hidden');
+    chaptersDisplay.classList.remove('hidden');
 }

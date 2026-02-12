@@ -103,6 +103,11 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
         const { dialogueItem, duration } = e.detail;
         if (!dialogueItem) return;
 
+        // Apply Panel Effects if specified
+        if (dialogueItem.panelEffect && dialogueItem.placement?.panel) {
+            applyPanelEffect(container, dialogueItem.placement.panel, dialogueItem.panelEffect);
+        }
+
         const actions = Array.isArray(dialogueItem.mediaAction) ? dialogueItem.mediaAction : (dialogueItem.mediaAction ? [dialogueItem.mediaAction] : []);
         actions.forEach(action => processMediaAction(container, action, dialogueItem, pageInfo, playlistManagers, sceneController, duration));
     });
@@ -110,6 +115,9 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
     container.addEventListener('cueEnded', (e) => {
         const { dialogueItem } = e.detail;
         if (!dialogueItem) return;
+
+        // Note: We might NOT want to remove the effect here if it's meant to persist 
+        // throughout a sequence. For now, we'll let subsequent items override or clear it.
 
         const actions = Array.isArray(dialogueItem.mediaAction) ? dialogueItem.mediaAction : (dialogueItem.mediaAction ? [dialogueItem.mediaAction] : []);
         actions.forEach(action => handleCueEndAction(container, action, dialogueItem));
@@ -121,6 +129,25 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
 /** 
  * Logic Helpers 
  */
+
+function applyPanelEffect(container, panelSelector, effectType) {
+    const panel = container.querySelector(panelSelector);
+    if (!panel) return;
+
+    // Remove all existing panel effects
+    panel.classList.remove('panel-effect-memory', 'panel-effect-haze', 'panel-effect-glitch', 'active-memory');
+
+    if (!effectType) return;
+
+    // Apply new effect
+    const effectClass = `panel-effect-${effectType}`;
+    panel.classList.add(effectClass);
+    
+    // Add pulsing for memory
+    if (effectType === 'memory') {
+        panel.classList.add('active-memory');
+    }
+}
 
 function setupBackgroundAudio(pageId, volume, audioMap, pageInfo) {
     if (!window.audioStateManager) return;
