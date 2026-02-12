@@ -15,8 +15,6 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    min-width: 150px;
-    max-width: 50%;
     width: fit-content;
     z-index: 1000;
     opacity: 0;
@@ -87,6 +85,7 @@
     height: 0;
     z-index: 10;
     pointer-events: none;
+    transform: skewX(var(--tail-skew, var(--default-skew, 0deg)));
 }
 
 .tail-container::before,
@@ -100,6 +99,7 @@
 
 /* Bottom Left */
 .tail-bottom-left {
+    --default-skew: -15deg;
     bottom: -5px; /* Pushed down 5px */
     left: 20%;
 }
@@ -107,7 +107,6 @@
     border-left-color: var(--bubble-border);
     border-top-color: var(--bubble-border);
     top: -10px;
-    transform: skewX(-15deg);
 }
 .tail-bottom-left::after {
     border-left-color: var(--bubble-bg-one);
@@ -115,11 +114,11 @@
     top: -12px;
     left: 2px;
     border-width: 12px;
-    transform: skewX(-15deg);
 }
 
 /* Bottom Right */
 .tail-bottom-right {
+    --default-skew: 15deg;
     bottom: -5px; /* Pushed down 5px */
     right: 20%;
 }
@@ -128,7 +127,6 @@
     border-top-color: var(--bubble-border);
     top: -10px;
     right: 2px; /* Pull left 2px */
-    transform: skewX(15deg);
 }
 .tail-bottom-right::after {
     border-right-color: var(--bubble-bg-one);
@@ -136,11 +134,11 @@
     top: -12px;
     right: 4px; /* Pull left 4px to center in border */
     border-width: 12px;
-    transform: skewX(15deg);
 }
 
 /* Top Left */
 .tail-top-left {
+    --default-skew: 15deg;
     top: -5px; /* Pushed up 5px */
     left: 20%;
 }
@@ -148,19 +146,18 @@
     border-left-color: var(--bubble-border);
     border-bottom-color: var(--bubble-border);
     bottom: -10px;
-    transform: skewX(15deg);
 }
 .tail-top-left::after {
     border-left-color: var(--bubble-bg-one);
-    border-bottom-color: var(--bubble-bg-one);
+    border-top-color: var(--bubble-bg-one);
     bottom: -12px;
     left: 2px;
     border-width: 12px;
-    transform: skewX(15deg);
 }
 
 /* Top Right */
 .tail-top-right {
+    --default-skew: -15deg;
     top: -5px; /* Pushed up 5px */
     right: 20%; /* Fixed: was left: 80% */
 }
@@ -169,7 +166,6 @@
     border-bottom-color: var(--bubble-border);
     bottom: -10px;
     right: 2px; /* Pull left 2px */
-    transform: skewX(-15deg);
 }
 .tail-top-right::after {
     border-right-color: var(--bubble-bg-one);
@@ -177,7 +173,6 @@
     bottom: -12px;
     right: 4px; /* Pull left 4px to center in border */
     border-width: 12px;
-    transform: skewX(-15deg);
 }
 
 /* System / Computer Speech Bubble Style */
@@ -224,7 +219,7 @@
 .rigid-tail::before,
 .rigid-tail::after {
     border-radius: 0;
-    transform: none !important; /* Kill the organic skew */
+    transform: skewX(var(--tail-skew, 0deg)) !important; /* Allow customization, default to 0 for system */
 }
 
 .rigid-tail.tail-bottom-left {
@@ -234,6 +229,7 @@
     height: 15px;
     border-left: 3px solid #00ff41;
     border-bottom: 3px solid #00ff41;
+    transform: skewX(var(--tail-skew, 0deg));
 }
 
 .rigid-tail.tail-bottom-right {
@@ -243,6 +239,7 @@
     height: 15px;
     border-right: 3px solid #00ff41;
     border-bottom: 3px solid #00ff41;
+    transform: skewX(var(--tail-skew, 0deg));
 }
 
 .rigid-tail.tail-top-left {
@@ -252,6 +249,7 @@
     height: 15px;
     border-left: 3px solid #00ff41;
     border-top: 3px solid #00ff41;
+    transform: skewX(var(--tail-skew, 0deg));
 }
 
 .rigid-tail.tail-top-right {
@@ -261,6 +259,7 @@
     height: 15px;
     border-right: 3px solid #00ff41;
     border-top: 3px solid #00ff41;
+    transform: skewX(var(--tail-skew, 0deg));
 }
 
 /* Hide legacy organic tail components when in system mode */

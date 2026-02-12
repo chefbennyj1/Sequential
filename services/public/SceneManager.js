@@ -253,6 +253,7 @@ export async function initScene(container, pageInfo, sceneData) {
             const bubbleOptions = { ...item, series, volume, chapter, pageId, pageIndex, dialogueIndex: index, audioSrc: resolvedAudioSrc };
             if (item.attributes) bubbleOptions.attributes = item.attributes;
             if (item.style) bubbleOptions.style = item.style;
+            if (item.placement?.tailSkew) bubbleOptions.tailSkew = item.placement.tailSkew;
             Object.assign(bubbleOptions, item.placement); 
             const bubble = new SpeechBubble(panelEl, bubbleOptions);
             await bubble.render();

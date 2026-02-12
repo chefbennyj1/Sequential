@@ -106,7 +106,6 @@
   display: inline-block;
   overflow: visible;
   width: auto;
-  max-width: 50%;
   /* ensure it shrinks to text */
   box-sizing: border-box;
   text-wrap: pretty;

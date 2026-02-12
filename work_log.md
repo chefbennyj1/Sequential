@@ -1,5 +1,27 @@
 # Sequential Comic Server - Work Log
 
+## February 12, 2026: Architectural Refactor & Tail Customization
+
+### Core Engine & Architecture
+- **Standardized Layout System**: Implemented a global `views/layouts/main.ejs` shell and shared partials (`head.ejs`, `header.ejs`) across all main views (Viewer, Library, Dashboard, Login).
+- **Dashboard Modularization**: Reorganized the dashboard into a "Studio" architecture. Created `views/dashboard/studio/` to house editor-specific CSS and JS, improving maintainability and reducing file clutter.
+- **Preview Shell Isolation**: Decoupled the Visual Editor's iframe content into `views/preview-shell/`, clearly separating the "editor UI" from the "content being edited."
+- **Asset Loading Optimization**: Standardized on the `Utility.js` loading pattern for CSS and JS. Removed redundant `loadScript` calls in favor of clean ESM imports, resolving 404 errors and initialization conflicts.
+
+### Visual Engine Improvements
+- **Natural Sizing**: Removed `max-width` and `min-width` constraints from Speech Bubbles and Text Blocks, allowing them to scale naturally based on dialogue length.
+- **Dynamic Tail Skew**: 
+    - Introduced the `--tail-skew` CSS variable for granular control over tail lean.
+    - Refactored `SpeechBubble.css` to support container-level skew inheritance for both organic and system (rigid) tails.
+    - Updated `SpeechBubble.js` and `SceneManager.js` to pass and apply `tailSkew` options from scene data.
+- **Scene Editor UI**: Added a "Tail Skew" property field to the Scene Editor, allowing creators to precisely adjust the tail's point-of-origin (e.g., `-30deg`, `10deg`).
+
+### Git & Sync
+- **History Management**: Successfully pushed the heavy initial commit and subsequent refactors to GitHub (`chefbennyj1/Sequential`).
+- **Path Integrity**: Verified and corrected all relative import paths following the directory reorganization.
+
+---
+
 ## February 9, 2026: UI Polish & Layout Expansion
 
 ### Visual Transitions & Animation

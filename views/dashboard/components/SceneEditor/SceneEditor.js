@@ -291,6 +291,7 @@ function populateFormWithItem(item) {
     document.getElementById('prop-right').value = p.right || '';
     document.getElementById('prop-bottom').value = p.bottom || '';
     document.getElementById('prop-tail').value = p.tailPosition || '';
+    document.getElementById('prop-tail-skew').value = p.tailSkew || '';
     document.getElementById('prop-duration').value = item.duration || '';
     document.getElementById('prop-panel-effect').value = item.panelEffect || '';
 
@@ -368,7 +369,8 @@ function updateSceneItemFromForm() {
         left: document.getElementById('prop-left').value,
         right: document.getElementById('prop-right').value,
         bottom: document.getElementById('prop-bottom').value,
-        tailPosition: document.getElementById('prop-tail').value
+        tailPosition: document.getElementById('prop-tail').value,
+        tailSkew: document.getElementById('prop-tail-skew').value
     };
     if (item.displayType.type === 'Pause') {
         item.duration = parseInt(document.getElementById('prop-duration').value) || 1000;
