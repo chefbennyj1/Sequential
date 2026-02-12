@@ -58,20 +58,20 @@ app.use(async (req, res, next) => {
     gcsBaseUrl: process.env.GCS_BASE_URL
   };
 
-  // Static Comic Server: No background audio
   res.locals.globalBackgroundAudio = [];
   res.locals.globalPageTransitionAudio = null;
+  res.locals.user = null;
 
-  if (req.session.userId) {
-    try {
-      res.locals.user = await User.findById(req.session.userId);
-    } catch (e) {
-      console.error("User lookup failed:", e);
-      res.locals.user = null;
-    }
-  } else {
-    res.locals.user = null;
+  if (!req.session.userId) {
+    return next();
   }
+
+  try {
+    res.locals.user = await User.findById(req.session.userId);
+  } catch (e) {
+    console.error("User lookup failed:", e);
+  }
+
   next();
 });
 

@@ -126,7 +126,7 @@ exports.createPage = async (req, res) => {
   } catch (err) {
     console.error("Scaffolding Error:", err);
     res
-      .status("500")
+      .status(500)
       .json({ ok: false, message: "Failed to create page structure" });
   }
 };
@@ -137,7 +137,7 @@ exports.uploadAsset = async (req, res) => {
 
   if (!volume || !chapter || !pageId || !panel || !file) {
     return res
-      .status("400")
+      .status(400)
       .json({ ok: false, message: "Missing required fields or file" });
   }
 
@@ -156,7 +156,7 @@ exports.uploadAsset = async (req, res) => {
     } else {
         const pageDir = path.join(volumesDir, volume, chapter, pageId);
         if (!fs.existsSync(pageDir)) {
-            return res.status("404").json({ ok: false, message: "Page not found" });
+            return res.status(404).json({ ok: false, message: "Page not found" });
         }
         assetsDir = path.join(pageDir, 'assets');
         pageJsonPath = path.join(pageDir, "page.json");
@@ -172,7 +172,7 @@ exports.uploadAsset = async (req, res) => {
     if (isImage) { assetType = "image"; subFolder = "image"; }
     else if (isVideo) { assetType = "video"; subFolder = "video"; }
     else if (isAudio) { assetType = "audio"; subFolder = "audio"; }
-    else { return res.status("400").json({ ok: false, message: "Unsupported file type" }); }
+    else { return res.status(400).json({ ok: false, message: "Unsupported file type" }); }
 
     const targetDir = path.join(assetsDir, subFolder);
     if (!fs.existsSync(targetDir)) fs.mkdirSync(targetDir, { recursive: true });
@@ -205,7 +205,7 @@ exports.uploadAsset = async (req, res) => {
     res.json({ ok: true, message: "Asset uploaded.", assetPath: targetPath });
   } catch (err) {
     console.error("Upload Error:", err);
-    res.status("500").json({ ok: false, message: "Failed to upload asset" });
+    res.status(500).json({ ok: false, message: "Failed to upload asset" });
   }
 };
 
@@ -226,7 +226,7 @@ exports.updateAmbientVolume = async (req, res) => {
     }
     res.json({ ok: true, message: "Volume updated." });
   } catch (e) {
-    res.status("500").json({ ok: false, message: e.message });
+    res.status(500).json({ ok: false, message: e.message });
   }
 };
 
@@ -270,14 +270,14 @@ exports.setPageAmbientAudio = async (req, res) => {
         res.json({ ok: true, message: "Ambient audio updated." });
     } catch (e) {
         console.error("setPageAmbientAudio Error:", e);
-        res.status("500").json({ ok: false, message: e.message });
+        res.status(500).json({ ok: false, message: e.message });
     }
 };
 
 exports.uploadAmbientAudio = async (req, res) => {
   const { series, volume, chapter, pageId } = req.body;
   const file = req.file;
-  if (!file) return res.status("400").json({ ok: false, message: "No file uploaded" });
+  if (!file) return res.status(400).json({ ok: false, message: "No file uploaded" });
 
   try {
     const audioDir = path.join(__dirname, "..", "global_assets", "ambient");
@@ -300,7 +300,7 @@ exports.uploadAmbientAudio = async (req, res) => {
 
     res.json({ ok: true, message: "Ambient audio set successfully.", fileName: file.originalname });
   } catch (err) {
-    res.status("500").json({ ok: false, message: err.message });
+    res.status(500).json({ ok: false, message: err.message });
   }
 };
 
@@ -326,7 +326,7 @@ exports.servePreview = async (req, res) => {
     res.render("editor/preview", { volume, chapter, pageId, content });
   } catch (err) {
       console.error("Preview Error:", err);
-      res.status("500").send("Error serving preview");
+      res.status(500).send("Error serving preview");
   }
 };
 
@@ -335,7 +335,7 @@ exports.saveMedia = async (req, res) => {
   const { media } = req.body; // Expecting array of media objects
 
   if (!Array.isArray(media)) {
-      return res.status("400").json({ ok: false, message: "Invalid media format" });
+      return res.status(400).json({ ok: false, message: "Invalid media format" });
   }
 
   try {
@@ -345,7 +345,7 @@ exports.saveMedia = async (req, res) => {
     const pageJsonPath = path.join(pageDir, "page.json");
 
     if (!fs.existsSync(pageJsonPath)) {
-        return res.status("404").json({ ok: false, message: "Page not found" });
+        return res.status(404).json({ ok: false, message: "Page not found" });
     }
 
     const pageData = JSON.parse(fs.readFileSync(pageJsonPath, "utf8"));
@@ -366,7 +366,7 @@ exports.saveMedia = async (req, res) => {
     res.json({ ok: true, message: "Media saved successfully." });
   } catch (err) {
     console.error("Save Media Error:", err);
-    res.status("500").json({ ok: false, message: "Failed to save media" });
+    res.status(500).json({ ok: false, message: "Failed to save media" });
   }
 };
 
@@ -397,7 +397,7 @@ exports.getScene = async (req, res) => {
         res.json({ ok: true, scene: [] });
     }
   } catch (e) {
-    res.status("500").json({ ok: false, message: "Failed to parse page data" });
+    res.status(500).json({ ok: false, message: "Failed to parse page data" });
   }
 };
 
@@ -429,7 +429,7 @@ exports.getAssets = async (req, res) => {
     });
     res.json({ ok: true, files });
   } catch (err) {
-    res.status("500").json({ ok: false, message: "Failed to list assets" });
+    res.status(500).json({ ok: false, message: "Failed to list assets" });
   }
 };
 
@@ -482,14 +482,14 @@ exports.getPanels = async (req, res) => {
 
     res.json({ ok: true, panels: Array.from(panels).sort(), layoutClass: layoutId });
   } catch (err) {
-    res.status("500").json({ ok: false, message: "Failed to parse panels" });
+    res.status(500).json({ ok: false, message: "Failed to parse panels" });
   }
 };
 
 exports.saveScene = async (req, res) => {
   const { series, volume, chapter, pageId } = req.params;
   let sceneData = req.body;
-  if (!Array.isArray(sceneData)) return res.status("400").json({ ok: false, message: "Invalid data format" });
+  if (!Array.isArray(sceneData)) return res.status(400).json({ ok: false, message: "Invalid data format" });
 
   try {
     const seriesFolderName = await getSeriesFolderName(series);
@@ -497,7 +497,7 @@ exports.saveScene = async (req, res) => {
     const pageDir = path.join(seriesPath, "Volumes", volume, chapter, pageId);
     const pageJsonPath = path.join(pageDir, "page.json");
 
-    if (!fs.existsSync(pageDir)) return res.status("404").json({ ok: false, message: "Page directory not found" });
+    if (!fs.existsSync(pageDir)) return res.status(404).json({ ok: false, message: "Page directory not found" });
 
     const baseAudioPath = `/api/audio/${seriesFolderName}/${volume}/${chapter}/${pageId}/assets/`;
 
@@ -536,7 +536,7 @@ exports.saveScene = async (req, res) => {
 
     res.json({ ok: true, message: "Scene saved successfully.", scene: pageData.scene });
   } catch (e) {
-    res.status("500").json({ ok: false, message: e.message });
+    res.status(500).json({ ok: false, message: e.message });
   }
 };
 
@@ -546,7 +546,7 @@ exports.syncPage = async (req, res) => {
         const result = await VolumeService.syncSinglePage(volumeId, chapter, pageId);
         res.json(result);
     } catch (e) {
-        res.status("500").json({ ok: false, message: e.message });
+        res.status(500).json({ ok: false, message: e.message });
     }
 };
 
@@ -555,9 +555,8 @@ exports.changeLayout = async (req, res) => {
     try {
         const Volume = require('../models/Volume');
         const volume = await Volume.findById(volumeId);
-        if (!volume) return res.status("404").json({ ok: false, message: "Volume not found" });
+        if (!volume) return res.status(404).json({ ok: false, message: "Volume not found" });
 
-        const { resolveSeriesPath } = require('../services/MediaService');
         const pathParts = volume.volumePath.split('/').filter(p => p.length > 0);
         const seriesFolderName = pathParts[1];
         const seriesPath = await resolveSeriesPath(seriesFolderName);
@@ -566,7 +565,7 @@ exports.changeLayout = async (req, res) => {
         const atomicPath = path.join(pageFolder, 'page.json');
         const cssPath = path.join(pageFolder, 'page.css');
 
-        if (!fs.existsSync(atomicPath)) return res.status("404").json({ ok: false, message: "page.json not found" });
+        if (!fs.existsSync(atomicPath)) return res.status(404).json({ ok: false, message: "page.json not found" });
 
         const pageData = JSON.parse(fs.readFileSync(atomicPath, 'utf8'));
         const layoutId = layout.replace('.html', '');
@@ -591,7 +590,7 @@ exports.changeLayout = async (req, res) => {
         res.json({ ok: true, message: "Layout updated successfully" });
     } catch (e) {
         console.error("Change Layout Error:", e);
-        res.status("500").json({ ok: false, message: e.message });
+        res.status(500).json({ ok: false, message: e.message });
     }
 };
 

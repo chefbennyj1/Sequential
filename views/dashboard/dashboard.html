@@ -23,21 +23,14 @@
 
     <header class="topbar">
         <!-- Search, profile pic, settings -->
-        <a href="/library" class="library-link" style="color: var(--text-muted); text-decoration: none; display: flex; align-items: center; gap: 8px; font-family: 'Consolas', monospace; font-size: 0.9rem; margin-left: auto; margin-right: 20px; padding: 5px 10px; border: 1px solid transparent; border-radius: 4px; transition: all 0.2s;">
+        <a href="/library" class="library-link">
             <ion-icon name="library-outline"></ion-icon>
             <span>LIBRARY VIEW</span>
         </a>
-        <style>
-            .library-link:hover {
-                color: var(--accent);
-                border-color: var(--accent);
-                background: rgba(0,0,0,0.2);
-            }
-        </style>
     </header>
 
     <!-- STUDIO HUB -->
-    <div class="studio dashboard-section" style="display:none">
+    <div class="studio dashboard-section hidden">
         <div class="studio-header text-center padding-40-20">
             <h3>Sequential Studio</h3>
             <p class="text-muted margin-b-40">Select a tool to begin.</p>
@@ -69,7 +62,7 @@
                 </div>
 
                 <!-- Placeholder for Series Manager -->
-                <div class="mode-card disabled" style="opacity: 0.5; cursor: not-allowed;">
+                <div class="mode-card disabled opacity-50 cursor-not-allowed">
                     <ion-icon name="library-outline"></ion-icon>
                     <h4>New Series</h4>
                     <p>Coming Soon</p>
@@ -80,7 +73,7 @@
     </div>
 
     <!-- USER / ACCOUNT SETTINGS -->
-    <div class="user dashboard-section" style="display:none">
+    <div class="user dashboard-section hidden">
         <h3>User Settings</h3>
         <form id="credentials" action="/api/user/update" method="POST">
             <div class="input-field">
@@ -109,101 +102,198 @@
 
     <!-- SUB-SECTIONS (Hidden by default, accessed via Studio) -->
 
-    <div class="create-new-volume dashboard-section" style="display:none">
-        <button class="small back-to-studio-btn" style="margin-bottom: 15px;">&larr; Back to Studio</button>
-        <h3>Create New Volume</h3>
-        <form id="volume-info" action="/api/volume/create" method="POST">
-            <div class="input-field">
-                <label for="index">Volume Index (0 -9)</label>
-                <input type="number" id="index" name="index" required />
-            </div>
-            <div class="input-field">
-                <label for="title">Title</label>
-                <input type="string" id="title" name="title" required />
-            </div>
-            <div class="input-field">
-                <label for="volumePath">Folder Path</label>
-                <input type="string" id="volumePath" name="volumePath" required />
-            </div>
-            <div class="input-field">
-                <label for="backgroundAudioSrc">Background Audio Source</label>
-                <input type="string" id="backgroundAudioSrc" name="backgroundAudioSrc" />
-            </div>
-            <button class="update__btn" type="submit">Create</button>
-        </form>
-    </div>
+        <div class="create-new-volume dashboard-section hidden">
 
-    <div class="edit-volume dashboard-section" style="display:none">
-        <button class="small back-to-studio-btn" style="margin-bottom: 15px;">&larr; Back to Studio</button>
-        <h3>Edit Volume</h3>
-        <div class="form-group">
-            <label for="volumeSelect">Select Volume:</label>
-            <select id="volumeSelect"></select>
-        </div>
-        <!-- This section usually gets populated by JS, we keep the container -->
-        <div id="editVolumeContainer"></div> 
-    </div>
+            <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
 
-    <div class="characters dashboard-section" style="display:none">
-        <button class="small back-to-studio-btn margin-b-15">&larr; Back to Studio</button>
-        <div class="flex-between margin-b-20">
-            <div class="flex-row-center gap-15">
-                <h3>Character Manager</h3>
-                <select id="char-series-select" class="gov-select">
-                    <option value="">Select Series</option>
-                </select>
-            </div>
-            <button id="create-character-btn" class="update__btn" disabled>+ New Character</button>
-        </div>
-        <div id="character-editor-container" class="flex-row gap-20" style="align-items: flex-start;">
-            <div id="character-list" class="flex-1" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px;"></div>
-            <div id="character-form-container" class="character-gov-form hidden">
-                <div class="gov-header">
-                    <h4 id="form-title">IDENTIFICATION</h4>
-                    <span class="gov-stamp">CLASSIFIED</span>
+            <h3>Create New Volume</h3>
+
+            <form id="volume-info" action="/api/volume/create" method="POST">
+
+                <div class="input-field">
+
+                    <label for="index">Volume Index (0 - 9)</label>
+
+                    <input type="number" id="index" name="index" required />
+
                 </div>
-                
-                <div class="gov-body">
-                    <div class="gov-main-info">
-                        <div class="gov-field-group">
-                            <label>Designation (Name)</label>
-                            <input type="text" id="char-name" class="gov-input mono" placeholder="e.g. NOVA">
-                        </div>
-                        
-                        <div class="gov-field-group">
-                            <label>Color Signature (Hex)</label>
-                            <div class="flex-row-center gap-10">
-                                <input type="color" id="char-color" value="#ffffff" class="gov-color-input">
-                                <input type="text" id="char-color-text" class="gov-input mono flex-1" placeholder="#ffffff">
+
+                <div class="input-field">
+
+                    <label for="title">Title</label>
+
+                    <input type="string" id="title" name="title" required />
+
+                </div>
+
+                <div class="input-field">
+
+                    <label for="volumePath">Folder Path</label>
+
+                    <input type="string" id="volumePath" name="volumePath" required />
+
+                </div>
+
+                <div class="input-field">
+
+                    <label for="backgroundAudioSrc">Background Audio Source</label>
+
+                    <input type="string" id="backgroundAudioSrc" name="backgroundAudioSrc" />
+
+                </div>
+
+                <button class="update__btn" type="submit">Create</button>
+
+            </form>
+
+        </div>
+
+    
+
+        <div class="edit-volume dashboard-section hidden">
+
+            <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+
+            <h3>Edit Volume</h3>
+
+            <div class="form-group">
+
+                <label for="volumeSelect">Select Volume:</label>
+
+                <select id="volumeSelect"></select>
+
+            </div>
+
+            <!-- This section usually gets populated by JS, we keep the container -->
+
+            <div id="editVolumeContainer"></div> 
+
+        </div>
+
+    
+
+        <div class="characters dashboard-section hidden">
+
+            <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+
+            <div class="flex-between margin-b-20">
+
+                <div class="flex-row-center gap-15">
+
+                    <h3>Character Manager</h3>
+
+                    <select id="char-series-select" class="gov-select">
+
+                        <option value="">Select Series</option>
+
+                    </select>
+
+                </div>
+
+                <button id="create-character-btn" class="update__btn" disabled>+ New Character</button>
+
+            </div>
+
+            <div id="character-editor-container" class="flex-row gap-20 flex-start">
+
+                <div id="character-list" class="flex-1 grid-chars"></div>
+
+                <div id="character-form-container" class="character-gov-form hidden">
+
+                    <div class="gov-header">
+
+                        <h4 id="form-title">IDENTIFICATION</h4>
+
+                        <span class="gov-stamp">CLASSIFIED</span>
+
+                    </div>
+
+                    
+
+                    <div class="gov-body">
+
+                        <div class="gov-main-info">
+
+                            <div class="gov-field-group">
+
+                                <label>Designation (Name)</label>
+
+                                <input type="text" id="char-name" class="gov-input mono" placeholder="e.g. NOVA">
+
                             </div>
+
+                            
+
+                            <div class="gov-field-group">
+
+                                <label>Color Signature (Hex)</label>
+
+                                <div class="flex-row-center gap-10">
+
+                                    <input type="color" id="char-color" value="#ffffff" class="gov-color-input">
+
+                                    <input type="text" id="char-color-text" class="gov-input mono flex-1" placeholder="#ffffff">
+
+                                </div>
+
+                            </div>
+
+    
+
+                            <div class="gov-field-group">
+
+                                <label>Voice Print ID</label>
+
+                                <input type="text" id="char-voice-id" class="gov-input mono" placeholder="ElevenLabs ID">
+
+                            </div>
+
                         </div>
 
-                        <div class="gov-field-group">
-                            <label>Voice Print ID</label>
-                            <input type="text" id="char-voice-id" class="gov-input mono" placeholder="ElevenLabs ID">
+    
+
+                        <div class="gov-photo-section">
+
+                            <div class="photo-frame">
+
+                                <img id="char-avatar-preview" src="/views/public/images/avatar.png" alt="Subject">
+
+                            </div>
+
+                            <label class="gov-btn-small">
+
+                                Upload Photo
+
+                                <input type="file" id="char-avatar-input" accept="image/*" class="hidden">
+
+                            </label>
+
                         </div>
+
                     </div>
 
-                    <div class="gov-photo-section">
-                        <div class="photo-frame">
-                            <img id="char-avatar-preview" src="/views/public/images/avatar.png" alt="Subject">
-                        </div>
-                        <label class="gov-btn-small">
-                            Upload Photo
-                            <input type="file" id="char-avatar-input" accept="image/*" style="display: none;">
-                        </label>
+    
+
+                    <div class="gov-full-width">
+
+                        <label>Profile / Description (Prompt)</label>
+
+                        <textarea id="char-description" class="gov-textarea" rows="4" placeholder="Subject details..."></textarea>
+
                     </div>
-                </div>
 
-                <div class="gov-full-width">
-                    <label>Profile / Description (Prompt)</label>
-                    <textarea id="char-description" class="gov-textarea" rows="4" placeholder="Subject details..."></textarea>
-                </div>
+    
 
-                <div class="gov-full-width">
-                    <label>Reference Imagery</label>
-                    <div class="reference-grid" id="char-references-grid">
-                        <!-- References injected here -->
+                    <div class="gov-full-width">
+
+                        <label>Reference Imagery</label>
+
+                        <div class="reference-grid" id="char-references-grid">
+
+                            <!-- References injected here -->
+
+                        </div>
+
                     </div>
                     <label class="gov-btn-small text-center margin-t-5">
                         + Add Reference Image
@@ -219,7 +309,7 @@
         </div>
     </div>
 
-    <div class="scheduled-tasks dashboard-section" style="display:none">
+    <div class="scheduled-tasks dashboard-section hidden">
         <div class="scheduled-tasks-container">
             
             <!-- LEFT: Library Roots Manager -->
@@ -230,7 +320,7 @@
                 <!-- List -->
                 <div id="library-roots-list" class="roots-list">
                     <!-- Injected via JS -->
-                    <div style="color: #666; font-style: italic;">Loading roots...</div>
+                    <div class="text-muted italic">Loading roots...</div>
                 </div>
 
                 <!-- Add New Form -->
@@ -242,14 +332,14 @@
                     <div class="input-field">
                         <input type="text" id="new-root-path" placeholder="Absolute Path (e.g. D:\Comics)" class="mono-input">
                     </div>
-                    <button id="add-root-btn" class="small" style="width: 100%;">+ Add Root</button>
+                    <button id="add-root-btn" class="small w-full">+ Add Root</button>
                 </div>
             </div>
 
             <!-- RIGHT: Scanner & Logs -->
             <div class="task-panel">
                 <div class="scanner-header">
-                    <h3 style="margin: 0;">System Scanner</h3>
+                    <h3 class="system-scanner-header">System Scanner</h3>
                     <button id="run-scan-btn" class="update__btn">Run Scan Now</button>
                 </div>
                 
@@ -261,7 +351,7 @@
         </div>
     </div>
 
-    <div class="page-builder dashboard-section" style="display:none">
+    <div class="page-builder dashboard-section hidden">
         <div class="narrow-container padding-20">
             <button class="small back-to-studio-btn margin-b-20">&larr; Back to Studio</button>
             
@@ -281,7 +371,7 @@
             </div>
 
             <!-- CREATE PAGE -->
-            <div id="createPageContainer" class="bg-dark padding-30 border-radius-12 border-dim" style="display:none;">
+            <div id="createPageContainer" class="bg-dark padding-30 border-radius-12 border-dim hidden">
                 <button class="small mode-back-btn margin-b-15">&larr; Back</button>
                 <h3 class="margin-b-20">Create New Page</h3>
                 <div class="form-group"><label>Select Volume</label><select id="builderVolumeSelect"></select></div>
@@ -289,55 +379,55 @@
                 <form id="page-builder-form">
                     <div class="input-field"><label>Page ID (e.g. page17)</label><input type="text" id="builderPageId" name="pageId" placeholder="page17" required /></div>
                     <div class="form-group"><label>Select Layout Template</label><select id="builderLayoutSelect" required><option value="">Loading Layouts...</option></select></div>
-                    <button class="update__btn" type="submit" id="createPageBtn" style="width: 100%;">Create Page Structure</button>
+                    <button class="update__btn w-full" type="submit" id="createPageBtn">Create Page Structure</button>
                 </form>
-                <div id="builderStatus" style="margin-top: 20px; text-align: center;"></div>
+                <div id="builderStatus" class="builder-status"></div>
             </div>
 
             <!-- EDIT PAGE -->
-            <div id="editPageContainer" style="display:none;">
+            <div id="editPageContainer" class="hidden">
                 <button class="small mode-back-btn margin-b-15">&larr; Back</button>
                 <h3 class="margin-b-20">Edit Existing Page</h3>
                 
                 <!-- 1. SELECTION (Top) -->
-                <div class="bg-select padding-25 border-radius-12 border-bright margin-b-30" style="box-shadow: 0 4px 15px rgba(0,0,0,0.2);">
+                <div class="bg-select padding-25 border-radius-12 border-bright margin-b-30 box-shadow-soft">
                     <div class="flex-row gap-15 margin-b-20">
                         <div class="form-group flex-1"><label>Volume</label><select id="editVolumeSelect"></select></div>
                         <div class="form-group flex-1"><label>Chapter</label><select id="editChapterSelect" disabled><option value="">Select a Chapter</option></select></div>
                         <div class="form-group flex-1"><label>Page</label><select id="editPageSelect" disabled><option value="">Select a Page</option></select></div>
                     </div>
-                    <button id="loadPageBtn" class="update__btn width-100 font-size-1-1" style="padding: 12px;">Load Page Tools</button>
+                    <button id="loadPageBtn" class="update__btn width-100 font-size-1-1 page-tool-load-btn">Load Page Tools</button>
                 </div>
 
                 <!-- 2. TOOLS (Middle) -->
-                <div id="activePageToolbar" style="display:none;">
+                <div id="activePageToolbar" class="hidden">
                     
                     <!-- Info & Editors -->
                     <div class="flex-between bg-dark padding-20 border-radius-12 border-accent margin-b-30">
                         <div>
                             <span class="text-muted font-size-07 text-uppercase letter-spacing-1">Active Page</span>
-                            <h4 id="activePageDisplay" class="text-accent font-size-1-4" style="margin: 5px 0 0 0;">None</h4>
+                            <h4 id="activePageDisplay" class="text-accent font-size-1-4 active-page-display">None</h4>
                         </div>
                         <div class="flex-row gap-15">
-                            <button id="openLayoutEditorBtn" class="update__btn" style="background: #333; border-color: #444;">Visual Editor</button>
+                            <button id="openLayoutEditorBtn" class="update__btn visual-editor-btn">Visual Editor</button>
                             <button id="openSceneEditorBtn" class="update__btn">Scene Editor</button>
                         </div>
                     </div>
 
                     <!-- 3. CONFIG (Middle) -->
                     <div class="bg-panel padding-25 border-radius-12 border-dim margin-b-30">
-                        <h4 class="margin-b-20" style="margin-top: 0; color: #fff; font-size: 1rem; border-bottom: 1px solid #444; padding-bottom: 10px;">Page Configuration</h4>
+                        <h4 class="margin-b-20 config-header">Page Configuration</h4>
                         <div class="form-group">
                             <label class="audio-config-label">Structural Layout</label>
                             <input type="hidden" id="activePageLayoutValue" value="">
                             <div id="activePageLayoutBrowser" class="layout-browser-grid">
                                 <!-- Layout cards injected here by JS -->
-                                <div style="color: #666; padding: 20px;">Initializing visual browser...</div>
+                                <div class="text-muted padding-20">Initializing visual browser...</div>
                             </div>
                             <div class="flex-row margin-t-15">
                                 <button id="applyLayoutBtn" class="small btn-apply width-100">Apply Selected Layout</button>
                             </div>
-                            <p class="font-size-07" style="color: #555; margin-top: 8px;">Choosing a new layout will immediately update the structural grid of the page.</p>
+                            <p class="font-size-07 layout-preview-note">Choosing a new layout will immediately update the structural grid of the page.</p>
                         </div>
                     </div>
 
@@ -350,13 +440,13 @@
                                 <label class="audio-config-label">Background Audio</label>
                                 <div class="audio-config-row">
                                     <span id="backgroundAudioDisplay" class="audio-config-filename text-truncate">None</span>
-                                    <button id="browseBackgroundAudioBtn" class="small" style="padding: 5px 12px;">...</button>
+                                    <button id="browseBackgroundAudioBtn" class="small audio-browse-btn">...</button>
                                     <div class="divider-v"></div>
-                                    <ion-icon name="volume-medium" class="text-muted" style="font-size: 1.2rem;"></ion-icon>
+                                    <ion-icon name="volume-medium" class="text-muted audio-icon-small"></ion-icon>
                                     <input type="number" id="backgroundAudioVolumeInput" min="0" max="1" step="0.1" value="1" class="volume-input">
                                     <button id="applyBackgroundAudioBtn" class="small btn-apply">Apply</button>
                                 </div>
-                                <p class="font-size-07" style="color: #555; margin-top: 8px;">Persistent across pages in the current volume.</p>
+                                <p class="font-size-07 layout-preview-note">Persistent across pages in the current volume.</p>
                             </div>
 
                             <!-- Page Ambient -->
@@ -364,13 +454,13 @@
                                 <label class="audio-config-label">Page Ambient</label>
                                 <div class="audio-config-row">
                                     <span id="ambientAudioDisplay" class="audio-config-filename text-truncate">None</span>
-                                    <button id="browseAmbientAudioBtn" class="small" style="padding: 5px 12px;">...</button>
+                                    <button id="browseAmbientAudioBtn" class="small audio-browse-btn">...</button>
                                     <div class="divider-v"></div>
-                                    <ion-icon name="volume-medium" class="text-muted" style="font-size: 1.2rem;"></ion-icon>
+                                    <ion-icon name="volume-medium" class="text-muted audio-icon-small"></ion-icon>
                                     <input type="number" id="ambientVolumeInput" min="0" max="1" step="0.1" value="1" class="volume-input">
                                     <button id="applyAmbientBtn" class="small btn-apply">Apply</button>
                                 </div>
-                                <p class="font-size-07" style="color: #555; margin-top: 8px;">Loops automatically when this specific page is opened.</p>
+                                <p class="font-size-07 layout-preview-note">Loops automatically when this specific page is opened.</p>
                             </div>
 
                         </div>
@@ -381,21 +471,21 @@
         </div>
     </div>
 
-    <div class="layout-editor dashboard-section" style="display:none; height: 100%;">
-        <div class="editor-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <div class="layout-editor dashboard-section hidden h-full">
+        <div class="editor-header editor-header-flex">
             <h3>Visual Editor: <span id="editorPageTitle"></span></h3>
             <button id="closeEditorBtn">Close</button>
         </div>
-        <div class="editor-container" style="display: flex; gap: 20px; height: 80vh;">
-            <div class="preview-pane" style="flex: 3; border: 2px solid #ccc; position: relative;">
-                <iframe id="pagePreviewFrame" style="width: 100%; height: 100%; border: none;"></iframe>
+        <div class="editor-container editor-container-flex">
+            <div class="preview-pane preview-pane-flex">
+                <iframe id="pagePreviewFrame" class="preview-iframe"></iframe>
             </div>
-            <div class="tools-pane" style="flex: 1; padding: 15px;">
+            <div class="tools-pane tools-pane-flex">
                 <h4>Visual Editor (Initial State)</h4>
-                <p style="font-size: 0.9rem; color: #ccc; margin-bottom: 15px;">
+                <p class="tools-pane-note">
                     This tool sets the <strong>base media</strong> that appears when the page first loads (populates <code>media.json</code>).
                 </p>
-                <ul style="font-size: 0.85rem; color: #aaa; padding-left: 20px; margin-bottom: 20px;">
+                <ul class="tools-pane-list">
                     <li>Drag & Drop images or videos onto panels.</li>
                     <li>These assets render <em>before</em> the Scene timeline starts.</li>
                     <li>Use the <strong>Scene Editor</strong> for dialogue and changing media during the story.</li>
@@ -405,25 +495,25 @@
         </div>
     </div>
 
-    <div class="scene-editor dashboard-section" style="display:none; height: 100%;">
-        <div class="editor-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+    <div class="scene-editor dashboard-section hidden h-full">
+        <div class="editor-header editor-header-flex">
             <h3>Scene Editor: <span id="sceneEditorPageTitle"></span></h3>
             <div>
                 <button class=" update__btn" id="saveSceneBtn">Save Scene</button>
                 <button id="closeSceneEditorBtn" style="margin-left: 10px;">Close</button>
             </div>
         </div>
-        <div class="editor-container" style="display: flex; gap: 20px; height: 80vh;">
-            <div class="scene-tree-pane" style="flex: 1; padding: 10px; overflow-y: auto; border-radius: 4px;">
-                <h4 style="color:white; margin-top:0;">Timeline</h4>
-                <div class="scene-toolbar" style="margin-bottom: 10px; display: flex; gap: 5px;">
-                    <button class=" small" id="addItemBtn">+ Add Item</button>
+        <div class="editor-container editor-container-flex">
+            <div class="scene-tree-pane timeline-pane-flex">
+                <h4 class="timeline-header">Timeline</h4>
+                <div class="scene-toolbar timeline-toolbar">
+                    <button class="small" id="addItemBtn">+ Add Item</button>
                 </div>
-                <ul id="sceneTreeList" class="scene-list" style="list-style: none; padding: 0; margin: 0;"></ul>
+                <ul id="sceneTreeList" class="scene-list timeline-list"></ul>
             </div>
-            <div class="scene-props-pane" style="flex: 2; padding: 20px; overflow-y: auto; border-radius: 4px; color: white;">
-                <h4 style="margin-top:0;">Properties</h4>
-                <div id="sceneItemEditor" style="display:none;">
+            <div class="scene-props-pane props-pane-flex">
+                <h4 class="props-header">Properties</h4>
+                <div id="sceneItemEditor" class="hidden">
                     <form id="sceneItemForm">
                         <div class="input-field"><label>ID</label><input type="text" id="prop-id" readonly></div>
                         <div class="input-field">
@@ -439,48 +529,48 @@
                         </div>
                         <div class="input-field prop-group-character"><label>Character</label><input type="text" id="prop-character"></div>
                         <div class="input-field prop-group-text"><label>Dialogue</label><textarea id="prop-text" rows="4"></textarea></div>
-                        <div class="prop-group-placement" style="margin-bottom: 15px;">
+                        <div class="props-group">
                             <h5>Placement</h5>
                             <div class="input-field"><label>Panel Selector</label><input type="text" id="prop-panel" placeholder=".panel-1a"></div>
-                            <div style="display: flex; gap: 10px;">
-                                <div class="input-field" style="flex:1"><label>Top</label><input type="text" id="prop-top"></div>
-                                <div class="input-field" style="flex:1"><label>Left</label><input type="text" id="prop-left"></div>
-                                <div class="input-field" style="flex:1"><label>Right</label><input type="text" id="prop-right"></div>
-                                <div class="input-field" style="flex:1"><label>Bottom</label><input type="text" id="prop-bottom"></div>
+                            <div class="flex-gap-10">
+                                <div class="input-field flex-1"><label>Top</label><input type="text" id="prop-top"></div>
+                                <div class="input-field flex-1"><label>Left</label><input type="text" id="prop-left"></div>
+                                <div class="input-field flex-1"><label>Right</label><input type="text" id="prop-right"></div>
+                                <div class="input-field flex-1"><label>Bottom</label><input type="text" id="prop-bottom"></div>
                             </div>
                             <div class="input-field"><label>Tail Position</label><input type="text" id="prop-tail" placeholder="top-left"></div>
                         </div>
-                        <div class="prop-group-duration" style="display:none;"><div class="input-field"><label>Duration (ms)</label><input type="number" id="prop-duration"></div></div>
+                        <div class="prop-group-duration hidden"><div class="input-field"><label>Duration (ms)</label><input type="number" id="prop-duration"></div></div>
                         <div class="prop-group-media">
                             <h5>Media Actions</h5>
-                            <div id="mediaActionsList" style="margin-bottom: 10px;"></div>
-                            <div style="display: flex; flex-direction: column; gap: 5px;">
-                                <div style="display: flex; gap: 5px;">
-                                    <button type="button" class="small" id="addMediaImageBtn" style="flex: 1;">+ Image</button>
-                                    <button type="button" class="small" id="addMediaVideoBtn" style="flex: 1;">+ Video</button>
-                                    <button type="button" class="small" id="addMediaPlaylistBtn" style="flex: 1;">+ Playlist</button>
+                            <div id="mediaActionsList" class="margin-b-10"></div>
+                            <div class="flex-column gap-5">
+                                <div class="flex-row gap-5">
+                                    <button type="button" class="small flex-1" id="addMediaImageBtn">+ Image</button>
+                                    <button type="button" class="small flex-1" id="addMediaVideoBtn">+ Video</button>
+                                    <button type="button" class="small flex-1" id="addMediaPlaylistBtn">+ Playlist</button>
                                 </div>
-                                <div style="display: flex; gap: 5px;">
-                                    <button type="button" class="small" id="addMediaBgAudioBtn" style="flex: 1;">+ Bg Audio</button>
-                                    <button type="button" class="small" id="addMediaAmbientAudioBtn" style="flex: 1;">+ Ambient Audio</button>
+                                <div class="flex-row gap-5">
+                                    <button type="button" class="small flex-1" id="addMediaBgAudioBtn">+ Bg Audio</button>
+                                    <button type="button" class="small flex-1" id="addMediaAmbientAudioBtn">+ Ambient Audio</button>
                                 </div>
                             </div>
                         </div>
-                        <button type="button" id="deleteItemBtn" style="background-color: #d9534f; border-color: #d9534f; margin-top: 20px;">Delete Item</button>
+                        <button type="button" id="deleteItemBtn" class="delete-item-btn">Delete Item</button>
                     </form>
                 </div>
-                <div id="sceneItemPlaceholder" style="color: #aaa; text-align: center; padding-top: 50px;">Select an item from the timeline to edit.</div>
+                <div id="sceneItemPlaceholder" class="item-placeholder">Select an item from the timeline to edit.</div>
             </div>
         </div>
     </div>
 
     <div id="fileBrowserModal" class="modal modal-overlay">
-        <div class="modal-content" style="width:80%; max-width:800px; height:80%; display:flex; flex-direction:column;">
-            <div class="modal-header padding-15 border-dim" style="border-bottom-width: 1px; display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="margin:0; color:white;">Select Asset</h3>
+        <div class="modal-content modal-content-large">
+            <div class="modal-header padding-15 border-dim modal-header-flex">
+                <h3 class="props-header">Select Asset</h3>
                 <button id="closeFileBrowserBtn" class="small">Close</button>
             </div>
-            <div class="modal-toolbar padding-10 bg-panel" style="display:flex; gap:10px; align-items:center;">
+            <div class="modal-toolbar padding-10 bg-panel modal-toolbar-flex">
                  <select id="fbScopeSelect" class="gov-select">
                     <option value="page">Page Assets</option>
                     <option value="volume">Volume Assets</option>
@@ -492,34 +582,35 @@
                     <option value="date">Newest First</option>
                     <option value="name">Name (A-Z)</option>
                  </select>
-                 <div class="divider-v margin-b-0" style="margin:0 5px;"></div>
-                 <label class="small" style="cursor:pointer; background: #333; color: white; border: 1px solid #555; padding: 4px 10px; border-radius: 4px; font-family: 'Consolas', monospace; font-size: 0.8rem; transition: all 0.2s;">
+                 <div class="divider-v margin-b-0"></div>
+                 <label class="small modal-file-label">
                     Upload New
-                    <input type="file" id="fileBrowserUploadInput" style="display:none;">
+                    <input type="file" id="fileBrowserUploadInput" class="hidden">
                  </label>
-                 <span id="fileBrowserStatus" class="text-muted font-size-09" style="align-self:center;"></span>
+                 <span id="fileBrowserStatus" class="text-muted font-size-09 align-self-center"></span>
             </div>
-            <div id="fileBrowserGrid" class="flex-1 padding-20" style="display:grid; grid-template-columns:repeat(auto-fill, minmax(120px, 1fr)); gap:15px; overflow-y: auto;"></div>
+            <div id="fileBrowserGrid" class="flex-1 padding-20 file-browser-grid"></div>
         </div>
     </div>
 
     <div id="playlistEditorModal" class="modal modal-overlay">
-        <div class="modal-content padding-20" style="width:600px; height:80%; display:flex; flex-direction:column;">
-            <div class="modal-header margin-b-15 border-dim" style="border-bottom-width: 1px; padding-bottom:10px; display:flex; justify-content:space-between; align-items:center;">
-                <h3 style="margin:0; color:white;">Edit Playlist</h3>
+        <div class="modal-content padding-20 modal-content-medium">
+            <div class="modal-header margin-b-15 border-dim modal-header-flex">
+                <h3 class="props-header">Edit Playlist</h3>
                 <button id="closePlaylistEditorBtn" class="small">Done</button>
             </div>
             <div class="input-field"><label>Global Duration (ms)</label><input type="number" id="playlistGlobalDuration" placeholder="e.g. 2000"></div>
-            <div class="flex-1 bg-dark padding-10 border-radius-4" style="overflow-y:auto; margin-top:15px;"><ul id="playlistItemsList" style="list-style:none; padding:0; margin:0;"></ul></div>
-            <div class="modal-toolbar flex-row gap-10" style="margin-top:15px;"><button id="addPlaylistItemBtn" class="small width-100">+ Add Item</button></div>
+            <div class="flex-1 bg-dark padding-10 border-radius-4 playlist-container"><ul id="playlistItemsList" class="playlist-list"></ul></div>
+            <div class="modal-toolbar flex-row gap-10 margin-t-15"><button id="addPlaylistItemBtn" class="small width-100">+ Add Item</button></div>
         </div>
     </div>
 
     <div id="savingOverlay" class="saving-overlay">
-        <div class="loader-spinner" style="border: 4px solid #f3f3f3; border-top: 4px solid var(--accent); border-radius: 50%; width: 50px; height: 50px; animation: spin 2s linear infinite; margin-bottom: 20px;"></div>
-        <style>@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }</style>
+        <div class="loader-spinner"></div>
         <h3>Saving Data...</h3>
         <p>Please wait while we update the grid.</p>
     </div>
+
+</main>
 
 </main>

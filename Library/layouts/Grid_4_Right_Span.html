@@ -1,0 +1,48 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Four Panel Grid with Right Side Span
+    Refactored to explicit grid syntax.
+*/
+.page-layout.layout-four-panel-grid-with-right-side-span {
+    display: grid;
+    /* Columns: 2fr 2fr 1.2fr */
+    grid-template-columns: 2fr 2fr 1.2fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+}
+
+/* Right Panel: Tall (Vertical Strip) */
+.layout-four-panel-grid-with-right-side-span .panel-1c {
+    grid-column: 3 / 4;
+    grid-row: 1 / 3; /* Spans 2 rows */
+}
+
+/* Top Left Pair */
+.layout-four-panel-grid-with-right-side-span .panel-1a {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+.layout-four-panel-grid-with-right-side-span .panel-1b {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+}
+
+/* Bottom Left Pair */
+.layout-four-panel-grid-with-right-side-span .panel-2a {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+.layout-four-panel-grid-with-right-side-span .panel-2b {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+}
+</style>
+<div class="section-container page-layout layout-four-panel-grid-with-right-side-span">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>

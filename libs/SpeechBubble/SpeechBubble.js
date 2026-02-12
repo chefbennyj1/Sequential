@@ -32,13 +32,27 @@ class SpeechBubble {
     const text = this.options.text;
     const cleanText = text.replace(expressiveFlagRegex, '').trim();
     const isMonologue = text.includes('[internal]') || text.includes('[monologue]');
+    const isSystem = text.includes('[system]') || text.includes('[computer]');
     
-    return { cleanText, isMonologue };
+    return { cleanText, isMonologue, isSystem };
   }
 
-  _getBubbleHtml(cleanText, isMonologue) {
+  _getBubbleHtml(cleanText, isMonologue, isSystem) {
     if (isMonologue) {
         return `<div class="super-bubble monologue-bubble">${cleanText}</div>`;
+    }
+
+    if (isSystem) {
+        return `
+           <div class="super-bubble system-bubble">
+              <div class="system-header">[SYSTEM_LINK]</div>
+              <span class="bubble-text">> ${cleanText}</span>
+              <div class="scanlines"></div>
+              <div class="tail-container rigid-tail tail-${this.options.tailPosition}">
+                 <div class="tail-shape"></div>
+              </div>
+           </div>
+        `;
     }
 
     const tailClass = `tail-${this.options.tailPosition}`;
@@ -70,8 +84,9 @@ class SpeechBubble {
     const speechBubbleContainer = document.createElement('div');
     speechBubbleContainer.className = `speech-bubble-container`;
     
-    const { cleanText, isMonologue } = this._getParsedContent();
+    const { cleanText, isMonologue, isSystem } = this._getParsedContent();
     if (isMonologue) speechBubbleContainer.classList.add('monologue');
+    if (isSystem) speechBubbleContainer.classList.add('system');
 
     // Apply positioning
     if (this.options.top) speechBubbleContainer.style.top = this.options.top;
@@ -80,7 +95,7 @@ class SpeechBubble {
     if (this.options.right) speechBubbleContainer.style.right = this.options.right;
     
     this.parentElement.appendChild(speechBubbleContainer);
-    speechBubbleContainer.innerHTML = this._getBubbleHtml(cleanText, isMonologue);
+    speechBubbleContainer.innerHTML = this._getBubbleHtml(cleanText, isMonologue, isSystem);
     this.container = speechBubbleContainer;
 
     // Apply attributes and style from options

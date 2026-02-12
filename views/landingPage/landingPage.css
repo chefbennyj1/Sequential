@@ -1,3 +1,23 @@
+.hidden {
+    display: none !important;
+}
+
+#enter-btn {
+    display: none;
+    text-decoration: none;
+    color: var(--neon-text-color-blue);
+    font-family: 'Consolas', monospace;
+    font-size: 1.5rem;
+    letter-spacing: 2px;
+    z-index: 10;
+    transition: all 0.3s ease;
+}
+
+#enter-btn:hover {
+    color: var(--neon-border-color-purple);
+    text-shadow: 0 0 10px var(--neon-border-color-purple);
+}
+
 :root {
     --fade-color: whitesmoke;
     --neon-text-color-blue: rgb(23, 158, 199);

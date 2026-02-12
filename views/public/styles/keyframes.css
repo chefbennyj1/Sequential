@@ -249,3 +249,26 @@ skew to change the 'thickness' of the glitch.*/
     transform: skew(4deg);
   }
 }
+
+@keyframes zoom-scroll {
+  0% {
+    filter: blur(5rem);
+    transform: scale(0);
+    opacity: 0;
+    visibility: hidden;
+  }
+
+  50% {
+    filter: blur(0);
+    transform: none;
+    opacity: 1;
+    visibility: visible;
+  }
+
+  100% {
+    filter: blur(3rem);
+    transform: scale(1.5);
+    opacity: 0;
+    visibility: hidden;
+  }
+}

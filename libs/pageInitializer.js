@@ -19,8 +19,8 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
 
     // 1. Core Setup (Non-blocking font load)
     const coreTasks = [
-        loadCSS('/libs/SpeechBubble/SpeechBubble.css'),
-        loadCSS('/libs/TextBlock/TextBlock.css')
+        loadCSS('/libs/SpeechBubble/SpeechBubble.css', true),
+        loadCSS('/libs/TextBlock/TextBlock.css', true)
     ];
 
     try {

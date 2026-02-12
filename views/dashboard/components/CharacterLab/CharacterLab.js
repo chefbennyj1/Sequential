@@ -83,7 +83,7 @@ export default class CharacterEditor {
     renderList(characters) {
         this.listContainer.innerHTML = '';
         if (characters.length === 0) {
-            this.listContainer.innerHTML = '<p style="color:#aaa;">No characters found for this series.</p>';
+            this.listContainer.innerHTML = '<p class="text-muted">No characters found for this series.</p>';
             return;
         }
 

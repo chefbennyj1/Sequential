@@ -27,7 +27,7 @@
       <div class="initializing-progress"></div>
       <div class="initializing-text"></div>
     </div>
-    <a id="enter-btn" href="" style="display:none">[ enter ]</a>
+    <a id="enter-btn" href="">[ enter ]</a>
   </div>
 
   <canvas id="tube-cursor"></canvas>
@@ -52,13 +52,6 @@
       let loader = document.getElementById("loading-page");
       let enterBtn = loader.querySelector('#enter-btn');
 
-      //global audio
-      //window.transitionAudio = new Audio('/audio/transition_audio.mp3');
-      //window.bgAudio = new Audio('/audio/background.mp3');
-      //window.storyName = new Audio('/audio/no_overflow_hacker.mp3');
-
-      //window.bgAudio.loop = true;
-
       window.audioEnabled = true;
       localStorage.setItem('globalAudioEnabled', 'true');
 
@@ -73,7 +66,7 @@
           y: -50,
           ease: "power2.inOut",
           onComplete: () => {
-            loader.style.display = "none";
+            loader.classList.add("hidden");
           }
         });
 
@@ -90,7 +83,8 @@
     })();
 
     function handleLoadingText(enterBtn) {
-      enterBtn.style.display = "block";
+      enterBtn.classList.add("flex-center"); // Simple utility class if available, or just use CSS
+      enterBtn.style.display = "block"; // Still need this for GSAP start point if it's hidden in CSS
       gsap.fromTo(enterBtn, 
         { opacity: 0, y: 20 }, 
         { opacity: 1, y: 0, duration: 1, delay: 0.5, ease: "power2.out" }

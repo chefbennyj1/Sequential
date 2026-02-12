@@ -5,51 +5,21 @@
   <title><%= series.title %> - Volumes</title>
   <link rel="stylesheet" href="/views/public/styles/fonts.css">
   <link rel="stylesheet" href="/views/library/library.css"> 
-  <style>
-      body { background: #111; color: white; display: flex; flex-direction: column; align-items: center; min-height: 100vh; margin: 0; }
-      .container { max-width: 1200px; width: 100%; padding: 40px; }
-      h1 { font-family: var(--font-family-comicbook-bold); text-transform: uppercase; font-size: 3rem; margin-bottom: 40px; text-shadow: 0 0 10px rgba(255,255,255,0.2); }
-      
-      .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px; }
-      
-      .card { 
-          background: #222; 
-          border: 1px solid #444; 
-          border-radius: 8px; 
-          overflow: hidden; 
-          transition: transform 0.2s, box-shadow 0.2s;
-          text-decoration: none;
-          color: white;
-          display: flex;
-          flex-direction: column;
-      }
-      .card:hover { transform: translateY(-5px); box-shadow: 0 5px 20px rgba(0,0,0,0.5); border-color: var(--neon-text-color); }
-      
-      .card-image { height: 350px; background: #000; display: flex; align-items: center; justify-content: center; overflow: hidden; }
-      .card-image img { width: 100%; height: 100%; object-fit: cover; }
-      
-      .card-info { padding: 20px; }
-      .card-title { font-family: 'Consolas', monospace; font-size: 1.2rem; margin: 0; color: var(--neon-text-color); }
-      .card-meta { font-family: 'Consolas', monospace; font-size: 0.9rem; color: #888; margin-top: 5px; }
-
-      .back-link { position: absolute; top: 20px; left: 20px; color: #888; text-decoration: none; font-family: 'Consolas', monospace; }
-      .back-link:hover { color: white; }
-  </style>
 </head>
-<body>
-    <a href="/library" class="back-link">&larr; Back to Library</a>
+<body class="library-body">
+    <a href="/library" class="library-back-link">&larr; Back to Library</a>
     
-    <div class="container">
-        <h1><%= series.title %></h1>
-        <div class="grid">
+    <div class="library-container">
+        <h1 class="library-title"><%= series.title %></h1>
+        <div class="library-grid">
             <% series.volumes.forEach(vol => { %>
-                <a href="/library/series/<%= series._id %>/volume/<%= vol._id %>" class="card">
-                    <div class="card-image">
+                <a href="/library/series/<%= series._id %>/volume/<%= vol._id %>" class="library-card">
+                    <div class="library-card-image">
                         <img src="<%= vol.coverImage %>" alt="Volume Cover">
                     </div>
-                    <div class="card-info">
-                        <h3 class="card-title">Volume <%= vol.index %></h3>
-                        <div class="card-meta"><%= vol.title %></div>
+                    <div class="library-card-info">
+                        <h3 class="library-card-title">Volume <%= vol.index %></h3>
+                        <div class="library-card-meta"><%= vol.title %></div>
                     </div>
                 </a>
             <% }) %>

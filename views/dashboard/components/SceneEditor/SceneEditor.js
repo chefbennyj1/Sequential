@@ -24,10 +24,10 @@ let currentVisualContext = {};
 export async function openSceneEditor(volume, chapter, pageId) {
     updateUrlState({ tab: 'scene-editor', vol: volume, chap: chapter, page: pageId });
     document.querySelector('.sidebar')?.classList.remove('open');
-    document.querySelectorAll('main.main-content .dashboard-section').forEach(s => s.style.display = 'none');
+    document.querySelectorAll('main.main-content .dashboard-section').forEach(s => s.classList.add('hidden'));
     
     const sceneEditor = document.querySelector('.scene-editor');
-    if(sceneEditor) sceneEditor.style.display = 'block';
+    if(sceneEditor) sceneEditor.classList.remove('hidden');
 
     currentSceneInfo = { volume, chapter, pageId };
     const titleEl = document.getElementById('sceneEditorPageTitle');
@@ -64,8 +64,8 @@ export async function openSceneEditor(volume, chapter, pageId) {
     setupCharacterInputUI();
     renderSceneTree();
     
-    document.getElementById('sceneItemEditor').style.display = 'none';
-    document.getElementById('sceneItemPlaceholder').style.display = 'block';
+    document.getElementById('sceneItemEditor').classList.add('hidden');
+    document.getElementById('sceneItemPlaceholder').classList.remove('hidden');
 }
 
 function getActiveAssets() {
@@ -98,17 +98,17 @@ function setupCharacterInputUI() {
     
     container.innerHTML = `
         <label>Character</label>
-        <div style="display:flex; gap:10px; align-items:center;">
-            <div style="flex:1;">
-                <select id="prop-character-select" style="width:100%; display:none; padding:8px; border-radius:4px; background:#222; color:white; border:1px solid #555;">
+        <div class="char-input-group">
+            <div class="flex-1">
+                <select id="prop-character-select" class="char-select-custom hidden">
                     <option value="">-- Select Character --</option>
                 </select>
-                <input type="text" id="prop-character" placeholder="Character Name" style="width:100%;">
+                <input type="text" id="prop-character" placeholder="Character Name" class="width-100">
             </div>
-            <img id="prop-character-avatar" src="" style="width:40px; height:40px; border-radius:50%; object-fit:cover; border:1px solid #555; display:none; background:#000;">
+            <img id="prop-character-avatar" src="" class="char-avatar-small hidden">
         </div>
-        <div style="text-align:right; font-size:0.75rem; margin-top:2px;">
-            <a href="#" id="toggleCharInputMode" style="color:var(--accent);">Toggle Input Mode</a>
+        <div class="toggle-input-link-wrapper">
+            <a href="#" id="toggleCharInputMode" class="text-accent">Toggle Input Mode</a>
         </div>
     `;
 
@@ -125,25 +125,25 @@ function setupCharacterInputUI() {
             opt.dataset.image = char.image || '';
             select.appendChild(opt);
         });
-        input.style.display = 'none';
-        select.style.display = 'block';
+        input.classList.add('hidden');
+        select.classList.remove('hidden');
     } else {
-        input.style.display = 'block';
-        select.style.display = 'none';
-        toggle.style.display = 'none';
+        input.classList.remove('hidden');
+        select.classList.add('hidden');
+        toggle.classList.add('hidden');
     }
 
     toggle.onclick = (e) => {
         e.preventDefault();
-        if (input.style.display === 'none') {
-            input.style.display = 'block';
-            select.style.display = 'none';
-            avatar.style.display = 'none';
+        if (input.classList.contains('hidden')) {
+            input.classList.remove('hidden');
+            select.classList.add('hidden');
+            avatar.classList.add('hidden');
             select.value = "";
         } else {
-            input.style.display = 'none';
-            select.style.display = 'block';
-            if (select.value) avatar.style.display = 'block';
+            input.classList.add('hidden');
+            select.classList.remove('hidden');
+            if (select.value) avatar.classList.remove('hidden');
         }
     };
 
@@ -153,13 +153,13 @@ function setupCharacterInputUI() {
             const img = opt.dataset.image;
             if (img) {
                 avatar.src = img;
-                avatar.style.display = 'block';
+                avatar.classList.remove('hidden');
             } else {
-                avatar.style.display = 'none';
+                avatar.classList.add('hidden');
             }
             updateSceneItemFromForm();
         } else {
-            avatar.style.display = 'none';
+            avatar.classList.add('hidden');
         }
     };
 }
@@ -183,7 +183,7 @@ function renderSceneTree() {
         if (item.characterId && availableCharacters.length > 0) {
             const charObj = availableCharacters.find(c => c._id === item.characterId);
             if (charObj && charObj.image) {
-                avatarHtml = `<img src="${charObj.image}" style="width:20px; height:20px; border-radius:50%; object-fit:cover; margin-right:5px; border:1px solid #555;">`;
+                avatarHtml = `<img src="${charObj.image}" class="char-avatar-mini">`;
             }
         }
 

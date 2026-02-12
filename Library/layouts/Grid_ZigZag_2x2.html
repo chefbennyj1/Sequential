@@ -1,0 +1,43 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: ZigZag 2x2
+    A staggered layout where wide and narrow panels alternate.
+*/
+.page-layout.layout-zigzag-2x2 {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 10px;
+}
+
+/* Row 1 */
+/* Combined 1a + 1b */
+.layout-zigzag-2x2 .panel-1a { 
+    grid-column: 1 / 3;
+    grid-row: 1 / 2;
+}
+.layout-zigzag-2x2 .panel-1c { 
+    grid-column: 3 / 4;
+    grid-row: 1 / 2;
+}
+
+/* Row 2 */
+.layout-zigzag-2x2 .panel-2a { 
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+/* Combined 2b + 2c */
+.layout-zigzag-2x2 .panel-2b { 
+    grid-column: 2 / 4;
+    grid-row: 2 / 3;
+}
+</style>
+
+<div class="section-container page-layout layout-zigzag-2x2">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>

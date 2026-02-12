@@ -46,24 +46,6 @@ class TextBlock {
   }
 
   async render() {
-    // Check for audio file existence before creating the element
-    if (this.potentialAudioUrl) {
-      try {
-        const response = await fetch(this.potentialAudioUrl, { method: 'HEAD' });
-        if (response.ok) {
-          // File exists, so create and register the audio element
-          this.audioElement = new Audio(this.potentialAudioUrl);
-          this.audioElement.preload = 'auto';
-          this.audioElement.volume = 1.0;
-          if (window.audioStateManager) {
-            window.audioStateManager.registerAudio(this.audioElement, this.options.pageId, true);
-          }
-        }
-      } catch (error) {
-        console.error('Error checking for audio file existence:', this.potentialAudioUrl, error);
-      }
-    }
-
     await document.fonts.ready;
     const textBlockContainer = document.createElement('div');
     textBlockContainer.className = `text-block-container text-block-story-line-${this.options.pageIndex}-${this.options.dialogueIndex}`;

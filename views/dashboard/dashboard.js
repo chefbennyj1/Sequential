@@ -48,6 +48,23 @@ export async function init(container) {
         else if (sidebar?.classList.contains('open') && e.clientX > 250) sidebar.classList.remove('open');
     });
 
+    // User Menu Toggle
+    const userSection = container.querySelector('.user');
+    const userMenu = container.querySelector('#userMenu');
+    
+    if (userSection && userMenu) {
+        userSection.addEventListener('click', (e) => {
+            // Prevent sidebar close/hover logic if necessary, but here we just toggle
+            e.stopPropagation();
+            userMenu.classList.toggle('show');
+        });
+
+        // Close menu when clicking elsewhere
+        document.addEventListener('click', () => {
+            userMenu.classList.remove('show');
+        });
+    }
+
     // Global Event Delegation
     container.addEventListener('click', async (e) => {
         const target = e.target.closest('button, li, .mode-card, .volume-card, .series-card, #accountSettingsBtn');

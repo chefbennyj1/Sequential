@@ -6,7 +6,7 @@
     --bubble-border: #000;
     --bubble-text: #000;
     --bubble-font: "Comic Book", "Bangers", cursive;
-    --bubble-border-width: 2px;
+    --bubble-border-width: 3px; /* Increased from 2px */
     --tail-size: 30px;
 }
 
@@ -16,6 +16,7 @@
     justify-content: center;
     align-items: center;
     min-width: 150px;
+    max-width: 50%;
     width: fit-content;
     z-index: 1000;
     opacity: 0;
@@ -39,26 +40,31 @@
     background-size: 6px 6px;
     background-position: 0 0, 3px 3px;
     border: var(--bubble-border-width) solid var(--bubble-border);
-    border-radius: 50% / 40%;
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
     box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
     text-align: center;
     font-family: var(--bubble-font);
-    font-size: 0.95em;
-    line-height: 1.3;
+    font-size: 0.85em;
+    line-height: 1.2;
     color: var(--bubble-text);
     word-wrap: break-word;
     transform: rotate(-1deg);
-    z-index: 2;
+    z-index: 5; /* Base bubble layer */
+}
+
+.bubble-text {
+    position: relative;
+    z-index: 20; /* Ensure text is above tail */
 }
 
 /* Wobbly Border Effect */
 .super-bubble::before {
     content: "";
     position: absolute;
-    inset: -4px;
-    border: 1.5px solid var(--bubble-border);
-    border-radius: 52% / 42%;
-    transform: rotate(1.5deg);
+    inset: -3px;
+    /* border: 2.5px solid var(--bubble-border); */
+    border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px;
+    transform: rotate(0.5deg); /* Reduced from 1deg */
     pointer-events: none;
     z-index: -1;
 }
@@ -66,57 +72,206 @@
 .super-bubble::after {
     content: "";
     position: absolute;
-    inset: -2px;
-    border: 1px solid var(--bubble-border);
-    border-radius: 48% / 38%;
-    transform: rotate(-1.5deg);
+    inset: -1px;
+    border: 2px solid var(--bubble-border);
+    border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+    transform: rotate(-0.2deg); /* Reduced from -0.5deg */
     pointer-events: none;
     z-index: -1;
 }
 
-/* Tail Construction */
+/* Tail Construction (Legacy Border-Triangle Method) */
 .tail-container {
     position: absolute;
-    width: var(--tail-size);
-    height: var(--tail-size);
-    z-index: 10; /* High z-index to stay above bubble borders and panels */
+    width: 0;
+    height: 0;
+    z-index: 10;
+    pointer-events: none;
 }
 
-.tail-shape {
-    width: 100%;
-    height: 100%;
-    background-color: var(--bubble-bg-one);
-    background-image: radial-gradient(var(--bubble-bg-two) 25%, transparent 26%),
-                      radial-gradient(var(--bubble-bg-two) 25%, transparent 26%);
-    background-size: 6px 6px;
-    background-position: 0 0, 3px 3px;
-    border-left: var(--bubble-border-width) solid var(--bubble-border);
-    border-bottom: var(--bubble-border-width) solid var(--bubble-border);
+.tail-container::before,
+.tail-container::after {
+    content: "";
+    position: absolute;
+    border: solid 15px transparent;
 }
 
-/* Tail Positions */
+/* Tail Positions - Legacy Logic */
+
+/* Bottom Left */
 .tail-bottom-left {
-    bottom: -15px;
+    bottom: -5px; /* Pushed down 5px */
     left: 20%;
-    transform: skewX(-20deg) rotate(-10deg);
+}
+.tail-bottom-left::before {
+    border-left-color: var(--bubble-border);
+    border-top-color: var(--bubble-border);
+    top: -10px;
+    transform: skewX(-15deg);
+}
+.tail-bottom-left::after {
+    border-left-color: var(--bubble-bg-one);
+    border-top-color: var(--bubble-bg-one);
+    top: -12px;
+    left: 2px;
+    border-width: 12px;
+    transform: skewX(-15deg);
 }
 
+/* Bottom Right */
 .tail-bottom-right {
-    bottom: -15px;
+    bottom: -5px; /* Pushed down 5px */
     right: 20%;
-    transform: scaleX(-1) skewX(-20deg) rotate(-10deg);
+}
+.tail-bottom-right::before {
+    border-right-color: var(--bubble-border);
+    border-top-color: var(--bubble-border);
+    top: -10px;
+    right: 2px; /* Pull left 2px */
+    transform: skewX(15deg);
+}
+.tail-bottom-right::after {
+    border-right-color: var(--bubble-bg-one);
+    border-top-color: var(--bubble-bg-one);
+    top: -12px;
+    right: 4px; /* Pull left 4px to center in border */
+    border-width: 12px;
+    transform: skewX(15deg);
 }
 
+/* Top Left */
 .tail-top-left {
-    top: -15px;
+    top: -5px; /* Pushed up 5px */
     left: 20%;
-    transform: scaleY(-1) skewX(-20deg) rotate(-10deg);
+}
+.tail-top-left::before {
+    border-left-color: var(--bubble-border);
+    border-bottom-color: var(--bubble-border);
+    bottom: -10px;
+    transform: skewX(15deg);
+}
+.tail-top-left::after {
+    border-left-color: var(--bubble-bg-one);
+    border-bottom-color: var(--bubble-bg-one);
+    bottom: -12px;
+    left: 2px;
+    border-width: 12px;
+    transform: skewX(15deg);
 }
 
+/* Top Right */
 .tail-top-right {
+    top: -5px; /* Pushed up 5px */
+    right: 20%; /* Fixed: was left: 80% */
+}
+.tail-top-right::before {
+    border-right-color: var(--bubble-border);
+    border-bottom-color: var(--bubble-border);
+    bottom: -10px;
+    right: 2px; /* Pull left 2px */
+    transform: skewX(-15deg);
+}
+.tail-top-right::after {
+    border-right-color: var(--bubble-bg-one);
+    border-bottom-color: var(--bubble-bg-one);
+    bottom: -12px;
+    right: 4px; /* Pull left 4px to center in border */
+    border-width: 12px;
+    transform: skewX(-15deg);
+}
+
+/* System / Computer Speech Bubble Style */
+.speech-bubble-container.system .super-bubble {
+    background-image: none;
+    background-color: #050505;
+    color: #00ff41; /* Classic Matrix Green */
+    border-radius: 0px;
+    border: 3px solid #00ff41;
+    font-family: "Courier New", Courier, monospace;
+    font-weight: bold;
+    transform: none;
+    box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+    overflow: hidden;
+}
+
+.system-header {
+    position: absolute;
+    top: 0;
+    left: 0;
+    background: #00ff41;
+    color: #000;
+    font-size: 0.7em;
+    padding: 2px 6px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.scanlines {
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+        0deg,
+        rgba(0, 0, 0, 0.1),
+        rgba(0, 0, 0, 0.1) 1px,
+        transparent 1px,
+        transparent 2px
+    );
+    pointer-events: none;
+    z-index: 10;
+}
+
+/* Rigid Tail Style (Zig-Zag) */
+.rigid-tail::before,
+.rigid-tail::after {
+    border-radius: 0;
+    transform: none !important; /* Kill the organic skew */
+}
+
+.rigid-tail.tail-bottom-left {
+    bottom: -15px;
+    left: 15px;
+    width: 20px;
+    height: 15px;
+    border-left: 3px solid #00ff41;
+    border-bottom: 3px solid #00ff41;
+}
+
+.rigid-tail.tail-bottom-right {
+    bottom: -15px;
+    right: 15px;
+    width: 20px;
+    height: 15px;
+    border-right: 3px solid #00ff41;
+    border-bottom: 3px solid #00ff41;
+}
+
+.rigid-tail.tail-top-left {
     top: -15px;
-    right: 20%;
-    transform: scale(-1) skewX(-20deg) rotate(-10deg);
+    left: 15px;
+    width: 20px;
+    height: 15px;
+    border-left: 3px solid #00ff41;
+    border-top: 3px solid #00ff41;
+}
+
+.rigid-tail.tail-top-right {
+    top: -15px;
+    right: 15px;
+    width: 20px;
+    height: 15px;
+    border-right: 3px solid #00ff41;
+    border-top: 3px solid #00ff41;
+}
+
+/* Hide legacy organic tail components when in system mode */
+.speech-bubble-container.system .super-bubble::before,
+.speech-bubble-container.system .super-bubble::after {
+    display: none;
+}
+
+.speech-bubble-container.system .rigid-tail::before,
+.speech-bubble-container.system .rigid-tail::after {
+    display: none;
 }
 
 /* Internal Monologue / Thought Bubble Style override */

@@ -42,7 +42,7 @@ html {
 
 body {
   overflow-x: hidden;
-  background: var(--background-light-color);    
+  background: #0a0a0a; /* Deep black for cinematic focus */
 }
 
 body.cursor-hidden {
@@ -221,9 +221,10 @@ section {
   transform-origin: center center;
   display:flex;
   justify-content: center;
+  align-items: flex-start; /* Align to top */
   visibility: hidden;
-  /* Default width for single page mode */
-  width: 100dvw;
+  width: 100%;
+  animation: zoom-scroll-out 0.8s ease-in-out forwards;
 }
 section .section-container{
    
@@ -232,13 +233,25 @@ section .section-container{
 section.active {
   visibility: visible;
   z-index:1;
+  animation: zoom-scroll-in 0.8s ease-in-out forwards;
 }
 section.active .section-container{
   opacity:1;
 }
+
+section.entering {
+  animation: zoom-scroll-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  visibility: visible;
+  z-index: 2;
+}
+
+section.exiting {
+  animation: zoom-scroll-out 0.8s cubic-bezier(0.32, 0, 0.67, 0) forwards;
+  visibility: visible;
+  z-index: 1;
+}
+
 .section-container {
-  height: 100%; /* Fill parent section */
-  width: 100%; /* Fill parent section */
   position: relative;
   background: transparent;
 }
