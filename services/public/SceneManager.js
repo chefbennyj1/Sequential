@@ -203,6 +203,8 @@ export async function initScene(container, pageInfo, sceneData) {
             const bubbleOptions = { ...item, series, volume, chapter, pageId, pageIndex, dialogueIndex: index, audioSrc: resolvedAudioSrc };
             if (item.attributes) bubbleOptions.attributes = item.attributes;
             if (item.style) bubbleOptions.style = item.style;
+            if (item.placement?.tailSkew) bubbleOptions.tailSkew = item.placement.tailSkew;
+            if (item.placement?.tailScale) bubbleOptions.tailScale = item.placement.tailScale;
             Object.assign(bubbleOptions, item.placement); 
             const bubble = new SpeechBubble(panelEl, bubbleOptions);
             await bubble.render();
@@ -256,7 +258,7 @@ export async function initScene(container, pageInfo, sceneData) {
             return orderA - orderB;
         });
 
-        constforceComicMode = true; // Default to true for Sequential Server
+        const forceComicMode = true; // Default to true for Sequential Server
 
         if (forceComicMode) {
             audioVisualItemsToAnimate.forEach(item => {
