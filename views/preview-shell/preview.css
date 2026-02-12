@@ -8,7 +8,7 @@ body {
 }
 
 /* Force container visibility and fit */
-.section-container { 
+.section-container, .page-layout { 
     transform-origin: center top; 
     /* transform set via JS */
     margin: 20px auto; 
@@ -79,34 +79,4 @@ body {
 .panel.selected {
     border-color: #ff9800 !important;
     box-shadow: 0 0 10px #ff9800;
-}
-
-/* Targeting Mode Feedback */
-.targeting-mode .panel {
-    cursor: crosshair !important;
-    border-color: #00ff41 !important;
-}
-
-.targeting-mode .panel:hover {
-    background: rgba(0, 255, 65, 0.1);
-}
-
-.targeting-overlay {
-    position: fixed;
-    top: 10px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.8);
-    color: #00ff41;
-    padding: 10px 20px;
-    border-radius: 5px;
-    border: 1px solid #00ff41;
-    font-family: monospace;
-    z-index: 10000;
-    pointer-events: none;
-    display: none;
-}
-
-.targeting-mode .targeting-overlay {
-    display: block;
 }

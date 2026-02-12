@@ -12,8 +12,6 @@ class SpeechBubble {
       left: null,
       right: null,
       tailPosition: 'bottom-left',
-      tailSkew: null,
-      tailHeight: null,
       audioSrc: null,
       ...options
     };
@@ -95,15 +93,6 @@ class SpeechBubble {
     if (this.options.bottom) speechBubbleContainer.style.bottom = this.options.bottom;
     if (this.options.left) speechBubbleContainer.style.left = this.options.left;
     if (this.options.right) speechBubbleContainer.style.right = this.options.right;
-    
-    // Apply tail skew override if provided
-    if (this.options.tailSkew) {
-        speechBubbleContainer.style.setProperty('--tail-skew', this.options.tailSkew);
-    }
-    
-    if (this.options.tailHeight) {
-        speechBubbleContainer.style.setProperty('--tail-height', this.options.tailHeight);
-    }
     
     this.parentElement.appendChild(speechBubbleContainer);
     speechBubbleContainer.innerHTML = this._getBubbleHtml(cleanText, isMonologue, isSystem);

@@ -50,12 +50,13 @@ export async function init(container, params) {
                 const isVideo = file.type.startsWith('video');
                 const el = isVideo ? document.createElement('video') : document.createElement('img');
                 
+                const series = params.series || 'No_Overflow';
                 if (isVideo) {
-                     el.src = `/api/videos/No_Overflow/${volume}/${chapter}/${pageId}/assets/${file.name}`;
+                     el.src = `/api/videos/${series}/${volume}/${chapter}/${pageId}/assets/${file.name}`;
                      el.controls = true;
                      el.muted = true;
                 } else {
-                     el.src = `/api/images/No_Overflow/${volume}/${chapter}/${pageId}/assets/${file.name}`;
+                     el.src = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${file.name}`;
                 }
                 
                 el.style.width = '100%'; 
@@ -172,29 +173,6 @@ export async function init(container, params) {
                 const label = p.querySelector('.panel-label');
                 activeUploadTarget = { panel: p, panelClass: pClass, label: label };
                 fileInput.click();
-            }
-        }
-
-        if (e.data.type === 'startTargetingMode') {
-            container.classList.add('targeting-mode');
-            const targetPanel = container.querySelector(e.data.panel);
-            if (targetPanel) {
-                const onClick = (evt) => {
-                    const rect = targetPanel.getBoundingClientRect();
-                    const x = ((evt.clientX - rect.left) / rect.width) * 100;
-                    const y = ((evt.clientY - rect.top) / rect.height) * 100;
-                    
-                    window.parent.postMessage({
-                        type: 'tipTargeted',
-                        panel: e.data.panel,
-                        x: x.toFixed(2) + '%',
-                        y: y.toFixed(2) + '%'
-                    }, '*');
-                    
-                    container.classList.remove('targeting-mode');
-                    targetPanel.removeEventListener('click', onClick, true);
-                };
-                targetPanel.addEventListener('click', onClick, true);
             }
         }
     });

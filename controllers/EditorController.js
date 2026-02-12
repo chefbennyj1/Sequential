@@ -21,7 +21,7 @@ async function findVolumeId(volumeFolderName) {
 
 // Helper: Resolve Series Folder Name (ID or String)
 async function getSeriesFolderName(identifier) {
-    if (!identifier) return "No_Overflow"; // Legacy default
+    if (!identifier) return "No_Overflow"; 
 
     if (mongoose.Types.ObjectId.isValid(identifier)) {
         try {
@@ -31,7 +31,14 @@ async function getSeriesFolderName(identifier) {
             console.error("Error resolving series ID:", e);
         }
     }
-    // Assume it's already a folder name
+    
+    // If it's not a valid ObjectId, assume it's already a folder name
+    // or check if a series with this folderName exists
+    try {
+        const seriesByFolder = await Series.findOne({ folderName: identifier });
+        if (seriesByFolder) return seriesByFolder.folderName;
+    } catch (e) {}
+
     return identifier;
 }
 
