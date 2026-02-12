@@ -34,7 +34,8 @@ exports.getViewer = async (req, res) => {
       globalBackgroundAudio: globalMedia.backgroundAudio, 
       globalPageTransitionAudio: globalMedia.pageTransitionAudio,
       initialChapter: req.query.chapter || null,
-      initialPage: req.query.page || null
+      initialPage: req.query.page || null,
+      config: req.app.get('APP_CONFIG')
     });
 
   } catch (err) {

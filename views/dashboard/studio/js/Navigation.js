@@ -1,7 +1,7 @@
 // views/dashboard/js/Navigation.js
 
-import { openSceneEditor } from '../components/SceneEditor/SceneEditor.js';
-import { openVisualEditor } from '../components/SceneEditor/SceneEditor.js'; // Assuming Visual Editor logic might live here or handled in Main for now
+import { openSceneEditor } from '../../components/SceneEditor/SceneEditor.js';
+import { openVisualEditor } from '../../components/SceneEditor/SceneEditor.js'; // Assuming Visual Editor logic might live here or handled in Main for now
 import { populateVolumeSelect, populateLayoutSelect } from './LibraryManager.js';
 import { setActivePage } from './PageConfigManager.js';
 

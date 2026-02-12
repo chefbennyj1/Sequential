@@ -1,0 +1,82 @@
+body { 
+    margin: 0; 
+    padding: 0; 
+    background: #eee; 
+    height: 100vh; 
+    width: 100vw; 
+    overflow: hidden; 
+}
+
+/* Force container visibility and fit */
+.section-container { 
+    transform-origin: center top; 
+    /* transform set via JS */
+    margin: 20px auto; 
+    box-shadow: 0 0 20px rgba(0,0,0,0.1); 
+    opacity: 1 !important; /* Override base layout hidden state */
+    background: #fff;
+}
+
+.panel { 
+    border: 2px dashed #ccc; 
+    transition: all 0.2s; 
+    position: relative; 
+    cursor: pointer;
+    background: #f9f9f9;
+}
+
+.panel:hover {
+    border-color: #007bff;
+    background: #f0f8ff;
+}
+
+.panel.drag-over { 
+    border: 4px solid #007bff; 
+    background: rgba(0, 123, 255, 0.2); 
+    z-index: 10; 
+}
+
+/* Overlay to show panel name */
+.panel-label {
+    position: absolute; top: 0; left: 0; right:0; bottom:0;
+    display: flex; align-items: center; justify-content: center;
+    background: rgba(255,255,255,0.5); 
+    color: #666;
+    font-weight: bold; 
+    pointer-events: none;
+    transition: all 0.2s;
+    font-size: 1.2rem;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+    text-align: center;
+    flex-direction: column;
+}
+
+.panel-label span {
+    font-size: 0.8rem;
+    font-weight: normal;
+    opacity: 0.7;
+    margin-top: 5px;
+}
+
+/* If panel has content (img/video), hide label until hover */
+.panel:has(img), .panel:has(video) {
+    border-style: solid;
+    background: black;
+}
+
+.panel:has(img) .panel-label, 
+.panel:has(video) .panel-label {
+    opacity: 0;
+    background: rgba(0,0,0,0.6);
+    color: white;
+}
+
+.panel:hover .panel-label { 
+    opacity: 1; 
+}
+
+.panel.selected {
+    border-color: #ff9800 !important;
+    box-shadow: 0 0 10px #ff9800;
+}

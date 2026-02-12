@@ -4,9 +4,9 @@
  * Static-only version. Removed audio and video properties.
  */
 
-import { fetchSceneData, saveSceneData, fetchPagePanels, fetchSeriesAPI, fetchCharactersAPI, saveMediaAPI, fetchAmbientMedia } from '../../js/ApiService.js';
-import { updateUrlState } from '../../js/Navigation.js';
-import { renderMediaActions, initMediaEditor } from '../../js/MediaEditor.js';
+import { fetchSceneData, saveSceneData, fetchPagePanels, fetchSeriesAPI, fetchCharactersAPI, saveMediaAPI, fetchAmbientMedia } from '../../studio/js/ApiService.js';
+import { updateUrlState } from '../../studio/js/Navigation.js';
+import { renderMediaActions, initMediaEditor } from '../../studio/js/MediaEditor.js';
 import { openFileBrowser } from '../FileBrowser/FileBrowser.js';
 
 let currentSceneData = [];

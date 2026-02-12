@@ -1,0 +1,17 @@
+/* --- Studio Common Tool Styles --- */
+.tools-pane {
+    background: #222 !important;
+    border-left: 1px solid var(--border);
+    color: var(--text) !important;
+}
+
+.tools-pane h4 {
+    color: var(--accent);
+    margin-top: 0;
+}
+
+.tools-pane p {
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.5;
+}

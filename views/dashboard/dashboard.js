@@ -1,11 +1,11 @@
 // views/dashboard/dashboard.js
 
-import { getCurrentUser, fetchVolumesAPI, fetchSeriesAPI } from './js/ApiService.js';
+import { getCurrentUser, fetchVolumesAPI, fetchSeriesAPI } from './studio/js/ApiService.js';
 import { 
     registerNavigationHandlers, 
     updateUrlState, 
     restoreStateFromUrl 
-} from './js/Navigation.js';
+} from './studio/js/Navigation.js';
 import { 
     populateVolumeSelect, 
     populateChapterSelect, 
@@ -14,8 +14,8 @@ import {
     renderLibraryHtml, 
     showChaptersForVolume,
     showVolumesForSeries
-} from './js/LibraryManager.js';
-import { setActivePage } from './js/PageConfigManager.js';
+} from './studio/js/LibraryManager.js';
+import { setActivePage } from './studio/js/PageConfigManager.js';
 import { 
     initSceneEditor,
     initVisualEditor,

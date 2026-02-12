@@ -10,7 +10,7 @@ import {
     fetchSeriesDetailsAPI
 } from './ApiService.js';
 import { getFolderNameFromPath } from './Navigation.js';
-import { renderCard, renderChapterCard, renderSeriesCard } from '../components/CardBuilder/CardBuilder.js';
+import { renderCard, renderChapterCard, renderSeriesCard } from '../../components/CardBuilder/CardBuilder.js';
 
 /**
  * Populates volume selection dropdowns.

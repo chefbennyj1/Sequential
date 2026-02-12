@@ -1,58 +1,29 @@
-<!DOCTYPE html>
-<html lang="en">
+<%- include('../layouts/main', { 
+    title: 'Library', 
+    bodyClass: 'library-page-shell',
+    body: `
+        <section id="library-page" class="library-page scroll-section active"></section>
+    `,
+    extraScripts: `
+        <script type="module">
+            import { loadSection } from '/services/public/PageManager.js';
+            import { init as libraryInit } from '/views/library/library.js';
+            import { loadCSS } from '/libs/Utility.js';
 
-<head>
-  <meta charset="UTF-8">
+            (async () => {
+                await loadSection('library-page', '/views/library/library.html', false);
 
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="/views/public/styles/fonts.css">
-  <title>Library</title>
-</head>
+                const librarySection = document.getElementById('library-page');
+                await libraryInit(librarySection);
 
-<body>
-  <header>
-    <div class="logo-wrapper">
-      <div class="logo-container">
-        <a href="/" class="logo-link">
-          <div id="header-logo" data-text="SEQUENTIAL" class="">SEQUENTIAL</div>
-        </a>
-      </div>
-    </div>
-    <nav>
-      <a href="/dashboard" class="dashboard-nav-link">DASHBOARD</a>
-    </nav>
-  </header>
+                await loadCSS('/views/library/library.css');
+                await loadCSS('/libs/TiltEffect/tiltEffects.css');
 
-  <section id="library-page" class="library-page scroll-section active"></section>
-
-  <script type="module">
-    import { loadSection } from '/services/public/PageManager.js';
-    import { init as libraryInit } from '/views/library/library.js';
-    import { loadCSS } from '/libs/Utility.js';
-
-    (async () => {
-      await loadSection('library-page', '/views/library/library.html', false);
-
-      const librarySection = document.getElementById('library-page');
-      await libraryInit(librarySection);
-
-      await loadCSS('/views/library/library.css');
-      await loadCSS('/libs/TiltEffect/tiltEffects.css');
-
-      const libraryPage = document.querySelector('.library-page');
-      libraryPage.classList.add('active');
-    })();
-  </script>
-
-  <!-- Icon Packages -->
-  <script type="module" src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.esm.js"></script>
-  <script nomodule src="https://unpkg.com/ionicons@7.1.0/dist/ionicons/ionicons.js"></script>
-
-  <!-- GSAP core -->
-  <script src="libs/gsap/gsap.min.js"></script>
-
-</body>
-
-</html>
+                const libraryPage = document.querySelector('.library-page');
+                libraryPage.classList.add('active');
+            })();
+        </script>
+        <!-- GSAP core -->
+        <script src="/libs/gsap/gsap.min.js"></script>
+    `
+}) %>

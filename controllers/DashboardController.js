@@ -7,5 +7,8 @@ exports.getDashboard = async (req, res) => {
   } catch (err) {
     return res.redirect('/login');
   }
-  res.render('dashboard/index', { user: user });
+  res.render('dashboard/index', { 
+    user: user,
+    config: req.app.get('APP_CONFIG')
+  });
 };

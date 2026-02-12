@@ -1,4 +1,4 @@
-import { fetchSeriesAPI } from '../../js/ApiService.js';
+import { fetchSeriesAPI } from '../../studio/js/ApiService.js';
 
 export default class CharacterEditor {
     constructor() {

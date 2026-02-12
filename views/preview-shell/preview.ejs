@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page Preview</title>
+    <!-- Page-specific layout CSS -->
+    <link rel="stylesheet" href="/Library/No_Overflow/Volumes/<%= volume %>/<%= chapter %>/<%= pageId %>/page.css">
+</head>
+<body class="preview-mode">
+    <input type="file" id="globalPanelUpload" style="display:none" accept="image/*,video/*">
+
+    <div id="preview-container">
+        <%- content %>
+    </div>
+
+    <script type="module">
+        import { loadCSS } from "/libs/Utility.js";
+        import { init as initPreview } from "/views/editor/preview.js";
+
+        (async () => {
+            await loadCSS("/views/editor/preview.css");
+            
+            const container = document.getElementById('preview-container');
+            const params = {
+                volume: "<%= volume %>",
+                chapter: "<%= chapter %>",
+                pageId: "<%= pageId %>"
+            };
+
+            await initPreview(container, params);
+        })();
+    </script>
+</body>
+</html>

@@ -1,15 +1,15 @@
 exports.getLandingPage = (req, res) => {
   console.log(req.session);
   console.log(req.session.id);
-  res.render("landingPage/index");
+  res.render("landingPage/index", { config: req.app.get('APP_CONFIG') });
 };
 
 exports.getLogin = (req, res) => {
-  res.render("login/index");
+  res.render("login/index", { config: req.app.get('APP_CONFIG') });
 };
 
 exports.getLibrary = (req, res) => {
-  res.render("library/index");
+  res.render("library/index", { config: req.app.get('APP_CONFIG') });
 };
 
 exports.getSeriesVolumes = async (req, res) => {
@@ -50,7 +50,7 @@ exports.getSeriesVolumes = async (req, res) => {
       // Sort volumes
       series.volumes.sort((a, b) => a.index - b.index);
 
-      res.render("library/series", { series });
+      res.render("library/series", { series, config: req.app.get('APP_CONFIG') });
   } catch (e) {
       console.error(e);
       res.status(500).send("Error loading series");
@@ -71,7 +71,7 @@ exports.getVolumeChapters = async (req, res) => {
       // Sort chapters
       volume.chapters.sort((a, b) => a.chapterNumber - b.chapterNumber);
 
-      res.render("library/volume", { series, volume });
+      res.render("library/volume", { series, volume, config: req.app.get('APP_CONFIG') });
   } catch (e) {
       console.error(e);
       res.status(500).send("Error loading volume");

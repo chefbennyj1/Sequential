@@ -1,0 +1,18 @@
+<header>
+  <div class="logo-wrapper">
+    <div class="logo-container">
+      <a href="/" class="logo-link">
+        <div id="header-logo" data-text="SEQUENTIAL" class="">SEQUENTIAL</div>
+      </a>
+    </div>
+  </div>
+  <nav>
+    <a href="/library" class="nav-link">LIBRARY</a>
+    <a href="/dashboard" class="nav-link">DASHBOARD</a>
+  </nav>
+  <% if (typeof headerButtons !== 'undefined') { %>
+    <div class="header-extra-buttons">
+      <%- headerButtons %>
+    </div>
+  <% } %>
+</header>

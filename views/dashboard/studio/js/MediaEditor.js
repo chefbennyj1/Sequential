@@ -4,7 +4,7 @@
  * Static-only version. Removed audio and video properties.
  */
 
-import { openFileBrowser } from '../components/FileBrowser/FileBrowser.js';
+import { openFileBrowser } from '../../components/FileBrowser/FileBrowser.js';
 
 let _callbacks = {
     onUpdate: null,

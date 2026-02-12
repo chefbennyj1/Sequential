@@ -5,8 +5,8 @@ import {
     updateAudioMap,
     fetchAmbientMedia
 } from './ApiService.js';
-import { renderLayoutBrowser } from '../components/LayoutBrowser/LayoutBrowser.js';
-import { openFileBrowser } from '../components/FileBrowser/FileBrowser.js';
+import { renderLayoutBrowser } from '../../components/LayoutBrowser/LayoutBrowser.js';
+import { openFileBrowser } from '../../components/FileBrowser/FileBrowser.js';
 
 /**
  * Manages the "Active Page" tools (Audio, Layout, etc)
