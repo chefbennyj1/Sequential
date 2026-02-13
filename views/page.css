@@ -388,3 +388,52 @@ section.exiting {
     80% { transform: translate(2px, 1px) skew(2deg); filter: hue-rotate(-10deg); }
     100% { transform: translate(0,0) skew(0deg); }
 }
+
+/* --- Cloudy Memory Effect --- */
+.panel-effect-cloudy {
+    position: relative;
+    overflow: hidden;
+}
+
+.panel-effect-cloudy img,
+.panel-effect-cloudy video {
+    filter: blur(3px) brightness(1.1) contrast(0.9) saturate(0.7) !important;
+    transform: scale(1.05); /* Slight scale to hide edges during blur */
+    transition: filter 2s ease-in-out;
+}
+
+.panel-effect-cloudy::before {
+    content: "";
+    position: absolute;
+    inset: -20%;
+    background: radial-gradient(circle at 45% 45%, 
+        transparent 20%, 
+        rgba(255, 255, 255, 0.4) 40%, 
+        rgba(255, 255, 255, 0.9) 70%, 
+        #fff 90%
+    );
+    z-index: 2;
+    pointer-events: none;
+    animation: cloud-drift 20s infinite alternate ease-in-out;
+}
+
+.panel-effect-cloudy::after {
+    content: "";
+    position: absolute;
+    inset: -10%;
+    background: radial-gradient(circle at 55% 55%, 
+        transparent 25%, 
+        rgba(255, 255, 255, 0.3) 45%, 
+        rgba(255, 255, 255, 0.8) 75%, 
+        #fff 95%
+    );
+    z-index: 3;
+    pointer-events: none;
+    animation: cloud-drift 15s infinite alternate-reverse ease-in-out;
+    opacity: 0.8;
+}
+
+@keyframes cloud-drift {
+    from { transform: scale(1) translate(-2%, -2%) rotate(0deg); }
+    to { transform: scale(1.1) translate(2%, 2%) rotate(2deg); }
+}

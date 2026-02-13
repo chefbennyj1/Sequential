@@ -85,7 +85,33 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
         });
     });
 
+    container.addEventListener('dialogueAudioStarted', (e) => {
+        const { dialogueItem } = e.detail;
+        if (dialogueItem?.panelEffect && dialogueItem.placement?.panel) {
+            applyPanelEffect(container, dialogueItem.placement.panel, dialogueItem.panelEffect);
+        }
+    });
+
     console.log(`PageInitializer - ${pageId} - Loaded`);
+}
+
+function applyPanelEffect(container, panelSelector, effectType) {
+    const panel = container.querySelector(panelSelector);
+    if (!panel) return;
+
+    // Remove all existing panel effects
+    panel.classList.remove('panel-effect-memory', 'panel-effect-haze', 'panel-effect-glitch', 'panel-effect-cloudy', 'active-memory');
+
+    if (!effectType) return;
+
+    // Apply new effect
+    const effectClass = `panel-effect-${effectType}`;
+    panel.classList.add(effectClass);
+    
+    // Add pulsing for memory
+    if (effectType === 'memory') {
+        panel.classList.add('active-memory');
+    }
 }
 
 function setupBackgroundAudio(pageId, volume, audioMap, pageInfo) {
