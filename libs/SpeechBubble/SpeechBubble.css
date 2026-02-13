@@ -182,14 +182,14 @@
 /* System / Computer Speech Bubble Style */
 .speech-bubble-container.system .super-bubble {
     background-image: none;
-    background-color: #050505;
-    color: #00ff41; /* Classic Matrix Green */
+    background-color: rgba(5, 5, 5, 0.9);
+    color: rgb(23, 158, 199); /* Cyberpunk Blue */
     border-radius: 0px;
-    border: 3px solid #00ff41;
+    border: 2px solid rgb(199, 10, 206); /* Purple Border */
     font-family: "Courier New", Courier, monospace;
     font-weight: bold;
     transform: none;
-    box-shadow: 0 0 15px rgba(0, 255, 65, 0.3);
+    box-shadow: 0 0 15px rgba(199, 10, 206, 0.4), inset 0 0 10px rgba(23, 158, 199, 0.2);
     overflow: hidden;
 }
 
@@ -197,12 +197,13 @@
     position: absolute;
     top: 0;
     left: 0;
-    background: #00ff41;
-    color: #000;
+    background: rgb(199, 10, 206); /* Purple Header */
+    color: #fff;
     font-size: 0.7em;
-    padding: 2px 6px;
+    padding: 2px 8px;
     text-transform: uppercase;
     letter-spacing: 1px;
+    font-weight: 900;
 }
 
 .scanlines {
@@ -210,8 +211,8 @@
     inset: 0;
     background: repeating-linear-gradient(
         0deg,
-        rgba(0, 0, 0, 0.1),
-        rgba(0, 0, 0, 0.1) 1px,
+        rgba(23, 158, 199, 0.05),
+        rgba(23, 158, 199, 0.05) 1px,
         transparent 1px,
         transparent 2px
     );
@@ -231,8 +232,8 @@
     left: 15px;
     width: 20px;
     height: 15px;
-    border-left: 3px solid #00ff41;
-    border-bottom: 3px solid #00ff41;
+    border-left: 3px solid rgb(199, 10, 206);
+    border-bottom: 3px solid rgb(199, 10, 206);
 }
 
 .rigid-tail.tail-bottom-right {
@@ -240,8 +241,8 @@
     right: 15px;
     width: 20px;
     height: 15px;
-    border-right: 3px solid #00ff41;
-    border-bottom: 3px solid #00ff41;
+    border-right: 3px solid rgb(199, 10, 206);
+    border-bottom: 3px solid rgb(199, 10, 206);
 }
 
 .rigid-tail.tail-top-left {
@@ -249,8 +250,8 @@
     left: 15px;
     width: 20px;
     height: 15px;
-    border-left: 3px solid #00ff41;
-    border-top: 3px solid #00ff41;
+    border-left: 3px solid rgb(199, 10, 206);
+    border-top: 3px solid rgb(199, 10, 206);
 }
 
 .rigid-tail.tail-top-right {
@@ -258,8 +259,8 @@
     right: 15px;
     width: 20px;
     height: 15px;
-    border-right: 3px solid #00ff41;
-    border-top: 3px solid #00ff41;
+    border-right: 3px solid rgb(199, 10, 206);
+    border-top: 3px solid rgb(199, 10, 206);
 }
 
 /* Hide legacy organic tail components when in system mode */

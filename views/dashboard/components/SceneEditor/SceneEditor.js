@@ -448,35 +448,86 @@ async function loadPanelEditor(data) {
 function renderVisualEditor(panelSelector) {
     const container = document.getElementById('visualEditorContainer');
     if (!container) return;
+
     let entryIndex = currentVisualMediaData.findIndex(m => m.panel === panelSelector);
     let entry = entryIndex !== -1 ? currentVisualMediaData[entryIndex] : { panel: panelSelector, type: 'image', fileName: '' };
-    const actions = [entry];
-    const callbacks = {
-        onUpdate: (idx, key, val) => {
-            entry[key] = val;
-            if (key === 'type' && val === 'image') entry.action = 'load';
-            if (entryIndex === -1) { currentVisualMediaData.push(entry); entryIndex = currentVisualMediaData.length - 1; }
-            else { currentVisualMediaData[entryIndex] = entry; }
-            if (key === 'type') renderVisualEditor(panelSelector);
-        },
-        onRemove: (idx) => {
-             if (entryIndex !== -1) { currentVisualMediaData.splice(entryIndex, 1); entryIndex = -1; }
-             entry = { panel: panelSelector, type: 'image', fileName: '' };
-             renderVisualEditor(panelSelector);
-        },
-        onBrowse: (type, cb) => {
-            openFileBrowser(type, currentVisualContext.volume, currentVisualContext.chapter, currentVisualContext.pageId, cb, 'page', null, getActiveAssets());
+
+    container.innerHTML = `
+        <div class="panel-editor-ui">
+            <div class="form-group margin-b-15">
+                <label>Asset Type</label>
+                <select id="visual-asset-type" class="gov-select width-100">
+                    <option value="image" ${entry.type === 'image' ? 'selected' : ''}>Image</option>
+                    <option value="video" ${entry.type === 'video' ? 'selected' : ''}>Video</option>
+                </select>
+            </div>
+            <div class="form-group margin-b-15">
+                <label>File Name</label>
+                <div class="flex-row gap-5">
+                    <input type="text" id="visual-asset-name" class="gov-select flex-1" value="${entry.fileName || ''}" placeholder="e.g. background.png">
+                    <button id="visual-asset-browse" class="small btn-browse">...</button>
+                </div>
+            </div>
+            <button id="saveVisualMediaBtn" class="update__btn width-100 margin-t-10">Save Panel Asset</button>
+        </div>
+    `;
+
+    // Handlers
+    const typeSelect = document.getElementById('visual-asset-type');
+    const nameInput = document.getElementById('visual-asset-name');
+    const browseBtn = document.getElementById('visual-asset-browse');
+    const saveBtn = document.getElementById('saveVisualMediaBtn');
+
+    typeSelect.onchange = () => {
+        entry.type = typeSelect.value;
+    };
+
+    nameInput.onchange = () => {
+        entry.fileName = nameInput.value;
+    };
+
+    browseBtn.onclick = () => {
+        openFileBrowser(entry.type, currentVisualContext.volume, currentVisualContext.chapter, currentVisualContext.pageId, (fileName) => {
+            nameInput.value = fileName;
+            entry.fileName = fileName;
+        }, 'page', null, getActiveAssets());
+    };
+
+    saveBtn.onclick = async () => {
+        entry.panel = panelSelector;
+        entry.type = typeSelect.value;
+        entry.fileName = nameInput.value;
+
+        if (entryIndex === -1) {
+            currentVisualMediaData.push(entry);
+        } else {
+            currentVisualMediaData[entryIndex] = entry;
+        }
+
+        saveBtn.disabled = true;
+        saveBtn.textContent = "Saving...";
+
+        const res = await saveMediaAPI(
+            currentVisualContext.volume, 
+            currentVisualContext.chapter, 
+            currentVisualContext.pageId, 
+            currentVisualMediaData, 
+            activeSeriesId
+        );
+
+        if (res.ok) {
+            saveBtn.textContent = "Saved!";
+            document.getElementById('pagePreviewFrame').contentWindow.location.reload();
+            setTimeout(() => {
+                saveBtn.disabled = false;
+                saveBtn.textContent = "Save Panel Asset";
+            }, 2000);
+        } else {
+            alert("Error: " + res.message);
+            saveBtn.disabled = false;
+            saveBtn.textContent = "Retry Save";
         }
     };
-    renderMediaActions(container, actions, callbacks, { ...currentVisualContext, series: activeSeriesId });
-    const btn = document.createElement('button');
-    btn.className = 'update__btn width-100 margin-t-20';
-    btn.textContent = 'Save Changes';
-    btn.onclick = async () => {
-        const res = await saveMediaAPI(currentVisualContext.volume, currentVisualContext.chapter, currentVisualContext.pageId, currentVisualMediaData, activeSeriesId);
-        if (res.ok) document.getElementById('pagePreviewFrame').contentWindow.location.reload();
-    };
-    container.appendChild(btn);
 }
 
 function sanitizeScene(sceneData) {
