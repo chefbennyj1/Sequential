@@ -601,4 +601,50 @@ exports.changeLayout = async (req, res) => {
     }
 };
 
+exports.insertPage = async (req, res) => {
+  const { series, volume, chapter, insertPoint } = req.body;
+
+  if (!series || !volume || !chapter || insertPoint === undefined) {
+    return res.status(400).json({ ok: false, message: "Missing required fields" });
+  }
+
+  try {
+    const seriesFolderName = await getSeriesFolderName(series);
+    const result = await VolumeService.insertPage({
+      seriesFolderName,
+      volumeFolderName: volume,
+      chapterFolderName: chapter,
+      insertPoint
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error("Insert Page Error:", err);
+    res.status(500).json({ ok: false, message: err.message });
+  }
+};
+
+exports.createChapter = async (req, res) => {
+  const { series, volume, chapterIndex, title } = req.body;
+
+  if (!series || !volume || !chapterIndex) {
+    return res.status(400).json({ ok: false, message: "Missing required fields" });
+  }
+
+  try {
+    const seriesFolderName = await getSeriesFolderName(series);
+    const result = await VolumeService.createChapter({
+      seriesFolderName,
+      volumeFolderName: volume,
+      chapterIndex,
+      title: title || "New Chapter"
+    });
+
+    res.json(result);
+  } catch (err) {
+    console.error("Create Chapter Error:", err);
+    res.status(500).json({ ok: false, message: err.message });
+  }
+};
+
 exports.uploadMiddleware = upload.single("asset");

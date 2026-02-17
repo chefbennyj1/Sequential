@@ -22,7 +22,7 @@ export async function populateVolumeSelect(id = 'volumeSelect') {
     const volumes = await fetchVolumesAPI();
     volumes.forEach(volume => {
         const option = document.createElement('option');
-        option.value = (id === 'builderVolumeSelect') ? getFolderNameFromPath(volume.volumePath) : volume._id;
+        option.value = (id === 'builderVolumeSelect' || id === 'insertVolumeSelect' || id === 'chapterVolumeSelect') ? getFolderNameFromPath(volume.volumePath) : volume._id;
         if (id === 'editVolumeSelect') option.setAttribute('data-folder', getFolderNameFromPath(volume.volumePath));
         if (volume.series) option.setAttribute('data-series-id', volume.series);
         option.textContent = volume.title;

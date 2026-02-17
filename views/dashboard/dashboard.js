@@ -54,12 +54,10 @@ export async function init(container) {
     
     if (userSection && userMenu) {
         userSection.addEventListener('click', (e) => {
-            // Prevent sidebar close/hover logic if necessary, but here we just toggle
             e.stopPropagation();
             userMenu.classList.toggle('show');
         });
 
-        // Close menu when clicking elsewhere
         document.addEventListener('click', () => {
             userMenu.classList.remove('show');
         });
@@ -76,19 +74,15 @@ export async function init(container) {
             if (!page) return;
             updateUrlState({ tab: page });
             
-            // Hide all sections first
             allSections.forEach(s => s.classList.add('hidden'));
-            
-            // Handle Sidebar Active State
             container.querySelector('.sidebar li.active')?.classList.remove('active');
             target.classList.add('active');
             
-            // Show target section
             const sec = container.querySelector(`.${page}`);
             if (sec) sec.classList.remove('hidden');
         }
 
-        // Account Settings Link (in User Menu)
+        // Account Settings Link
         if (target.id === 'accountSettingsBtn') {
             e.preventDefault();
             allSections.forEach(s => s.classList.add('hidden'));
@@ -101,22 +95,25 @@ export async function init(container) {
             const targetPage = target.dataset.target;
             if (!targetPage) return;
 
-            // Hide Studio Hub
             container.querySelector('.studio').classList.add('hidden');
             
-            // Show Target Section
             const targetSection = container.querySelector(`.${targetPage}`);
             if (targetSection) {
                 targetSection.classList.remove('hidden');
                 
                 if (targetPage === 'edit-volume') populateVolumeSelect('volumeSelect');
+                if (targetPage === 'create-new-chapter') populateVolumeSelect('chapterVolumeSelect');
                 if (targetPage === 'page-builder') { 
                     populateVolumeSelect('builderVolumeSelect'); 
                     populateLayoutSelect(); 
                     const modeSel = document.getElementById('pageBuilderModeSelection');
                     const createCont = document.getElementById('createPageContainer');
                     const editCont = document.getElementById('editPageContainer');
-                    if (modeSel && modeSel.classList.contains('hidden') && createCont.classList.contains('hidden') && editCont.classList.contains('hidden')) {
+                    const insertCont = document.getElementById('insertPageContainer');
+                    if (modeSel && modeSel.classList.contains('hidden') && 
+                        createCont.classList.contains('hidden') && 
+                        editCont.classList.contains('hidden') && 
+                        insertCont.classList.contains('hidden')) {
                          modeSel.classList.remove('hidden');
                     }
                 }
@@ -137,6 +134,11 @@ export async function init(container) {
             document.getElementById('pageBuilderModeSelection').classList.add('hidden');
             document.getElementById('createPageContainer').classList.remove('hidden');
         }
+        if (target.closest('#modeInsertBtn')) {
+            populateVolumeSelect('insertVolumeSelect');
+            document.getElementById('pageBuilderModeSelection').classList.add('hidden');
+            document.getElementById('insertPageContainer').classList.remove('hidden');
+        }
         if (target.closest('#modeEditBtn')) {
             populateVolumeSelect('editVolumeSelect');
             document.getElementById('pageBuilderModeSelection').classList.add('hidden');
@@ -146,6 +148,7 @@ export async function init(container) {
             document.getElementById('pageBuilderModeSelection').classList.remove('hidden'); 
             document.getElementById('createPageContainer').classList.add('hidden'); 
             document.getElementById('editPageContainer').classList.add('hidden'); 
+            document.getElementById('insertPageContainer').classList.add('hidden');
         }
 
         // Load Page Tools
@@ -155,7 +158,6 @@ export async function init(container) {
             const pS = document.getElementById('editPageSelect');
 
             const vol = vS.options[vS.selectedIndex]?.getAttribute('data-folder');
-            const seriesId = vS.options[vS.selectedIndex]?.getAttribute('data-series-id');
             const chapNum = cS.options[cS.selectedIndex]?.getAttribute('data-number');
             const pageId = pS.value;
 
@@ -166,8 +168,6 @@ export async function init(container) {
 
             const chap = `chapter-${chapNum}`;
             currentSceneInfo = { volume: vol, chapter: chap, pageId: pageId }; 
-            // Note: We might want to pass seriesId to setActivePage eventually, 
-            // but for now it's inferred or defaults.
             setActivePage(vol, chap, pageId);
             updateUrlState({ tab: 'page-builder', vol, chap, page: pageId });
         }
@@ -190,6 +190,7 @@ export async function init(container) {
     // Input Change Events
     container.addEventListener('change', e => {
         if (e.target.id === 'builderVolumeSelect') populateChapterSelect(e.target.value, 'builderChapterSelect', true);
+        if (e.target.id === 'insertVolumeSelect') populateChapterSelect(e.target.value, 'insertChapterSelect', true);
         if (e.target.id === 'editVolumeSelect') populateChapterSelect(e.target.value, 'editChapterSelect', false);
         if (e.target.id === 'editChapterSelect') populateEditPageSelect(document.getElementById('editVolumeSelect').value, e.target.value);
         if (e.target.id === 'editPageSelect') {
@@ -251,6 +252,115 @@ export async function init(container) {
         };
     }
 
+    // Insert Page Form Submission
+    const insertPageForm = document.getElementById('insert-page-form');
+    if (insertPageForm) {
+        insertPageForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('insertPageBtn');
+            const status = document.getElementById('insertStatus');
+            
+            const volSelect = document.getElementById('insertVolumeSelect');
+            const vol = volSelect.value; 
+            const seriesId = volSelect.options[volSelect.selectedIndex]?.getAttribute('data-series-id');
+            const chapSelect = document.getElementById('insertChapterSelect');
+            const chap = chapSelect.value;
+            const insertPoint = document.getElementById('insertPoint').value;
+
+            if (!vol || !chap || !insertPoint) {
+                status.textContent = "Please fill all fields.";
+                status.className = "builder-status text-accent";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = "Processing...";
+            status.textContent = "Shifting folders and re-naming files...";
+            status.className = "builder-status text-muted";
+
+            try {
+                const res = await fetch('/api/editor/insert-page', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ series: seriesId, volume: vol, chapter: chap, insertPoint })
+                });
+                const data = await res.json();
+                
+                if (data.ok) {
+                    status.textContent = "Success! Pages shifted and new page inserted.";
+                    status.className = "builder-status text-accent font-bold";
+                    
+                    const newPageId = `page${insertPoint}`;
+                    setActivePage(vol, chap, newPageId);
+                    updateUrlState({ tab: 'page-builder', vol, chap, page: newPageId });
+                } else {
+                    status.textContent = "Error: " + data.message;
+                    status.className = "builder-status text-accent";
+                }
+            } catch (err) {
+                status.textContent = "Request Failed.";
+                status.className = "builder-status text-accent";
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Insert & Shift Pages";
+            }
+        };
+    }
+
+    // Create Chapter Form Submission
+    const createChapterForm = document.getElementById('chapter-info');
+    if (createChapterForm) {
+        createChapterForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('createChapterBtn');
+            const status = document.getElementById('chapterStatus');
+            
+            const volSelect = document.getElementById('chapterVolumeSelect');
+            const vol = volSelect.value;
+            const seriesId = volSelect.options[volSelect.selectedIndex]?.getAttribute('data-series-id');
+            const chapterIndex = document.getElementById('chapterIndex').value;
+            const title = document.getElementById('chapterTitle').value;
+
+            if (!vol || !chapterIndex) {
+                status.textContent = "Please select a volume and enter a chapter index.";
+                status.className = "builder-status text-accent";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = "Initializing...";
+            status.textContent = "Checking for existence and creating chapter...";
+            status.className = "builder-status text-muted";
+
+            try {
+                const res = await fetch('/api/editor/create-chapter', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ series: seriesId, volume: vol, chapterIndex, title })
+                });
+                const data = await res.json();
+                
+                if (data.ok) {
+                    status.textContent = `Success! ${data.message}`;
+                    status.className = "builder-status text-accent font-bold";
+                    
+                    // Auto-load the new page in page builder
+                    setActivePage(vol, data.chapter, data.pageId);
+                    updateUrlState({ tab: 'page-builder', vol, chap: data.chapter, page: data.pageId });
+                } else {
+                    status.textContent = "Error: " + data.message;
+                    status.className = "builder-status text-accent";
+                }
+            } catch (err) {
+                status.textContent = "Request Failed.";
+                status.className = "builder-status text-accent";
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Initialize Chapter";
+            }
+        };
+    }
+
     // Initialize Sub-Systems
     initFileBrowser();
     initSceneEditor();
@@ -268,11 +378,8 @@ export async function init(container) {
     }
     
     document.getElementById('user-name').textContent = user.username;
-    // Note: create-new-volume logic is now inside Studio, so we don't need to remove sidebar item if it doesn't exist
-    // But we might want to hide the card if user is not admin
     if (!user.administrator) {
-        // Hide Create Volume card? Or disable it.
-        // For now, let's leave it visible as the API is protected anyway.
+        // ...
     }
 
     // Restore State

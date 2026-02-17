@@ -25,6 +25,8 @@ router.post('/editor/scene/:series/:volume/:chapter/:pageId', isAuth, EditorCont
 router.post('/editor/media/:series/:volume/:chapter/:pageId', isAuth, EditorController.saveMedia);
 router.post('/editor/sync-page/:volumeId/:chapter/:pageId', isAuth, EditorController.syncPage);
 router.post('/editor/change-layout', isAuth, EditorController.changeLayout);
+router.post('/editor/insert-page', isAuth, EditorController.insertPage);
+router.post('/editor/create-chapter', isAuth, EditorController.createChapter);
 
 // --- USER ROUTES ---
 router.post("/user/register", UserController.registerUser);

@@ -49,6 +49,12 @@
                     <p>Manage chapters and metadata.</p>
                 </div>
 
+                <div class="mode-card" data-target="create-new-chapter">
+                    <ion-icon name="bookmarks-outline"></ion-icon>
+                    <h4>New Chapter</h4>
+                    <p>Append a new chapter and initialize the next page.</p>
+                </div>
+
                 <div class="mode-card" data-target="page-builder">
                     <ion-icon name="layers-outline"></ion-icon>
                     <h4>Page Builder</h4>
@@ -148,7 +154,27 @@
 
         </div>
 
-    
+        <div class="create-new-chapter dashboard-section hidden">
+            <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+            <h3>Create New Chapter</h3>
+            <p class="text-muted margin-b-20">This will create the next chapter folder and the first page within it.</p>
+            <form id="chapter-info">
+                <div class="form-group">
+                    <label>Select Volume</label>
+                    <select id="chapterVolumeSelect"></select>
+                </div>
+                <div class="input-field">
+                    <label for="chapterIndex">Chapter Index (Number)</label>
+                    <input type="number" id="chapterIndex" name="chapterIndex" placeholder="e.g. 3" required />
+                </div>
+                <div class="input-field">
+                    <label for="chapterTitle">Chapter Title</label>
+                    <input type="text" id="chapterTitle" name="title" placeholder="e.g. The Neon Rain" />
+                </div>
+                <button class="update__btn w-full" type="submit" id="createChapterBtn">Initialize Chapter</button>
+            </form>
+            <div id="chapterStatus" class="builder-status"></div>
+        </div>
 
         <div class="edit-volume dashboard-section hidden">
 
@@ -363,6 +389,10 @@
                         <ion-icon name="add-circle-outline"></ion-icon>
                         <h4>New Page</h4>
                     </div>
+                    <div class="mode-card width-200 padding-30" id="modeInsertBtn">
+                        <ion-icon name="git-branch-outline"></ion-icon>
+                        <h4>Insert Page</h4>
+                    </div>
                     <div class="mode-card width-200 padding-30" id="modeEditBtn">
                         <ion-icon name="create-outline"></ion-icon>
                         <h4>Edit Page</h4>
@@ -382,6 +412,25 @@
                     <button class="update__btn w-full" type="submit" id="createPageBtn">Create Page Structure</button>
                 </form>
                 <div id="builderStatus" class="builder-status"></div>
+            </div>
+
+            <!-- INSERT PAGE -->
+            <div id="insertPageContainer" class="bg-dark padding-30 border-radius-12 border-dim hidden">
+                <button class="small mode-back-btn margin-b-15">&larr; Back</button>
+                <h3 class="margin-b-20">Insert New Page</h3>
+                <p class="text-muted margin-b-20">This will shift all subsequent pages up and clone the preceding page to the new slot.</p>
+                
+                <div class="form-group"><label>Select Volume</label><select id="insertVolumeSelect"></select></div>
+                <div class="form-group"><label>Select Chapter</label><select id="insertChapterSelect" disabled><option value="">Select a Chapter</option></select></div>
+                
+                <form id="insert-page-form">
+                    <div class="input-field">
+                        <label>Insert At Index (e.g. 14)</label>
+                        <input type="number" id="insertPoint" name="insertPoint" placeholder="14" required />
+                    </div>
+                    <button class="update__btn w-full" type="submit" id="insertPageBtn">Insert & Shift Pages</button>
+                </form>
+                <div id="insertStatus" class="builder-status"></div>
             </div>
 
             <!-- EDIT PAGE -->
