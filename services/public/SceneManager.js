@@ -16,12 +16,6 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
     const animate = async () => { 
         const myAnimationId = currentAnimationId;
 
-        if (currentAudioElement) {
-            currentAudioElement.pause();
-            currentAudioElement.currentTime = 0;
-            currentAudioElement.removeEventListener('ended', itemEndedListener);
-            currentAudioElement = null;
-        }
         clearTimeout(timeoutId);
 
         if (currentIndex >= audioVisualItemsToAnimate.length) {
@@ -35,7 +29,7 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
         // 1. Prepare Timers/Promises
         const waitPromises = [];
 
-        // B. Standard Content Duration (Audio/Text/Custom)
+        // Standard Content Duration
         waitPromises.push(new Promise(async (resolve) => {
             let playPromise;
             if (typeof audioVisualItem.play === 'function') {
@@ -53,48 +47,6 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
                     resolve();
                 }
             }
-            else if (audioVisualItem.audioElement) {
-                currentAudioElement = audioVisualItem.audioElement;
-                
-                // Get precise audio duration if possible
-                if (currentAudioElement.readyState >= 1) {
-                    cueDuration = currentAudioElement.duration * 1000;
-                } else {
-                    currentAudioElement.addEventListener('loadedmetadata', () => {
-                        cueDuration = currentAudioElement.duration * 1000;
-                    }, { once: true });
-                }
-
-                itemEndedListener = () => {
-                    resolve();
-                };
-
-                const itemErrorListener = (e) => {
-                    console.warn(`SceneManager: Audio failed to load/play (${currentAudioElement.src}). Skipping cue audio.`);
-                    resolve();
-                };
-
-                currentAudioElement.addEventListener('ended', itemEndedListener);
-                currentAudioElement.addEventListener('error', itemErrorListener, { once: true });
-
-                currentAudioElement.play()
-                .then(() => {
-                    const duration = (currentAudioElement.duration && isFinite(currentAudioElement.duration)) 
-                        ? (currentAudioElement.duration * 1000) + 1000 
-                        : 5000; 
-                    
-                    setTimeout(() => {
-                        if (currentIndex === audioVisualItemsToAnimate.indexOf(audioVisualItem)) {
-                            console.warn("SceneManager: Audio 'ended' event timed out. Forcing next cue.");
-                            resolve(); 
-                        }
-                    }, duration);
-                })
-                .catch(e => {
-                    console.warn(`SceneManager audio play() rejected:`, e);
-                    resolve();
-                });
-            }
             else {
                 timeoutId = setTimeout(() => {
                     resolve();
@@ -102,7 +54,7 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
             }
         }));
 
-        // Trigger Media Action with calculated duration (Note: MediaActions removed from editor, but event kept for other listeners)
+        // Trigger Event for other listeners
         if (container && audioVisualItem.options) { 
             const event = new CustomEvent('dialogueAudioStarted', {
                 detail: { 
@@ -139,12 +91,6 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
     const startAnimation = () => {
         currentAnimationId++; // Kill any existing animation loops
         
-        if (currentAudioElement) {
-            currentAudioElement.pause();
-            currentAudioElement.currentTime = 0;
-            currentAudioElement.removeEventListener('ended', itemEndedListener);
-            currentAudioElement = null;
-        }
         clearTimeout(timeoutId);
         currentIndex = 0;
         
@@ -154,11 +100,6 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
     const cleanup = () => {
         currentAnimationId++; // Kill existing loops on cleanup
         
-        if (currentAudioElement) {
-            currentAudioElement.pause();
-            currentAudioElement.currentTime = 0;
-            currentAudioElement.removeEventListener('ended', itemEndedListener);
-        }
         clearTimeout(timeoutId);
         
         audioVisualItemsToAnimate.forEach(item => {
@@ -167,9 +108,6 @@ function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
             } else {
                 if (item.hide) item.hide();
                 if (item.pause) item.pause();
-                if (item.audioElement && window.audioStateManager) {
-                    window.audioStateManager.unregisterAudio(item.audioElement);
-                }
             }
         });
         audioVisualItemsToAnimate.length = 0;
@@ -186,21 +124,13 @@ export async function initScene(container, pageInfo, sceneData) {
     for (const [index, item] of sceneData.entries()) {
         let audioVisualItem = null;
 
-        // Central Audio Resolution
-        let resolvedAudioSrc = item.audioSrc || null;
-        if (resolvedAudioSrc && !resolvedAudioSrc.includes('/') && !resolvedAudioSrc.includes(':')) {
-            resolvedAudioSrc = resolveMediaUrl(resolvedAudioSrc, 'audio', pageInfo, true);
-        } else if (item.audioSrc === undefined && item.id) {
-            resolvedAudioSrc = resolveMediaUrl(`${item.id}.mp3`, 'audio', pageInfo, true);
-        }
-
         if (item.displayType.type === 'SpeechBubble') {
             const panelEl = container.querySelector(item.placement.panel);
             if (!panelEl) {
                 console.error(`SpeechBubble on page ${pageId}, index ${index}: Panel '${item.placement.panel}' not found.`);
                 continue;
             }
-            const bubbleOptions = { ...item, series, volume, chapter, pageId, pageIndex, dialogueIndex: index, audioSrc: resolvedAudioSrc };
+            const bubbleOptions = { ...item, series, volume, chapter, pageId, pageIndex, dialogueIndex: index };
             if (item.attributes) bubbleOptions.attributes = item.attributes;
             if (item.style) bubbleOptions.style = item.style;
             Object.assign(bubbleOptions, item.placement); 
@@ -222,8 +152,7 @@ export async function initScene(container, pageInfo, sceneData) {
                 pageId, 
                 textBlockType: item.displayType.style || 'Narrator', 
                 pageIndex, 
-                dialogueIndex: index, 
-                audioSrc: resolvedAudioSrc 
+                dialogueIndex: index
             };
             if (item.attributes) textBlockOptions.attributes = item.attributes;
             if (item.style) textBlockOptions.style = item.style;
@@ -234,7 +163,9 @@ export async function initScene(container, pageInfo, sceneData) {
 
         } else if (item.displayType.type === 'SoundEffect') {
             const panelEl = (item.placement && item.placement.panel) ? container.querySelector(item.placement.panel) : null;
-            const soundEffect = new SoundEffect(panelEl, { ...item, series, volume, chapter, pageId, audioSrc: resolvedAudioSrc });
+            const soundEffectOptions = { ...item, series, volume, chapter, pageId };
+            if (item.placement) Object.assign(soundEffectOptions, item.placement);
+            const soundEffect = new SoundEffect(panelEl, soundEffectOptions);
             await soundEffect.render();
             audioVisualItem = soundEffect;
         } else if (item.displayType.type === 'Pause') {

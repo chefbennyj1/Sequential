@@ -7,7 +7,7 @@ class ScheduledTaskController {
     
     async getLibraryRoots(req, res) {
         try {
-            const roots = await LibraryRoot.find().sort({ name: 1 });
+            const roots = await LibraryRoot.find({ name: { $ne: "Internal Library" } }).sort({ name: 1 });
             res.json({ ok: true, roots });
         } catch (e) {
             res.status(500).json({ ok: false, message: e.message });
@@ -40,6 +40,10 @@ class ScheduledTaskController {
 
     async deleteLibraryRoot(req, res) {
         try {
+            const root = await LibraryRoot.findById(req.params.id);
+            if (root && root.name === "Internal Library") {
+                return res.status(403).json({ ok: false, message: "Cannot delete internal system root." });
+            }
             await LibraryRoot.findByIdAndDelete(req.params.id);
             res.json({ ok: true, message: "Library Root removed." });
         } catch (e) {

@@ -1,5 +1,16 @@
 // views/dashboard/dashboard.js
 
+// --- Global Fetch Interceptor ---
+// Intercept all fetch calls to catch 401/403 errors and redirect to login
+const originalFetch = window.fetch;
+window.fetch = async (...args) => {
+    const response = await originalFetch(...args);
+    if (response.status === 401 || response.status === 403) {
+        window.location.href = '/login';
+    }
+    return response;
+};
+
 import { getCurrentUser, fetchVolumesAPI, fetchSeriesAPI } from './studio/js/ApiService.js';
 import { 
     registerNavigationHandlers, 
@@ -234,10 +245,13 @@ export async function init(container) {
                 const data = await res.json();
                 
                 if (data.ok) {
-                    status.textContent = "Success! Page created.";
+                    status.textContent = "Success! Page created. Syncing...";
                     status.className = "builder-status text-accent font-bold";
-                    setActivePage(vol, chap, pageId);
-                    updateUrlState({ tab: 'page-builder', vol, chap, page: pageId });
+                    
+                    setTimeout(() => {
+                        setActivePage(vol, chap, pageId);
+                        updateUrlState({ tab: 'page-builder', vol, chap, page: pageId });
+                    }, 1000);
                 } else {
                     status.textContent = "Error: " + data.message;
                     status.className = "builder-status text-accent";
@@ -341,12 +355,14 @@ export async function init(container) {
                 const data = await res.json();
                 
                 if (data.ok) {
-                    status.textContent = `Success! ${data.message}`;
+                    status.textContent = `Success! ${data.message}. Syncing database...`;
                     status.className = "builder-status text-accent font-bold";
                     
-                    // Auto-load the new page in page builder
-                    setActivePage(vol, data.chapter, data.pageId);
-                    updateUrlState({ tab: 'page-builder', vol, chap: data.chapter, page: data.pageId });
+                    // Give the DB a second to settle after the scan
+                    setTimeout(() => {
+                        setActivePage(vol, data.chapter, data.pageId);
+                        updateUrlState({ tab: 'page-builder', vol, chap: data.chapter, page: data.pageId });
+                    }, 1000);
                 } else {
                     status.textContent = "Error: " + data.message;
                     status.className = "builder-status text-accent";

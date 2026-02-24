@@ -15,12 +15,9 @@ class TextBlock {
       bottom: null,
       left: null,
       right: null,
-      audioSrc: null,
       ...options
     };
     this.container = null;
-    this.audioElement = null;
-    this.potentialAudioUrl = this.options.audioSrc || null;
 
     if (!this.parentElement) {
       console.error('TextBlock: parentElement not provided.');
@@ -78,31 +75,15 @@ class TextBlock {
     if (this.container) {
       this.container.classList.add('visible');
     }
-    if (this.audioElement) {
-      this.audioElement.currentTime = 0;
-      // Audio playback is now managed by SceneManager
-      // try {
-      //   this.audioElement.play().catch(e => console.error(`TextBlock audio play failed for ${this.audioElement.src}:`, e));
-      // } catch (e) {
-      //   console.error(`Error trying to play TextBlock audio ${this.audioElement.src}:`, e);
-      // }
-    }
   }
 
   pause() {
-    if (this.audioElement) {
-      this.audioElement.pause();
-      this.audioElement.currentTime = 0;
-    }
     if (this.container) {
         this.container.classList.remove('visible');
     }
   }
 
   destroy() {
-    if (this.audioElement && window.audioStateManager) {
-        window.audioStateManager.unregisterAudio(this.audioElement);
-    }
     if (this.container && this.container.parentNode) {
         this.container.parentNode.removeChild(this.container);
     }

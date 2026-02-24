@@ -50,7 +50,8 @@ async function refreshFileBrowser() {
         currentContext.chapter, 
         currentContext.pageId, 
         fileBrowserCurrentType,
-        scope
+        scope,
+        currentContext.series || "No_Overflow"
     );
 
     if (data.ok) {
@@ -176,28 +177,40 @@ export function initFileBrowser() {
     if (searchInput) searchInput.oninput = applyFiltersAndSort;
     if (sortSelect) sortSelect.onchange = applyFiltersAndSort;
 
-    document.getElementById('fileBrowserUploadInput').onchange = async e => {
-        const file = e.target.files[0]; 
-        if (!file) return; 
-        
-        const status = document.getElementById('fileBrowserStatus'); 
-        status.textContent = "Uploading...";
-        
-        const currentScope = scopeSelect.value; // Get current scope
+    const uploadInput = document.getElementById('fileBrowserUploadInput');
+    if (uploadInput) {
+        uploadInput.onchange = async e => {
+            const file = e.target.files[0]; 
+            if (!file) return; 
+            
+            const status = document.getElementById('fileBrowserStatus'); 
+            status.textContent = "Uploading...";
+            
+            // Get latest scope dynamically
+            const scopeSelect = document.getElementById('fbScopeSelect');
+            const currentScope = scopeSelect ? scopeSelect.value : 'page'; 
 
-        const fd = new FormData(); 
-        fd.append('volume', currentContext.volume); 
-        fd.append('chapter', currentContext.chapter); 
-        fd.append('pageId', currentContext.pageId); 
-        fd.append('panel', 'upload'); 
-        fd.append('scope', currentScope); // Pass scope to API
-        fd.append('asset', file);
-        
-        const data = await uploadAsset(fd);
-        if (data.ok) {
-            await refreshFileBrowser();
-        } else {
-            status.textContent = "Error: " + data.message;
-        }
-    };
+            const fd = new FormData(); 
+            fd.append('series', currentContext.series || 'No_Overflow');
+            fd.append('volume', currentContext.volume); 
+            fd.append('chapter', currentContext.chapter); 
+            fd.append('pageId', currentContext.pageId); 
+            fd.append('panel', 'upload'); 
+            fd.append('scope', currentScope); 
+            fd.append('asset', file);
+            
+            try {
+                const data = await uploadAsset(fd);
+                if (data.ok) {
+                    await refreshFileBrowser();
+                } else {
+                    status.textContent = "Error: " + data.message;
+                }
+            } catch (err) {
+                status.textContent = "Upload failed.";
+            } finally {
+                e.target.value = '';
+            }
+        };
+    }
 }

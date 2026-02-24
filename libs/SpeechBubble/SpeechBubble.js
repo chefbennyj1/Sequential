@@ -12,13 +12,12 @@ class SpeechBubble {
       left: null,
       right: null,
       tailPosition: 'bottom-left',
-      audioSrc: null,
+      tailSkew: null,
+      tailScale: null,
       ...options
     };
     this.container = null;
     this.duration = getBubbleDuration(this.options.text);
-    this.audioElement = null;
-    this.potentialAudioUrl = this.options.audioSrc || null;
 
     if (!this.parentElement) {
       console.error('SpeechBubble: parentElement not provided.');
@@ -33,19 +32,31 @@ class SpeechBubble {
     const cleanText = text.replace(expressiveFlagRegex, '').trim();
     const isMonologue = text.includes('[internal]') || text.includes('[monologue]');
     const isSystem = text.includes('[system]') || text.includes('[computer]');
+    const isSystemError = text.includes('[system-error]');
+    const isVigilBlue = text.includes('[vigil-blue]');
+    const isVigilPurple = text.includes('[vigil-purple]');
+    const isVigilUnison = text.includes('[vigil-unison]');
+    const isVigil = text.includes('[vigil]') || isVigilBlue || isVigilPurple || isVigilUnison;
     
-    return { cleanText, isMonologue, isSystem };
+    return { cleanText, isMonologue, isSystem, isSystemError, isVigil, isVigilBlue, isVigilPurple, isVigilUnison };
   }
 
-  _getBubbleHtml(cleanText, isMonologue, isSystem) {
+  _getBubbleHtml(cleanText, isMonologue, isSystem, isSystemError, isVigil, isVigilBlue, isVigilPurple, isVigilUnison) {
     if (isMonologue) {
         return `<div class="super-bubble monologue-bubble">${cleanText}</div>`;
     }
 
-    if (isSystem) {
+    if (isSystem || isSystemError || isVigil) {
+        let headerText = "SYSTEM_LINK";
+        if (isSystemError) headerText = "SYSTEM_ERROR";
+        else if (isVigilBlue) headerText = "VIGIL_ADMIN";
+        else if (isVigilPurple) headerText = "VIGIL_ECHO";
+        else if (isVigilUnison) headerText = "VIGIL_UNISON";
+        else if (isVigil) headerText = "VIGIL_CORE";
+
         return `
            <div class="super-bubble system-bubble">
-              <div class="system-header">[SYSTEM_LINK]</div>
+              <div class="system-header">[${headerText}]</div>
               <span class="bubble-text">> ${cleanText}</span>
               <div class="scanlines"></div>
               <div class="tail-container rigid-tail tail-${this.options.tailPosition}">
@@ -67,26 +78,18 @@ class SpeechBubble {
   }
 
   async render() {
-    if (this.potentialAudioUrl) {
-        this.audioElement = new Audio(this.potentialAudioUrl);
-        this.audioElement.preload = 'auto';
-        this.audioElement.volume = 1.0;
-        this.audioElement.onerror = () => {
-             console.warn('Audio file failed to load (404 or Decode Error):', this.potentialAudioUrl);
-        };
-        
-        if (window.audioStateManager) {
-            window.audioStateManager.registerAudio(this.audioElement, this.options.pageId, true);
-        }
-    }
-
     await document.fonts.ready;
     const speechBubbleContainer = document.createElement('div');
     speechBubbleContainer.className = `speech-bubble-container`;
     
-    const { cleanText, isMonologue, isSystem } = this._getParsedContent();
+    const { cleanText, isMonologue, isSystem, isSystemError, isVigil, isVigilBlue, isVigilPurple, isVigilUnison } = this._getParsedContent();
     if (isMonologue) speechBubbleContainer.classList.add('monologue');
     if (isSystem) speechBubbleContainer.classList.add('system');
+    if (isSystemError) speechBubbleContainer.classList.add('system-error');
+    if (isVigil) speechBubbleContainer.classList.add('vigil');
+    if (isVigilBlue) speechBubbleContainer.classList.add('vigil-blue');
+    if (isVigilPurple) speechBubbleContainer.classList.add('vigil-purple');
+    if (isVigilUnison) speechBubbleContainer.classList.add('vigil-unison');
 
     // Apply positioning
     if (this.options.top) speechBubbleContainer.style.top = this.options.top;
@@ -94,8 +97,11 @@ class SpeechBubble {
     if (this.options.left) speechBubbleContainer.style.left = this.options.left;
     if (this.options.right) speechBubbleContainer.style.right = this.options.right;
     
+    if (this.options.tailSkew) speechBubbleContainer.style.setProperty('--tail-skew', this.options.tailSkew);
+    if (this.options.tailScale) speechBubbleContainer.style.setProperty('--tail-scale', this.options.tailScale);
+
     this.parentElement.appendChild(speechBubbleContainer);
-    speechBubbleContainer.innerHTML = this._getBubbleHtml(cleanText, isMonologue, isSystem);
+    speechBubbleContainer.innerHTML = this._getBubbleHtml(cleanText, isMonologue, isSystem, isSystemError, isVigil, isVigilBlue, isVigilPurple, isVigilUnison);
     this.container = speechBubbleContainer;
 
     // Apply attributes and style from options
@@ -121,29 +127,18 @@ class SpeechBubble {
         detail: { dialogueItem: this.options }
       });
       this.container.dispatchEvent(shownEvent);
-
-      if (this.audioElement) {
-        this.audioElement.currentTime = 0;
-      }
     }
   }
 
   hide() {
     if (this.container) {
       this.container.classList.remove('visible');
-      if (this.audioElement) {
-        this.audioElement.pause();
-        this.audioElement.currentTime = 0;
-      }
     }
   }
 
   destroy() {
     if (this.container && this.container.parentElement) {
       this.container.parentElement.removeChild(this.container);
-    }
-    if (this.audioElement && window.audioStateManager) {
-      window.audioStateManager.unregisterAudio(this.audioElement);
     }
     this.container = null;
   }

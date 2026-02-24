@@ -1,3 +1,5 @@
+import { applyPersistentMask } from "/libs/Utility.js";
+
 export async function init(container, params) {
     const { volume, chapter, pageId } = params;
     const fileInput = document.getElementById('globalPanelUpload');
@@ -68,6 +70,15 @@ export async function init(container, params) {
                 });
                 
                 panelElement.prepend(el);
+                
+                // CRITICAL: Notify parent that an asset was uploaded so it can update its local media cache
+                window.parent.postMessage({ 
+                    type: 'assetUploaded', 
+                    panel: '.' + panelClass,
+                    type: isVideo ? 'video' : 'image',
+                    fileName: file.name
+                }, '*');
+
                 setTimeout(() => labelElement.innerHTML = panelClass, 1500);
             } else {
                 labelElement.innerHTML = "Error!";
@@ -125,6 +136,17 @@ export async function init(container, params) {
                         
                         panel.innerHTML = '';
                         panel.appendChild(el);
+
+                        // Apply persistent mask if defined
+                        if (item.maskGif) {
+                            const series = params.series || 'No_Overflow';
+                            const maskUrl = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${item.maskGif}`;
+                            
+                            // Important: Give the DOM a moment to ensure 'el' is rendered
+                            setTimeout(() => {
+                                applyPersistentMask(panel, maskUrl, item.maskBg);
+                            }, 50);
+                        }
                     }
                 });
             }

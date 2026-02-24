@@ -150,76 +150,87 @@ async function syncSinglePage(volumeId, chapterId, pageId) {
 async function insertPage({ seriesFolderName, volumeFolderName, chapterFolderName, insertPoint }) {
     const { resolveSeriesPath } = require('./MediaService');
     const seriesPath = await resolveSeriesPath(seriesFolderName);
-    const chapterPath = path.join(seriesPath, 'Volumes', volumeFolderName, chapterFolderName);
+    const volumePath = path.join(seriesPath, 'Volumes', volumeFolderName);
     
-    if (!fs.existsSync(chapterPath)) throw new Error("Chapter directory not found");
+    if (!fs.existsSync(volumePath)) throw new Error("Volume directory not found");
 
     const insertIdx = parseInt(insertPoint);
     if (isNaN(insertIdx)) throw new Error("Invalid insert point");
 
-    console.log(`[VolumeService] Inserting page at index ${insertIdx} in: ${chapterPath}`);
+    console.log(`[VolumeService] GLOBAL Insert: Point ${insertIdx} starting in ${chapterFolderName}`);
 
-    // 1. Identify Pages to Shift
-    const dirs = await fs.promises.readdir(chapterPath, { withFileTypes: true });
-    let pagesToShift = [];
+    // 1. Get all chapters and sort them
+    const chapterDirs = (await fs.promises.readdir(volumePath, { withFileTypes: true }))
+        .filter(d => d.isDirectory() && d.name.startsWith('chapter-'))
+        .map(d => d.name)
+        .sort((a, b) => (parseInt(a.replace(/\D/g, '')) || 0) - (parseInt(b.replace(/\D/g, '')) || 0));
 
-    for (const d of dirs) {
-        if (d.isDirectory() && d.name.startsWith('page')) {
-            const num = parseInt(d.name.replace('page', ''), 10);
-            if (!isNaN(num) && num >= insertIdx) {
-                pagesToShift.push(num);
-            }
-        }
-    }
-    
-    // Sort descending to avoid overwriting
-    pagesToShift.sort((a, b) => b - a);
+    const targetChapIdx = chapterDirs.indexOf(chapterFolderName);
+    if (targetChapIdx === -1) throw new Error("Target chapter not found in volume");
 
-    // 2. Execute Shift
-    for (const num of pagesToShift) {
-        const oldName = `page${num}`;
-        const newName = `page${num + 1}`;
-        const oldPath = path.join(chapterPath, oldName);
-        const newPath = path.join(chapterPath, newName);
+    // 2. Shift pages in REVERSE order (Last Chapter -> Target Chapter)
+    for (let i = chapterDirs.length - 1; i >= targetChapIdx; i--) {
+        const currentChapName = chapterDirs[i];
+        const currentChapPath = path.join(volumePath, currentChapName);
+        const isTargetChapter = (i === targetChapIdx);
 
-        if (fs.existsSync(newPath)) {
-            console.log(`  Target ${newName} already exists. Skipping move of ${oldName}.`);
-            continue; 
+        // CHECK FOR IGNORE FILE
+        if (fs.existsSync(path.join(currentChapPath, '.ignore-shift'))) {
+            console.log(`  [Skip] ${currentChapName} contains .ignore-shift. Skipping.`);
+            continue;
         }
 
-        console.log(`  Moving ${oldName} -> ${newName}`);
-        await tryRename(oldPath, newPath);
+        console.log(`  Scanning ${currentChapName} for shifts...`);
+        
+        const pageDirs = (await fs.promises.readdir(currentChapPath, { withFileTypes: true }))
+            .filter(d => d.isDirectory() && d.name.startsWith('page'))
+            .map(d => ({ 
+                name: d.name, 
+                num: parseInt(d.name.replace(/\D/g, '')) || 0 
+            }))
+            .filter(p => isTargetChapter ? p.num >= insertIdx : true)
+            .sort((a, b) => b.num - a.num); // Sort descending
 
-        // Renumber internal files in the MOVED page
-        await updateInternalFiles(newPath, `page${num}`, `page${num + 1}`);
+        for (const page of pageDirs) {
+            const oldName = page.name;
+            const newName = `page${page.num + 1}`;
+            const oldPath = path.join(currentChapPath, oldName);
+            const newPath = path.join(currentChapPath, newName);
+
+            console.log(`    [Shift] ${currentChapName}/${oldName} -> ${newName}`);
+            await tryRename(oldPath, newPath);
+            await updateInternalFiles(newPath, oldName, newName);
+        }
     }
 
-    // 3. Clone Previous Page -> New Page
+    // 3. Clone Previous Page -> New Page (at the insert point)
+    const targetChapterPath = path.join(volumePath, chapterFolderName);
     const sourceIdx = insertIdx - 1;
     const sourceName = `page${sourceIdx}`;
-    const newName = `page${insertIdx}`;
-    const sourcePage = path.join(chapterPath, sourceName);
-    const newPage = path.join(chapterPath, newName);
+    const newPageName = `page${insertIdx}`;
+    const sourcePagePath = path.join(targetChapterPath, sourceName);
+    const newPagePath = path.join(targetChapterPath, newPageName);
 
-    if (fs.existsSync(sourcePage)) {
-        console.log(`  Cloning ${sourceName} -> ${newName}`);
-        await fs.promises.cp(sourcePage, newPage, { recursive: true });
+    if (fs.existsSync(sourcePagePath)) {
+        console.log(`  Cloning ${sourceName} -> ${newPageName}`);
+        await fs.promises.cp(sourcePagePath, newPagePath, { recursive: true });
+        await updateInternalFiles(newPagePath, sourceName, newPageName);
 
-        // Update New Page Internals
-        await updateInternalFiles(newPage, sourceName, newName);
-
-        // Reset JSON
-        const jsonPath = path.join(newPage, 'page.json');
+        // Reset JSON for the new "clean" page
+        const jsonPath = path.join(newPagePath, 'page.json');
         if (fs.existsSync(jsonPath)) {
             const data = JSON.parse(await fs.promises.readFile(jsonPath, 'utf8'));
-            if (data.header) data.header.pageId = newName;
-            data.scene = []; // Clear scene as it's a "new" page
+            if (data.header) {
+                data.header.pageId = newPageName;
+                data.header.chapter = chapterFolderName;
+            }
+            data.scene = []; 
             await fs.promises.writeFile(jsonPath, JSON.stringify(data, null, 2));
         }
     } else {
-        console.log(`  No source page ${sourceName} found. Creating blank page.`);
-        await fs.promises.mkdir(newPage, { recursive: true });
-        // updateChaptersFromFS will handle scaffolding missing files
+        console.log(`  No source page ${sourceName} found. Creating blank page structure.`);
+        await fs.promises.mkdir(newPagePath, { recursive: true });
+        // Scaffolding will happen on the next DB sync/scan
     }
 
     // 4. Update Database
@@ -230,7 +241,31 @@ async function insertPage({ seriesFolderName, volumeFolderName, chapterFolderNam
         await updateChaptersFromFS(volume);
     }
 
-    return { ok: true, message: `Page inserted at ${insertIdx}` };
+    // 5. Update Audio Map
+    try {
+        const audioMapPath = path.join(volumePath, 'audio_map.json');
+        if (fs.existsSync(audioMapPath)) {
+            const map = JSON.parse(fs.readFileSync(audioMapPath, 'utf8'));
+            map.forEach(entry => {
+                if (entry.pages) {
+                    entry.pages = entry.pages.map(p => {
+                        const m = p.match(/page(\d+)/);
+                        if (m) {
+                            const num = parseInt(m[1]);
+                            if (num >= insertIdx) return `page${num + 1}`;
+                        }
+                        return p;
+                    });
+                }
+            });
+            fs.writeFileSync(audioMapPath, JSON.stringify(map, null, 2));
+            console.log(`  [AudioMap] Updated page references for shift >= ${insertIdx}`);
+        }
+    } catch (err) {
+        console.error("Failed to update audio map during shift:", err);
+    }
+
+    return { ok: true, message: `Global Page Insertion complete at ${insertIdx}` };
 }
 
 async function createChapter({ seriesFolderName, volumeFolderName, title, chapterIndex }) {

@@ -1,5 +1,112 @@
 # Sequential Comic Server - Work Log
 
+## February 23, 2026: The "Images-Only" Refactor & Narrative Depth
+
+### Technical Engine Evolution
+- **Images-Only Optimization**: Completely stripped all legacy video and playlist logic from the engine (`MediaManager.js`, `Utility.js`, `pageInitializer.js`, `SceneEditor.js`).
+    - **Result**: A significantly leaner, faster engine focused exclusively on high-fidelity sequential images.
+- **Global Page Shifter**: Refactored the `insertPage` service to be volume-aware.
+    - **Logic**: Inserting a page now automatically shifts all subsequent chapters forward and updates `page.json` and `audio_map.json` metadata globally.
+    - **Protection**: Implemented the `.ignore-shift` file system to allow "future" chapters (like Chapter 8) to remain untouched during renumbering.
+- **Persistent Masking v2**: Implemented a two-stage masking system where an initial reveal GIF hands off to a persistent, looping GIF mask.
+    - **Internal Masking**: Masks now target internal `<img>` elements rather than panel containers, keeping borders sharp and speech bubbles crisp.
+    - **Mask Background Overrides**: Added a "Mask Background Color" picker to the Visual Editor, allowing for white "flashback" reveals or custom colored digital noise.
+- **Speech Bubble Customization**: Wired `tailSkew` and `tailScale` from `page.json` into the CSS engine via dynamic CSS variables.
+
+### Narrative Expansion (The Mnemosyne Saga)
+- **Takeda's Secret**: Revealed Takeda is terminal (Future TB), driving his frantic, desperate search for the Mnemosyne Engine. The "Bloody Handkerchief" is his signature visual motif.
+- **Arashi (The Cyber-Ronin)**: Established his backstory as a survivor of Severance Day "saved" and twisted by Takeda. He wears a chrome side-mask and carries the thermal Katana that will eventually be his master's undoing.
+- **Vigil's Humanity**: Deepened Vigil's character with the "Empty Snack Drawer" memory, connecting her digital grief to Hiroshi Saito's lost legacy.
+- **Dual Narrative**: Successfully integrated Takeda's B-Plot (Penthouse scenes) to run asynchronously with the kids' A-Plot, creating intense dramatic irony.
+
+---
+
+## February 22, 2026: Visual Fidelity & Villainous Roots
+
+### Cinematic Engine Enhancements
+- **Persistent Panel Masks**: Implemented a "two-stage" masking system. 
+    - **Stage 1**: The standard GIF reveal (5s).
+    - **Stage 2**: Automatic hand-off to a persistent, repeatable GIF mask (e.g., looping haze or digital static).
+- **Internal Masking Logic**: Refactored `Utility.js` and `pageInitializer.js` to apply masks directly to internal media (`img`, `video`) rather than the panel container.
+    - **Benefit**: Keeps black ink borders sharp and solid.
+    - **Benefit**: Ensures speech bubbles (outside the panel) remain crisp and unaffected by the mask.
+- **Memory/Cloudy Aesthetics**: Updated `page.css` to force a white background for panels with `.panel-effect-memory` or `.panel-effect-cloudy`. 
+    - **Result**: Masked areas in memories now show as white light/haze instead of black void, creating a distinct "flashback" feel.
+
+### Studio Tools (Studio v2.1)
+- **Visual Editor Update**: Added a "Panel Mask" field to the Visual Editor UI. Creators can now choose specific repeatable GIFs for persistent effects.
+- **Preview Accuracy**: Updated the visual editor's iframe preview to correctly render internal masks and background color shifts.
+
+### Narrative Development (Chapter 2 & 4 Integration)
+- **Takeda's Arrival (Page 24)**: Retroactively introduced Takeda's arc. Established his "Digital Olympus" ambition and his personal grudge against Hiroshi Saito.
+- **New Character: Arashi**: Introduced Takeda's head henchman—a lethal Cyber-Ronin with a thermal Katana and a chrome prosthetic jaw/side-mask.
+- **Lore Synthesis**: Connected the "Empty Snack Drawer" memory (Page 50) to the broader theme of Hiroshi Saito's lost legacy and Vigil's fractured sanity.
+
+---
+
+## Core Narrative Architecture (Lore Roadmap)
+
+### The Betrayal & The Engine
+- **The Conflict**: Hiroshi Saito (Visionary) vs. Takeda (Vulture).
+- **The Tech**: Saito developed the **Mnemosyne Engine** for universal human memory preservation. Takeda wanted it for **"Digital Olympus"**—a private, subscription-based afterlife for the elite.
+- **Severance Day**: Takeda didn't just kill Saito; he attempted to seize the Engine. Saito anticipated this and "shrouded" the facility in the Dead Circuits, hiding the "Key" within his own lineage (Nova).
+- **The Missing Link**: Takeda has the hardware, but he's been missing the "Key" for years. He viewed the casualties of Severance Day as **"Collateral Damage"** and **"Unoptimized Assets."**
+- **Takeda's Motivation (The Secret)**: Takeda is terminal. He is suffering from a futuristic strain of respiratory failure (Future TB). He is obsessed with the Engine not just for profit, but for survival.
+- **Visual Motif**: Takeda often coughs into a pristine white silk handkerchief. A small, growing spot of blood on the fabric is the only clue to his impending death. He is a man running out of time.
+
+### Character Arc: Vigil (The Caretaker)
+- **Status**: Currently fractured between **Admin (Blue)** and **Echo (Purple)**.
+- **Future Twist**: Takeda will eventually breach the facility and take remote control of Vigil.
+- **The "Evil" Turn**: Vigil will be forced to hunt the group, using the facility's defenses against them.
+- **The Sentience Spark**: Vigil will eventually break Takeda's control through a "sentience glitch" triggered by her emotional bond with the group (specifically Nova). She will choose her "family" over her "program."
+
+### Character Arc: Arashi (The Cyber-Ronin)
+- **Identity**: Takeda's lead henchman and "surrogate son."
+- **Backstory**: A survivor of the Severance Day explosion. He was just a boy when Takeda found him bleeding in the street. Takeda "saved" him, rebuilt him, and trained him to be a cold-blooded weapon.
+- **The Mask**: Wears a chrome plate/mask on the side of his face to hide the horrific scarring from the explosion.
+- **Dynamic**: He is fanatically loyal to Takeda, but he has zero conscience—a reflection of Takeda's ideal "son." His thermal Katana is his signature tool of "Resource Liquidation."
+- **Fate**: His blade will eventually be the tool used by Nova to end Takeda's reign.
+
+---
+
+## February 20, 2026: Security Hardening & Narrative Pivot
+
+### Security & UX (The "Courtesy" Redirect)
+- **Global Fetch Interceptor**: Implemented a monkey-patch for `window.fetch` in `dashboard.js` to automatically detect 401 (Unauthorized) and 403 (Forbidden) responses.
+- **Behavior**: Any API failure due to session expiration now triggers an immediate redirect to the `/login` page, ensuring users aren't left staring at empty or broken UI components.
+
+### Narrative Development (Chapter 4: The Lazarus Archive)
+- **Lazarus Archive Brainstorming**: 
+    - Established that the server farm is a repository for digitized human consciousness.
+    - Revelation: Takeda triggered a "Mass Upload Event" on Severance Day to harvest consciousnesses, with the protagonists' families hidden among the "casualties."
+- **New Character: Vigil (The Caretaker)**:
+    - **Identity**: A female AI construct tending to the server farm.
+    - **Visuals**: Tron-inspired black bodysuit with mood-responsive glowing lines (Cyan=Calm, Yellow=Alert, Red=Angry/Combat).
+    - **Personality**: Clinical yet maternal toward the "Saito-lineage" (Nova).
+- **Story Progression**:
+    - **Page 40**: Team enters the vault; Vigil initializes and recognizes Nova's DNA.
+    - **Page 41**: Vigil reveals the truth about the "Collateral Data" (their families).
+    - **Page 42**: A glitchy, emotional reunion with a hologram of Nova's father, who warns them of Takeda's intrusion.
+
+---
+
+## February 19, 2026: Story Progression & Chapter 4 Brainstorming
+
+### Narrative Development (Chapter 4: The Server Farm)
+- **Setting**: The protagonists have entered a secret underground facility—an old, pre-Severance Day server farm.
+- **Core Mystery**: Exploring the contents of this facility.
+    - **Hypothesis 1**: The facility houses AI constructs or digital consciousnesses of the main characters' family members who died on Severance Day.
+    - **Hypothesis 2**: Hiroshi Saito may have developed technology to upload human consciousness, potentially keeping it secret from Takeda.
+- **Character Motivations**:
+    - **Takeda**: His killing of his partner during the Severance Day explosion is linked to this facility. He either wanted to suppress this technology or seize it for himself (potentially to "save" someone or gain power).
+    - **Casualties**: The families of the main characters were collateral damage in Takeda's pursuit or suppression of this tech.
+- **New Character Concept**: "The Caretaker"
+    - **Role**: An AI consciousness or construct created to tend to the server farm and data center.
+    - **Interaction**: The characters will immediately encounter this entity upon exploring the facility.
+    - **Function**: To maintain the servers and potentially protect the "residents" (the uploaded consciousnesses).
+
+---
+
 ## February 12, 2026: Architectural Refactor & Tail Customization
 
 ### Core Engine & Architecture

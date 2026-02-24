@@ -1,7 +1,7 @@
 // libs/pageInitializer.js
 import { fetchScene, fetchMedia, loadCSS, imageMaskReveal, resolveMediaUrl, fetchVolumeAudioMap } from '/libs/Utility.js';
 import { initScene } from '/services/public/SceneManager.js';
-import { initMedia, startMediaPlayback, stopMediaPlayback, restartMediaPlayback, preloadAllMedia, fadeElement } from '/services/public/MediaManager.js';
+import { initMedia, fadeElement } from '/services/public/MediaManager.js';
 
 /**
  * Page Initializer
@@ -46,7 +46,6 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
     if (abortSignal?.aborted) return;
 
     const { videoElements, playlistManagers } = initMedia(container, pageInfo, mediaResponse.media);
-    registerVideoAudio(pageId, videoElements);
 
     if (abortSignal?.aborted) return;
 
@@ -68,20 +67,20 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
             }
         }
 
-        await imageMaskReveal(allPanels, gifUrl);
-        await preloadAllMedia(videoElements, pageId);
-        startMediaPlayback(videoElements, pageInfo, mediaResponse.sequentialVideoPlayback);
+        await imageMaskReveal(allPanels, gifUrl, 5000, mediaResponse.media, pageInfo);
         if (sceneController?.restart) sceneController.restart();
     });
 
     container.addEventListener('view_hidden', () => {
-        stopMediaPlayback(videoElements, playlistManagers);
         if (sceneController?.cleanup) sceneController.cleanup();
         if (window.audioStateManager) window.audioStateManager.unregisterAllPageAudio(pageId);
 
         allPanels.forEach(p => {
-            p.style.webkitMaskImage = '';
-            p.style.maskImage = '';
+            const mediaElements = p.querySelectorAll('img');
+            mediaElements.forEach(el => {
+                el.style.webkitMaskImage = '';
+                el.style.maskImage = '';
+            });
         });
     });
 
@@ -139,11 +138,4 @@ async function prepareAmbientAudioData(pageId, mediaResponse, pageInfo) {
     const volume = data.volume !== undefined ? data.volume : 1.0;
 
     return { url, volume };
-}
-
-function registerVideoAudio(pageId, videoElements) {
-    if (!window.audioStateManager) return;
-    videoElements.forEach(v => {
-        if (v.dataset.audioEnabled === 'true') window.audioStateManager.registerAudio(v, pageId, true);
-    });
 }

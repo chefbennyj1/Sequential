@@ -313,6 +313,11 @@ section.exiting {
 
 /* --- Panel Effects (Memories / Visualizations) --- */
 
+.panel-effect-memory,
+.panel-effect-cloudy {
+    background-color: #fff !important;
+}
+
 .panel-effect-memory img,
 .panel-effect-memory video {
     filter: grayscale(80%) contrast(1.1) brightness(0.9) sepia(20%) hue-rotate(160deg) !important;

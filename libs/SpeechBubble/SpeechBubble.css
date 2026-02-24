@@ -21,6 +21,10 @@
     visibility: hidden;
     transition: opacity 0.4s ease-in-out, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transform: scale(0.8) translateY(10px);
+
+    /* Dynamic Tail Overrides */
+    --tail-skew: 0deg;
+    --tail-scale: 1;
 }
 
 .speech-bubble-container.visible {
@@ -105,7 +109,7 @@
     border-left-color: var(--bubble-border);
     border-top-color: var(--bubble-border);
     top: -10px;
-    transform: skewX(-15deg);
+    transform: skewX(calc(-15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
 .tail-bottom-left::after {
     border-left-color: var(--bubble-bg-one);
@@ -113,7 +117,7 @@
     top: -12px;
     left: 2px;
     border-width: 12px;
-    transform: skewX(-15deg);
+    transform: skewX(calc(-15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
 
 /* Bottom Right */
@@ -126,7 +130,7 @@
     border-top-color: var(--bubble-border);
     top: -10px;
     right: 2px; /* Pull left 2px */
-    transform: skewX(15deg);
+    transform: skewX(calc(15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
 .tail-bottom-right::after {
     border-right-color: var(--bubble-bg-one);
@@ -134,7 +138,7 @@
     top: -12px;
     right: 4px; /* Pull left 4px to center in border */
     border-width: 12px;
-    transform: skewX(15deg);
+    transform: skewX(calc(15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
 
 /* Top Left */
@@ -146,7 +150,7 @@
     border-left-color: var(--bubble-border);
     border-bottom-color: var(--bubble-border);
     bottom: -10px;
-    transform: skewX(15deg);
+    transform: skewX(calc(15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
 .tail-top-left::after {
     border-left-color: var(--bubble-bg-one);
@@ -154,7 +158,7 @@
     bottom: -12px;
     left: 2px;
     border-width: 12px;
-    transform: skewX(15deg);
+    transform: skewX(calc(15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
 
 /* Top Right */
@@ -167,7 +171,7 @@
     border-bottom-color: var(--bubble-border);
     bottom: -10px;
     right: 2px; /* Pull left 2px */
-    transform: skewX(-15deg);
+    transform: skewX(calc(-15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
 .tail-top-right::after {
     border-right-color: var(--bubble-bg-one);
@@ -175,28 +179,96 @@
     bottom: -12px;
     right: 4px; /* Pull left 4px to center in border */
     border-width: 12px;
-    transform: skewX(-15deg);
+    transform: skewX(calc(-15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
 
 /* System / Computer Speech Bubble Style */
-.speech-bubble-container.system .super-bubble {
+.speech-bubble-container.system {
+    --cyber-primary: rgb(0, 255, 65); /* Matrix Green */
+    --cyber-secondary: rgb(0, 143, 17); /* Dark Green */
+    --cyber-glow: rgba(0, 255, 65, 0.4);
+}
+
+.speech-bubble-container.system-error {
+    --cyber-primary: rgb(255, 0, 60); /* Error Red */
+    --cyber-secondary: rgb(150, 0, 30); /* Dark Red */
+    --cyber-glow: rgba(255, 0, 60, 0.4);
+}
+
+.speech-bubble-container.vigil-blue {
+    --cyber-primary: rgb(23, 158, 199); /* Cyan Blue */
+    --cyber-secondary: rgb(0, 71, 102); /* Dark Blue */
+    --cyber-glow: rgba(23, 158, 199, 0.4);
+}
+
+.speech-bubble-container.vigil-purple {
+    --cyber-primary: rgb(199, 10, 206); /* Magenta Purple */
+    --cyber-secondary: rgb(82, 0, 85); /* Deep Purple */
+    --cyber-glow: rgba(199, 10, 206, 0.4);
+}
+
+.speech-bubble-container.vigil-unison {
+    --cyber-primary: #fff;
+    --cyber-secondary: #000;
+    --cyber-glow: rgba(255, 255, 255, 0.6);
+}
+
+.speech-bubble-container.system .super-bubble,
+.speech-bubble-container.system-error .super-bubble,
+.speech-bubble-container.vigil .super-bubble,
+.speech-bubble-container.vigil-blue .super-bubble,
+.speech-bubble-container.vigil-purple .super-bubble,
+.speech-bubble-container.vigil-unison .super-bubble {
     background-image: none;
     background-color: rgba(5, 5, 5, 0.9);
-    color: rgb(23, 158, 199); /* Cyberpunk Blue */
+    color: var(--cyber-primary);
     border-radius: 0px;
-    border: 2px solid rgb(199, 10, 206); /* Purple Border */
+    border: 2px solid var(--cyber-primary);
     font-family: "Courier New", Courier, monospace;
     font-weight: bold;
     transform: none;
-    box-shadow: 0 0 15px rgba(199, 10, 206, 0.4), inset 0 0 10px rgba(23, 158, 199, 0.2);
+    box-shadow: 0 0 15px var(--cyber-glow), inset 0 0 10px rgba(23, 158, 199, 0.2);
     overflow: hidden;
+}
+
+/* Unison Special Border */
+.speech-bubble-container.vigil-unison .super-bubble {
+    border: none;
+    box-shadow: 0 0 25px rgba(199, 10, 206, 0.5), 0 0 50px rgba(23, 158, 199, 0.3);
+}
+
+.speech-bubble-container.vigil-unison .super-bubble::before {
+    display: block !important;
+    content: "";
+    position: absolute;
+    inset: -3px;
+    background: linear-gradient(45deg, 
+        rgb(23, 158, 199), 
+        rgb(199, 10, 206), 
+        rgb(23, 158, 199), 
+        rgb(199, 10, 206)
+    );
+    background-size: 300% 300%;
+    z-index: -1;
+    animation: unison-flow 2s linear infinite;
+}
+
+@keyframes unison-flow {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
+}
+
+.speech-bubble-container.vigil-unison .system-header {
+    background: linear-gradient(to right, rgb(23, 158, 199), rgb(199, 10, 206));
+    border-bottom: 1px solid #fff;
 }
 
 .system-header {
     position: absolute;
     top: 0;
     left: 0;
-    background: rgb(199, 10, 206); /* Purple Header */
+    background: var(--cyber-primary);
     color: #fff;
     font-size: 0.7em;
     padding: 2px 8px;
@@ -231,8 +303,13 @@
     left: 15px;
     width: 20px;
     height: 15px;
-    border-left: 3px solid rgb(199, 10, 206);
-    border-bottom: 3px solid rgb(199, 10, 206);
+    border-left: 3px solid var(--cyber-primary);
+    border-bottom: 3px solid var(--cyber-primary);
+}
+
+.speech-bubble-container.vigil-unison .rigid-tail.tail-bottom-left {
+    border-left-color: rgb(199, 10, 206);
+    border-bottom-color: rgb(23, 158, 199);
 }
 
 .rigid-tail.tail-bottom-right {
@@ -240,8 +317,13 @@
     right: 15px;
     width: 20px;
     height: 15px;
-    border-right: 3px solid rgb(199, 10, 206);
-    border-bottom: 3px solid rgb(199, 10, 206);
+    border-right: 3px solid var(--cyber-primary);
+    border-bottom: 3px solid var(--cyber-primary);
+}
+
+.speech-bubble-container.vigil-unison .rigid-tail.tail-bottom-right {
+    border-right-color: rgb(199, 10, 206);
+    border-bottom-color: rgb(23, 158, 199);
 }
 
 .rigid-tail.tail-top-left {
@@ -249,8 +331,13 @@
     left: 15px;
     width: 20px;
     height: 15px;
-    border-left: 3px solid rgb(199, 10, 206);
-    border-top: 3px solid rgb(199, 10, 206);
+    border-left: 3px solid var(--cyber-primary);
+    border-top: 3px solid var(--cyber-primary);
+}
+
+.speech-bubble-container.vigil-unison .rigid-tail.tail-top-left {
+    border-left-color: rgb(199, 10, 206);
+    border-top-color: rgb(23, 158, 199);
 }
 
 .rigid-tail.tail-top-right {
@@ -258,18 +345,39 @@
     right: 15px;
     width: 20px;
     height: 15px;
-    border-right: 3px solid rgb(199, 10, 206);
-    border-top: 3px solid rgb(199, 10, 206);
+    border-right: 3px solid var(--cyber-primary);
+    border-top: 3px solid var(--cyber-primary);
 }
 
-/* Hide legacy organic tail components when in system mode */
+.speech-bubble-container.vigil-unison .rigid-tail.tail-top-right {
+    border-right-color: rgb(199, 10, 206);
+    border-top-color: rgb(23, 158, 199);
+}
+
+/* Hide legacy organic tail components when in system/vigil mode */
 .speech-bubble-container.system .super-bubble::before,
-.speech-bubble-container.system .super-bubble::after {
+.speech-bubble-container.system .super-bubble::after,
+.speech-bubble-container.system-error .super-bubble::before,
+.speech-bubble-container.system-error .super-bubble::after,
+.speech-bubble-container.vigil .super-bubble::before,
+.speech-bubble-container.vigil .super-bubble::after,
+.speech-bubble-container.vigil-blue .super-bubble::before,
+.speech-bubble-container.vigil-blue .super-bubble::after,
+.speech-bubble-container.vigil-purple .super-bubble::before,
+.speech-bubble-container.vigil-purple .super-bubble::after {
     display: none;
 }
 
 .speech-bubble-container.system .rigid-tail::before,
-.speech-bubble-container.system .rigid-tail::after {
+.speech-bubble-container.system .rigid-tail::after,
+.speech-bubble-container.system-error .rigid-tail::before,
+.speech-bubble-container.system-error .rigid-tail::after,
+.speech-bubble-container.vigil .rigid-tail::before,
+.speech-bubble-container.vigil .rigid-tail::after,
+.speech-bubble-container.vigil-blue .rigid-tail::before,
+.speech-bubble-container.vigil-blue .rigid-tail::after,
+.speech-bubble-container.vigil-purple .rigid-tail::before,
+.speech-bubble-container.vigil-purple .rigid-tail::after {
     display: none;
 }
 

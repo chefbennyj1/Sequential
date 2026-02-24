@@ -74,11 +74,6 @@ function getActiveAssets() {
             if (item.mediaAction && Array.isArray(item.mediaAction)) {
                 item.mediaAction.forEach(action => {
                     if (action.fileName) activeFiles.add(action.fileName);
-                    if (action.type === 'Playlist' && Array.isArray(action.items)) {
-                        action.items.forEach(plItem => {
-                            if (plItem.fileName) activeFiles.add(plItem.fileName);
-                        });
-                    }
                 });
             }
         });
@@ -415,6 +410,22 @@ export function initSceneEditor() {
 
     window.addEventListener('message', (e) => {
         if (e.data.type === 'panelSelected') loadPanelEditor(e.data);
+        
+        if (e.data.type === 'assetUploaded') {
+            const { panel, type, fileName } = e.data;
+            // Update local cache so switching back to this panel shows the new file
+            const idx = currentVisualMediaData.findIndex(m => m.panel === panel);
+            const updatedEntry = { panel, type, fileName };
+            if (idx !== -1) {
+                currentVisualMediaData[idx] = updatedEntry;
+            } else {
+                currentVisualMediaData.push(updatedEntry);
+            }
+            // If this is the currently edited panel, refresh the editor UI
+            if (selectedPanelSelector === panel) {
+                renderVisualEditor(panel);
+            }
+        }
     });
 }
 
@@ -435,13 +446,31 @@ export function initVisualEditor() {
     };
 }
 
+let selectedPanelSelector = null;
+
 async function loadPanelEditor(data) {
     const { panel, volume, chapter, pageId } = data;
     currentVisualContext = { volume, chapter, pageId };
+    selectedPanelSelector = panel;
+
     const toolsPane = document.querySelector('.layout-editor .tools-pane');
     toolsPane.innerHTML = `<h4 style="margin-top:0;">Panel Settings</h4><div id="visualEditorContainer">Loading...</div>`;
+    
+    // Always fetch the latest to avoid being "caught up" with old state
     const res = await fetchAmbientMedia(volume, chapter, pageId, activeSeriesId);
-    currentVisualMediaData = (res.ok && res.media && Array.isArray(res.media.media)) ? res.media.media : [];
+    
+    if (res.ok && res.media) {
+        if (res.media.media && Array.isArray(res.media.media)) {
+            currentVisualMediaData = res.media.media;
+        } else if (Array.isArray(res.media)) {
+            currentVisualMediaData = res.media;
+        } else {
+            currentVisualMediaData = [];
+        }
+    } else {
+        currentVisualMediaData = [];
+    }
+    
     renderVisualEditor(panel);
 }
 
@@ -449,8 +478,10 @@ function renderVisualEditor(panelSelector) {
     const container = document.getElementById('visualEditorContainer');
     if (!container) return;
 
-    let entryIndex = currentVisualMediaData.findIndex(m => m.panel === panelSelector);
-    let entry = entryIndex !== -1 ? currentVisualMediaData[entryIndex] : { panel: panelSelector, type: 'image', fileName: '' };
+    let entry = currentVisualMediaData.find(m => m.panel === panelSelector);
+    if (!entry) {
+        entry = { panel: panelSelector, type: 'image', fileName: '' };
+    }
 
     container.innerHTML = `
         <div class="panel-editor-ui">
@@ -459,6 +490,7 @@ function renderVisualEditor(panelSelector) {
                 <select id="visual-asset-type" class="gov-select width-100">
                     <option value="image" ${entry.type === 'image' ? 'selected' : ''}>Image</option>
                     <option value="video" ${entry.type === 'video' ? 'selected' : ''}>Video</option>
+                    <option value="playlist" ${entry.type === 'playlist' ? 'selected' : ''}>Playlist</option>
                 </select>
             </div>
             <div class="form-group margin-b-15">
@@ -468,6 +500,20 @@ function renderVisualEditor(panelSelector) {
                     <button id="visual-asset-browse" class="small btn-browse">...</button>
                 </div>
             </div>
+            <div class="form-group margin-b-15">
+                <label>Panel Mask (Repeatable GIF)</label>
+                <div class="flex-row gap-5">
+                    <input type="text" id="visual-mask-name" class="gov-select flex-1" value="${entry.maskGif || ''}" placeholder="e.g. memory_mask.gif">
+                    <button id="visual-mask-browse" class="small btn-browse">...</button>
+                </div>
+            </div>
+            <div class="form-group margin-b-15">
+                <label>Mask Background Color</label>
+                <div class="flex-row gap-10">
+                    <input type="color" id="visual-mask-bg" class="gov-color-input" value="${entry.maskBg || '#000000'}">
+                    <input type="text" id="visual-mask-bg-text" class="gov-input mono flex-1" value="${entry.maskBg || '#000000'}">
+                </div>
+            </div>
             <button id="saveVisualMediaBtn" class="update__btn width-100 margin-t-10">Save Panel Asset</button>
         </div>
     `;
@@ -475,55 +521,75 @@ function renderVisualEditor(panelSelector) {
     // Handlers
     const typeSelect = document.getElementById('visual-asset-type');
     const nameInput = document.getElementById('visual-asset-name');
+    const maskInput = document.getElementById('visual-mask-name');
     const browseBtn = document.getElementById('visual-asset-browse');
+    const maskBrowseBtn = document.getElementById('visual-mask-browse');
+    const maskBgInput = document.getElementById('visual-mask-bg');
+    const maskBgText = document.getElementById('visual-mask-bg-text');
     const saveBtn = document.getElementById('saveVisualMediaBtn');
 
-    typeSelect.onchange = () => {
-        entry.type = typeSelect.value;
-    };
-
-    nameInput.onchange = () => {
-        entry.fileName = nameInput.value;
-    };
+    if (maskBgInput && maskBgText) {
+        maskBgInput.oninput = () => maskBgText.value = maskBgInput.value;
+        maskBgText.oninput = () => maskBgInput.value = maskBgText.value;
+    }
 
     browseBtn.onclick = () => {
-        openFileBrowser(entry.type, currentVisualContext.volume, currentVisualContext.chapter, currentVisualContext.pageId, (fileName) => {
+        const type = typeSelect ? typeSelect.value : 'image';
+        openFileBrowser(type, currentVisualContext.volume, currentVisualContext.chapter, currentVisualContext.pageId, (fileName) => {
             nameInput.value = fileName;
-            entry.fileName = fileName;
         }, 'page', null, getActiveAssets());
     };
 
-    saveBtn.onclick = async () => {
-        entry.panel = panelSelector;
-        entry.type = typeSelect.value;
-        entry.fileName = nameInput.value;
+    maskBrowseBtn.onclick = () => {
+        openFileBrowser('image', currentVisualContext.volume, currentVisualContext.chapter, currentVisualContext.pageId, (fileName) => {
+            maskInput.value = fileName;
+        }, 'page', null, getActiveAssets());
+    };
 
-        if (entryIndex === -1) {
-            currentVisualMediaData.push(entry);
+        saveBtn.onclick = async () => {
+        const updatedEntry = {
+            panel: panelSelector,
+            type: typeSelect ? typeSelect.value : 'image',
+            fileName: nameInput.value,
+            maskGif: maskInput.value,
+            maskBg: document.getElementById('visual-mask-bg-text')?.value || '#000000'
+        };
+
+        // 1. Update our local cache array - CRITICAL: Find index correctly
+        const idx = currentVisualMediaData.findIndex(m => m.panel === panelSelector);
+        if (idx !== -1) {
+            currentVisualMediaData[idx] = updatedEntry;
         } else {
-            currentVisualMediaData[entryIndex] = entry;
+            currentVisualMediaData.push(updatedEntry);
         }
 
         saveBtn.disabled = true;
         saveBtn.textContent = "Saving...";
 
-        const res = await saveMediaAPI(
-            currentVisualContext.volume, 
-            currentVisualContext.chapter, 
-            currentVisualContext.pageId, 
-            currentVisualMediaData, 
-            activeSeriesId
-        );
+        try {
+            const res = await saveMediaAPI(
+                currentVisualContext.volume, 
+                currentVisualContext.chapter, 
+                currentVisualContext.pageId, 
+                currentVisualMediaData, 
+                activeSeriesId
+            );
 
-        if (res.ok) {
-            saveBtn.textContent = "Saved!";
-            document.getElementById('pagePreviewFrame').contentWindow.location.reload();
-            setTimeout(() => {
-                saveBtn.disabled = false;
-                saveBtn.textContent = "Save Panel Asset";
-            }, 2000);
-        } else {
-            alert("Error: " + res.message);
+            if (res.ok) {
+                saveBtn.textContent = "Saved!";
+                // Reload preview to show the new image
+                const iframe = document.getElementById('pagePreviewFrame');
+                if (iframe) iframe.contentWindow.location.reload();
+                
+                setTimeout(() => {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = "Save Panel Asset";
+                }, 2000);
+            } else {
+                throw new Error(res.message || "Unknown error");
+            }
+        } catch (err) {
+            alert("Error: " + err.message);
             saveBtn.disabled = false;
             saveBtn.textContent = "Retry Save";
         }
@@ -533,15 +599,5 @@ function renderVisualEditor(panelSelector) {
 function sanitizeScene(sceneData) {
     sceneData.forEach(item => {
         delete item.audioSrc;
-        if (item.mediaAction) {
-            const actions = Array.isArray(item.mediaAction) ? item.mediaAction : [item.mediaAction];
-            actions.forEach(action => {
-                if (action.type === 'image') {
-                    delete action.items; delete action.loop; delete action.posterName; delete action.syncToDialogue; delete action.action;
-                } else if (action.type === 'Playlist') {
-                    delete action.fileName; delete action.loop; delete action.syncToDialogue; delete action.posterName; delete action.action;
-                }
-            });
-        }
     });
 }

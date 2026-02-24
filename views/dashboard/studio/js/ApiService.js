@@ -150,7 +150,7 @@ export async function saveMediaAPI(volume, chapter, pageId, media, seriesId = "N
 
 export async function fetchPageAssets(volume, chapter, pageId, type, scope = 'page', seriesId = "No_Overflow") {
     try {
-        const res = await fetch(`/api/editor/assets/${seriesId}/${volume}/${chapter}/${pageId}/${type}?scope=${scope}`);
+        const res = await fetch(`/api/editor/assets/${seriesId}/${volume}/${chapter}/${pageId}/${type}?scope=${scope}&t=${Date.now()}`);
         return await res.json();
     } catch (err) {
         return { ok: false, message: "Failed to load assets" };

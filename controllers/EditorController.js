@@ -125,6 +125,17 @@ exports.createPage = async (req, res) => {
     fs.writeFileSync(path.join(pageDir, `page.js`), js);
     fs.writeFileSync(path.join(pageDir, `page.json`), JSON.stringify(pageJson, null, 2));
 
+    // 4. Sync with DB
+    const volumeId = await findVolumeId(volume);
+    if (volumeId) {
+        // We use the full scanner sync to ensure the chapter/page arrays in DB are updated
+        const Volume = require('../models/Volume');
+        const vol = await Volume.findById(volumeId);
+        if (vol) {
+            await VolumeService.updateChaptersFromFS(vol);
+        }
+    }
+
     res.json({
       ok: true,
       message: `Page ${pageId} created successfully.`,
@@ -356,9 +367,19 @@ exports.saveMedia = async (req, res) => {
     }
 
     const pageData = JSON.parse(fs.readFileSync(pageJsonPath, "utf8"));
-    pageData.media = media;
+    
+    // PERFORM ROBUST MERGE
+    if (!pageData.media) pageData.media = [];
+    
+    media.forEach(newEntry => {
+        const existingIdx = pageData.media.findIndex(m => m.panel === newEntry.panel);
+        if (existingIdx > -1) {
+            pageData.media[existingIdx] = { ...pageData.media[existingIdx], ...newEntry };
+        } else {
+            pageData.media.push(newEntry);
+        }
+    });
 
-    // Optional: timestamp update?
     if (!pageData.header) pageData.header = {};
     pageData.header.lastUpdated = new Date();
 
@@ -370,7 +391,7 @@ exports.saveMedia = async (req, res) => {
         await VolumeService.syncSinglePage(volumeId, chapter, pageId);
     }
 
-    res.json({ ok: true, message: "Media saved successfully." });
+    res.json({ ok: true, message: "Media merged successfully." });
   } catch (err) {
     console.error("Save Media Error:", err);
     res.status(500).json({ ok: false, message: "Failed to save media" });

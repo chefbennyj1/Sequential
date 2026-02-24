@@ -1,107 +1,97 @@
 /**
- * Applies a mask to a set of panels and returns a promise that resolves after a given duration.
- * @param {HTMLElement[]} panels - An array of panel elements to apply the mask to.
+ * Applies a mask to the content inside a set of panels and returns a promise.
+ * @param {HTMLElement[]} panels - An array of panel elements.
  * @param {string} gifUrl - The URL of the GIF to use as the mask.
- * @param {number} duration - The duration in milliseconds to wait for the animation to complete.
- * @returns {Promise<void>} A promise that resolves after the specified duration.
+ * @param {number} duration - The duration in milliseconds.
+ * @param {Array} mediaData - Optional media data for persistent masks.
+ * @param {Object} pageInfo - Optional page info for resolving URLs.
+ * @returns {Promise<void>}
  */
-export function imageMaskReveal(panels, gifUrl, duration = 5000) {
+export function imageMaskReveal(panels, gifUrl, duration = 5000, mediaData = null, pageInfo = null) {
     return new Promise(resolve => {
         if (!panels || panels.length === 0) {
             resolve();
             return;
         }
+
+        const uniqueGifUrl = `${gifUrl}?t=${Date.now()}`;
+
         panels.forEach(panel => {
-            // Append a timestamp to the GIF URL to force it to replay
-            const uniqueGifUrl = `${gifUrl}?t=${Date.now()}`;
+            // Target the actual content inside the panel
+            const mediaElements = panel.querySelectorAll('img');
             
-            // Standard Syntax
-            panel.style.maskImage = `url(${uniqueGifUrl})`;
-            panel.style.maskSize = '100% 100%';
-            panel.style.maskRepeat = 'no-repeat';
-            panel.style.maskPosition = 'center';
-            panel.style.maskMode = 'alpha'; // Ensure alpha masking
+            mediaElements.forEach(el => {
+                el.style.maskImage = `url(${uniqueGifUrl})`;
+                el.style.maskSize = '100% 100%';
+                el.style.maskRepeat = 'no-repeat';
+                el.style.maskPosition = 'center';
+                el.style.maskMode = 'alpha';
 
-            // Webkit Syntax (Required for Chrome/Safari)
-            panel.style.webkitMaskImage = `url(${uniqueGifUrl})`;
-            panel.style.webkitMaskSize = '100% 100%';
-            panel.style.webkitMaskRepeat = 'no-repeat';
-            panel.style.webkitMaskPosition = 'center';
+                el.style.webkitMaskImage = `url(${uniqueGifUrl})`;
+                el.style.webkitMaskSize = '100% 100%';
+                el.style.webkitMaskRepeat = 'no-repeat';
+                el.style.webkitMaskPosition = 'center';
+            });
         });
 
-        // Resolve the promise after the specified duration
-        setTimeout(resolve, duration);
-    });
-}
-
-/**
- * Ensures videos are set to preload="none" and poster is applied initially.
- * @param {HTMLVideoElement[]} videos - An array of video elements.
- */
-export function preloadMediaAssets(videos) {
-    videos.forEach(video => {
-        // Ensure preload is set to none to prevent automatic loading
-        video.setAttribute('preload', 'none');
-        // If a poster is defined as a data attribute, use it
-        if (video.dataset.poster && !video.poster) {
-            video.poster = video.dataset.poster;
-        }
-        const fadeDuration = 0.5; // The duration of the fade in seconds
-        video.addEventListener('timeupdate', () => {
-            if (video.duration - video.currentTime <= fadeDuration) {
-                video.classList.add('fade-out');
-                video.classList.remove('fade-in');
-            }
-        });
-
-        video.addEventListener('seeked', () => {
-            if (video.currentTime < fadeDuration) {
-                video.classList.remove('fade-out');
-                video.classList.add('fade-in');
-            }
-        });
-    });
-}
-
-/**
- * Lazy loads a single video by setting its src and loading it.
- * Returns a promise that resolves when the video can play through.
- * @param {HTMLVideoElement} video - The video element to lazy load.
- * @returns {Promise<void>} A promise that resolves when the video is ready to play.
- */
-export function lazyLoadVideo(video, pageId) {
-    return new Promise(resolve => {
-        if (video.dataset.src) {
-            const resolvedDatasetSrc = new URL(video.dataset.src, window.location.origin).href;
-            // Only reload if the target source is different from the current source
-            if (video.src !== resolvedDatasetSrc) {
-                video.src = resolvedDatasetSrc; // Set src to the resolved absolute URL
-                video.load();
-                console.log(`Utility - ${pageId} - Lazy loading video: ${resolvedDatasetSrc}`);
-
-                const onCanPlayThrough = () => {
-                    video.removeEventListener('canplaythrough', onCanPlayThrough);
-                    resolve();
-                };
-                video.addEventListener('canplaythrough', onCanPlayThrough);
-                
-                video.addEventListener('loadeddata', () => {
-                    if (video.readyState >= 3) {
-                        resolve();
+        // Resolve after the reveal duration
+        setTimeout(() => {
+            if (mediaData && pageInfo) {
+                mediaData.forEach(media => {
+                    if (media.maskGif) {
+                        const panelEl = Array.from(panels).find(p => {
+                            return p.classList.contains(media.panel.replace('.', '')) || p.matches?.(media.panel);
+                        });
+                        if (panelEl) {
+                            applyPersistentMask(panelEl, resolveMediaUrl(media.maskGif, 'image', pageInfo), media.maskBg);
+                        }
+                    } else {
+                        // Clear the reveal mask if no persistent mask is defined
+                        const panelEl = Array.from(panels).find(p => {
+                            return p.classList.contains(media.panel.replace('.', '')) || p.matches?.(media.panel);
+                        });
+                        if (panelEl) {
+                            const mediaElements = panelEl.querySelectorAll('img');
+                            mediaElements.forEach(el => {
+                                el.style.maskImage = '';
+                                el.style.webkitMaskImage = '';
+                            });
+                        }
                     }
-                }, { once: true });
-
-                video.addEventListener('error', (e) => {
-                    console.error(`Utility - ${pageId} - Error lazy loading video:`, video.dataset.src, e);
-                    resolve(); // Resolve anyway to not block the page
-                }, { once: true });
-
-            } else {
-                resolve(); // Already correct source, no need to load
+                });
             }
-        } else {
-            resolve(); // No data-src
-        }
+            resolve();
+        }, duration);
+    });
+}
+
+/**
+ * Applies a persistent, repeatable mask to the media inside a panel.
+ * @param {HTMLElement} panel - The panel element.
+ * @param {string} maskUrl - The URL of the mask GIF.
+ * @param {string} maskBg - Optional: The background color for the panel.
+ */
+export function applyPersistentMask(panel, maskUrl, maskBg = null) {
+    if (!panel) return;
+
+    if (maskBg) {
+        panel.style.backgroundColor = maskBg;
+    }
+
+    if (!maskUrl) return;
+    
+    const mediaElements = panel.querySelectorAll('img');
+    
+    mediaElements.forEach(el => {
+        el.style.maskImage = `url(${maskUrl})`;
+        el.style.maskSize = '100% 100%';
+        el.style.maskRepeat = 'repeat';
+        el.style.maskPosition = 'center';
+        
+        el.style.webkitMaskImage = `url(${maskUrl})`;
+        el.style.webkitMaskSize = '100% 100%';
+        el.style.webkitMaskRepeat = 'repeat';
+        el.style.webkitMaskPosition = 'center';
     });
 }
 
@@ -241,13 +231,8 @@ export function preloadMediaAsset(url, type) {
             img.onload = () => resolve(img);
             img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
             img.src = url;
-        } else if (type === 'video') {
-            const video = document.createElement('video');
-            video.oncanplaythrough = () => resolve(video);
-            video.onerror = () => reject(new Error(`Failed to load video: ${url}`));
-            video.src = url;
         } else {
-            reject(new Error(`Unknown asset type: ${type}`));
+            reject(new Error(`Unknown or unsupported asset type: ${type}`));
         }
     });
 }

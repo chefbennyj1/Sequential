@@ -75,10 +75,11 @@ export async function populateEditPageSelect(volumeId, chapterId) {
             const option = document.createElement('option');
             let pageId = 'unknown';
             if (page.path) {
-                // Path format: .../Volumes/volume-1/chapter-1/page1/page.json or page1.html
-                const parts = page.path.replace(/\\/g, '/').split('/');
-                // The pageId is the folder name, which is the 2nd to last part
-                pageId = parts[parts.length - 2];
+                const parts = page.path.replace(/\\/g, '/').split('/').filter(p => p.length > 0);
+                const lastPart = parts[parts.length - 1];
+                // If last part is a file (has dot), pageId is parent folder. 
+                // Otherwise last part IS the page folder.
+                pageId = lastPart.includes('.') ? parts[parts.length - 2] : lastPart;
             }
             option.value = pageId;
             option.textContent = `Page ${page.index} (${pageId})`;
