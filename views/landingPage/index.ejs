@@ -37,7 +37,7 @@
   <script type="module">
     import { loadSection } from '/services/public/PageManager.js';
     import { init as landingPageInit } from '/views/landingPage/landingPage.js';
-    import { imageMaskReveal, preloadMediaAssets, loadCSS, loadScript } from '/libs/Utility.js';
+    import { imageMaskReveal, loadCSS, loadScript } from '/libs/Utility.js';
 
     (async () => {
       await loadSection('landing-page', '/views/landingPage/landingPage.html', false);

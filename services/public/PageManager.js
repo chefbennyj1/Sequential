@@ -1,6 +1,5 @@
 import { init } from '/libs/pageInitializer.js';
 import { loadCSS, loadScript } from '/libs/Utility.js';
-import AudioStateManager from '/services/public/AudioStateManager.js';
 
 class PageManager {
     static getPageInfo(url) {
@@ -31,22 +30,16 @@ class PageManager {
 
     constructor(pages) {
         this.pages = pages;
-        this.pageTransitionAudio = null;
-
-        if (window.globalPageTransitionAudio) {
-            this.pageTransitionAudio = new Audio(`/resources/audio/${window.globalPageTransitionAudio}`);
-        }
-       
         this.currentPageContainer = null;
         this.currentPageIndex = -1;
-        this.activeAbortControllers = new Map(); 
+        this.activeAbortControllers = new Map();
     }
 
     async goToPage(index) {
         if (index < 0 || index >= this.pages.length) return;
 
         console.log(`PageManager: Transitioning to page ${index}`);
-        
+
         // 1. Sliding Window: [Previous, Current, Next]
         const windowIndices = new Set([index - 1, index, index + 1]);
         
@@ -57,7 +50,7 @@ class PageManager {
             if (oldContainer) {
                 oldContainer.classList.remove('active');
                 oldContainer.classList.add('leaving');
-                
+
                 // Remove 'leaving' after animation finishes (0.8s per CSS)
                 setTimeout(() => {
                     oldContainer.classList.remove('leaving');
@@ -69,7 +62,7 @@ class PageManager {
 
         // 3. Load/Warm up window
         const loadPromises = [];
-        
+
         // Current (Show)
         loadPromises.push(this.loadPage(index, true));
 
@@ -96,8 +89,11 @@ class PageManager {
 
         // Already Loaded?
         if (pageContainer.dataset.loaded === 'true') {
-            if (shouldShow) this.showPage(index);
-            else pageContainer.classList.remove('active');
+            if (shouldShow) {
+                this.showPage(index);
+            } else {
+                pageContainer.classList.remove('active');
+            }
             return;
         }
 
@@ -106,6 +102,7 @@ class PageManager {
         if (this.activeAbortControllers.has(page.containerId)) {
             this.activeAbortControllers.get(page.containerId).abort();
         }
+        
         const controller = new AbortController();
         this.activeAbortControllers.set(page.containerId, controller);
 
@@ -116,10 +113,6 @@ class PageManager {
 
         if (shouldShow) {
             this.showPage(index);
-            if (this.pageTransitionAudio && this.pageTransitionAudio.paused) {
-                this.pageTransitionAudio.currentTime = 0;
-                this.pageTransitionAudio.play().catch(e => console.error("Page transition audio play failed:", e));
-            }
         } else {
             pageContainer.classList.remove('active');
         }
@@ -140,15 +133,15 @@ class PageManager {
         }
 
         console.log(`PageManager: Purging page ${index} from DOM.`);
-        
+
         if (this.activeAbortControllers.has(pageContainer.id)) {
             this.activeAbortControllers.get(pageContainer.id).abort();
             this.activeAbortControllers.delete(pageContainer.id);
         }
 
-        const event = new CustomEvent('view_hidden', { 
+        const event = new CustomEvent('view_hidden', {
             bubbles: true,
-            detail: { index: index, section: pageContainer } 
+            detail: { index: index, section: pageContainer }
         });
         pageContainer.dispatchEvent(event);
 
@@ -157,10 +150,6 @@ class PageManager {
         // Clean up CSS
         const pageCss = document.getElementById(`css-${pageId}`);
         if (pageCss) pageCss.remove();
-
-        if (window.audioStateManager) {
-            window.audioStateManager.unregisterAllPageAudio(pageId);
-        }
 
         // Deep Clean: Reset container
         const newContainer = pageContainer.cloneNode(false);
@@ -179,11 +168,11 @@ class PageManager {
             const wasActive = pageContainer.classList.contains('active');
             pageContainer.classList.add('active');
             this.currentPageContainer = pageContainer;
-            
+
             if (!wasActive) {
-                const event = new CustomEvent('view_visible', { 
+                const event = new CustomEvent('view_visible', {
                     bubbles: true,
-                    detail: { index: index, section: pageContainer } 
+                    detail: { index: index, section: pageContainer }
                 });
                 pageContainer.dispatchEvent(event);
             }
@@ -194,7 +183,7 @@ class PageManager {
 export async function loadSection(containerId, htmlPath, isComicPage = true, pageData = null, abortSignal = null) {
     try {
         await loadCSS('/views/page.css');
-        
+
         let layoutUrl = htmlPath;
         if (pageData && pageData.layoutId) {
             layoutUrl = `/layouts/${pageData.layoutId}.html?t=${Date.now()}`;
@@ -208,7 +197,7 @@ export async function loadSection(containerId, htmlPath, isComicPage = true, pag
 
         const html = await response.text();
         const container = document.getElementById(containerId);
-        
+
         const pageInfo = PageManager.getPageInfo(htmlPath);
         const { pageId } = pageInfo;
 
@@ -242,7 +231,7 @@ export async function loadSection(containerId, htmlPath, isComicPage = true, pag
 
                 const cachedScene = pageData ? pageData.sceneData : null;
                 const cachedMedia = pageData ? pageData.mediaData : null;
-                
+
                 await init(container, pageInfo, cachedScene, cachedMedia, abortSignal);
 
                 if (pageSpecificInit && !abortSignal?.aborted) {

@@ -573,6 +573,7 @@
                                 <option value="InternalMonologue">TextBlock: Internal Monologue</option>
                                 <option value="Dialogue">TextBlock: Dialogue</option>
                                 <option value="SoundEffect">Sound Effect</option>
+                                <option value="ActionText">Action Text (Minimal)</option>
                                 <option value="Pause">Pause</option>
                             </select>
                         </div>
@@ -599,8 +600,18 @@
                             </div>
                             <div class="flex-gap-10">
                                 <div class="input-field flex-1"><label>Tail Position</label><input type="text" id="prop-tail" placeholder="bottom-left"></div>
-                                <div class="input-field flex-1"><label>Tail Skew</label><input type="text" id="prop-tail-skew" placeholder="-15deg"></div>
+                                <div class="input-field flex-1"><label>Tail Skew</label><input type="number" id="prop-tail-skew" placeholder="25"></div>
                                 <div class="input-field flex-1"><label>Tail Scale</label><input type="text" id="prop-tail-scale" placeholder="1.0"></div>
+                            </div>
+                            <div class="flex-gap-10 prop-group-curve">
+                                <div class="input-field flex-2"><label>SVG Curve Path</label><input type="text" id="prop-curve" placeholder="M 10,90 Q 150,10 290,90"></div>
+                                <div class="input-field flex-1"><label>Curve W</label><input type="number" id="prop-curve-w" placeholder="300"></div>
+                                <div class="input-field flex-1"><label>Curve H</label><input type="number" id="prop-curve-h" placeholder="100"></div>
+                                <div class="input-field flex-1"><label>Rotation</label><input type="number" step="0.1" id="prop-rotation" placeholder="-20"></div>
+                                <div class="input-field flex-1">
+                                    <label>Color</label>
+                                    <input type="color" id="prop-action-color" value="#ffffff" class="gov-color-input">
+                                </div>
                             </div>
                         </div>
                         <div class="prop-group-duration hidden"><div class="input-field"><label>Duration (ms)</label><input type="number" id="prop-duration"></div></div>

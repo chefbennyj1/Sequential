@@ -194,3 +194,7 @@
 ### Git Configuration
 - **Repository Setup**: Fixed the remote origin URL to point to chefbennyj1/Sequential.git.
 - **Ignore Rules**: Updated .gitignore to strictly exclude .env, node_modules, and all large video formats.
+ # # #   P e n d i n g   T a s k s 
+ -   * * C l o u d   B a c k u p * * :   F i n i s h   s y n c i n g   E : \ C o m i c   S e r i e s \ N o _ O v e r f l o w   t o   t h e   n e w   G o o g l e   C l o u d   b u c k e t   ( g s : / / n o - o v e r f l o w - v 2 )   v i a   g s u t i l   - m   r s y n c .   ( U p l o a d   w a s   p a u s e d   a t   ~ 8 5 %   t o   f r e e   u p   l o c a l   b a n d w i d t h ) .  
+ - **Architecture**: Implement WebSockets for snappier client/server communication and real-time UI updates (replacing timeouts and data polling).
+- **Architecture**: Abstract series-specific dialogue tags (e.g., `[vigil-blue]`, `[system]`) out of the core `SpeechBubble.js` engine and into a customizable `series_config.json` file. (Note: Core engine styles like `[internal]` or default bubbles will remain baked into the engine).

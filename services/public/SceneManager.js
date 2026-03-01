@@ -2,6 +2,7 @@
 import SpeechBubble from '/libs/SpeechBubble/SpeechBubble.js';
 import TextBlock from '/libs/TextBlock/TextBlock.js';
 import SoundEffect from '/libs/SoundEffect/SoundEffect.js';
+import ActionText from '/libs/ActionText/ActionText.js';
 import { resolveMediaUrl } from '/libs/Utility.js';
 
 function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
@@ -168,6 +169,13 @@ export async function initScene(container, pageInfo, sceneData) {
             const soundEffect = new SoundEffect(panelEl, soundEffectOptions);
             await soundEffect.render();
             audioVisualItem = soundEffect;
+        } else if (item.displayType.type === 'ActionText') {
+            const panelEl = (item.placement && item.placement.panel) ? container.querySelector(item.placement.panel) : null;
+            const actionTextOptions = { ...item, series, volume, chapter, pageId };
+            if (item.placement) Object.assign(actionTextOptions, item.placement);
+            const actionText = new ActionText(panelEl, actionTextOptions);
+            await actionText.render();
+            audioVisualItem = actionText;
         } else if (item.displayType.type === 'Pause') {
              audioVisualItem = {
                 duration: item.duration || 1000,

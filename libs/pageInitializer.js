@@ -16,7 +16,8 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
 
     const coreTasks = [
         loadCSS('/libs/SpeechBubble/SpeechBubble.css', true),
-        loadCSS('/libs/TextBlock/TextBlock.css', true)
+        loadCSS('/libs/TextBlock/TextBlock.css', true),
+        loadCSS('/libs/ActionText/ActionText.css', true)
     ];
 
     try {

@@ -273,8 +273,13 @@ function populateFormWithItem(item) {
     document.getElementById('prop-right').value = p.right || '';
     document.getElementById('prop-bottom').value = p.bottom || '';
     document.getElementById('prop-tail').value = p.tailPosition || '';
-    document.getElementById('prop-tail-skew').value = p.tailSkew || '';
+    document.getElementById('prop-tail-skew').value = (p.tailSkew || '').replace('deg', '');
     document.getElementById('prop-tail-scale').value = p.tailScale || '';
+    document.getElementById('prop-curve').value = item.curve || '';
+    document.getElementById('prop-curve-w').value = item.curveWidth || '';
+    document.getElementById('prop-curve-h').value = item.curveHeight || '';
+    document.getElementById('prop-rotation').value = item.rotation || '';
+    document.getElementById('prop-action-color').value = item.color || '#ffffff';
     document.getElementById('prop-duration').value = item.duration || '';
     document.getElementById('prop-panel-effect').value = item.panelEffect || '';
 
@@ -318,6 +323,11 @@ function updateSceneItemFromForm() {
 
     item.text = document.getElementById('prop-text').value;
     item.panelEffect = document.getElementById('prop-panel-effect').value;
+    item.curve = document.getElementById('prop-curve').value;
+    item.curveWidth = document.getElementById('prop-curve-w').value;
+    item.curveHeight = document.getElementById('prop-curve-h').value;
+    item.rotation = document.getElementById('prop-rotation').value;
+    item.color = document.getElementById('prop-action-color').value;
 
     item.placement = {
         panel: document.getElementById('prop-panel').value,
@@ -326,7 +336,7 @@ function updateSceneItemFromForm() {
         right: document.getElementById('prop-right').value,
         bottom: document.getElementById('prop-bottom').value,
         tailPosition: document.getElementById('prop-tail').value,
-        tailSkew: document.getElementById('prop-tail-skew').value,
+        tailSkew: document.getElementById('prop-tail-skew').value ? document.getElementById('prop-tail-skew').value + 'deg' : '',
         tailScale: document.getElementById('prop-tail-scale').value
     };
     if (item.displayType.type === 'Pause') {
@@ -340,13 +350,17 @@ function togglePropVisibility(type) {
         char: document.querySelector('.prop-group-character'),
         text: document.querySelector('.prop-group-text'),
         dur: document.querySelector('.prop-group-duration'),
-        place: document.querySelector('.props-group')
+        place: document.querySelector('.props-group'),
+        curve: document.querySelector('.prop-group-curve')
     };
     const isPause = type === 'Pause';
+    const isActionText = type === 'ActionText';
+
     if (groups.char) isPause ? groups.char.classList.add('hidden') : groups.char.classList.remove('hidden');
     if (groups.text) isPause ? groups.text.classList.add('hidden') : groups.text.classList.remove('hidden');
     if (groups.place) isPause ? groups.place.classList.add('hidden') : groups.place.classList.remove('hidden');
     if (groups.dur) isPause ? groups.dur.classList.remove('hidden') : groups.dur.classList.add('hidden');
+    if (groups.curve) isActionText ? groups.curve.classList.remove('hidden') : groups.curve.classList.add('hidden');
 }
 
 export function initSceneEditor() {

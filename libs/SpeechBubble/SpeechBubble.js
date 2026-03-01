@@ -1,4 +1,8 @@
+import { loadCSS } from '/libs/Utility.js';
+
 class SpeechBubble {
+  static customTags = {}; // Cache tags per series
+
   constructor(parentElement, options) {
     this.parentElement = parentElement;
     this.options = {
@@ -7,6 +11,7 @@ class SpeechBubble {
       character: '',
       chapter: null,
       pageId: null,
+      series: 'No_Overflow', // Default fallback
       top: null,
       bottom: null,
       left: null,
@@ -25,38 +30,79 @@ class SpeechBubble {
     }
   }
 
-  // Helper method to clean text and detect internal monologue
-  _getParsedContent() {
-    const expressiveFlagRegex = /\[.*?\]/g;
-    const text = this.options.text;
-    const cleanText = text.replace(expressiveFlagRegex, '').trim();
-    const isMonologue = text.includes('[internal]') || text.includes('[monologue]');
-    const isSystem = text.includes('[system]') || text.includes('[computer]');
-    const isSystemError = text.includes('[system-error]');
-    const isVigilBlue = text.includes('[vigil-blue]');
-    const isVigilPurple = text.includes('[vigil-purple]');
-    const isVigilUnison = text.includes('[vigil-unison]');
-    const isVigil = text.includes('[vigil]') || isVigilBlue || isVigilPurple || isVigilUnison;
+  // Load custom tags and CSS for the series
+  async _loadCustomTags() {
+    const series = this.options.series;
+    if (!series) return;
     
-    return { cleanText, isMonologue, isSystem, isSystemError, isVigil, isVigilBlue, isVigilPurple, isVigilUnison };
+    // If a promise for this series is already running or completed, await that exact promise
+    if (SpeechBubble.customTags[series]) {
+        await SpeechBubble.customTags[series];
+        return;
+    }
+    
+    // Create the promise and store it in the cache immediately so subsequent bubbles wait for it
+    SpeechBubble.customTags[series] = (async () => {
+        try {
+            const jsonUrl = `/Library/${series}/custom/speechBubble/tags.json`;
+            const cssUrl = `/Library/${series}/custom/speechBubble/tags.css`;
+            
+            // Load custom styling dynamically and await it to prevent FOUC (Flash of Unstyled Content)
+            await loadCSS(cssUrl).catch(e => console.log(`No custom speech bubble CSS found for ${series}`));
+            
+            const response = await fetch(jsonUrl);
+            if (response.ok) {
+                const data = await response.json();
+                return data.tags || [];
+            } else {
+                return [];
+            }
+        } catch (e) {
+            console.log(`No custom speech bubble tags found for ${series}`);
+            return [];
+        }
+    })();
+
+    // Await the promise we just created
+    await SpeechBubble.customTags[series];
   }
 
-  _getBubbleHtml(cleanText, isMonologue, isSystem, isSystemError, isVigil, isVigilBlue, isVigilPurple, isVigilUnison) {
+  // Helper method to clean text and detect internal monologue or custom tags
+  async _getParsedContent() {
+    const text = this.options.text;
+    const series = this.options.series;
+    
+    const expressiveFlagRegex = /\[.*?\]/g;
+    const cleanText = text.replace(expressiveFlagRegex, '').trim();
+    const isMonologue = text.includes('[internal]') || text.includes('[monologue]');
+
+    let matchedTag = null;
+    
+    // Await the resolved array from the cache
+    let seriesTags = [];
+    if (SpeechBubble.customTags[series]) {
+        seriesTags = await SpeechBubble.customTags[series];
+    }
+    
+    for (const tag of seriesTags) {
+        if (text.includes(tag.pattern)) {
+            matchedTag = tag;
+            break; // First match wins
+        }
+    }
+    
+    return { cleanText, isMonologue, matchedTag };
+  }
+
+  _getBubbleHtml(cleanText, isMonologue, matchedTag) {
     if (isMonologue) {
         return `<div class="super-bubble monologue-bubble">${cleanText}</div>`;
     }
 
-    if (isSystem || isSystemError || isVigil) {
-        let headerText = "SYSTEM_LINK";
-        if (isSystemError) headerText = "SYSTEM_ERROR";
-        else if (isVigilBlue) headerText = "VIGIL_ADMIN";
-        else if (isVigilPurple) headerText = "VIGIL_ECHO";
-        else if (isVigilUnison) headerText = "VIGIL_UNISON";
-        else if (isVigil) headerText = "VIGIL_CORE";
-
+    if (matchedTag) {
         return `
-           <div class="super-bubble system-bubble">
-              <div class="system-header">[${headerText}]</div>
+           <div class="super-bubble">
+              <div class="system-header">[${matchedTag.headerText}]</div>
               <span class="bubble-text">> ${cleanText}</span>
               <div class="scanlines"></div>
               <div class="tail-container rigid-tail tail-${this.options.tailPosition}">
@@ -79,17 +125,19 @@ class SpeechBubble {
 
   async render() {
     await document.fonts.ready;
+    await this._loadCustomTags();
+
     const speechBubbleContainer = document.createElement('div');
     speechBubbleContainer.className = `speech-bubble-container`;
     
-    const { cleanText, isMonologue, isSystem, isSystemError, isVigil, isVigilBlue, isVigilPurple, isVigilUnison } = this._getParsedContent();
+    // Await the parsed content now that it relies on the tag Promise
+    const { cleanText, isMonologue, matchedTag } = await this._getParsedContent();
     if (isMonologue) speechBubbleContainer.classList.add('monologue');
-    if (isSystem) speechBubbleContainer.classList.add('system');
-    if (isSystemError) speechBubbleContainer.classList.add('system-error');
-    if (isVigil) speechBubbleContainer.classList.add('vigil');
-    if (isVigilBlue) speechBubbleContainer.classList.add('vigil-blue');
-    if (isVigilPurple) speechBubbleContainer.classList.add('vigil-purple');
-    if (isVigilUnison) speechBubbleContainer.classList.add('vigil-unison');
+    
+    if (matchedTag && matchedTag.cssClass) {
+        const classes = matchedTag.cssClass.split(' ');
+        classes.forEach(c => speechBubbleContainer.classList.add(c));
+    }
 
     // Apply positioning
     if (this.options.top) speechBubbleContainer.style.top = this.options.top;
@@ -101,7 +149,7 @@ class SpeechBubble {
     if (this.options.tailScale) speechBubbleContainer.style.setProperty('--tail-scale', this.options.tailScale);
 
     this.parentElement.appendChild(speechBubbleContainer);
-    speechBubbleContainer.innerHTML = this._getBubbleHtml(cleanText, isMonologue, isSystem, isSystemError, isVigil, isVigilBlue, isVigilPurple, isVigilUnison);
+    speechBubbleContainer.innerHTML = this._getBubbleHtml(cleanText, isMonologue, matchedTag);
     this.container = speechBubbleContainer;
 
     // Apply attributes and style from options
