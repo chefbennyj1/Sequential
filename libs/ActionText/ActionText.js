@@ -85,34 +85,53 @@ class ActionText {
         container.appendChild(textEl);
     }
 
-    _renderCurved(container) {
-        const w = parseInt(this.options.curveWidth) || 300;
-        const h = parseInt(this.options.curveHeight) || 100;
-        const pathId = `path-${Math.random().toString(36).substr(2, 9)}`;
+            _renderCurved(container) {
+                // Estimate dynamic width based on text length and font size to prevent cutoff
+                const textLength = this.options.text.length;
+                
+                // Robustly parse the font size (handle '1.8rem', '24px', etc.)
+                let charWidthEstimate = 28; // Default fallback
+                const fontSizeStr = String(this.options.fontSize);
+                if (fontSizeStr.includes('rem') || fontSizeStr.includes('em')) {
+                    const remValue = parseFloat(fontSizeStr);
+                    charWidthEstimate = remValue * 16; // Assume 16px base font size for rem
+                } else if (fontSizeStr.includes('px')) {
+                    charWidthEstimate = parseFloat(fontSizeStr);
+                } else {
+                    charWidthEstimate = parseFloat(fontSizeStr) || 28;
+                }
         
-        // DEFAULT CURVE: Subtle upward arc
-        let curvePath = `M 10,${h-10} Q ${w/2},10 ${w-10},${h-10}`;
+                const estimatedTextWidth = textLength * (charWidthEstimate * 0.6); // 0.6 is a standard character width ratio
         
-        // If a specific path is provided (not 'auto', not null), use it.
-        if (this.options.curve && this.options.curve !== 'auto' && this.options.curve !== true) {
-            curvePath = this.options.curve;
-        }
-
-        container.innerHTML = `
-            <svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" class="action-text-svg">
-                <defs>
-                    <path id="${pathId}" d="${curvePath}" />
-                </defs>
-                <text class="action-text-content" fill="currentColor">
-                    <textPath href="#${pathId}" startOffset="50%" text-anchor="middle">
-                        ${this.options.text}
-                    </textPath>
-                </text>
-            </svg>
-        `;
-    }
-
-    show() {
+                // Use the larger of either the provided width, 300px (default), or the newly calculated dynamic width
+                const baseWidth = parseInt(this.options.curveWidth) || 300;
+                // Increase the buffer significantly for large text strings
+                const w = Math.max(baseWidth, estimatedTextWidth + 150); 
+                
+                const h = parseInt(this.options.curveHeight) || 150; // Increased base height slightly to prevent vertical clipping
+                const pathId = `path-${Math.random().toString(36).substr(2, 9)}`;
+        
+                // DEFAULT CURVE: Subtle upward arc stretched to the new dynamic width
+                let curvePath = `M 10,${h-30} Q ${w/2},10 ${w-10},${h-30}`;
+        
+                // If a specific path is provided (not 'auto', not null), use it.
+                if (this.options.curve && this.options.curve !== 'auto' && this.options.curve !== true) {
+                    curvePath = this.options.curve;
+                }
+        
+                container.innerHTML = `
+                    <svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" class="action-text-svg" style="overflow: visible;">
+                        <defs>
+                            <path id="${pathId}" d="${curvePath}" />
+                        </defs>
+                        <text class="action-text-content" fill="currentColor">
+                            <textPath href="#${pathId}" startOffset="50%" text-anchor="middle">
+                                ${this.options.text}
+                            </textPath>
+                        </text>
+                    </svg>
+                `;
+            }    show() {
         if (this.container) {
             const rot = this.container.style.getPropertyValue('--action-rotation') || '-20deg';
             this.container.style.transform = `translate(-50%, -50%) scale(1.0) rotate(${rot})`;

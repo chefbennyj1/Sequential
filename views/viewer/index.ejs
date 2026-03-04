@@ -3,7 +3,7 @@
     bodyClass: 'viewer-page',
     headerButtons: `
         <div class="page-nav-buttons">
-            <a href="/library/series/${volume.series._id}/volume/${volume._id}" class="nav-button btn">
+            <a href="/library/series/` + volume.series._id + `/volume/` + volume._id + `" class="nav-button btn">
                 Chapters <ion-icon size="large" name="library"></ion-icon>
             </a>
             <button id="load-prev-btn" class="nav-button btn">
@@ -18,60 +18,54 @@
         </div>
     `,
     body: `
-        <div class="scroll-wrapper" data-current-page="0" data-total-pages=""></div>
+        <div class="scroll-wrapper" data-volume-id="` + volume._id + `" data-current-page="0" data-total-pages=""></div>
     `,
     extraScripts: `
         <script type="module">
             import { initPageManager } from "/services/public/PageManager.js";
             import { getLastVisitedPage, setLastVisitedPage } from "/libs/Utility.js";
 
-            (async () => {
-                const params = new URLSearchParams(window.location.search);
-                const volumeId = "${volume._id}";
-                let chapterNumber = params.get("chapter");
+            const params = new URLSearchParams(window.location.search);
+            const exportSecret = params.get('exportSecret');
+            
+            // --- Robust Interceptor for Exporter Authentication ---
+            if (exportSecret) {
+                const originalFetch = window.fetch;
+                window.fetch = function(input, init) {
+                    let url = (typeof input === 'string') ? input : (input.url || input);
+                    if (typeof url === 'string' && (url.startsWith('/') || url.includes(window.location.host) || !url.startsWith('http'))) {
+                        const separator = url.includes('?') ? '&' : '?';
+                        url += separator + "exportSecret=" + exportSecret;
+                    }
+                    if (typeof input === 'string') return originalFetch(url, init);
+                    return originalFetch(new Request(url, input), init);
+                };
+            }
 
-                // Default to Chapter 1 if not specified
-                if (!chapterNumber) {
-                    chapterNumber = "1";
+            (async () => {
+                const scrollWrapper = document.querySelector(".scroll-wrapper");
+                const volumeId = scrollWrapper.dataset.volumeId;
+                let chapterNumber = params.get("chapter") || "1";
+
+                if (!params.get("chapter")) {
                     const newUrl = new URL(window.location.href);
                     newUrl.searchParams.set("chapter", "1");
                     window.history.replaceState({ path: newUrl.href }, "", newUrl.href);
                 }
 
-                var chapter = await getChapterData(volumeId, chapterNumber);
-
+                const chapter = await getChapterData(volumeId, chapterNumber);
                 if (!chapter || !chapter.pages || chapter.pages.length === 0) {
-                    document.getElementById('main-content').innerHTML = "<h1>Error: Chapter data or pages not found.</h1>";
+                    console.error("No chapter data found.");
                     return;
                 }
 
                 chapter.pages.sort((a, b) => a.index - b.index);
 
-                const scrollWrapper = document.querySelector(".scroll-wrapper");
-                if (!scrollWrapper) return;
-
                 chapter.pages.forEach((page, index) => {
                     const section = document.createElement("section");
                     section.id = 'section-' + index;
-                    section.classList.add('section-' + index, "scroll-section", "page-container");
+                    section.className = 'section-' + index + " scroll-section page-container";
                     scrollWrapper.appendChild(section);
-                });
-
-                document.addEventListener("view_visible", async (e) => {
-                    if (!e.target.classList.contains('page-container')) return;
-                    const currentPageIndex = e.detail.index;
-                    const storageKey = volumeId + "_" + chapterNumber;
-                    setLastVisitedPage(storageKey, currentPageIndex);
-                    
-                    if (!chapter.pages[currentPageIndex]) return;
-
-                    const parts = chapter.pages[currentPageIndex].path.split("/");
-                    const currentPageId = parts[parts.length - 2];
-                    const pageNum = currentPageId.replace('page', '');
-
-                    const newUrl = new URL(window.location.href);
-                    newUrl.searchParams.set("page", pageNum);
-                    window.history.replaceState({ path: newUrl.href }, "", newUrl.href);
                 });
 
                 const pages = chapter.pages.map((page, index) => ({
@@ -81,94 +75,76 @@
                 }));
 
                 const pageManager = initPageManager(pages);
+                window.pageManager = pageManager;
 
-                document.getElementById("load-next-btn").addEventListener("click", async (e) => {
-                    e.preventDefault();
-                    const nextPageIndex = pageManager.currentPageIndex + 1;
-                    if (nextPageIndex < pages.length) await pageManager.goToPage(nextPageIndex);
+                document.addEventListener("view_visible", (e) => {
+                    if (!e.target.classList.contains('page-container')) return;
+                    setLastVisitedPage(volumeId + "_" + chapterNumber, e.detail.index);
                 });
 
-                document.getElementById("load-prev-btn").addEventListener("click", async (e) => {
-                    e.preventDefault();
-                    const prevPageIndex = pageManager.currentPageIndex - 1;
-                    if (prevPageIndex >= 0) await pageManager.goToPage(prevPageIndex);
+                document.getElementById("load-next-btn").addEventListener("click", () => {
+                    const next = pageManager.currentPageIndex + 1;
+                    if (next < pages.length) pageManager.goToPage(next);
                 });
 
-                document.getElementById("reload-page-btn").addEventListener("click", async (e) => {
-                    e.preventDefault();
-                    const currentPage = pages[pageManager.currentPageIndex];
-                    if (!currentPage) return;
-
-                    const parts = currentPage.html.split("/");
-                    const pageId = parts[parts.length - 2];
-                    const chapterId = parts[parts.length - 3];
-
-                    try {
-                        const res = await fetch('/api/editor/sync-page/' + volumeId + '/' + chapterId + '/' + pageId, { method: 'POST' });
-                        if (res.status === 401) { window.location.href = '/login'; return; }
-                        const result = await res.json();
-                        if (result.ok && result.page) {
-                            pages[pageManager.currentPageIndex] = {
-                                ...pages[pageManager.currentPageIndex],
-                                layoutId: result.page.layoutId,
-                                mediaData: result.page.mediaData,
-                                sceneData: result.page.sceneData
-                            };
-                        }
-                    } catch (err) { console.error("Failed to sync page data:", err); }
-
-                    window.audioStateManager.stopBackgroundAudio(0);
-                    window.audioStateManager.stopDialogueAudio();
-                    await pageManager.goToPage(pageManager.currentPageIndex);
+                document.getElementById("load-prev-btn").addEventListener("click", () => {
+                    const prev = pageManager.currentPageIndex - 1;
+                    if (prev >= 0) pageManager.goToPage(prev);
                 });
 
-                let initialPageIndex = 0;
+                document.getElementById("reload-page-btn").addEventListener("click", async () => {
+                    const curr = pages[pageManager.currentPageIndex];
+                    if (!curr) return;
+                    const parts = curr.html.split("/");
+                    const pId = parts[parts.length - 2];
+                    const cId = parts[parts.length - 3];
+                    const res = await fetch('/api/editor/sync-page/' + volumeId + '/' + cId + '/' + pId);
+                    if (res.ok) window.location.reload();
+                });
+
+                let initialIdx = 0;
                 const pageParam = params.get("page");
-
                 if (pageParam) {
-                    const foundIndex = chapter.pages.findIndex((p) => {
-                        const parts = p.path.split("/");
-                        const pageId = parts[parts.length - 2];
-                        return pageId === pageParam || p.index.toString() === pageParam;
-                    });
-                    if (foundIndex !== -1) initialPageIndex = foundIndex;
+                    const fIdx = chapter.pages.findIndex(p => p.path.includes('/page' + pageParam + '/'));
+                    if (fIdx !== -1) initialIdx = fIdx;
                 } else {
-                    const lastPageIndex = getLastVisitedPage(chapterNumber);
-                    if (lastPageIndex !== null) {
-                        const pageIndex = parseInt(lastPageIndex, 10);
-                        if (!isNaN(pageIndex) && pageIndex >= 0 && pageIndex < chapter.pages.length) initialPageIndex = pageIndex;
-                    }
+                    const saved = getLastVisitedPage(chapterNumber);
+                    if (saved !== null) initialIdx = parseInt(saved, 10) || 0;
                 }
-                await pageManager.goToPage(initialPageIndex);
-                window.dispatchEvent(new CustomEvent("sectionsloadedcomplete", { detail: "" }));
+
+                await pageManager.goToPage(initialIdx);
+                
+                // Signal to Puppeteer
+                setTimeout(() => {
+                    window.renderComplete = true;
+                }, 1500);
             })();
 
+            // --- UI Interaction Logic ---
             const header = document.querySelector("header");
             let hideTimeout;
             document.addEventListener("mousemove", () => {
-                header.classList.add("is-visible");
+                if (header) header.classList.add("is-visible");
                 document.body.classList.remove("cursor-hidden");
                 clearTimeout(hideTimeout);
                 hideTimeout = setTimeout(() => {
-                    header.classList.remove("is-visible");
+                    if (header) header.classList.remove("is-visible");
                     document.body.classList.add("cursor-hidden");
                 }, 2000);
             });
 
-            async function getChapterData(volumeId, chapterNumber) {
-                try {
-                    const res = await fetch('/api/volume/' + volumeId + '/chapter/' + chapterNumber);
-                    if (res.status === 401) { window.location.href = '/login'; return; }
-                    const data = await res.json();
-                    if (!data.ok) return;
-                    return data.view;
-                } catch (err) { console.error("Error fetching chapter data:", err); return; }
-            }
-
             document.addEventListener("keydown", (e) => {
-                if (e.key === "ArrowRight") { e.preventDefault(); document.getElementById("load-next-btn").click(); }
-                else if (e.key === "ArrowLeft") { e.preventDefault(); document.getElementById("load-prev-btn").click(); }
+                if (e.key === "ArrowRight") document.getElementById("load-next-btn").click();
+                if (e.key === "ArrowLeft") document.getElementById("load-prev-btn").click();
             });
+
+            async function getChapterData(vid, cNum) {
+                try {
+                    const res = await fetch('/api/volume/' + vid + '/chapter/' + cNum);
+                    const data = await res.json();
+                    return data.ok ? data.view : null;
+                } catch (err) { console.error(err); return null; }
+            }
         </script>
     `
 }) %>

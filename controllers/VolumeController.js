@@ -173,7 +173,13 @@ exports.getVolumeById = async (req, res) => {
 
 exports.getChapterPages = async (req, res) => {
   const { id, chapterNumber } = req.params;
-  const chapNum = parseInt(chapterNumber, 10);
+  
+  // Handle 'chapter-N' format by stripping the prefix
+  const cleanChapterNum = chapterNumber.startsWith('chapter-') 
+    ? chapterNumber.replace('chapter-', '') 
+    : chapterNumber;
+    
+  const chapNum = parseInt(cleanChapterNum, 10);
 
   if (!id || isNaN(chapNum)) {
     return res.status(400).json({ ok: false, message: "Missing or invalid Volume ID or Chapter Number" });

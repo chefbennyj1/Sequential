@@ -67,6 +67,12 @@
                     <p>Create and manage character profiles.</p>
                 </div>
 
+                <div class="mode-card" data-target="export-tool">
+                    <ion-icon name="print-outline"></ion-icon>
+                    <h4>Print Exporter</h4>
+                    <p>Render and export high-res PNG files.</p>
+                </div>
+
                 <!-- Placeholder for Series Manager -->
                 <div class="mode-card disabled opacity-50 cursor-not-allowed">
                     <ion-icon name="library-outline"></ion-icon>
@@ -670,6 +676,20 @@
         <p>Please wait while we update the grid.</p>
     </div>
 
-</main>
+    <!-- EXPORT TOOL SECTION -->
+    <div class="export-tool dashboard-section hidden">
+        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+        <h3>Print Exporter</h3>
+        <p>Render high-resolution PNGs of an entire volume.</p>
+        <div class="form-group" style="margin-top:20px;">
+            <label for="exportVolumeSelect">Select Volume to Export:</label>
+            <select id="exportVolumeSelect"></select>
+        </div>
+        <button id="startExportBtn" class="update__btn w-full margin-t-20">
+            Start Background Export <ion-icon size="small" name="print"></ion-icon>
+        </button>
+        <p id="exportStatusMsg" style="margin-top: 15px; color: var(--cyber-primary, #00ff41);"></p>
+    </div>
 
 </main>
+

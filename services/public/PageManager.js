@@ -209,6 +209,10 @@ export async function loadSection(containerId, htmlPath, isComicPage = true, pag
                 const jsPath = `${folderPath}/page.js`.replace(/\\/g, '/');
                 const cssPath = `${folderPath}/page.css`.replace(/\\/g, '/');
 
+                // Add exportSecret to dynamic import if present in URL
+                const exportSecret = new URLSearchParams(window.location.search).get('exportSecret');
+                const finalJsPath = exportSecret ? `${jsPath}${jsPath.includes('?') ? '&' : '?'}exportSecret=${exportSecret}` : jsPath;
+
                 const oldPageCss = document.getElementById(`css-${pageId}`);
                 if (oldPageCss) oldPageCss.remove();
 
@@ -223,7 +227,7 @@ export async function loadSection(containerId, htmlPath, isComicPage = true, pag
 
                 let pageSpecificInit = null;
                 try {
-                    const pageSpecificModule = await import(jsPath);
+                    const pageSpecificModule = await import(finalJsPath);
                     if (pageSpecificModule.onPageLoad) {
                         pageSpecificInit = pageSpecificModule.onPageLoad;
                     }

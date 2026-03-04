@@ -19,9 +19,17 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
     let volumeBaseDir = explicitPath;
     
     if (!volumeBaseDir) {
-        volumeBaseDir = volume.volumePath.startsWith('/Library') 
-            ? path.join(projectRoot, volume.volumePath) 
-            : (path.isAbsolute(volume.volumePath) ? volume.volumePath : path.join(projectRoot, volume.volumePath));
+        // Resolve series folder name from the volume path (e.g., /Library/No_Overflow/Volumes/volume-1)
+        const pathParts = volume.volumePath.split('/').filter(p => p.length > 0);
+        const seriesFolderName = pathParts[1]; // Index 1 is the folder name after 'Library'
+        
+        const { resolveSeriesPath } = require('./MediaService');
+        const seriesPath = await resolveSeriesPath(seriesFolderName);
+        
+        // Extract the volume subfolder (e.g., volume-1)
+        const volumeSubFolder = path.basename(volume.volumePath);
+        
+        volumeBaseDir = path.join(seriesPath, 'Volumes', volumeSubFolder);
     }
         
     console.log(`[Scanner] Scanning: ${volumeBaseDir}`);

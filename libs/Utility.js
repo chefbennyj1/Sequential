@@ -1,11 +1,5 @@
 /**
  * Applies a mask to the content inside a set of panels and returns a promise.
- * @param {HTMLElement[]} panels - An array of panel elements.
- * @param {string} gifUrl - The URL of the GIF to use as the mask.
- * @param {number} duration - The duration in milliseconds.
- * @param {Array} mediaData - Optional media data for persistent masks.
- * @param {Object} pageInfo - Optional page info for resolving URLs.
- * @returns {Promise<void>}
  */
 export function imageMaskReveal(panels, gifUrl, duration = 5000, mediaData = null, pageInfo = null) {
     return new Promise(resolve => {
@@ -14,19 +8,16 @@ export function imageMaskReveal(panels, gifUrl, duration = 5000, mediaData = nul
             return;
         }
 
-        const uniqueGifUrl = `${gifUrl}?t=${Date.now()}`;
+        const uniqueGifUrl = `${gifUrl}${gifUrl.includes('?') ? '&' : '?'}t=${Date.now()}`;
 
         panels.forEach(panel => {
-            // Target the actual content inside the panel
             const mediaElements = panel.querySelectorAll('img');
-            
             mediaElements.forEach(el => {
                 el.style.maskImage = `url(${uniqueGifUrl})`;
                 el.style.maskSize = '100% 100%';
                 el.style.maskRepeat = 'no-repeat';
                 el.style.maskPosition = 'center';
                 el.style.maskMode = 'alpha';
-
                 el.style.webkitMaskImage = `url(${uniqueGifUrl})`;
                 el.style.webkitMaskSize = '100% 100%';
                 el.style.webkitMaskRepeat = 'no-repeat';
@@ -34,7 +25,6 @@ export function imageMaskReveal(panels, gifUrl, duration = 5000, mediaData = nul
             });
         });
 
-        // Resolve after the reveal duration
         setTimeout(() => {
             if (mediaData && pageInfo) {
                 mediaData.forEach(media => {
@@ -46,7 +36,6 @@ export function imageMaskReveal(panels, gifUrl, duration = 5000, mediaData = nul
                             applyPersistentMask(panelEl, resolveMediaUrl(media.maskGif, 'image', pageInfo), media.maskBg);
                         }
                     } else {
-                        // Clear the reveal mask if no persistent mask is defined
                         const panelEl = Array.from(panels).find(p => {
                             return p.classList.contains(media.panel.replace('.', '')) || p.matches?.(media.panel);
                         });
@@ -65,29 +54,16 @@ export function imageMaskReveal(panels, gifUrl, duration = 5000, mediaData = nul
     });
 }
 
-/**
- * Applies a persistent, repeatable mask to the media inside a panel.
- * @param {HTMLElement} panel - The panel element.
- * @param {string} maskUrl - The URL of the mask GIF.
- * @param {string} maskBg - Optional: The background color for the panel.
- */
 export function applyPersistentMask(panel, maskUrl, maskBg = null) {
     if (!panel) return;
-
-    if (maskBg) {
-        panel.style.backgroundColor = maskBg;
-    }
-
+    if (maskBg) panel.style.backgroundColor = maskBg;
     if (!maskUrl) return;
-    
     const mediaElements = panel.querySelectorAll('img');
-    
     mediaElements.forEach(el => {
         el.style.maskImage = `url(${maskUrl})`;
         el.style.maskSize = '100% 100%';
         el.style.maskRepeat = 'repeat';
         el.style.maskPosition = 'center';
-        
         el.style.webkitMaskImage = `url(${maskUrl})`;
         el.style.webkitMaskSize = '100% 100%';
         el.style.webkitMaskRepeat = 'repeat';
@@ -95,158 +71,83 @@ export function applyPersistentMask(panel, maskUrl, maskBg = null) {
     });
 }
 
-/**
- * Fetches scene data for a given page from the API.
- * @param {string} volume - The ID of the volume.
- * @param {string} chapter - The ID of the chapter.
- * @param {string} pageId - The ID of the page.
- * @param {string} series - The folder name of the series.
- * @returns {Promise<Array>} A promise that resolves with an array of dialogue objects.
- */
+// Helper to get secret from URL
+function getExportSecret() {
+    return new URLSearchParams(window.location.search).get('exportSecret');
+}
+
+function appendSecret(url) {
+    const secret = getExportSecret();
+    if (!secret) return url;
+    if (!url.startsWith('/') && !url.includes(window.location.host)) return url;
+    const separator = url.includes('?') ? '&' : '?';
+    return `${url}${separator}exportSecret=${secret}`;
+}
+
 export async function fetchScene(volume, chapter, pageId, series = "No_Overflow") {
-    if (pageId === 'login') {
-        return []; // Do not fetch dialogue for the login page
-    }
-    console.log(`Utiltiy - ${pageId} - Requesting scene data for series: ${series}`);
+    if (pageId === 'login') return [];
     try {
-        const response = await fetch(`/api/scene/${series}/${volume}/${chapter}/${pageId}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        const response = await fetch(appendSecret(`/api/scene/${series}/${volume}/${chapter}/${pageId}`));
         const data = await response.json();
-        console.log(`Utiltiy - ${pageId} - Received scene data:`, data);
-        if (!data.ok) {
-            throw new Error(`API error: ${data.message}`);
-        }
-        return data.scene;
+        return data.ok ? data.scene : [];
     } catch (error) {
-        console.error(`Utiltiy - ${pageId} - Error fetching scene for ${pageId}:`, error);
-        return []; // Return an empty array on error
+        console.error(error);
+        return [];
     }
 }
 
-/**
- * Fetches media data for a given page from the API.
- * @param {string} volume - The ID of the volume (e.g., 'volume-1').
- * @param {string} chapter - The ID of the chapter (e.g., 'chapter-1').
- * @param {string} pageId - The ID of the page (e.g., 'page1').
- * @param {string} series - The folder name of the series.
- * @returns {Promise<{media: Array, sequentialVideoPlayback: boolean}>} A promise that resolves with an object containing media array and sequentialVideoPlayback flag.
- */
 export async function fetchMedia(volume, chapter, pageId, series = "No_Overflow") {
-    if (pageId === 'login') {
-        return { media: [], sequentialVideoPlayback: false, ambientAudio: null };
-    }
-    console.log(`Utiltiy - ${pageId} - Requesting media for series: ${series}`);
+    if (pageId === 'login') return { media: [], sequentialVideoPlayback: false, ambientAudio: null };
     try {
-        const response = await fetch(`/api/media/${series}/${volume}/${chapter}/${pageId}`);
-        if (!response.ok) {
-            throw new Error(`HTTP error! status: ${response.status}`);
-        }
+        const response = await fetch(appendSecret(`/api/media/${series}/${volume}/${chapter}/${pageId}`));
         const data = await response.json(); 
-        console.log(`Utiltiy - ${pageId} - Received media data:`, data);
-        if (!data.ok) {
-            throw new Error(`API error: ${data.message}`);
-        }
-
         const mediaContent = data.media || {}; 
-
-        let mediaArray = [];
-        let seqPlay = false;
-        let ambientAudio = null;
-
-        if (Array.isArray(mediaContent)) {
-            mediaArray = mediaContent;
-        } else if (mediaContent && typeof mediaContent === 'object') {
-            mediaArray = Array.isArray(mediaContent.media) ? mediaContent.media : [];
-            seqPlay = typeof mediaContent.sequentialVideoPlayback === 'boolean' ? mediaContent.sequentialVideoPlayback : false;
-            ambientAudio = mediaContent.ambientAudio || null; 
-        }
-
+        let mediaArray = Array.isArray(mediaContent) ? mediaContent : (mediaContent.media || []);
         return {
             media: mediaArray,
-            sequentialVideoPlayback: seqPlay,
-            ambientAudio: ambientAudio 
+            sequentialVideoPlayback: !!mediaContent.sequentialVideoPlayback,
+            ambientAudio: mediaContent.ambientAudio || null
         };
     } catch (error) {
-        console.error(`Utiltiy - ${pageId} - Error fetching media for ${pageId}:`, error);
+        console.error(error);
         return { media: [], sequentialVideoPlayback: false, ambientAudio: null }; 
     }
 }
 
-/**
- * Stores the last visited page ID for a specific chapter in localStorage.
- * @param {string} chapterNumber - The number of the chapter.
- * @param {string} pageId - The ID of the page to store.
- */
 export function setLastVisitedPage(chapterNumber, pageId) {
-    try {
-        localStorage.setItem(`lastVisitedPage_chapter_${chapterNumber}`, pageId);
-    } catch (error) {
-        console.error('Error saving to localStorage:', error);
-    }
+    try { localStorage.setItem(`lastVisitedPage_chapter_${chapterNumber}`, pageId); } catch (e) {}
 }
 
-/**
- * Retrieves the last visited page ID for a specific chapter from localStorage.
- * @param {string} chapterNumber - The number of the chapter.
- * @returns {string|null} The last visited page ID, or null if not found.
- */
 export function getLastVisitedPage(chapterNumber) {
-    try {
-        return localStorage.getItem(`lastVisitedPage_chapter_${chapterNumber}`);
-    } catch (error) {
-        console.error('Error reading from localStorage:', error);
-        return null;
-    }
+    try { return localStorage.getItem(`lastVisitedPage_chapter_${chapterNumber}`); } catch (e) { return null; }
 }
 
-/**
- * Wraps every character in a string within <span> tags.
- *
- * @param {string} str The input string.
- * @returns {string} The new string with characters wrapped in spans.
- */
 export function wrapCharsInSpans(str) {
-  // 1. Split the string into an array of individual characters.
-  const chars = str.split(''); //
-
-  // 2. Map each character to a new string that includes the <span> tags.
-  const wrappedChars = chars.map(char => `<span>${char}</span>`);
-
-  // 3. Join the array of wrapped characters back into a single string.
-  return wrappedChars.join('');
+  return str.split('').map(char => `<span>${char}</span>`).join('');
 }
-
-// Example Usage:
-// const originalString = "Hello, world!";
-// const wrappedString = wrapCharsInSpans(originalString);
-//console.log(wrappedString);
-// Output: <span>H</span><span>e</span><span>l</span><span>l</span><span>o</span><span>,</span><span> </span><span>w</span><span>o</span><span>r</span><span>l</span><span>d</span><span>!</span>
 
 export function preloadMediaAsset(url, type) {
     return new Promise((resolve, reject) => {
         if (type === 'image') {
             const img = new Image();
             img.onload = () => resolve(img);
-            img.onerror = () => reject(new Error(`Failed to load image: ${url}`));
-            img.src = url;
+            img.onerror = () => reject(new Error(`Failed: ${url}`));
+            img.src = appendSecret(url);
         } else {
-            reject(new Error(`Unknown or unsupported asset type: ${type}`));
+            reject(new Error(`Unsupported: ${type}`));
         }
     });
 }
 
 export async function loadCSS(href, forceReload = false) {
     if (!forceReload && [...document.styleSheets].some(sheet => sheet.href && sheet.href.includes(href))) return;
-    
     return new Promise((resolve, reject) => {
-        const finalHref = forceReload ? `${href}?t=${Date.now()}` : href;
+        const finalHref = appendSecret(forceReload ? `${href}${href.includes('?') ? '&' : '?'}t=${Date.now()}` : href);
         const link = document.createElement('link');
         link.rel = 'stylesheet';
         link.href = finalHref;
         link.onload = resolve;
-        link.onerror = () => reject(new Error(`Failed to load CSS: ${href}`));
+        link.onerror = () => reject(new Error(`Failed: ${href}`));
         document.head.appendChild(link);
     });
 }
@@ -254,90 +155,48 @@ export async function loadCSS(href, forceReload = false) {
 export function loadScript(src) {
     return new Promise((resolve, reject) => {
         const script = document.createElement('script');
-        script.src = src;
+        script.src = appendSecret(src);
         script.type = 'module';
         script.onload = resolve;
-        script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+        script.onerror = () => reject(new Error(`Failed: ${src}`));
         document.body.appendChild(script);
     });
 }
 
-/**
- * Resolves a media filename to a full URL, handling prefixes for series and global assets.
- * @param {string} fileName - The filename, possibly with a prefix like 'series://' or 'global://'.
- * @param {string} type - The asset type: 'image', 'video', or 'audio'.
- * @param {object} pageInfo - Object containing series, volume, chapter, and pageId.
- * @param {boolean} cacheBust - Whether to append a timestamp to invalidate cache.
- * @returns {string} The resolved URL.
- */
 export function resolveMediaUrl(fileName, type, pageInfo, cacheBust = false) {
     if (!fileName) return '';
     const series = pageInfo.series || "No_Overflow";
-    
-    // Check for Cloud Storage configuration
     const config = window.APP_CONFIG || {};
     const useCloud = config.useCloudStorage;
     const gcsBase = `${config.gcsBaseUrl}/${config.gcsBucketName}`;
 
     let url = '';
-
-    // 1. Series Assets
     if (fileName.startsWith('series://')) {
-        const name = fileName.replace('series://', '');
-        url = `/Library/${series}/assets/${type}/${name}`;
-    }
-    
-    // 2. Global Resources (Currently audio only in most cases)
-    else if (fileName.startsWith('global://')) {
-        const name = fileName.replace('global://', '');
-        url = `/resources/audio/${name}`;
-    }
-    
-    // 3. Absolute URLs or API paths already resolved
-    else if (fileName.startsWith('/') || fileName.startsWith('http')) {
+        url = `/Library/${series}/assets/${type}/${fileName.replace('series://', '')}`;
+    } else if (fileName.startsWith('global://')) {
+        url = `/resources/audio/${fileName.replace('global://', '')}`;
+    } else if (fileName.startsWith('/') || fileName.startsWith('http')) {
         url = fileName;
-    }
-
-    // 4. Volume Assets
-    else if (fileName.startsWith('volume://')) {
+    } else if (fileName.startsWith('volume://')) {
         const name = fileName.replace('volume://', '');
-        if (useCloud) {
-            url = `${gcsBase}/Volumes/${pageInfo.volume}/assets/${type}/${name}`;
-        } else {
-            url = `/Library/${series}/Volumes/${pageInfo.volume}/assets/${type}/${name}`;
-        }
-    }
-
-    // 5. Default: Page-specific Assets
-    else {
+        url = useCloud ? `${gcsBase}/Volumes/${pageInfo.volume}/assets/${type}/${name}` : `/Library/${series}/Volumes/${pageInfo.volume}/assets/${type}/${name}`;
+    } else {
         const { volume, chapter, pageId } = pageInfo;
         const apiType = type === 'image' ? 'images' : (type === 'video' ? 'videos' : 'audio');
-        
-        if (useCloud) {
-            // Cloud structure matches local structure: Volumes/volume-i/chapter-j/page-k/assets/type/fileName
-            url = `${gcsBase}/Volumes/${volume}/${chapter}/${pageId}/assets/${type}/${fileName}`;
-        } else {
-            // Use the local /api/:type/:series/:volume/... format
-            url = `/api/${apiType}/${series}/${volume}/${chapter}/${pageId}/assets/${fileName}`;
-        }
+        url = useCloud ? `${gcsBase}/Volumes/${volume}/${chapter}/${pageId}/assets/${type}/${fileName}` : `/api/${apiType}/${series}/${volume}/${chapter}/${pageId}/assets/${fileName}`;
     }
 
     if (cacheBust && url) {
-        const separator = url.includes('?') ? '&' : '?';
-        url = `${url}${separator}t=${Date.now()}`;
+        url += (url.includes('?') ? '&' : '?') + 't=' + Date.now();
     }
 
-    return url;
+    return appendSecret(url);
 }
 
 export async function fetchVolumeAudioMap(volumeId) {
     try {
-        const response = await fetch(`/api/volumes/${volumeId}/audio-map`);
-        if (!response.ok) return [];
+        const response = await fetch(appendSecret(`/api/volumes/${volumeId}/audio-map`));
         const data = await response.json();
         return data.map || [];
-    } catch (error) {
-        console.error("Error fetching audio map:", error);
-        return [];
-    }
+    } catch (e) { return []; }
 }

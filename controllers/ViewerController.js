@@ -6,10 +6,11 @@ require('../models/Series'); // Ensure Series schema is registered
 exports.getViewer = async (req, res) => {
   let volumeId = req.query.id;
   const seriesName = req.query.series;
+  const volumeFolderName = req.query.volume;
 
   try {
     if (!volumeId && seriesName) {
-      volumeId = await resolveVolumeFromSeries(seriesName, res);
+      volumeId = await resolveVolumeFromSeries(seriesName, volumeFolderName, res);
       if (!volumeId) return; // resolveVolumeFromSeries handles the response
     }
 
@@ -44,7 +45,7 @@ exports.getViewer = async (req, res) => {
   }
 };
 
-async function resolveVolumeFromSeries(seriesName, res) {
+async function resolveVolumeFromSeries(seriesName, volumeFolderName, res) {
   const Series = require('../models/Series');
   const series = await Series.findOne({ 
     $or: [
@@ -56,6 +57,15 @@ async function resolveVolumeFromSeries(seriesName, res) {
   if (!series || !series.volumes || series.volumes.length === 0) {
     res.status(404).send(`Series "${seriesName}" found, but it has no volumes.`);
     return null;
+  }
+
+  // If a volume folder name is provided (e.g. volume-1), find that specific one
+  if (volumeFolderName) {
+    const foundVolume = series.volumes.find(v => {
+        const folder = path.basename(v.volumePath);
+        return folder.toLowerCase() === volumeFolderName.toLowerCase();
+    });
+    if (foundVolume) return foundVolume._id;
   }
 
   series.volumes.sort((a, b) => a.index - b.index);
