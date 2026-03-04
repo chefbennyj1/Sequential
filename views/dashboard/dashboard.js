@@ -405,6 +405,7 @@ export async function init(container) {
         startExportBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             const volumeSelect = document.getElementById('exportVolumeSelect');
+            const presetSelect = document.getElementById('exportPresetSelect');
             if(!volumeSelect || !volumeSelect.value) {
                 alert("Please select a volume first.");
                 return;
@@ -412,6 +413,8 @@ export async function init(container) {
 
             const volumeId = volumeSelect.value;
             const optionText = volumeSelect.options[volumeSelect.selectedIndex].text;
+            const preset = presetSelect ? presetSelect.value : 'uk-table';
+            const presetText = presetSelect ? presetSelect.options[presetSelect.selectedIndex].text : 'UK Table';
             
             const portrait = document.getElementById('exportPortraitOption').checked;
             const landscape = document.getElementById('exportLandscapeOption').checked;
@@ -421,7 +424,7 @@ export async function init(container) {
                 return;
             }
 
-            if(!confirm(`Are you sure you want to export ${optionText} to High-Res PNGs? This will take a few minutes in the background.`)) return;
+            if(!confirm(`Are you sure you want to export ${optionText} (${presetText}) to High-Res PNGs? This will take a few minutes in the background.`)) return;
 
             const btn = e.currentTarget;
             const originalText = btn.innerHTML;
@@ -442,7 +445,7 @@ export async function init(container) {
                     cleanVolume = volumePart.trim().toLowerCase().replace(/\s+/g, '-');
                 }
                 
-                const res = await fetch(`/api/editor/export-volume/${cleanSeries}/${cleanVolume}?portrait=${portrait}&landscape=${landscape}`, { method: 'POST' });
+                const res = await fetch(`/api/editor/export-volume/${cleanSeries}/${cleanVolume}?portrait=${portrait}&landscape=${landscape}&preset=${preset}`, { method: 'POST' });
                 const result = await res.json();
                 
                 if (result.ok) {

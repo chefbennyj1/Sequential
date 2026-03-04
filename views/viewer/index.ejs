@@ -161,10 +161,8 @@
 
                 await pageManager.goToPage(initialIdx);
                 
-                // Signal to Puppeteer
-                setTimeout(() => {
-                    window.renderComplete = true;
-                }, 1500);
+                // Signal to Puppeteer that we are ready
+                window.renderComplete = true;
             })();
 
             // --- UI Interaction Logic ---

@@ -8,8 +8,8 @@ const INTERNAL_SECRET = 'sequential_internal_export_key_2026';
 class ExportController {
     static async exportVolume(req, res) {
         const { series: seriesTitle, volume: volumeFolderName } = req.params;
-        const { portrait, landscape } = req.query;
-        
+        const { portrait, landscape, preset } = req.query;
+
         try {
             const series = await Series.findOne({
                 $or: [{ folderName: seriesTitle }, { title: seriesTitle }]
@@ -19,10 +19,13 @@ class ExportController {
 
             let rootPath = series.sourcePath || path.join(series.libraryRoot.path, series.folderName);
             const volumePath = path.join(rootPath, 'Volumes', volumeFolderName);
-            
+
             if (!fs.existsSync(volumePath)) return res.status(404).json({ ok: false, message: 'Volume folder not found' });
 
-            const exportDir = path.join(rootPath, 'Print_Exports', volumeFolderName + '_Book_Pages');
+            const baseExportDir = path.join(rootPath, 'Print_Exports', volumeFolderName + '_Book_Pages');
+            const activePreset = preset || 'uk-table';
+            const exportDir = path.join(baseExportDir, activePreset);
+
             if (!fs.existsSync(exportDir)) fs.mkdirSync(exportDir, { recursive: true });
 
             const pagesToRender = [];
@@ -35,7 +38,7 @@ class ExportController {
                     .sort((a, b) => {
                         return parseInt(a.replace('page', '')) - parseInt(b.replace('page', ''));
                     });
-                
+
                 for (const pageId of pages) {
                     const jsonPath = path.join(chapterPath, pageId, 'page.json');
                     if (fs.existsSync(jsonPath)) {
@@ -53,7 +56,8 @@ class ExportController {
 
             const options = {
                 portrait: portrait === 'true',
-                landscape: landscape === 'true'
+                landscape: landscape === 'true',
+                preset: activePreset
             };
 
             ExportController.runPuppeteerExport(series.folderName, volumeFolderName, pagesToRender, exportDir, baseUrl, options);
@@ -65,100 +69,154 @@ class ExportController {
     }
 
     static async runPuppeteerExport(series, volume, pagesToRender, exportDir, baseUrl, options) {
-        console.log(`[EXPORT] Starting Bleed-Ready Headless Browser...`);
-        
+        console.log(`[EXPORT] Starting Bleed-Ready Headless Browser... Preset: ${options.preset}`);
+
         try {
-            const browser = await puppeteer.launch({ 
+            const browser = await puppeteer.launch({
                 headless: 'new',
                 args: ['--disable-web-security', '--no-sandbox']
             });
             const page = await browser.newPage();
             page.on('console', msg => console.log('[BROWSER]', msg.text()));
-            
-            // --- DIMENSIONS FOR FULL BLEED (A3 Spread + 3mm bleed) ---
-            // Trim Size (A3): 420mm x 297mm (4960 x 3508 px @ 300dpi)
-            // Bleed Size: 426mm x 303mm (approx 5031 x 3578 px @ 300dpi)
-            const BLEED_WIDTH = 5031;
-            const BLEED_HEIGHT = 3578;
-            const PAGE_WIDTH = 2515; // Half of total bleed width
 
-            await page.setViewport({ 
-                width: BLEED_WIDTH, 
-                height: BLEED_HEIGHT, 
-                deviceScaleFactor: 1 
+            // --- DIMENSION PRESETS (300 DPI + 3mm Bleed) ---
+            let BLEED_WIDTH = 5031;  // UK Table (A3 Spread) Default
+            let BLEED_HEIGHT = 3578;
+            let PAGE_WIDTH = 2515;
+
+            if (options.preset === 'us-landscape') {
+                BLEED_WIDTH = 3146;
+                BLEED_HEIGHT = 2058;
+                PAGE_WIDTH = 1573;
+            } else if (options.preset === 'cinematic-16-9') {
+                BLEED_WIDTH = 3370;
+                BLEED_HEIGHT = 1926;
+                PAGE_WIDTH = 1685;
+            }
+
+            const PAGE_HEIGHT = BLEED_HEIGHT;
+
+            await page.setViewport({
+                width: BLEED_WIDTH,
+                height: BLEED_HEIGHT,
+                deviceScaleFactor: 1
             });
 
             for (let i = 0; i < pagesToRender.length; i++) {
                 const target = pagesToRender[i];
                 const pageNum = target.page.replace('page', '');
                 const url = `${baseUrl}/viewer?series=${series}&volume=${volume}&chapter=${target.chapter}&page=${pageNum}&exportSecret=${INTERNAL_SECRET}`;
-                
-                console.log(`[EXPORT] (${i+1}/${pagesToRender.length}) Rendering ${target.page} (Bleed Included)...`);
-                
+
+                console.log(`[EXPORT] (${i + 1}/${pagesToRender.length}) Rendering ${target.page}...`);
+
                 try {
                     await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
                     await page.waitForFunction(() => window.renderComplete === true, { timeout: 30000 });
+                    await page.waitForFunction(() => window.isRevealing !== true, { timeout: 30000 });
 
-                    // --- FORCE PRINT LAYOUT WITH SAFE ZONES ---
-                    await page.evaluate(() => {
-                        const hideList = ['.viewer-controls', '.nav-zone', '#loading-overlay', 'header', '.page-nav-buttons', '.debug-info'];
-                        hideList.forEach(s => { document.querySelectorAll(s).forEach(el => el.style.setProperty('display', 'none', 'important')); });
-                        
+                    // --- FORCE PRINT LAYOUT (WHITE STAGE STRATEGY) ---
+                    await page.evaluate((viewportW, viewportH) => {
+                        const bleedPx = 35; // 3mm @ 300DPI
+                        const hideList = ['.viewer-controls', '.nav-zone', '#loading-overlay', 'header', '.page-nav-buttons', '.debug-info', '#loading-page'];
+                        hideList.forEach(s => { document.querySelectorAll(s).forEach(el => el.style.display = 'none'); });
+
+                        // 1. Identify active content
+                        const activeSection = document.querySelector('section.active') || document.querySelector('.page-container');
+                        const container = activeSection ? activeSection.querySelector('.section-container') : null;
+                        const layout = activeSection ? activeSection.querySelector('.page-layout') : null;
+
+                        if (!container) return;
+
+                        // 2. Clear the Body and Set Black "Bleed" Background
+                        Array.from(document.body.children).forEach(child => { child.style.display = 'none'; });
+                        document.documentElement.style.background = '#000';
+                        document.body.style.background = '#000';
                         document.body.style.margin = '0';
                         document.body.style.padding = '0';
-                        document.body.style.background = '#000';
+                        document.body.style.display = 'flex';
+                        document.body.style.alignItems = 'center';
+                        document.body.style.justifyContent = 'center';
+                        document.body.style.width = viewportW + 'px';
+                        document.body.style.height = viewportH + 'px';
                         document.documentElement.style.overflow = 'hidden';
 
-                        const container = document.querySelector('.section-container.active') || document.querySelector('.section-container');
-                        if (container) {
-                            container.style.setProperty('aspect-ratio', 'unset', 'important');
-                            container.style.setProperty('width', '100vw', 'important');
-                            container.style.setProperty('height', '100vh', 'important');
-                            container.style.setProperty('max-width', 'none', 'important');
-                            container.style.setProperty('max-height', 'none', 'important');
-                            
-                            // PRINT SAFE ZONE: 
-                            // We add 0.25 inch (approx 38px) of padding inside the bleed area 
-                            // to ensure text stays away from the cut line.
-                            container.style.padding = '40px'; 
-                            container.style.boxSizing = 'border-box';
+                        // 3. Create the "White Stage" (The Actual Page / Trim Area)
+                        const stage = document.createElement('div');
+                        stage.id = 'print-stage-white';
+                        stage.style.background = '#ffffff'; // GUTTER COLOR
+                        stage.style.width = (viewportW - (bleedPx * 2)) + 'px';
+                        stage.style.height = (viewportH - (bleedPx * 2)) + 'px';
+                        stage.style.position = 'relative';
+                        stage.style.overflow = 'hidden';
+                        stage.style.display = 'block';
+                        stage.style.boxSizing = 'border-box';
 
-                            container.style.margin = '0';
-                            container.style.borderRadius = '0';
-                            container.style.boxShadow = 'none';
-                            container.style.border = 'none';
-                            container.style.opacity = '1';
-                            container.style.visibility = 'visible';
-                            container.style.transform = 'none'; 
-                            
-                            document.documentElement.style.fontSize = '42px'; // Adjusted for bleed viewport
-                            container.style.setProperty('--speech-bubble-scale', '2.6');
-                            container.style.setProperty('--text-block-scale', '2.6');
+                        document.body.appendChild(stage);
+
+                        // 4. Move container into the white stage
+                        stage.appendChild(container);
+
+                        container.style.setProperty('display', 'block', 'important');
+                        container.style.setProperty('visibility', 'visible', 'important');
+                        container.style.setProperty('opacity', '1', 'important');
+                        container.style.setProperty('position', 'absolute', 'important');
+                        container.style.setProperty('inset', '0', 'important');
+                        container.style.setProperty('width', '100%', 'important');
+                        container.style.setProperty('height', '100%', 'important');
+                        container.style.setProperty('aspect-ratio', 'unset', 'important');
+                        container.style.setProperty('margin', '0', 'important');
+                        container.style.setProperty('padding', '0', 'important');
+                        container.style.setProperty('background', 'transparent', 'important');
+                        container.style.setProperty('border', 'none', 'important');
+                        container.style.setProperty('box-shadow', 'none', 'important');
+                        container.style.setProperty('transform', 'none', 'important');
+                        container.style.setProperty('box-sizing', 'border-box', 'important');
+
+                        if (layout) {
+                            layout.style.setProperty('display', 'grid', 'important'); // Force grid trigger
+                            layout.style.setProperty('height', '100%', 'important');
+                            layout.style.setProperty('width', '100%', 'important');
+                            layout.style.setProperty('padding', '20px', 'important');
+                            layout.style.setProperty('margin', '0', 'important');
+                            layout.style.setProperty('box-sizing', 'border-box', 'important');
                         }
-                    });
 
+                        // Apply box-sizing globally for print
+                        const style = document.createElement('style');
+                        style.textContent = '* { box-sizing: border-box !important; }';
+                        document.head.appendChild(style);
+                        document.documentElement.style.fontSize = '42px'; 
+                        container.style.setProperty('--speech-bubble-scale', '2.6');
+                        container.style.setProperty('--text-block-scale', '2.6');
+
+                        // Disable any memory/cloudy effects that use white backgrounds
+                        document.querySelectorAll('.panel-effect-memory, .panel-effect-cloudy').forEach(p => {
+                            p.style.setProperty('background-color', 'transparent', 'important');
+                        });
+                    }, BLEED_WIDTH, BLEED_HEIGHT);
                     await page.evaluateHandle('document.fonts.ready');
-                    await new Promise(r => setTimeout(r, 3000)); 
+                    await new Promise(r => setTimeout(r, 6000));
 
                     const pageNumPadded = target.page.replace('page', '').padStart(3, '0');
 
-                    // 1. CAPTURE FULL SPREAD (Landscape)
                     if (options.landscape) {
                         const fullPath = path.join(exportDir, `page${pageNumPadded}_FULL.png`);
-                        await page.screenshot({ path: fullPath });
+                        await page.screenshot({
+                            path: fullPath,
+                            clip: { x: 0, y: 0, width: BLEED_WIDTH, height: BLEED_HEIGHT }
+                        });
                     }
 
-                    // 2. CAPTURE SPLIT PAGES (Portrait)
                     if (options.portrait) {
                         const leftPath = path.join(exportDir, `page${pageNumPadded}a.png`);
-                        await page.screenshot({ 
-                            path: leftPath, 
+                        await page.screenshot({
+                            path: leftPath,
                             clip: { x: 0, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT }
                         });
 
                         const rightPath = path.join(exportDir, `page${pageNumPadded}b.png`);
-                        await page.screenshot({ 
-                            path: rightPath, 
+                        await page.screenshot({
+                            path: rightPath,
                             clip: { x: PAGE_WIDTH, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT }
                         });
                     }

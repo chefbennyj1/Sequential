@@ -57,21 +57,23 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
         return;
     }
 
-    container.addEventListener('view_visible', async () => {
-        if (!container.classList.contains("active")) return;
-
-        if (window.audioStateManager) {
-            if (ambientData && ambientData.url) {
-                window.audioStateManager.playAmbientAudio(ambientData.url, ambientData.volume);
-            } else {
-                window.audioStateManager.playAmbientAudio(null);
+        container.addEventListener('view_visible', async () => {
+            if (!container.classList.contains("active")) return;
+    
+            if (window.audioStateManager) {
+                if (ambientData && ambientData.url) {
+                    window.audioStateManager.playAmbientAudio(ambientData.url, ambientData.volume); 
+                } else {
+                    window.audioStateManager.playAmbientAudio(null);
+                }
             }
-        }
-
-        await imageMaskReveal(allPanels, gifUrl, 5000, mediaResponse.media, pageInfo);
-        if (sceneController?.restart) sceneController.restart();
-    });
-
+    
+            window.isRevealing = true;
+            await imageMaskReveal(allPanels, gifUrl, 5000, mediaResponse.media, pageInfo);
+            window.isRevealing = false;
+    
+            if (sceneController?.restart) sceneController.restart();
+        });
     container.addEventListener('view_hidden', () => {
         if (sceneController?.cleanup) sceneController.cleanup();
         if (window.audioStateManager) window.audioStateManager.unregisterAllPageAudio(pageId);
