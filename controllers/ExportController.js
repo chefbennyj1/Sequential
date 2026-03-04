@@ -8,6 +8,7 @@ const INTERNAL_SECRET = 'sequential_internal_export_key_2026';
 class ExportController {
     static async exportVolume(req, res) {
         const { series: seriesTitle, volume: volumeFolderName } = req.params;
+        const { portrait, landscape } = req.query;
         
         try {
             const series = await Series.findOne({
@@ -45,12 +46,17 @@ class ExportController {
                 }
             }
 
-            res.json({ ok: true, message: `Started DUAL-PAGE export of ${pagesToRender.length} spreads (Total ${pagesToRender.length * 2} print pages).` });
+            res.json({ ok: true, message: `Started background export of ${pagesToRender.length} pages.` });
 
             const host = req.get('host');
             const baseUrl = `${req.protocol}://${host}`;
 
-            ExportController.runPuppeteerExport(series.folderName, volumeFolderName, pagesToRender, exportDir, baseUrl);
+            const options = {
+                portrait: portrait === 'true',
+                landscape: landscape === 'true'
+            };
+
+            ExportController.runPuppeteerExport(series.folderName, volumeFolderName, pagesToRender, exportDir, baseUrl, options);
 
         } catch (error) {
             console.error('Export Error:', error);
@@ -58,8 +64,8 @@ class ExportController {
         }
     }
 
-    static async runPuppeteerExport(series, volume, pagesToRender, exportDir, baseUrl) {
-        console.log(`[EXPORT] Starting DUAL-PAGE Headless Browser...`);
+    static async runPuppeteerExport(series, volume, pagesToRender, exportDir, baseUrl, options) {
+        console.log(`[EXPORT] Starting Bleed-Ready Headless Browser...`);
         
         try {
             const browser = await puppeteer.launch({ 
@@ -67,15 +73,18 @@ class ExportController {
                 args: ['--disable-web-security', '--no-sandbox']
             });
             const page = await browser.newPage();
+            page.on('console', msg => console.log('[BROWSER]', msg.text()));
             
-            // VIEWPORT: 2 * 2480 (Width) x 3508 (Height)
-            // This represents a landscape "Spread" composed of two portrait pages side-by-side.
-            const PAGE_WIDTH = 2480;
-            const PAGE_HEIGHT = 3508;
+            // --- DIMENSIONS FOR FULL BLEED (A3 Spread + 3mm bleed) ---
+            // Trim Size (A3): 420mm x 297mm (4960 x 3508 px @ 300dpi)
+            // Bleed Size: 426mm x 303mm (approx 5031 x 3578 px @ 300dpi)
+            const BLEED_WIDTH = 5031;
+            const BLEED_HEIGHT = 3578;
+            const PAGE_WIDTH = 2515; // Half of total bleed width
 
             await page.setViewport({ 
-                width: PAGE_WIDTH * 2, 
-                height: PAGE_HEIGHT, 
+                width: BLEED_WIDTH, 
+                height: BLEED_HEIGHT, 
                 deviceScaleFactor: 1 
             });
 
@@ -84,37 +93,37 @@ class ExportController {
                 const pageNum = target.page.replace('page', '');
                 const url = `${baseUrl}/viewer?series=${series}&volume=${volume}&chapter=${target.chapter}&page=${pageNum}&exportSecret=${INTERNAL_SECRET}`;
                 
-                console.log(`[EXPORT] (${i+1}/${pagesToRender.length}) Processing Spread: ${target.page}...`);
+                console.log(`[EXPORT] (${i+1}/${pagesToRender.length}) Rendering ${target.page} (Bleed Included)...`);
                 
                 try {
                     await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
                     await page.waitForFunction(() => window.renderComplete === true, { timeout: 30000 });
 
-                    // --- FORCE LANDSCAPE PRINT LAYOUT ---
+                    // --- FORCE PRINT LAYOUT WITH SAFE ZONES ---
                     await page.evaluate(() => {
-                        // 1. Nuke UI and reset body
                         const hideList = ['.viewer-controls', '.nav-zone', '#loading-overlay', 'header', '.page-nav-buttons', '.debug-info'];
-                        hideList.forEach(s => { 
-                            document.querySelectorAll(s).forEach(el => el.style.setProperty('display', 'none', 'important')); 
-                        });
+                        hideList.forEach(s => { document.querySelectorAll(s).forEach(el => el.style.setProperty('display', 'none', 'important')); });
                         
                         document.body.style.margin = '0';
                         document.body.style.padding = '0';
                         document.body.style.background = '#000';
                         document.documentElement.style.overflow = 'hidden';
 
-                        // 2. Force Container to Fill the entire 2-Page Viewport
                         const container = document.querySelector('.section-container.active') || document.querySelector('.section-container');
                         if (container) {
-                            // KILL ASPECT RATIOS AND MAX-DIMENSIONS
                             container.style.setProperty('aspect-ratio', 'unset', 'important');
                             container.style.setProperty('width', '100vw', 'important');
                             container.style.setProperty('height', '100vh', 'important');
                             container.style.setProperty('max-width', 'none', 'important');
                             container.style.setProperty('max-height', 'none', 'important');
                             
+                            // PRINT SAFE ZONE: 
+                            // We add 0.25 inch (approx 38px) of padding inside the bleed area 
+                            // to ensure text stays away from the cut line.
+                            container.style.padding = '40px'; 
+                            container.style.boxSizing = 'border-box';
+
                             container.style.margin = '0';
-                            container.style.padding = '0';
                             container.style.borderRadius = '0';
                             container.style.boxShadow = 'none';
                             container.style.border = 'none';
@@ -122,32 +131,39 @@ class ExportController {
                             container.style.visibility = 'visible';
                             container.style.transform = 'none'; 
                             
-                            // Adjust UI scale for the massive spread
-                            document.documentElement.style.fontSize = '40px'; 
-                            container.style.setProperty('--speech-bubble-scale', '2.5');
-                            container.style.setProperty('--text-block-scale', '2.5');
+                            document.documentElement.style.fontSize = '42px'; // Adjusted for bleed viewport
+                            container.style.setProperty('--speech-bubble-scale', '2.6');
+                            container.style.setProperty('--text-block-scale', '2.6');
                         }
                     });
 
                     await page.evaluateHandle('document.fonts.ready');
-                    await new Promise(r => setTimeout(r, 4000)); 
+                    await new Promise(r => setTimeout(r, 3000)); 
 
-                    // --- CAPTURE LEFT PAGE ---
                     const pageNumPadded = target.page.replace('page', '').padStart(3, '0');
-                    const leftPath = path.join(exportDir, `page${pageNumPadded}a.png`);
-                    await page.screenshot({ 
-                        path: leftPath, 
-                        clip: { x: 0, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT }
-                    });
 
-                    // --- CAPTURE RIGHT PAGE ---
-                    const rightPath = path.join(exportDir, `page${pageNumPadded}b.png`);
-                    await page.screenshot({ 
-                        path: rightPath, 
-                        clip: { x: PAGE_WIDTH, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT }
-                    });
+                    // 1. CAPTURE FULL SPREAD (Landscape)
+                    if (options.landscape) {
+                        const fullPath = path.join(exportDir, `page${pageNumPadded}_FULL.png`);
+                        await page.screenshot({ path: fullPath });
+                    }
 
-                    console.log(`[EXPORT] SUCCESS: ${target.page}a and ${target.page}b saved.`);
+                    // 2. CAPTURE SPLIT PAGES (Portrait)
+                    if (options.portrait) {
+                        const leftPath = path.join(exportDir, `page${pageNumPadded}a.png`);
+                        await page.screenshot({ 
+                            path: leftPath, 
+                            clip: { x: 0, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT }
+                        });
+
+                        const rightPath = path.join(exportDir, `page${pageNumPadded}b.png`);
+                        await page.screenshot({ 
+                            path: rightPath, 
+                            clip: { x: PAGE_WIDTH, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT }
+                        });
+                    }
+
+                    console.log(`[EXPORT] SUCCESS: ${target.page}`);
 
                 } catch (e) {
                     console.error(`[EXPORT] ERROR ${target.page}:`, e.message);
@@ -155,7 +171,7 @@ class ExportController {
             }
 
             await browser.close();
-            console.log(`[EXPORT] Book Generation Complete. Files in: ${exportDir}`);
+            console.log(`[EXPORT] Completed.`);
 
         } catch (err) {
             console.error('[EXPORT] CRITICAL ERROR:', err);

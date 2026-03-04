@@ -6,8 +6,8 @@
     --bubble-border: #000;
     --bubble-text: #000;
     --bubble-font: "Comic Book", "Bangers", cursive;
-    --bubble-border-width: 3px; /* Increased from 2px */
-    --tail-size: 30px;
+    --bubble-border-width: 0.18rem;
+    --tail-size: 1.85rem;
 }
 
 .speech-bubble-container {
@@ -35,38 +35,37 @@
 
 .super-bubble {
     position: relative;
-    padding: 20px 30px;
+    padding: 1.25rem 1.85rem;
     background-color: var(--bubble-bg-one);
     background-image: radial-gradient(var(--bubble-bg-two) 25%, transparent 26%),
                       radial-gradient(var(--bubble-bg-two) 25%, transparent 26%);
-    background-size: 6px 6px;
-    background-position: 0 0, 3px 3px;
+    background-size: 0.35rem 0.35rem;
+    background-position: 0 0, 0.18rem 0.18rem;
     border: var(--bubble-border-width) solid var(--bubble-border);
     border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-    box-shadow: 4px 4px 0px rgba(0,0,0,0.2);
+    box-shadow: 0.25rem 0.25rem 0px rgba(0,0,0,0.2);
     text-align: center;
     font-family: var(--bubble-font);
-    font-size: 0.85em;
+    font-size: 0.85rem;
     line-height: 1.2;
     color: var(--bubble-text);
     word-wrap: break-word;
     transform: rotate(-1deg);
-    z-index: 5; /* Base bubble layer */
+    z-index: 5;
 }
 
 .bubble-text {
     position: relative;
-    z-index: 20; /* Ensure text is above tail */
+    z-index: 20;
 }
 
 /* Wobbly Border Effect */
 .super-bubble::before {
     content: "";
     position: absolute;
-    inset: -3px;
-    /* border: 2.5px solid var(--bubble-border); */
+    inset: -0.18rem;
     border-radius: 15px 225px 15px 255px / 255px 15px 225px 15px;
-    transform: rotate(0.5deg); /* Reduced from 1deg */
+    transform: rotate(0.5deg);
     pointer-events: none;
     z-index: -1;
 }
@@ -74,15 +73,15 @@
 .super-bubble::after {
     content: "";
     position: absolute;
-    inset: -1px;
-    border: 2px solid var(--bubble-border);
+    inset: -0.06rem;
+    border: 0.12rem solid var(--bubble-border);
     border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
-    transform: rotate(-0.2deg); /* Reduced from -0.5deg */
+    transform: rotate(-0.2deg);
     pointer-events: none;
     z-index: -1;
 }
 
-/* Tail Construction (Legacy Border-Triangle Method) */
+/* Tail Construction */
 .tail-container {
     position: absolute;
     width: 0;
@@ -95,101 +94,96 @@
 .tail-container::after {
     content: "";
     position: absolute;
-    border: solid 15px transparent;
+    border: solid 0.95rem transparent;
 }
 
-/* Tail Positions - Legacy Logic */
+/* Tail Positions */
 
-/* Bottom Left */
 .tail-bottom-left {
-    bottom: -5px; /* Pushed down 5px */
+    bottom: -0.3rem;
     left: 20%;
 }
 .tail-bottom-left::before {
     border-left-color: var(--bubble-border);
     border-top-color: var(--bubble-border);
-    top: -10px;
+    top: -0.6rem;
     transform: skewX(calc(-15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
 .tail-bottom-left::after {
     border-left-color: var(--bubble-bg-one);
     border-top-color: var(--bubble-bg-one);
-    top: -12px;
-    left: 2px;
-    border-width: 12px;
+    top: -0.75rem;
+    left: 0.12rem;
+    border-width: 0.75rem;
     transform: skewX(calc(-15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
 
-/* Bottom Right */
 .tail-bottom-right {
-    bottom: -5px; /* Pushed down 5px */
+    bottom: -0.3rem;
     right: 20%;
 }
 .tail-bottom-right::before {
     border-right-color: var(--bubble-border);
     border-top-color: var(--bubble-border);
-    top: -10px;
-    right: 2px; /* Pull left 2px */
+    top: -0.6rem;
+    right: 0.12rem;
     transform: skewX(calc(15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
 .tail-bottom-right::after {
     border-right-color: var(--bubble-bg-one);
     border-top-color: var(--bubble-bg-one);
-    top: -12px;
-    right: 4px; /* Pull left 4px to center in border */
-    border-width: 12px;
+    top: -0.75rem;
+    right: 0.25rem;
+    border-width: 0.75rem;
     transform: skewX(calc(15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
 
-/* Top Left */
 .tail-top-left {
-    top: -5px; /* Pushed up 5px */
+    top: -0.3rem;
     left: 20%;
 }
 .tail-top-left::before {
     border-left-color: var(--bubble-border);
     border-bottom-color: var(--bubble-border);
-    bottom: -10px;
+    bottom: -0.6rem;
     transform: skewX(calc(15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
 .tail-top-left::after {
     border-left-color: var(--bubble-bg-one);
     border-bottom-color: var(--bubble-bg-one);
-    bottom: -12px;
-    left: 2px;
-    border-width: 12px;
+    bottom: -0.75rem;
+    left: 0.12rem;
+    border-width: 0.75rem;
     transform: skewX(calc(15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
 
-/* Top Right */
 .tail-top-right {
-    top: -5px; /* Pushed up 5px */
-    right: 20%; /* Fixed: was left: 80% */
+    top: -0.3rem;
+    right: 20%;
 }
 .tail-top-right::before {
     border-right-color: var(--bubble-border);
     border-bottom-color: var(--bubble-border);
-    bottom: -10px;
-    right: 2px; /* Pull left 2px */
+    bottom: -0.6rem;
+    right: 0.12rem;
     transform: skewX(calc(-15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
 .tail-top-right::after {
     border-right-color: var(--bubble-bg-one);
     border-bottom-color: var(--bubble-bg-one);
-    bottom: -12px;
-    right: 4px; /* Pull left 4px to center in border */
-    border-width: 12px;
+    bottom: -0.75rem;
+    right: 0.25rem;
+    border-width: 0.75rem;
     transform: skewX(calc(-15deg + var(--tail-skew))) scale(var(--tail-scale));
 }
-
 
 /* Internal Monologue / Thought Bubble Style override */
 .speech-bubble-container.monologue .super-bubble {
     background-image: none;
     background-color: rgba(0, 0, 0, 0.85);
     color: #fff;
-    border-radius: 5px;
-    border: 1px solid #444;
+    border-radius: 0.3rem;
+    border: 0.06rem solid #444;
     font-style: italic;
     transform: none;
 }

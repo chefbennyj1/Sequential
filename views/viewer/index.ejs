@@ -15,10 +15,35 @@
             <button id="reload-page-btn" class="nav-button btn">
                 Reload page <ion-icon size="large" name="reload-circle"></ion-icon>
             </button>
+            <button id="toggle-gutter-btn" class="nav-button btn">
+                Gutter Guide <ion-icon size="large" name="cut-outline"></ion-icon>
+            </button>
         </div>
     `,
     body: `
         <div class="scroll-wrapper" data-volume-id="` + volume._id + `" data-current-page="0" data-total-pages=""></div>
+        <div id="gutter-guide"></div>
+        <style>
+            #gutter-guide {
+                position: fixed;
+                top: 0;
+                left: 50%;
+                width: 2px;
+                height: 100vh;
+                background: repeating-linear-gradient(to bottom, rgba(255, 0, 0, 0.6), rgba(255, 0, 0, 0.6) 10px, transparent 10px, transparent 20px);
+                z-index: 9999;
+                pointer-events: none;
+                display: none;
+                transform: translateX(-50%);
+            }
+            #gutter-guide.visible {
+                display: block;
+            }
+            #toggle-gutter-btn.active {
+                background: rgba(255, 0, 0, 0.2);
+                border-color: rgba(255, 0, 0, 0.5);
+            }
+        </style>
     `,
     extraScripts: `
         <script type="module">
@@ -79,7 +104,17 @@
 
                 document.addEventListener("view_visible", (e) => {
                     if (!e.target.classList.contains('page-container')) return;
-                    setLastVisitedPage(volumeId + "_" + chapterNumber, e.detail.index);
+                    const storageKey = volumeId + "_" + chapterNumber;
+                    setLastVisitedPage(storageKey, e.detail.index);
+                    
+                    const pageEntry = chapter.pages[e.detail.index];
+                    if (pageEntry) {
+                        const pathParts = pageEntry.path.split("/");
+                        const pageId = pathParts[pathParts.length - 2];
+                        const newUrl = new URL(window.location.href);
+                        newUrl.searchParams.set("page", pageId.replace('page', ''));
+                        window.history.replaceState({ path: newUrl.href }, "", newUrl.href);
+                    }
                 });
 
                 document.getElementById("load-next-btn").addEventListener("click", () => {
@@ -102,13 +137,25 @@
                     if (res.ok) window.location.reload();
                 });
 
+                // Gutter Guide Toggle
+                const toggleGutterBtn = document.getElementById("toggle-gutter-btn");
+                const gutterGuide = document.getElementById("gutter-guide");
+                if (toggleGutterBtn && gutterGuide) {
+                    toggleGutterBtn.addEventListener("click", () => {
+                        const isVisible = gutterGuide.classList.toggle("visible");
+                        toggleGutterBtn.classList.toggle("active", isVisible);
+                    });
+                }
+
                 let initialIdx = 0;
                 const pageParam = params.get("page");
                 if (pageParam) {
+                    // Precision matching for page IDs (e.g. /page1/ vs /page10/)
                     const fIdx = chapter.pages.findIndex(p => p.path.includes('/page' + pageParam + '/'));
                     if (fIdx !== -1) initialIdx = fIdx;
                 } else {
-                    const saved = getLastVisitedPage(chapterNumber);
+                    const storageKey = volumeId + "_" + chapterNumber;
+                    const saved = getLastVisitedPage(storageKey);
                     if (saved !== null) initialIdx = parseInt(saved, 10) || 0;
                 }
 

@@ -199,4 +199,3 @@
  - **Architecture**: Implement WebSockets for snappier client/server communication and real-time UI updates (replacing timeouts and data polling).
 - **Architecture**: Abstract series-specific dialogue tags (e.g., `[vigil-blue]`, `[system]`) out of the core `SpeechBubble.js` engine and into a customizable `series_config.json` file. (Note: Core engine styles like `[internal]` or default bubbles will remain baked into the engine).
 - **Studio Feature**: Implemented a Puppeteer-based Print Exporter in the Studio Dashboard to automatically render and export high-res (4K) print-ready comic pages directly from the browser DOM.
-

@@ -412,10 +412,15 @@ export async function init(container) {
 
             const volumeId = volumeSelect.value;
             const optionText = volumeSelect.options[volumeSelect.selectedIndex].text;
-            // The option text is usually format "Series Name - Volume N". We just grab the Series Name assuming it's the folder name for now, or we can fetch the series info.
-            // A safer bet is just letting the backend find the series by the volume ID, but our route needs series/volume.
-            // For No_Overflow, we know the series is No_Overflow.
             
+            const portrait = document.getElementById('exportPortraitOption').checked;
+            const landscape = document.getElementById('exportLandscapeOption').checked;
+
+            if(!portrait && !landscape) {
+                alert("Please select at least one export format.");
+                return;
+            }
+
             if(!confirm(`Are you sure you want to export ${optionText} to High-Res PNGs? This will take a few minutes in the background.`)) return;
 
             const btn = e.currentTarget;
@@ -437,7 +442,7 @@ export async function init(container) {
                     cleanVolume = volumePart.trim().toLowerCase().replace(/\s+/g, '-');
                 }
                 
-                const res = await fetch(`/api/editor/export-volume/${cleanSeries}/${cleanVolume}`, { method: 'POST' });
+                const res = await fetch(`/api/editor/export-volume/${cleanSeries}/${cleanVolume}?portrait=${portrait}&landscape=${landscape}`, { method: 'POST' });
                 const result = await res.json();
                 
                 if (result.ok) {

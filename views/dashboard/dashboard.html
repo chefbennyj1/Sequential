@@ -681,12 +681,24 @@
         <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
         <h3>Print Exporter</h3>
         <p>Render high-resolution PNGs of an entire volume.</p>
-        <div class="form-group" style="margin-top:20px;">
-            <label for="exportVolumeSelect">Select Volume to Export:</label>
-            <select id="exportVolumeSelect"></select>
-        </div>
-        <button id="startExportBtn" class="update__btn w-full margin-t-20">
-            Start Background Export <ion-icon size="small" name="print"></ion-icon>
+                  <div class="form-group" style="margin-top:20px;">
+                      <label for="exportVolumeSelect">Select Volume to Export:</label>
+                      <select id="exportVolumeSelect"></select>
+                  </div>
+        
+                  <div class="form-group" style="margin-top:20px;">
+                      <label>Export Formats:</label>
+                      <div class="flex-row gap-20 margin-t-10">
+                          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size: 0.9em;">
+                              <input type="checkbox" id="exportPortraitOption" checked> <span>Portrait Split (A/B)</span>
+                          </label>
+                          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size: 0.9em;">
+                              <input type="checkbox" id="exportLandscapeOption" checked> <span>Landscape Spread (FULL)</span>
+                          </label>
+                      </div>
+                  </div>
+        
+                  <button id="startExportBtn" class="update__btn w-full margin-t-20">            Start Background Export <ion-icon size="small" name="print"></ion-icon>
         </button>
         <p id="exportStatusMsg" style="margin-top: 15px; color: var(--cyber-primary, #00ff41);"></p>
     </div>
