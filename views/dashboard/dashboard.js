@@ -406,6 +406,7 @@ export async function init(container) {
             e.preventDefault();
             const volumeSelect = document.getElementById('exportVolumeSelect');
             const presetSelect = document.getElementById('exportPresetSelect');
+            const targetPageInput = document.getElementById('exportTargetPage');
             if(!volumeSelect || !volumeSelect.value) {
                 alert("Please select a volume first.");
                 return;
@@ -415,16 +416,23 @@ export async function init(container) {
             const optionText = volumeSelect.options[volumeSelect.selectedIndex].text;
             const preset = presetSelect ? presetSelect.value : 'uk-table';
             const presetText = presetSelect ? presetSelect.options[presetSelect.selectedIndex].text : 'UK Table';
+            const targetPage = targetPageInput ? targetPageInput.value.trim() : '';
             
             const portrait = document.getElementById('exportPortraitOption').checked;
             const landscape = document.getElementById('exportLandscapeOption').checked;
+            const pdf = document.getElementById('exportPdfOption').checked;
 
-            if(!portrait && !landscape) {
+            if(!portrait && !landscape && !pdf) {
                 alert("Please select at least one export format.");
                 return;
             }
 
-            if(!confirm(`Are you sure you want to export ${optionText} (${presetText}) to High-Res PNGs? This will take a few minutes in the background.`)) return;
+            let confirmMsg = `Are you sure you want to export ${optionText} (${presetText}) to High-Res PNGs?`;
+            if (targetPage) {
+                confirmMsg = `Are you sure you want to export ONLY page ${targetPage} from ${optionText} (${presetText})?`;
+            }
+
+            if(!confirm(confirmMsg + ` This will take a few minutes in the background.`)) return;
 
             const btn = e.currentTarget;
             const originalText = btn.innerHTML;
@@ -445,7 +453,10 @@ export async function init(container) {
                     cleanVolume = volumePart.trim().toLowerCase().replace(/\s+/g, '-');
                 }
                 
-                const res = await fetch(`/api/editor/export-volume/${cleanSeries}/${cleanVolume}?portrait=${portrait}&landscape=${landscape}&preset=${preset}`, { method: 'POST' });
+                let fetchUrl = `/api/editor/export-volume/${cleanSeries}/${cleanVolume}?portrait=${portrait}&landscape=${landscape}&pdf=${pdf}&preset=${preset}`;
+                if (targetPage) fetchUrl += `&targetPage=${encodeURIComponent(targetPage)}`;
+
+                const res = await fetch(fetchUrl, { method: 'POST' });
                 const result = await res.json();
                 
                 if (result.ok) {
