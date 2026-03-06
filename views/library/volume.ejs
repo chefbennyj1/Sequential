@@ -15,7 +15,7 @@
         
         <div class="library-list">
             <% volume.chapters.forEach(chap => { %>
-                <a href="/viewer?id=<%= volume._id %>&chapter=<%= chap.chapterNumber %>" class="library-item">
+                <a href="/viewer?id=<%= volume._id %>&chapter=<%= chap.chapterNumber %>&page=0" class="library-item">
                     <div>
                         <div class="library-item-title">Chapter <%= chap.chapterNumber %></div>
                         <div class="library-card-meta"><%= chap.title || "Untitled" %></div>

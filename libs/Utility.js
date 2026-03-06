@@ -182,7 +182,7 @@ export function resolveMediaUrl(fileName, type, pageInfo, cacheBust = false) {
         url = useCloud ? `${gcsBase}/Volumes/${pageInfo.volume}/assets/${type}/${name}` : `/Library/${series}/Volumes/${pageInfo.volume}/assets/${type}/${name}`;
     } else {
         const { volume, chapter, pageId } = pageInfo;
-        const apiType = type === 'image' ? 'images' : (type === 'video' ? 'videos' : 'audio');
+        const apiType = 'images'; // Only images remain
         url = useCloud ? `${gcsBase}/Volumes/${volume}/${chapter}/${pageId}/assets/${type}/${fileName}` : `/api/${apiType}/${series}/${volume}/${chapter}/${pageId}/assets/${fileName}`;
     }
 
@@ -191,12 +191,4 @@ export function resolveMediaUrl(fileName, type, pageInfo, cacheBust = false) {
     }
 
     return appendSecret(url);
-}
-
-export async function fetchVolumeAudioMap(volumeId) {
-    try {
-        const response = await fetch(appendSecret(`/api/volumes/${volumeId}/audio-map`));
-        const data = await response.json();
-        return data.map || [];
-    } catch (e) { return []; }
 }

@@ -16,8 +16,6 @@ export function fadeElement(element, direction, duration = 500) {
 
 export function initMedia(container, pageInfo, mediaDataArray) {
     const { pageId } = pageInfo;
-    const videoElements = []; // Kept for compatibility with pageInitializer
-    const playlistManagers = []; // Kept for compatibility with pageInitializer
 
     console.log(`MediaManager - ${pageId} - Initializing ${mediaDataArray.length} media items.`)
     for (const media of mediaDataArray) {
@@ -47,7 +45,6 @@ export function initMedia(container, pageInfo, mediaDataArray) {
             }
         }
     }
-    return { videoElements, playlistManagers };
 }
 
 export async function startMediaPlayback(videos, pageInfo, sequentialVideoPlayback = false) { 

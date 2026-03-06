@@ -109,18 +109,14 @@ exports.getChapterDetails = async (req, res) => {
 exports.updateChapter = async (req, res) => {
   try {
     const { volumeId, chapterId } = req.params;
-    const { title, chapterNumber, backgroundAudioSrc, backgroundAudioVolume, backgroundAudioLoop, dualAudio } = req.body;
+    const { title, chapterNumber } = req.body;
 
     const result = await VolumeModel.updateOne(
       { "_id": volumeId, "chapters._id": chapterId },
       {
         "$set": {
           "chapters.$.title": title,
-          "chapters.$.chapterNumber": chapterNumber,
-          "chapters.$.backgroundAudioSrc": backgroundAudioSrc,
-          "chapters.$.backgroundAudioVolume": backgroundAudioVolume,
-          "chapters.$.backgroundAudioLoop": backgroundAudioLoop,
-          "chapters.$.dualAudio": dualAudio
+          "chapters.$.chapterNumber": chapterNumber
         }
       }
     );
@@ -204,11 +200,7 @@ exports.getChapterPages = async (req, res) => {
       ok: true,
       view: {
         title: `${volume.title} - Chapter ${chapter.chapterNumber}`,
-        pages: enrichedPages, // Includes layoutId, mediaData, sceneData AND series
-        backgroundAudioSrc: chapter.backgroundAudioSrc,
-        backgroundAudioVolume: chapter.backgroundAudioVolume,
-        backgroundAudioLoop: chapter.backgroundAudioLoop,
-        dualAudio: chapter.dualAudio
+        pages: enrichedPages // Includes layoutId, mediaData, sceneData AND series
       }
     });
 
@@ -218,54 +210,4 @@ exports.getChapterPages = async (req, res) => {
   }
 };
 
-exports.getAudioMap = async (req, res) => {
-    const { volumeId } = req.params;
-    
-    let volumeFolder = volumeId;
-    if (!volumeId.startsWith('volume-')) {
-        const v = await VolumeModel.findById(volumeId).select('volumePath');
-        if (v) volumeFolder = path.basename(v.volumePath);
-    }
-    
-    try {
-        const seriesPath = await resolveSeriesPath("No_Overflow");
-        const mapPath = path.join(seriesPath, 'Volumes', volumeFolder, 'audio_map.json');
-        
-        if (fs.existsSync(mapPath)) {
-            const data = fs.readFileSync(mapPath, 'utf8');
-            res.json({ ok: true, map: JSON.parse(data) });
-        } else {
-            res.json({ ok: true, map: [] });
-        }
-    } catch (e) {
-        console.error("Error reading audio map:", e);
-        res.status(500).json({ ok: false, message: "Failed to read audio map" });
-    }
-};
 
-exports.updateAudioMap = async (req, res) => {
-    const { volumeId } = req.params;
-    const { map } = req.body;
-    
-    let volumeFolder = volumeId;
-    if (!volumeId.startsWith('volume-')) {
-        const v = await VolumeModel.findById(volumeId).select('volumePath');
-        if (v) volumeFolder = path.basename(v.volumePath);
-    }
-
-    try {
-        const seriesPath = await resolveSeriesPath("No_Overflow");
-        const mapPath = path.join(seriesPath, 'Volumes', volumeFolder, 'audio_map.json');
-    
-        const validatedMap = validateAudioMap(map);
-        fs.writeFileSync(mapPath, JSON.stringify(validatedMap, null, 2));
-        res.json({ ok: true, message: "Audio map updated." });
-    } catch (e) {
-        console.error("Error writing audio map:", e);
-        if (e.message.startsWith("Invalid audio_map")) {
-             res.status(400).json({ ok: false, message: e.message });
-        } else {
-             res.status(500).json({ ok: false, message: "Failed to write audio map" });
-        }
-    }
-};

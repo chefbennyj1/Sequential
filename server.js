@@ -10,8 +10,23 @@ const fs = require('fs'); //file system
 const mime = require('mime-types'); //ensure proper mime types
 const sharp = require('sharp'); //image editing
 const os = require('os');
+const http = require('http');
+const { Server } = require('socket.io');
 
 const app = express();
+const server = http.createServer(app);
+const io = new Server(server);
+
+// Make io accessible to our routers/controllers
+app.locals.io = io;
+
+io.on('connection', (socket) => {
+  console.log(`WebSocket client connected: ${socket.id}`);
+  
+  socket.on('disconnect', () => {
+    console.log(`WebSocket client disconnected: ${socket.id}`);
+  });
+});
 
 const mongoDbURI = 'mongodb://localhost:27017/VeilSite';
 
@@ -109,7 +124,7 @@ app.use("/api", apiRoutes);
 
 const PORT = 3000;
 var hostname = getLocalIPv4();
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Website running on http://${hostname}:${PORT}`);
 });
 

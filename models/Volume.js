@@ -13,11 +13,7 @@ const pageSchema = new Schema({
 const chapterSchema = new Schema({
     title: String,
     chapterNumber: Number,
-    pages: [pageSchema],
-    backgroundAudioSrc: { type: String, default: null }, // Legacy chapter-specific field
-    backgroundAudioVolume: { type: Number, default: 1.0 },
-    backgroundAudioLoop: { type: Boolean, default: true },
-    dualAudio: { type: Boolean, default: false }
+    pages: [pageSchema]
 });
 
 const volumeSchema = new Schema({
@@ -28,7 +24,6 @@ const volumeSchema = new Schema({
     index: Number,
     title: String,
     volumePath: String, // e.g. "/views/Volumes/volume-1/"
-    audioMap: { type: Array, default: [] }, // Cache of audio_map.json
 
     chapters: [chapterSchema]
 });

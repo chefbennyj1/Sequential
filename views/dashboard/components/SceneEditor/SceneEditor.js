@@ -503,7 +503,6 @@ function renderVisualEditor(panelSelector) {
                 <label>Asset Type</label>
                 <select id="visual-asset-type" class="gov-select width-100">
                     <option value="image" ${entry.type === 'image' ? 'selected' : ''}>Image</option>
-                    <option value="video" ${entry.type === 'video' ? 'selected' : ''}>Video</option>
                     <option value="playlist" ${entry.type === 'playlist' ? 'selected' : ''}>Playlist</option>
                 </select>
             </div>

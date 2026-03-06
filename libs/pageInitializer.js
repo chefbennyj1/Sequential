@@ -1,5 +1,5 @@
 // libs/pageInitializer.js
-import { fetchScene, fetchMedia, loadCSS, imageMaskReveal, resolveMediaUrl, fetchVolumeAudioMap } from '/libs/Utility.js';
+import { fetchScene, fetchMedia, loadCSS, imageMaskReveal, resolveMediaUrl } from '/libs/Utility.js';
 import { initScene } from '/services/public/SceneManager.js';
 import { initMedia, fadeElement } from '/services/public/MediaManager.js';
 
@@ -33,20 +33,14 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
     const allPanels = container.querySelectorAll('.panel');
     const gifUrl = "/libs/panel_mask_image.gif";
 
-    const [sceneData, mediaResponse, audioMap] = await Promise.all([
+    const [sceneData, mediaResponse] = await Promise.all([
         cachedScene ? Promise.resolve(cachedScene) : fetchScene(volume, chapter, pageId, pageInfo.series),
-        cachedMedia ? Promise.resolve(cachedMedia) : fetchMedia(volume, chapter, pageId, pageInfo.series),
-        fetchVolumeAudioMap(volume)
+        cachedMedia ? Promise.resolve(cachedMedia) : fetchMedia(volume, chapter, pageId, pageInfo.series)
     ]);
 
     if (abortSignal?.aborted) return;
 
-    setupBackgroundAudio(pageId, volume, audioMap, pageInfo);
-    const ambientData = await prepareAmbientAudioData(pageId, mediaResponse, pageInfo);
-
-    if (abortSignal?.aborted) return;
-
-    const { videoElements, playlistManagers } = initMedia(container, pageInfo, mediaResponse.media);
+    initMedia(container, pageInfo, mediaResponse.media);
 
     if (abortSignal?.aborted) return;
 
@@ -57,26 +51,18 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
         return;
     }
 
-        container.addEventListener('view_visible', async () => {
-            if (!container.classList.contains("active")) return;
-    
-            if (window.audioStateManager) {
-                if (ambientData && ambientData.url) {
-                    window.audioStateManager.playAmbientAudio(ambientData.url, ambientData.volume); 
-                } else {
-                    window.audioStateManager.playAmbientAudio(null);
-                }
-            }
-    
-            window.isRevealing = true;
-            await imageMaskReveal(allPanels, gifUrl, 5000, mediaResponse.media, pageInfo);
-            window.isRevealing = false;
-    
-            if (sceneController?.restart) sceneController.restart();
-        });
+    container.addEventListener('view_visible', async () => {
+        if (!container.classList.contains("active")) return;
+
+        window.isRevealing = true;
+        await imageMaskReveal(allPanels, gifUrl, 5000, mediaResponse.media, pageInfo);
+        window.isRevealing = false;
+
+        if (sceneController?.restart) sceneController.restart();
+    });
+
     container.addEventListener('view_hidden', () => {
         if (sceneController?.cleanup) sceneController.cleanup();
-        if (window.audioStateManager) window.audioStateManager.unregisterAllPageAudio(pageId);
 
         allPanels.forEach(p => {
             const mediaElements = p.querySelectorAll('img');
@@ -114,31 +100,4 @@ function applyPanelEffect(container, panelSelector, effectType) {
     if (effectType === 'memory') {
         panel.classList.add('active-memory');
     }
-}
-
-function setupBackgroundAudio(pageId, volume, audioMap, pageInfo) {
-    if (!window.audioStateManager) return;
-
-    const entry = audioMap.find(item => item.pages.includes(pageId));
-    if (!entry || !entry.fileName) {
-        window.audioStateManager.playBackgroundAudio(null);
-        return;
-    }
-
-    const series = pageInfo.series || "No_Overflow";
-    const url = entry.fileName.includes('://')
-        ? resolveMediaUrl(entry.fileName, 'audio', pageInfo, true)
-        : `/Library/${series}/Volumes/${volume}/assets/audio/${entry.fileName}?t=${Date.now()}`;
-
-    window.audioStateManager.playBackgroundAudio(url, entry.volume || 1.0);
-}
-
-async function prepareAmbientAudioData(pageId, mediaResponse, pageInfo) {
-    const data = mediaResponse.ambientAudio;
-    if (!data || !data.fileName) return null;
-
-    const url = resolveMediaUrl(data.fileName, 'audio', pageInfo, true);
-    const volume = data.volume !== undefined ? data.volume : 1.0;
-
-    return { url, volume };
 }

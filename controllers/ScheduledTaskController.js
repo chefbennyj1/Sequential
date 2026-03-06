@@ -55,7 +55,8 @@ class ScheduledTaskController {
         try {
             // Run scan (this might take time, so we might want to just start it and return 'started')
             // For now, we await it to show results immediately.
-            const results = await scanLibrary();
+            const io = req.app.locals.io;
+            const results = await scanLibrary(io);
             res.json({ ok: true, message: "Scan complete.", results });
         } catch (e) {
             console.error("Manual Scan Error:", e);

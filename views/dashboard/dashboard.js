@@ -41,6 +41,17 @@ let currentSceneInfo = {};
 
 export async function init(container) {
     console.log("Initializing Dashboard...");
+    
+    // Initialize WebSockets
+    if (typeof io !== 'undefined') {
+        window.socket = io();
+        window.socket.on('connect', () => {
+            console.log(`[WebSocket] Connected with ID: ${window.socket.id}`);
+        });
+    } else {
+        console.warn("[WebSocket] Socket.io client script not found.");
+    }
+
     const sidebar = container.querySelector('.sidebar');
     const allSections = container.querySelectorAll('.dashboard-section');
 

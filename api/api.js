@@ -18,9 +18,6 @@ router.get('/editor/preview/:series/:volume/:chapter/:pageId', isAuth, EditorCon
 router.get('/editor/scene/:series/:volume/:chapter/:pageId', isAuth, EditorController.getScene);
 router.post('/editor/create-page', isAuth, EditorController.createPage);
 router.post('/editor/upload-asset', isAuth, EditorController.uploadMiddleware, EditorController.uploadAsset);
-router.post('/editor/ambient-audio', isAuth, EditorController.uploadMiddleware, EditorController.uploadAmbientAudio);
-router.post('/editor/set-ambient', isAuth, EditorController.setPageAmbientAudio);
-router.post('/editor/ambient-volume', isAuth, EditorController.updateAmbientVolume);
 router.get('/editor/panels/:series/:volume/:chapter/:pageId', isAuth, EditorController.getPanels);
 router.get('/editor/assets/:series/:volume/:chapter/:pageId/:type', isAuth, EditorController.getAssets);
 router.post('/editor/scene/:series/:volume/:chapter/:pageId', isAuth, EditorController.saveScene);
@@ -45,9 +42,6 @@ router.get('/volumes', isAuth, VolumeController.getVolumes);
 router.get('/volumes/:volumeId/chapters', isAuth, VolumeController.getChapters);
 router.get('/volumes/:volumeId/chapters/:chapterId', isAuth, VolumeController.getChapterDetails);
 router.put('/volumes/:volumeId/chapters/:chapterId', isAuth, VolumeController.updateChapter);
-
-router.get('/volumes/:volumeId/audio-map', isAuth, VolumeController.getAudioMap);
-router.post('/volumes/:volumeId/audio-map', isAuth, VolumeController.updateAudioMap);
 
 // --- VOLUME VIEW ROUTES (Public/Auth) ---
 router.get('/volume/:id', isAuth, VolumeController.getVolumeById);

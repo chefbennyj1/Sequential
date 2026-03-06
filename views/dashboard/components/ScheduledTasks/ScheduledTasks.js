@@ -1,11 +1,14 @@
 export default class ScheduledTaskView {
     constructor() {
         this.container = document.querySelector('.scheduled-tasks');
-        this.rootsList = document.getElementById('library-roots-list');
-        this.logContainer = document.getElementById('scanner-log');
+        this.rootsList = this.container.querySelector('#library-roots-list');
+        this.logContainer = this.container.querySelector('#scanner-log');
         
-        this.addBtn = document.getElementById('add-root-btn');
-        this.scanBtn = document.getElementById('run-scan-btn');
+        this.addBtn = this.container.querySelector('#add-root-btn');
+        this.scanBtn = this.container.querySelector('#run-scan-btn');
+        
+        this.progressContainer = this.container.querySelector('.scanner-progress-container');
+        this.progressBar = this.container.querySelector('#scanner-progress-bar');
         
         this.init();
     }
@@ -13,6 +16,28 @@ export default class ScheduledTaskView {
     async init() {
         this.bindEvents();
         await this.loadRoots();
+        this.setupSockets();
+    }
+
+    setupSockets() {
+        if (window.socket) {
+            window.socket.on('scanner_progress', (data) => {
+                // Show the progress bar container if hidden
+                if (this.progressContainer.style.display === 'none') {
+                    this.progressContainer.style.display = 'block';
+                }
+                
+                // Update progress width if percentage provided
+                if (typeof data.percentage === 'number') {
+                    this.progressBar.style.width = `${data.percentage}%`;
+                }
+                
+                // Log the message
+                if (data.message) {
+                    this.log(data.message);
+                }
+            });
+        }
     }
 
     bindEvents() {
@@ -121,6 +146,11 @@ export default class ScheduledTaskView {
     async runScan() {
         this.scanBtn.disabled = true;
         this.scanBtn.textContent = "Scanning...";
+        
+        // Reset progress bar
+        this.progressContainer.style.display = 'block';
+        this.progressBar.style.width = '0%';
+        this.logContainer.innerHTML = ''; // clear old logs
         this.log(`> Starting library scan...`);
 
         try {
@@ -128,9 +158,11 @@ export default class ScheduledTaskView {
             const data = await res.json();
 
             if (data.ok) {
+                this.progressBar.style.width = '100%';
                 this.log(`> Scan complete.`);
                 data.results.forEach(series => {
-                    this.log(`  + Found: ${series.title} (${series.volumeCount} volumes)`);
+                    const count = series.volumes ? series.volumes.length : 0;
+                    this.log(`  + Found: ${series.title} (${count} volumes)`);
                 });
             } else {
                 this.log(`> Error: ${data.message}`);
@@ -140,6 +172,10 @@ export default class ScheduledTaskView {
         } finally {
             this.scanBtn.disabled = false;
             this.scanBtn.textContent = "Run Scan Now";
+            // Hide progress bar after 2 seconds
+            setTimeout(() => {
+                this.progressContainer.style.display = 'none';
+            }, 2000);
         }
     }
 

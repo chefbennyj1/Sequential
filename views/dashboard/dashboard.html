@@ -375,6 +375,10 @@
                     <button id="run-scan-btn" class="update__btn">Run Scan Now</button>
                 </div>
                 
+                <div class="scanner-progress-container" style="display: none;">
+                    <div class="scanner-progress-bar" id="scanner-progress-bar"></div>
+                </div>
+
                 <div id="scanner-log" class="scanner-log">
                     <span class="log-placeholder">> System ready.<br>> Waiting for command...</span>
                 </div>
@@ -483,41 +487,6 @@
                                 <button id="applyLayoutBtn" class="small btn-apply width-100">Apply Selected Layout</button>
                             </div>
                             <p class="font-size-07 layout-preview-note">Choosing a new layout will immediately update the structural grid of the page.</p>
-                        </div>
-                    </div>
-
-                    <!-- 4. AUDIO (Bottom) -->
-                        
-                        <div class="audio-config-group">
-                            
-                            <!-- Background Audio -->
-                            <div>
-                                <label class="audio-config-label">Background Audio</label>
-                                <div class="audio-config-row">
-                                    <span id="backgroundAudioDisplay" class="audio-config-filename text-truncate">None</span>
-                                    <button id="browseBackgroundAudioBtn" class="small audio-browse-btn">...</button>
-                                    <div class="divider-v"></div>
-                                    <ion-icon name="volume-medium" class="text-muted audio-icon-small"></ion-icon>
-                                    <input type="number" id="backgroundAudioVolumeInput" min="0" max="1" step="0.1" value="1" class="volume-input">
-                                    <button id="applyBackgroundAudioBtn" class="small btn-apply">Apply</button>
-                                </div>
-                                <p class="font-size-07 layout-preview-note">Persistent across pages in the current volume.</p>
-                            </div>
-
-                            <!-- Page Ambient -->
-                            <div>
-                                <label class="audio-config-label">Page Ambient</label>
-                                <div class="audio-config-row">
-                                    <span id="ambientAudioDisplay" class="audio-config-filename text-truncate">None</span>
-                                    <button id="browseAmbientAudioBtn" class="small audio-browse-btn">...</button>
-                                    <div class="divider-v"></div>
-                                    <ion-icon name="volume-medium" class="text-muted audio-icon-small"></ion-icon>
-                                    <input type="number" id="ambientVolumeInput" min="0" max="1" step="0.1" value="1" class="volume-input">
-                                    <button id="applyAmbientBtn" class="small btn-apply">Apply</button>
-                                </div>
-                                <p class="font-size-07 layout-preview-note">Loops automatically when this specific page is opened.</p>
-                            </div>
-
                         </div>
                     </div>
 

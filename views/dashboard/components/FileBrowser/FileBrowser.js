@@ -26,7 +26,7 @@ export async function openFileBrowser(type, volume, chapter, pageId, callback, i
 
     if (modal) {
         modal.classList.add('active');
-        uploadInput.accept = type === 'image' ? 'image/*' : (type === 'audio' ? 'audio/*' : 'video/*');
+        uploadInput.accept = 'image/*';
         
         // Reset filters
         if (searchInput) searchInput.value = '';
@@ -105,44 +105,21 @@ function renderFileBrowserGrid(files) {
 
         // Construct URL based on Scope
         if (scope === 'page') {
-            if (fileBrowserCurrentType === 'image') {
-                assetUrl = `/api/images/${series}/${currentContext.volume}/${currentContext.chapter}/${currentContext.pageId}/assets/${file.name}`;
-            } else if (fileBrowserCurrentType === 'video') {
-                assetUrl = `/api/thumbnails/video/${series}/${currentContext.volume}/${currentContext.chapter}/${currentContext.pageId}/${file.name}`;
-            } else if (fileBrowserCurrentType === 'audio') {
-                assetUrl = `/api/audio/${series}/${currentContext.volume}/${currentContext.chapter}/${currentContext.pageId}/assets/${file.name}`;
-            }
+            assetUrl = `/api/images/${series}/${currentContext.volume}/${currentContext.chapter}/${currentContext.pageId}/assets/${file.name}`;
         } else if (scope === 'series') {
-            assetUrl = `/Library/No_Overflow/assets/${fileBrowserCurrentType}/${file.name}`;
+            assetUrl = `/Library/No_Overflow/assets/image/${file.name}`;
         } else if (scope === 'volume') {
-             assetUrl = `/Library/No_Overflow/Volumes/${currentContext.volume}/assets/${fileBrowserCurrentType}/${file.name}`;
-        } else if (scope === 'global') {
-            assetUrl = `/resources/audio/${file.name}`;
+             assetUrl = `/Library/No_Overflow/Volumes/${currentContext.volume}/assets/image/${file.name}`;
         }
 
         // Preview logic
-        if (fileBrowserCurrentType === 'image') {
-            preview = `
-                <div class="preview-container">
-                    <img src="${assetUrl}" onerror="this.classList.add('asset-preview-hidden'); this.nextElementSibling.classList.remove('asset-preview-hidden');">
-                    <div class="asset-preview-fallback asset-preview-hidden">
-                        <ion-icon name="image-outline" class="asset-preview-icon"></ion-icon>
-                    </div>
-                </div>`;
-        } else if (fileBrowserCurrentType === 'video') {
-            preview = `
-                <div class="preview-container">
-                    <img src="${assetUrl}" 
-                         class="asset-preview-video asset-preview-hidden"
-                         onload="this.classList.remove('asset-preview-hidden'); this.nextElementSibling.classList.add('asset-preview-hidden');"
-                         onerror="this.classList.add('asset-preview-hidden'); this.nextElementSibling.classList.remove('asset-preview-hidden');">
-                    <div class="asset-preview-video-container">
-                        <ion-icon name="videocam-outline" class="asset-preview-icon"></ion-icon>
-                    </div>
-                </div>`;
-        } else if (fileBrowserCurrentType === 'audio') {
-            preview = `<div class="preview-container"><ion-icon name="musical-notes-outline" class="asset-preview-icon"></ion-icon></div>`;
-        }
+        preview = `
+            <div class="preview-container">
+                <img src="${assetUrl}" onerror="this.classList.add('asset-preview-hidden'); this.nextElementSibling.classList.remove('asset-preview-hidden');">
+                <div class="asset-preview-fallback asset-preview-hidden">
+                    <ion-icon name="image-outline" class="asset-preview-icon"></ion-icon>
+                </div>
+            </div>`;
 
         div.innerHTML = `${preview}<div class="file-name">${file.name}</div>`;
         

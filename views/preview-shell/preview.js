@@ -49,17 +49,10 @@ export async function init(container, params) {
             
             if (data.ok) {
                 labelElement.innerText = "Success!";
-                const isVideo = file.type.startsWith('video');
-                const el = isVideo ? document.createElement('video') : document.createElement('img');
+                const el = document.createElement('img');
                 
                 const series = params.series || 'No_Overflow';
-                if (isVideo) {
-                     el.src = `/api/videos/${series}/${volume}/${chapter}/${pageId}/assets/${file.name}`;
-                     el.controls = true;
-                     el.muted = true;
-                } else {
-                     el.src = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${file.name}`;
-                }
+                el.src = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${file.name}`;
                 
                 el.style.width = '100%'; 
                 el.style.height = '100%'; 
@@ -75,7 +68,7 @@ export async function init(container, params) {
                 window.parent.postMessage({ 
                     type: 'assetUploaded', 
                     panel: '.' + panelClass,
-                    type: isVideo ? 'video' : 'image',
+                    type: 'image',
                     fileName: file.name
                 }, '*');
 
@@ -122,11 +115,6 @@ export async function init(container, params) {
                     if (item.type === 'image') {
                         el = document.createElement('img');
                         el.src = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${item.fileName}`;
-                    } else if (item.type === 'video') {
-                        el = document.createElement('video');
-                        el.src = `/api/videos/${series}/${volume}/${chapter}/${pageId}/assets/${item.fileName}`;
-                        el.muted = true;
-                        el.controls = true;
                     }
 
                     if (el) {

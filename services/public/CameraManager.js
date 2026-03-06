@@ -35,10 +35,9 @@ export async function applyCameraAction(panel, action, overrideDuration = null) 
     const hasGsap = await ensureGsap();
     if (!hasGsap) return;
 
-    const target = (panel.tagName === 'IMG' || panel.tagName === 'VIDEO') 
+    const target = (panel.tagName === 'IMG')
         ? panel 
-        : panel.querySelector('img, video');
-
+        : panel.querySelector('img');
     if (!target && action.type !== 'shake') return;
 
     console.log(`CameraManager: Applying ${action.type}`);
@@ -245,10 +244,9 @@ function breathe(target) {
 
 export async function resetCamera(panel) {
     if (!window.gsap) return;
-    const target = (panel.tagName === 'IMG' || panel.tagName === 'VIDEO') 
+    const target = (panel.tagName === 'IMG')
         ? panel 
-        : panel.querySelector('img, video');
-    
+        : panel.querySelector('img');    
     if (target) {
         gsap.killTweensOf(target);
         finalReset(target);

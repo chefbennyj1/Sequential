@@ -36,17 +36,21 @@ async function ensureDefaultRoot() {
     return root;
 }
 
-async function scanLibrary() {
+async function scanLibrary(io = null) {
     await connectDB();
     await ensureDefaultRoot();
 
     const roots = await LibraryRoot.find({ isActive: true });
     console.log(`Scanning ${roots.length} active Library Roots...`);
+    if (io) io.emit('scanner_progress', { message: `> Scanning ${roots.length} active Library Roots...`, percentage: 5 });
 
     const allDetectedSeries = [];
+    let totalSeriesFound = 0;
 
-    for (const root of roots) {
+    for (let i = 0; i < roots.length; i++) {
+        const root = roots[i];
         console.log(`--- Scanning Root: ${root.name} (${root.path}) ---`);
+        if (io) io.emit('scanner_progress', { message: `> Checking Root: ${root.name}`, percentage: 10 + (i / roots.length) * 10 });
         
         if (!fs.existsSync(root.path)) {
             console.warn(`Warning: Path does not exist for root ${root.name}: ${root.path}`);
@@ -55,7 +59,8 @@ async function scanLibrary() {
 
         const entries = fs.readdirSync(root.path, { withFileTypes: true });
 
-        for (const entry of entries) {
+        for (let j = 0; j < entries.length; j++) {
+            const entry = entries[j];
             if (entry.isDirectory()) {
                 const seriesPath = path.join(root.path, entry.name);
                 const volumesPath = path.join(seriesPath, 'Volumes');
@@ -63,6 +68,11 @@ async function scanLibrary() {
                 // Validation: Must contain a Volumes folder
                 if (fs.existsSync(volumesPath) && fs.lstatSync(volumesPath).isDirectory()) {
                     console.log(`Found valid series structure: ${entry.name}`);
+                    totalSeriesFound++;
+                    if (io) io.emit('scanner_progress', { 
+                        message: `> Found series: ${entry.name}`, 
+                        percentage: 20 + Math.min(60, (totalSeriesFound * 5)) 
+                    });
                     
                     const seriesData = {
                         title: entry.name,
@@ -73,25 +83,27 @@ async function scanLibrary() {
                     const seriesDoc = await syncSeriesToDB(seriesData);
                     if (seriesDoc) {
                         allDetectedSeries.push(seriesDoc);
-                        await scanVolumesInSeries(seriesDoc, volumesPath, entry.name);
+                        await scanVolumesInSeries(seriesDoc, volumesPath, entry.name, io);
                     }
                 }
             }
         }
     }
 
+    if (io) io.emit('scanner_progress', { message: `> Finishing up...`, percentage: 95 });
     return allDetectedSeries;
 }
 
 const Volume = require('../models/Volume');
 const VolumeService = require('../services/VolumeService');
 
-async function scanVolumesInSeries(seriesDoc, volumesPath, seriesFolderName) {
+async function scanVolumesInSeries(seriesDoc, volumesPath, seriesFolderName, io = null) {
     const volumeFolders = fs.readdirSync(volumesPath).filter(f => {
         return fs.lstatSync(path.join(volumesPath, f)).isDirectory() && f.startsWith('volume-');
     });
 
     console.log(`Checking ${volumeFolders.length} volume folders in ${seriesFolderName}...`);
+    if (io) io.emit('scanner_progress', { message: `  > Syncing ${volumeFolders.length} volumes for ${seriesFolderName}...` });
 
     for (const volFolder of volumeFolders) {
         const absolutePath = path.join(volumesPath, volFolder);

@@ -5,146 +5,32 @@ import SoundEffect from '/libs/SoundEffect/SoundEffect.js';
 import ActionText from '/libs/ActionText/ActionText.js';
 import { resolveMediaUrl } from '/libs/Utility.js';
 
-function manageSequentialAudioVisuals(audioVisualItemsToAnimate, container) {
-    if (!audioVisualItemsToAnimate || audioVisualItemsToAnimate.length === 0) return { cleanup: () => {}, restart: () => {} };
-
-    let currentIndex = 0;
-    let currentAnimationId = 0;
-    let currentAudioElement = null;
-    let itemEndedListener = null;
-    let timeoutId = null;
-
-    const animate = async () => { 
-        const myAnimationId = currentAnimationId;
-
-        clearTimeout(timeoutId);
-
-        if (currentIndex >= audioVisualItemsToAnimate.length) {
-            console.log(`Animation sequence completed.`);
-            return;
-        }
-
-        const audioVisualItem = audioVisualItemsToAnimate[currentIndex];
-        let cueDuration = audioVisualItem.duration || 2000;
-
-        // 1. Prepare Timers/Promises
-        const waitPromises = [];
-
-        // Standard Content Duration
-        waitPromises.push(new Promise(async (resolve) => {
-            let playPromise;
-            if (typeof audioVisualItem.play === 'function') {
-                playPromise = audioVisualItem.play();
-            } else if (audioVisualItem.show) { 
-                audioVisualItem.show();
-            }
-
-            if (playPromise && typeof playPromise.then === 'function') {
-                try {
-                    await playPromise; 
-                    resolve();
-                } catch (e) {
-                    console.error("Error during promise-based item playback:", e);
-                    resolve();
-                }
-            }
-            else {
-                timeoutId = setTimeout(() => {
-                    resolve();
-                }, cueDuration);
-            }
-        }));
-
-        // Trigger Event for other listeners
-        if (container && audioVisualItem.options) { 
-            const event = new CustomEvent('dialogueAudioStarted', {
-                detail: { 
-                    dialogueItem: audioVisualItem.options,
-                    duration: cueDuration 
-                }
-            });
-            container.dispatchEvent(event);
-        }
-
-        // 3. Wait for all conditions to be met
-        await Promise.all(waitPromises);
-
-        // Abort if a new animation has taken over
-        if (myAnimationId !== currentAnimationId) return;
-
-        if (container && audioVisualItem.options) {
-            const event = new CustomEvent('cueEnded', {
-                detail: { dialogueItem: audioVisualItem.options }
-            });
-            container.dispatchEvent(event);
-        }
-
-        // Global Cue Delay: Add breathing room between cues
-        await new Promise(resolve => setTimeout(resolve, 1500));
-
-        // Abort if a new animation has taken over during the delay
-        if (myAnimationId !== currentAnimationId) return;
-
-        currentIndex++;
-        animate();
-    };
-
-    const startAnimation = () => {
-        currentAnimationId++; // Kill any existing animation loops
-        
-        clearTimeout(timeoutId);
-        currentIndex = 0;
-        
-        animate();
-    };
-
-    const cleanup = () => {
-        currentAnimationId++; // Kill existing loops on cleanup
-        
-        clearTimeout(timeoutId);
-        
-        audioVisualItemsToAnimate.forEach(item => {
-            if (item.destroy) {
-                item.destroy();
-            } else {
-                if (item.hide) item.hide();
-                if (item.pause) item.pause();
-            }
-        });
-        audioVisualItemsToAnimate.length = 0;
-    };
-
-    return { cleanup, restart: startAnimation };
-}
-
 export async function initScene(container, pageInfo, sceneData) {
     const { series, pageId, pageIndex, chapter, volume } = pageInfo;
     const page = container.querySelector('.section-container') || container;
 
-    const audioVisualItemsToAnimate = [];
+    const visualItemsToRender = [];
+    
     for (const [index, item] of sceneData.entries()) {
-        let audioVisualItem = null;
+        let visualItem = null;
 
         if (item.displayType.type === 'SpeechBubble') {
             const panelEl = container.querySelector(item.placement.panel);
-            if (!panelEl) {
-                console.error(`SpeechBubble on page ${pageId}, index ${index}: Panel '${item.placement.panel}' not found.`);
-                continue;
-            }
+            if (!panelEl) continue;
+
             const bubbleOptions = { ...item, series, volume, chapter, pageId, pageIndex, dialogueIndex: index };
             if (item.attributes) bubbleOptions.attributes = item.attributes;
             if (item.style) bubbleOptions.style = item.style;
             Object.assign(bubbleOptions, item.placement); 
+            
             const bubble = new SpeechBubble(panelEl, bubbleOptions);
             await bubble.render();
-            audioVisualItem = bubble;
+            visualItem = bubble;
 
         } else if (item.displayType.type === 'TextBlock') {
             const panelEl = (item.placement && item.placement.panel) ? container.querySelector(item.placement.panel) : page;
-            if (!panelEl) {
-                console.error(`TextBlock on page ${pageId}, index ${index}: Panel or page container not found.`);
-                continue;
-            }
+            if (!panelEl) continue;
+
             const textBlockOptions = { 
                 ...item, 
                 series, 
@@ -158,74 +44,55 @@ export async function initScene(container, pageInfo, sceneData) {
             if (item.attributes) textBlockOptions.attributes = item.attributes;
             if (item.style) textBlockOptions.style = item.style;
             Object.assign(textBlockOptions, item.placement); 
+            
             const textBlock = new TextBlock(panelEl, textBlockOptions);
             await textBlock.render();
-            audioVisualItem = textBlock;
+            visualItem = textBlock;
 
         } else if (item.displayType.type === 'SoundEffect') {
+            // Sound Effects are purely visual ActionText objects now in the new engine
             const panelEl = (item.placement && item.placement.panel) ? container.querySelector(item.placement.panel) : null;
             const soundEffectOptions = { ...item, series, volume, chapter, pageId };
             if (item.placement) Object.assign(soundEffectOptions, item.placement);
             const soundEffect = new SoundEffect(panelEl, soundEffectOptions);
             await soundEffect.render();
-            audioVisualItem = soundEffect;
+            visualItem = soundEffect;
+            
         } else if (item.displayType.type === 'ActionText') {
             const panelEl = (item.placement && item.placement.panel) ? container.querySelector(item.placement.panel) : null;
             const actionTextOptions = { ...item, series, volume, chapter, pageId };
             if (item.placement) Object.assign(actionTextOptions, item.placement);
             const actionText = new ActionText(panelEl, actionTextOptions);
             await actionText.render();
-            audioVisualItem = actionText;
-        } else if (item.displayType.type === 'Pause') {
-             audioVisualItem = {
-                duration: item.duration || 1000,
-                options: item
-            };
+            visualItem = actionText;
         }
 
-        if (audioVisualItem && (audioVisualItem.audioElement || audioVisualItem.duration || typeof audioVisualItem.play === 'function')) {
-            audioVisualItemsToAnimate.push(audioVisualItem);
+        if (visualItem) {
+            visualItemsToRender.push(visualItem);
         }
     }
 
-    if (audioVisualItemsToAnimate.length > 0) {
-        audioVisualItemsToAnimate.sort((a, b) => {
+    if (visualItemsToRender.length > 0) {
+        visualItemsToRender.sort((a, b) => {
             const orderA = (a.options && a.options.displayOrder !== undefined) ? a.options.displayOrder : Infinity;
             const orderB = (b.options && b.options.displayOrder !== undefined) ? b.options.displayOrder : Infinity;
             return orderA - orderB;
         });
 
-        const forceComicMode = true; // Default to true for Sequential Server
+        visualItemsToRender.forEach(item => {
+            if (item.show) item.show();
+            if (item.element) item.element.style.visibility = 'visible'; 
+        });
 
-        if (forceComicMode) {
-            audioVisualItemsToAnimate.forEach(item => {
-                if (item.show) item.show();
-                if (item.element) item.element.style.visibility = 'visible'; 
-            });
-            
-            audioVisualItemsToAnimate.forEach(item => {
-                if (container && item.options) {
-                    const event = new CustomEvent('dialogueAudioStarted', {
-                        detail: { 
-                            dialogueItem: item.options,
-                            duration: 0 
-                        }
-                    });
-                    container.dispatchEvent(event);
-                }
-            });
-
-            return { 
-                cleanup: () => {
-                     audioVisualItemsToAnimate.forEach(item => {
-                        if (item.destroy) item.destroy();
-                    });
-                }, 
-                restart: () => {} 
-            };
-        }
-
-        return manageSequentialAudioVisuals(audioVisualItemsToAnimate, container);
+        return { 
+            cleanup: () => {
+                 visualItemsToRender.forEach(item => {
+                    if (item.destroy) item.destroy();
+                });
+            }, 
+            restart: () => {} 
+        };
     }
+    
     return { cleanup: () => {}, restart: () => {} };
 }
