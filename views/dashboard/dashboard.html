@@ -67,6 +67,12 @@
                     <p>Create and manage character profiles.</p>
                 </div>
 
+                <div class="mode-card" data-target="plot-lab">
+                    <ion-icon name="bulb-outline"></ion-icon>
+                    <h4>Plot Lab</h4>
+                    <p>Brainstorm and storyboard your ideas.</p>
+                </div>
+
                 <div class="mode-card" data-target="export-tool">
                     <ion-icon name="print-outline"></ion-icon>
                     <h4>Print Exporter</h4>
@@ -643,6 +649,25 @@
         <div class="loader-spinner"></div>
         <h3>Saving Data...</h3>
         <p>Please wait while we update the grid.</p>
+    </div>
+
+    <!-- PLOT LAB SECTION -->
+    <div class="plot-lab dashboard-section hidden">
+        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+        <div class="flex-between margin-b-20">
+            <div class="flex-row-center gap-15">
+                <h3>Plot Lab</h3>
+                <select id="plot-series-select" class="gov-select">
+                    <option value="">Select Series</option>
+                </select>
+            </div>
+            <button id="add-plot-beat-btn" class="update__btn">+ Add Beat</button>
+        </div>
+
+        <div class="plot-board-container" id="plot-board-container">
+            <!-- Story beats injected here by JS -->
+            <div class="text-muted padding-20">Select a series to load the plot board.</div>
+        </div>
     </div>
 
     <!-- EXPORT TOOL SECTION -->

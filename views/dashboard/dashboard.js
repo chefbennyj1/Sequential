@@ -36,6 +36,7 @@ import {
 import { initFileBrowser } from './components/FileBrowser/FileBrowser.js';
 import CharacterEditor from './components/CharacterLab/CharacterLab.js';
 import ScheduledTaskView from './components/ScheduledTasks/ScheduledTasks.js';
+import { initPlotLab } from './components/PlotLab/PlotLab.js';
 
 let currentSceneInfo = {};
 
@@ -395,6 +396,15 @@ export async function init(container) {
     initVisualEditor();
     new CharacterEditor();
     new ScheduledTaskView();
+    initPlotLab(container);
+
+    // Inject PlotLab CSS
+    if (!document.querySelector(`link[href="/views/dashboard/components/PlotLab/PlotLab.css"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = '/views/dashboard/components/PlotLab/PlotLab.css';
+        document.head.appendChild(link);
+    }
 
     // User & Data Load
     let user; 

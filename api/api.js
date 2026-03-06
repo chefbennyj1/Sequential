@@ -27,6 +27,10 @@ router.post('/editor/change-layout', isAuth, EditorController.changeLayout);
 router.post('/editor/insert-page', isAuth, EditorController.insertPage);
 router.post('/editor/create-chapter', isAuth, EditorController.createChapter);
 
+// Plot Lab Routes
+router.get('/editor/plot-board/:series', isAuth, EditorController.getPlotBoard);
+router.post('/editor/plot-board/:series', isAuth, EditorController.savePlotBoard);
+
 // --- USER ROUTES ---
 router.post("/user/register", UserController.registerUser);
 router.get('/user', isAuth, UserController.getUser);

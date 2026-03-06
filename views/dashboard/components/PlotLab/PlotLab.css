@@ -1,0 +1,123 @@
+/* views/dashboard/components/PlotLab/PlotLab.css */
+
+.plot-board-container {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 20px;
+    min-height: 500px;
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    overflow-y: auto;
+}
+
+.plot-beat-card {
+    background: #1e1e1e;
+    border: 1px solid #444;
+    border-radius: 6px;
+    padding: 15px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    cursor: grab;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    position: relative;
+}
+
+.plot-beat-card:active {
+    cursor: grabbing;
+}
+
+.plot-beat-card.dragging {
+    opacity: 0.5;
+    border-style: dashed;
+}
+
+/* Card Headers by Type */
+.plot-beat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #333;
+    padding-bottom: 8px;
+}
+
+.plot-beat-title {
+    font-size: 1.1em;
+    font-weight: bold;
+    color: #fff;
+    margin: 0;
+}
+
+.plot-beat-type {
+    font-size: 0.75em;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 3px 8px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+
+/* Colors for specific beat types */
+.type-lore { background: rgba(0, 255, 255, 0.1); color: #0ff; border: 1px solid #0ff; }
+.type-plot { background: rgba(0, 255, 65, 0.1); color: #00ff41; border: 1px solid #00ff41; }
+.type-character { background: rgba(255, 0, 255, 0.1); color: #f0f; border: 1px solid #f0f; }
+
+.plot-beat-desc {
+    color: #ccc;
+    font-size: 0.9em;
+    line-height: 1.5;
+    margin: 0;
+    white-space: pre-wrap;
+}
+
+.plot-beat-controls {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 10px;
+}
+
+.plot-beat-controls button {
+    background: none;
+    border: none;
+    color: #888;
+    cursor: pointer;
+    font-size: 0.8em;
+    transition: color 0.2s;
+}
+
+.plot-beat-controls button:hover {
+    color: var(--cyber-primary, #00ff41);
+}
+
+.plot-beat-controls .delete-btn:hover {
+    color: #ff4444;
+}
+
+/* Modal Form Styles */
+.plot-form-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.plot-form-content {
+    background: #1a1a1a;
+    border: 1px solid var(--cyber-primary, #00ff41);
+    border-radius: 8px;
+    padding: 30px;
+    width: 500px;
+    max-width: 90vw;
+}
+
+.plot-form-content h3 {
+    margin-top: 0;
+    margin-bottom: 20px;
+    color: var(--cyber-primary, #00ff41);
+}

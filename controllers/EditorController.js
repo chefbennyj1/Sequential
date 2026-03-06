@@ -469,6 +469,41 @@ exports.syncPage = async (req, res) => {
   }
 };
 
+exports.getPlotBoard = async (req, res) => {
+  const { series } = req.params;
+  try {
+    const seriesFolderName = await getSeriesFolderName(series);
+    const seriesPath = await resolveSeriesPath(seriesFolderName);
+    const plotPath = path.join(seriesPath, 'plot_board.json');
+
+    if (fs.existsSync(plotPath)) {
+      const data = JSON.parse(fs.readFileSync(plotPath, 'utf8'));
+      res.json({ ok: true, board: data });
+    } else {
+      res.json({ ok: true, board: [] });
+    }
+  } catch (e) {
+    console.error("getPlotBoard Error:", e);
+    res.status(500).json({ ok: false, message: e.message });
+  }
+};
+
+exports.savePlotBoard = async (req, res) => {
+  const { series } = req.params;
+  const { board } = req.body;
+  try {
+    const seriesFolderName = await getSeriesFolderName(series);
+    const seriesPath = await resolveSeriesPath(seriesFolderName);
+    const plotPath = path.join(seriesPath, 'plot_board.json');
+
+    fs.writeFileSync(plotPath, JSON.stringify(board, null, 2));
+    res.json({ ok: true, message: 'Plot board saved' });
+  } catch (e) {
+    console.error("savePlotBoard Error:", e);
+    res.status(500).json({ ok: false, message: e.message });
+  }
+};
+
 exports.changeLayout = async (req, res) => {
   const { volumeId, chapterId, pageId, layout } = req.body;
   try {
