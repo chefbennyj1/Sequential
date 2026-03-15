@@ -193,3 +193,22 @@
 .speech-bubble-container.monologue .tail-container {
     display: none;
 }
+
+/* --- PORTRAIT OVERRIDES --- */
+.portrait-page .super-bubble {
+    padding: 1.25em 1.85em;
+    border-width: 0.18em;
+    box-shadow: 0.25em 0.25em 0px rgba(0,0,0,0.2);
+    font-size: 0.85em;
+}
+.portrait-page .super-bubble::before { inset: -0.18em; }
+.portrait-page .super-bubble::after { inset: -0.06em; border-width: 0.12em; }
+.portrait-page .tail-container::before, .portrait-page .tail-container::after { border-width: 0.95em; }
+.portrait-page .tail-bottom-left::before { top: -0.6em; }
+.portrait-page .tail-bottom-left::after { top: -0.75em; left: 0.12em; border-width: 0.75em; }
+.portrait-page .tail-bottom-right::before { top: -0.6em; right: 0.12em; }
+.portrait-page .tail-bottom-right::after { top: -0.75em; right: 0.25em; border-width: 0.75em; }
+.portrait-page .tail-top-left::before { bottom: -0.6em; }
+.portrait-page .tail-top-left::after { bottom: -0.75em; left: 0.12em; border-width: 0.75em; }
+.portrait-page .tail-top-right::before { bottom: -0.6em; right: 0.12em; }
+.portrait-page .tail-top-right::after { bottom: -0.75em; right: 0.25em; border-width: 0.75em; }

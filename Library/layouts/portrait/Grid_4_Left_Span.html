@@ -1,0 +1,47 @@
+<style>
+@import url('/layouts/styles/base-comic-layout-portrait.css');
+
+/* 
+    Layout: Four Panel Grid with Top Span (Portrait)
+    Transposed from: Left Side Span
+*/
+.page-layout.layout-four-panel-grid-with-left-side-span {
+    display: grid;
+    /* 2 Columns, 3 Rows */
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1.2fr 2fr 2fr;
+    gap: 10px;
+}
+
+/* Transposed: Left Span becomes Top Span */
+.layout-four-panel-grid-with-left-side-span .panel-1a {
+    grid-column: 1 / 3; /* Spans both columns */
+    grid-row: 1 / 2;
+}
+
+/* Below Top Span: 2x2 Grid */
+.layout-four-panel-grid-with-left-side-span .panel-1b {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+.layout-four-panel-grid-with-left-side-span .panel-1c {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+}
+
+.layout-four-panel-grid-with-left-side-span .panel-2a {
+    grid-column: 1 / 2;
+    grid-row: 3 / 4;
+}
+.layout-four-panel-grid-with-left-side-span .panel-2b {
+    grid-column: 2 / 3;
+    grid-row: 3 / 4;
+}
+</style>
+<div class="section-container portrait-page page-layout layout-four-panel-grid-with-left-side-span">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>

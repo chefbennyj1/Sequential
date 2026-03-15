@@ -52,7 +52,11 @@
 
             const params = new URLSearchParams(window.location.search);
             const exportSecret = params.get('exportSecret');
-            
+
+            // NEW: Portrait and Spread Mode detection
+            window.GEMINI_PORTRAIT_MODE = params.get('mode') === 'portrait' || params.get('spread') === 'true';
+            window.GEMINI_SPREAD_MODE = params.get('spread') === 'true';
+
             // --- Robust Interceptor for Exporter Authentication ---
             if (exportSecret) {
                 const originalFetch = window.fetch;
@@ -86,18 +90,55 @@
 
                 chapter.pages.sort((a, b) => a.index - b.index);
 
-                chapter.pages.forEach((page, index) => {
-                    const section = document.createElement("section");
-                    section.id = 'section-' + index;
-                    section.className = 'section-' + index + " scroll-section page-container";
-                    scrollWrapper.appendChild(section);
-                });
+                let pages;
+                if (window.GEMINI_SPREAD_MODE) {
+                    const spreads = [];
+                    for (let i = 0; i < chapter.pages.length; i += 2) {
+                        spreads.push(chapter.pages.slice(i, i + 2));
+                    }
 
-                const pages = chapter.pages.map((page, index) => ({
-                    ...page,
-                    html: page.path,
-                    containerId: 'section-' + index,
-                }));
+                    spreads.forEach((spread, index) => {
+                        const section = document.createElement("section");
+                        section.id = 'section-' + index;
+                        section.className = 'section-' + index + " scroll-section page-container spread-mode";
+                        
+                        const spreadWrapper = document.createElement("div");
+                        spreadWrapper.className = "spread-wrapper";
+                        
+                        spread.forEach((page, pIndex) => {
+                            const pageInner = document.createElement("div");
+                            pageInner.id = 'section-' + index + '-p' + pIndex;
+                            pageInner.className = "page-inner-container";
+                            spreadWrapper.appendChild(pageInner);
+                        });
+                        
+                        section.appendChild(spreadWrapper);
+                        scrollWrapper.appendChild(section);
+                    });
+
+                    pages = spreads.map((spread, index) => ({
+                        isSpread: true,
+                        pages: spread.map((p, pIndex) => ({
+                            ...p,
+                            html: p.path,
+                            containerId: 'section-' + index + '-p' + pIndex
+                        })),
+                        containerId: 'section-' + index
+                    }));
+                } else {
+                    chapter.pages.forEach((page, index) => {
+                        const section = document.createElement("section");
+                        section.id = 'section-' + index;
+                        section.className = 'section-' + index + " scroll-section page-container";
+                        scrollWrapper.appendChild(section);
+                    });
+
+                    pages = chapter.pages.map((page, index) => ({
+                        ...page,
+                        html: page.path,
+                        containerId: 'section-' + index,
+                    }));
+                }
 
                 const pageManager = initPageManager(pages);
                 window.pageManager = pageManager;
@@ -107,9 +148,10 @@
                     const storageKey = volumeId + "_" + chapterNumber;
                     setLastVisitedPage(storageKey, e.detail.index);
                     
-                    const pageEntry = chapter.pages[e.detail.index];
+                    const pageGroup = pages[e.detail.index];
+                    const pageEntry = pageGroup.isSpread ? pageGroup.pages[0] : pageGroup;
                     if (pageEntry) {
-                        const pathParts = pageEntry.path.split("/");
+                        const pathParts = pageEntry.html.split("/");
                         const pageId = pathParts[pathParts.length - 2];
                         const newUrl = new URL(window.location.href);
                         newUrl.searchParams.set("page", pageId.replace('page', ''));

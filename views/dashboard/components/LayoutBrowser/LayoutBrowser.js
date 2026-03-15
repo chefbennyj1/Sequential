@@ -32,7 +32,7 @@ export async function renderLayoutBrowser(containerId, hiddenInputId, currentLay
             miniMap.className = 'mini-map-container';
             
             // Fetch the layout HTML directly from server
-            const res = await fetch(`/layouts/${layoutFile}`);
+            const res = await fetch(`/layouts/landscape/${layoutFile}`);
             const html = await res.text();
             
             // Inject and clean (remove scripts if any)

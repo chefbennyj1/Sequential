@@ -44,7 +44,8 @@ async function getSeriesFolderName(identifier) {
 
 exports.getLayouts = (req, res) => {
   try {
-    const files = fs.readdirSync(layoutsDir);
+    const landscapeDir = path.join(layoutsDir, "landscape");
+    const files = fs.readdirSync(landscapeDir);
     const layouts = files.filter(
       (f) => f.endsWith(".html")
     );
@@ -237,7 +238,7 @@ exports.servePreview = async (req, res) => {
       layoutId = atomic.header?.layout?.id || layoutId;
     }
 
-    const templatePath = path.join(__dirname, '..', 'Library', 'layouts', `${layoutId}.html`);
+    const templatePath = path.join(__dirname, '..', 'Library', 'layouts', 'landscape', `${layoutId}.html`);
     const content = fs.existsSync(templatePath)
       ? fs.readFileSync(templatePath, 'utf8')
       : `<div class="page-layout ${layoutId}">Layout Not Found</div>`;
@@ -377,7 +378,7 @@ exports.getPanels = async (req, res) => {
       layoutId = atomic.header?.layout?.id || layoutId;
     }
 
-    const templatePath = path.join(__dirname, '..', 'Library', 'layouts', `${layoutId}.html`);
+    const templatePath = path.join(__dirname, '..', 'Library', 'layouts', 'landscape', `${layoutId}.html`);
     let combinedContent = "";
     if (fs.existsSync(cssPath)) {
       combinedContent = fs.readFileSync(cssPath, "utf8");

@@ -81,10 +81,10 @@ class PageManager {
     }
 
     async loadPage(index, shouldShow = false) {
-        const page = this.pages[index];
-        if (!page) return;
+        const pageGroup = this.pages[index];
+        if (!pageGroup) return;
 
-        const pageContainer = document.getElementById(page.containerId);
+        const pageContainer = document.getElementById(pageGroup.containerId);
         if (!pageContainer) return;
 
         // Already Loaded?
@@ -99,15 +99,22 @@ class PageManager {
 
         console.log(`PageManager: Preloading page ${index}...`);
 
-        if (this.activeAbortControllers.has(page.containerId)) {
-            this.activeAbortControllers.get(page.containerId).abort();
+        if (this.activeAbortControllers.has(pageGroup.containerId)) {
+            this.activeAbortControllers.get(pageGroup.containerId).abort();
         }
         
         const controller = new AbortController();
-        this.activeAbortControllers.set(page.containerId, controller);
+        this.activeAbortControllers.set(pageGroup.containerId, controller);
 
-        // Load the HTML content
-        await loadSection(pageContainer.id, page.html, true, page, controller.signal);
+        if (pageGroup.isSpread) {
+            // Load all pages in the spread concurrently
+            await Promise.all(pageGroup.pages.map(p => 
+                loadSection(p.containerId, p.html, true, p, controller.signal)
+            ));
+        } else {
+            // Standard single page
+            await loadSection(pageContainer.id, pageGroup.html, true, pageGroup, controller.signal);
+        }
         
         pageContainer.dataset.loaded = 'true';
 
@@ -119,10 +126,10 @@ class PageManager {
     }
 
     unloadPage(index) {
-        const page = this.pages[index];
-        if (!page || index === this.currentPageIndex) return;
+        const pageGroup = this.pages[index];
+        if (!pageGroup || index === this.currentPageIndex) return;
 
-        const pageContainer = document.getElementById(page.containerId);
+        const pageContainer = document.getElementById(pageGroup.containerId);
         if (!pageContainer || pageContainer.dataset.loaded !== 'true') return;
 
         // If the page is currently animating out, defer the purge
@@ -145,11 +152,18 @@ class PageManager {
         });
         pageContainer.dispatchEvent(event);
 
-        const { pageId } = PageManager.getPageInfo(page.html);
-        
-        // Clean up CSS
-        const pageCss = document.getElementById(`css-${pageId}`);
-        if (pageCss) pageCss.remove();
+        // Clean up CSS for all pages in the group
+        if (pageGroup.isSpread) {
+            pageGroup.pages.forEach(p => {
+                const { pageId } = PageManager.getPageInfo(p.html);
+                const pageCss = document.getElementById(`css-${pageId}`);
+                if (pageCss) pageCss.remove();
+            });
+        } else {
+            const { pageId } = PageManager.getPageInfo(pageGroup.html);
+            const pageCss = document.getElementById(`css-${pageId}`);
+            if (pageCss) pageCss.remove();
+        }
 
         // Deep Clean: Reset container
         const newContainer = pageContainer.cloneNode(false);
@@ -186,10 +200,19 @@ export async function loadSection(containerId, htmlPath, isComicPage = true, pag
 
         let layoutUrl = htmlPath;
         if (pageData && pageData.layoutId) {
-            layoutUrl = `/layouts/${pageData.layoutId}.html?t=${Date.now()}`;
+            const folder = window.GEMINI_PORTRAIT_MODE ? 'portrait' : 'landscape';
+            layoutUrl = `/layouts/${folder}/${pageData.layoutId}.html?t=${Date.now()}`;
         }
 
-        const response = await fetch(layoutUrl);
+        let response = await fetch(layoutUrl);
+
+        // Fallback to landscape if portrait layout is requested but doesn't exist
+        if (window.GEMINI_PORTRAIT_MODE && response.status === 404 && pageData && pageData.layoutId) {
+            console.warn(`Portrait layout ${pageData.layoutId} not found, falling back to landscape.`);
+            layoutUrl = `/layouts/landscape/${pageData.layoutId}.html?t=${Date.now()}`;
+            response = await fetch(layoutUrl);
+        }
+
         if (response.status === 401) {
             window.location.href = '/login';
             return;

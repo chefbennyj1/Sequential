@@ -580,7 +580,16 @@
                                 <div class="input-field flex-1"><label>Bottom</label><input type="text" id="prop-bottom"></div>
                             </div>
                             <div class="flex-gap-10">
-                                <div class="input-field flex-1"><label>Tail Position</label><input type="text" id="prop-tail" placeholder="bottom-left"></div>
+                                <div class="input-field flex-1">
+                                    <label>Tail Position</label>
+                                    <select id="prop-tail" class="gov-select width-100">
+                                        <option value="">None</option>
+                                        <option value="top-left">Top Left</option>
+                                        <option value="top-right">Top Right</option>
+                                        <option value="bottom-left">Bottom Left</option>
+                                        <option value="bottom-right">Bottom Right</option>
+                                    </select>
+                                </div>
                                 <div class="input-field flex-1"><label>Tail Skew</label><input type="number" id="prop-tail-skew" placeholder="25"></div>
                                 <div class="input-field flex-1"><label>Tail Scale</label><input type="text" id="prop-tail-scale" placeholder="1.0"></div>
                             </div>
