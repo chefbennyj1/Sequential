@@ -1,0 +1,52 @@
+<style>
+@import url('/layouts/styles/base-comic-layout-portrait.css');
+
+/* 
+    Layout: Four Panel Grid with Right Side Span (Portrait Version)
+    Redesigned into 3 rows:
+    Row 1: 1a, 1b
+    Row 2: 2a (Left), 1c (Right, Top Half)
+    Row 3: 2b (Left), 1c (Right, Bottom Half)
+*/
+.page-layout.layout-four-panel-grid-with-right-side-span {
+    display: grid;
+    /* 2 Columns */
+    grid-template-columns: 1fr 1fr;
+    /* 3 Rows */
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+/* Row 1 (1a, 1b) */
+.layout-four-panel-grid-with-right-side-span .panel-1a {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+.layout-four-panel-grid-with-right-side-span .panel-1b {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+}
+
+/* Left side of Row 2 and Row 3 */
+.layout-four-panel-grid-with-right-side-span .panel-2a {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+.layout-four-panel-grid-with-right-side-span .panel-2b {
+    grid-column: 1 / 2;
+    grid-row: 3 / 4;
+}
+
+/* Right side of Row 2 and Row 3 (1c spans both) */
+.layout-four-panel-grid-with-right-side-span .panel-1c {
+    grid-column: 2 / 3;
+    grid-row: 2 / 4; /* Spans Row 2 and Row 3 */
+}
+</style>
+<div class="section-container portrait-page page-layout layout-four-panel-grid-with-right-side-span">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>

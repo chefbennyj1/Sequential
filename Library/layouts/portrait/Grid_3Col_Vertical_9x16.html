@@ -1,0 +1,39 @@
+<style>
+@import url('/layouts/styles/base-comic-layout-portrait.css');
+
+/* 
+    Layout: 3 Vertical Columns 9x16 (Portrait Version)
+    Redesigned into 2 rows:
+    Row 1: panel-1a (Full width)
+    Row 2: panel-1b, panel-1c (Side-by-side)
+*/
+.page-layout.layout-three-col-vertical-9x16 {
+    display: grid;
+    /* 2 Columns */
+    grid-template-columns: 1fr 1fr;
+    /* 2 Rows */
+    grid-template-rows: 1.2fr 1fr;
+    gap: 10px;
+}
+
+/* Row 1: Top Banner */
+.layout-three-col-vertical-9x16 .panel-1a { 
+    grid-column: 1 / 3;
+    grid-row: 1 / 2;
+}
+
+/* Row 2: Bottom Split */
+.layout-three-col-vertical-9x16 .panel-1b { 
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+.layout-three-col-vertical-9x16 .panel-1c { 
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+}
+</style>
+<div class="section-container portrait-page page-layout layout-three-col-vertical-9x16">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+</div>

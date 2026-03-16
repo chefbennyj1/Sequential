@@ -1,0 +1,37 @@
+<style>
+@import url('/layouts/styles/base-comic-layout-portrait.css');
+
+/* 
+    Layout: Four Panel Grid (Portrait Stack Version)
+    Each panel is assigned its own row for a vertical flow.
+*/
+.page-layout.layout-four-panel-grid {  
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(4, 1fr);
+    gap: 10px;
+}
+
+.layout-four-panel-grid .panel-1a { 
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+.layout-four-panel-grid .panel-1b { 
+    grid-column: 1 / 2; 
+    grid-row: 2 / 3;
+}
+.layout-four-panel-grid .panel-2a { 
+    grid-column: 1 / 2;
+    grid-row: 3 / 4; 
+}
+.layout-four-panel-grid .panel-2b { 
+    grid-column: 1 / 2;
+    grid-row: 4 / 5; 
+}
+</style>
+<div class="section-container portrait-page page-layout layout-four-panel-grid">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>

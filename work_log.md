@@ -1,5 +1,29 @@
 # Sequential Comic Server - Work Log
 
+## March 15, 2026: Dual-Mode Architecture & Portrait Evolution
+
+### Technical Engine Evolution
+- **Dual-Mode Layout System**: Implemented a major architectural shift supporting both Landscape (cinematic) and Portrait (print-style) layouts.
+    - **Folder Structure**: Reorganized `Library/layouts/` into `/landscape` and `/portrait` sub-directories.
+    - **Smart Fallback**: Updated `PageManager.js` to look for portrait-specific layouts when in Portrait Mode, with a seamless fallback to landscape if a portrait version doesn't exist.
+- **Spread Mode Viewer**: Developed a side-by-side "Open Book" spread view for the viewer.
+    - **Logic**: Enabled via `?spread=true` URL parameter. Automatically groups pages into pairs (0-1, 2-3, etc.) and renders them in a centered `.spread-wrapper`.
+    - **Pagination Sync**: Refactored `index.ejs` initialization to correctly calculate spread indices, ensuring the "Previous/Next" and "Last Visited Page" logic remains accurate in dual-page mode.
+- **Responsive Portrait Scaling**: Solved the "Oversized UI" problem for portrait mode.
+    - **Aspect Ratio Constraint**: Created `base-comic-layout-portrait.css` using `vh`-based math (`94vh`) and a rigid US Comic Book aspect ratio (`6.625 / 10.25`) to ensure consistent page proportions across all monitor sizes.
+    - **Dynamic Lettering**: Implemented portrait-specific CSS overrides for `SpeechBubble.css` and `TextBlock.css` using relative `em` units and `clamp()` functions.
+    - **Result**: Font sizes and bubbles now scale perfectly with the page container, maintaining professional 8pt-equivalent legibility without manual intervention.
+
+### Chapter 1 Conversion (Portrait Pass)
+- **Grid Fine-Tuning**: Manually redesigned and verified portrait versions for all layouts in Volume 1, Chapter 1.
+    - **Key Layouts**: `Standard_Page`, `Grid_ZigZag_2x2`, `Grid_4_Over_3`, `Grid_4_Right_Span`, `Grid_3Col_Vertical_9x16`, `Multi_Column_Strips`, `Two_Col_Sidebar`, `Grid_4x2`, `Grid_3x2`, `Vertical_Strips_4`.
+- **Panel Flow Optimization**: Prioritized logical reading order (top-to-bottom, left-to-right) when transposing landscape grids into portrait rows.
+
+### Studio Tools
+- **Editor Folder Patch**: Updated `EditorController.js` and `LayoutBrowser.js` to correctly navigate the new sub-folder structure, restoring the Visual Editor's mini-map previews and layout selection tools.
+
+---
+
 ## February 23, 2026: The "Images-Only" Refactor & Narrative Depth
 
 ### Technical Engine Evolution

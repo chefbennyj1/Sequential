@@ -194,15 +194,19 @@
                 if (pageParam) {
                     // Precision matching for page IDs (e.g. /page1/ vs /page10/)
                     const fIdx = chapter.pages.findIndex(p => p.path.includes('/page' + pageParam + '/'));
-                    if (fIdx !== -1) initialIdx = fIdx;
+                    if (fIdx !== -1) {
+                        initialIdx = window.GEMINI_SPREAD_MODE ? Math.floor(fIdx / 2) : fIdx;
+                    }
                 } else {
                     const storageKey = volumeId + "_" + chapterNumber;
                     const saved = getLastVisitedPage(storageKey);
-                    if (saved !== null) initialIdx = parseInt(saved, 10) || 0;
+                    if (saved !== null) {
+                        const savedIdx = parseInt(saved, 10) || 0;
+                        initialIdx = window.GEMINI_SPREAD_MODE ? Math.floor(savedIdx / 2) : savedIdx;
+                    }
                 }
 
-                await pageManager.goToPage(initialIdx);
-                
+                await pageManager.goToPage(initialIdx);                
                 // Signal to Puppeteer that we are ready
                 window.renderComplete = true;
             })();

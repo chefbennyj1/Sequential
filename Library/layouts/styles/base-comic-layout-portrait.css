@@ -7,7 +7,8 @@
 .section-container.portrait-page {
   position: relative;
   background: #fdfdfd;
-  margin: auto; /* Center within its container */
+  margin: 0; /* Reset margin, rely on flexbox for centering */
+  top: 0; /* Reset inherited top offset */
 
   /* --- US COMIC BOOK ASPECT RATIO --- */
   height: 94vh;
@@ -26,14 +27,13 @@
 }
 
 /* GLOBAL STYLE */
-.page-layout {
+.section-container.portrait-page.page-layout {
   display: grid;
   gap: 10px;
   padding: 10px;
   background: #fff;
   position: relative;
-  width: 100%;
-  height: 100%;
+  /* Removed width: 100% and height: 100% to allow 94vh and aspect-ratio to rule */
   flex-grow: 1;
   margin-top: 0;
   font-family: var(--font-family-comic);

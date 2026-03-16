@@ -236,11 +236,15 @@ section {
   transform-origin: center center;
   display: flex;
   justify-content: center;
-  align-items: flex-start;
-  /* Align to top */
+  align-items: center;
+  /* Align to center globally instead of flex-start */
   visibility: hidden;
   width: 100%;
   animation: zoom-scroll-out 0.8s ease-in-out forwards;
+}
+
+section.spread-mode {
+  align-items: center; /* Center spread vertically */
 }
 
 section .section-container {}
@@ -451,6 +455,8 @@ section.exiting {
     height: 100dvh;
     width: 100dvw;
     gap: 0;
+    margin: 0;
+    padding: 0;
 }
 
 .page-inner-container {
@@ -458,5 +464,6 @@ section.exiting {
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 100%;
 }
 
