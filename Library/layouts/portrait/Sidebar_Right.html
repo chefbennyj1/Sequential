@@ -1,0 +1,68 @@
+<style>
+@import url('/layouts/styles/base-comic-layout-portrait.css');
+
+/* 
+    Layout: Sidebar Right (Portrait Version)
+    Redesigned into 2 columns, 4 rows:
+    Top Half:
+    - Row 1: 1a, 1b side-by-side
+    - Row 2: 2a, 2b side-by-side
+    Bottom Half:
+    - Col 1: 2c (Row 3) and 2d (Row 4) stacked
+    - Col 2: 1c spans both Rows 3 & 4
+*/
+.page-layout.layout-asymmetrical-with-sidebar {  
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 Columns */
+    grid-template-rows: repeat(4, 1fr); /* 4 Rows */
+    gap: 10px;
+}
+
+/* --- Top Half --- */
+/* Row 1 */
+.layout-asymmetrical-with-sidebar .panel-1a {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+.layout-asymmetrical-with-sidebar .panel-1b { 
+    grid-column: 2 / 3; 
+    grid-row: 1 / 2;
+}
+
+/* Row 2 */
+.layout-asymmetrical-with-sidebar .panel-2a { 
+    grid-column: 1 / 2; 
+    grid-row: 2 / 3; 
+}
+.layout-asymmetrical-with-sidebar .panel-2b { 
+    grid-column: 2 / 3; 
+    grid-row: 2 / 3; 
+}
+
+/* --- Bottom Half --- */
+/* Col 1 Stack */
+.layout-asymmetrical-with-sidebar .panel-2c { 
+    grid-column: 1 / 2; 
+    grid-row: 3 / 4; 
+}
+.layout-asymmetrical-with-sidebar .panel-2d { 
+    grid-column: 1 / 2; 
+    grid-row: 4 / 5; 
+}
+
+/* Col 2 Span */
+.layout-asymmetrical-with-sidebar .panel-1c { 
+    grid-column: 2 / 3;
+    grid-row: 3 / 5; /* Spans Row 3 & 4 */
+}
+
+</style>
+<div class="section-container portrait-page page-layout layout-asymmetrical-with-sidebar">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+    <div class="panel panel-2c"></div>
+    <div class="panel panel-2d"></div>
+</div>

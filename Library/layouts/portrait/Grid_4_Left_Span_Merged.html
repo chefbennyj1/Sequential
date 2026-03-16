@@ -1,0 +1,55 @@
+<style>
+@import url('/layouts/styles/base-comic-layout-portrait.css');
+
+/* 
+    Layout: Grid 4 Left Span (Merged Bottom) (Portrait Version)
+    Redesigned into 3 rows:
+    - Row 1: 1a (Full width top banner, transposed from the tall left strip)
+    - Row 2: 1b, 1c (Side-by-side split)
+    - Row 3: 2a (Full width bottom anchor)
+*/
+.page-layout.layout-grid-4-left-span-merged {
+    display: grid;
+    grid-template-columns: 1fr 1fr; /* 2 Columns */
+    grid-template-rows: 1.5fr 1fr 1fr; /* Top banner is taller */
+    gap: 10px;
+}
+
+/* Top Banner (Transposed from Left Span) */
+.layout-grid-4-left-span-merged .panel-1a {
+    grid-column: 1 / 3;
+    grid-row: 1 / 2;
+}
+
+/* Middle Row (Side-by-side) */
+.layout-grid-4-left-span-merged .panel-1b {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+.layout-grid-4-left-span-merged .panel-1c {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+}
+
+/* Bottom Anchor (Merged) */
+.layout-grid-4-left-span-merged .panel-2a {
+    grid-column: 1 / 3; 
+    grid-row: 3 / 4;
+}
+
+/* Fallback for extra panels sometimes left in page.json */
+.layout-grid-4-left-span-merged .panel-2b,
+.layout-grid-4-left-span-merged .panel-2c {
+    display: none; 
+}
+</style>
+
+<div class="section-container portrait-page page-layout layout-grid-4-left-span-merged">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+    <!-- Catch-all for lingering json data -->
+    <div class="panel panel-2b"></div>
+    <div class="panel panel-2c"></div>
+</div>
