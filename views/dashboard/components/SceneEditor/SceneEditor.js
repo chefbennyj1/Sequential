@@ -20,17 +20,17 @@ let activeSeriesFolder = "No_Overflow";
 let currentVisualMediaData = [];
 let currentVisualContext = {};
 
-export async function openSceneEditor(volume, chapter, pageId) {
+export async function openSceneEditor(volume, chapter, pageId, mode = 'landscape') {
     updateUrlState({ tab: 'scene-editor', vol: volume, chap: chapter, page: pageId });
     document.querySelector('.sidebar')?.classList.remove('open');
     document.querySelectorAll('main.main-content .dashboard-section').forEach(s => s.classList.add('hidden'));
-    
+
     const sceneEditor = document.querySelector('.scene-editor');
     if(sceneEditor) sceneEditor.classList.remove('hidden');
 
     currentSceneInfo = { volume, chapter, pageId };
     const titleEl = document.getElementById('sceneEditorPageTitle');
-    if(titleEl) titleEl.textContent = `${volume} / ${chapter} / ${pageId}`;
+    if(titleEl) titleEl.textContent = `${volume} / ${chapter} / ${pageId} (${mode.toUpperCase()})`;
 
     try {
         const seriesList = await fetchSeriesAPI();
@@ -42,12 +42,11 @@ export async function openSceneEditor(volume, chapter, pageId) {
     } catch (e) { console.error("Could not resolve series", e); }
 
     const [panelData, scene, characters, ambientData] = await Promise.all([
-        fetchPagePanels(volume, chapter, pageId, activeSeriesId),
+        fetchPagePanels(volume, chapter, pageId, mode, activeSeriesId),
         fetchSceneData(volume, chapter, pageId, activeSeriesId),
         activeSeriesId ? fetchCharactersAPI(activeSeriesId) : Promise.resolve([]),
         fetchAmbientMedia(volume, chapter, pageId, activeSeriesId)
     ]);
-
     availablePanels = panelData.panels || [];
     availableCharacters = characters || [];
     currentSceneData = scene || [];
@@ -443,13 +442,13 @@ export function initSceneEditor() {
     });
 }
 
-export function openVisualEditor(volume, chapter, pageId) {
+export function openVisualEditor(volume, chapter, pageId, mode = 'landscape') {
     document.querySelectorAll('.dashboard-section').forEach(s => s.classList.add('hidden'));
     document.querySelector('.layout-editor').classList.remove('hidden');
     const iframe = document.getElementById('pagePreviewFrame');
     if (!iframe) return;
 
-    const targetSrc = `/api/editor/preview/${activeSeriesFolder}/${volume}/${chapter}/${pageId}`;
+    const targetSrc = `/api/editor/preview/${activeSeriesFolder}/${volume}/${chapter}/${pageId}?mode=${mode}`;
     iframe.src = targetSrc;
 }
 

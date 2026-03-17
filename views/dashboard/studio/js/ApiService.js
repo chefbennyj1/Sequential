@@ -237,9 +237,9 @@ export async function updateAmbientVolumeAPI(volume, chapter, pageId, ambientVol
     }
 }
 
-export async function fetchPagePanels(volume, chapter, pageId, seriesId = "No_Overflow") {
+export async function fetchPagePanels(volume, chapter, pageId, mode = 'landscape', seriesId = "No_Overflow") {
     try {
-        const res = await fetch(`/api/editor/panels/${seriesId}/${volume}/${chapter}/${pageId}`);
+        const res = await fetch(`/api/editor/panels/${seriesId}/${volume}/${chapter}/${pageId}?mode=${mode}`);
         const data = await res.json();
         return data.ok ? { panels: data.panels, layoutClass: data.layoutClass } : { panels: [], layoutClass: null };
     } catch (err) {

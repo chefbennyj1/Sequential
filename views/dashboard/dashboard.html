@@ -481,7 +481,13 @@
 
                     <!-- 3. CONFIG (Middle) -->
                     <div class="bg-panel padding-25 border-radius-12 border-dim margin-b-30">
-                        <h4 class="margin-b-20 config-header">Page Configuration</h4>
+                        <div class="flex-between margin-b-20">
+                            <h4 class="config-header">Page Configuration</h4>
+                            <div class="design-mode-toggle flex-row gap-10">
+                                <button id="designModeLandscape" class="small toggle-btn active" data-mode="landscape">Landscape</button>
+                                <button id="designModePortrait" class="small toggle-btn" data-mode="portrait">Portrait</button>
+                            </div>
+                        </div>
                         <div class="form-group">
                             <label class="audio-config-label">Structural Layout</label>
                             <input type="hidden" id="activePageLayoutValue" value="">

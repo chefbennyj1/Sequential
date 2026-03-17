@@ -199,9 +199,24 @@ export async function loadSection(containerId, htmlPath, isComicPage = true, pag
         await loadCSS('/views/page.css');
 
         let layoutUrl = htmlPath;
-        if (pageData && pageData.layoutId) {
-            const folder = window.GEMINI_PORTRAIT_MODE ? 'portrait' : 'landscape';
-            layoutUrl = `/layouts/${folder}/${pageData.layoutId}.html?t=${Date.now()}`;
+        if (pageData) {
+            const isPortrait = window.GEMINI_PORTRAIT_MODE;
+            const modeKey = isPortrait ? 'portrait' : 'landscape';
+            const folder = isPortrait ? 'portrait' : 'landscape';
+            
+            let lid = "";
+            if (pageData.layouts) {
+                const layoutObj = pageData.layouts[modeKey];
+                lid = (typeof layoutObj === 'string') ? layoutObj : (layoutObj?.id || "");
+            } else if (isPortrait) {
+                lid = pageData.portraitLayoutId || pageData.layoutId;
+            } else {
+                lid = pageData.layoutId;
+            }
+
+            if (lid) {
+                layoutUrl = `/layouts/${folder}/${lid}.html?t=${Date.now()}`;
+            }
         }
 
         let response = await fetch(layoutUrl);

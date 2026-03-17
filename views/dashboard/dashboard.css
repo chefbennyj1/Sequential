@@ -398,6 +398,35 @@ button.small {
   border-color: #0088cc;
 }
 
+/* Design Mode Toggle */
+.toggle-btn {
+    background: #1a1a1a;
+    border: 1px solid #333;
+    color: #666;
+    padding: 5px 15px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-family: 'Consolas', monospace;
+    font-size: 0.8em;
+    transition: all 0.2s ease;
+}
+
+.toggle-btn:hover {
+    border-color: #555;
+    color: #999;
+}
+
+.toggle-btn.active {
+    background: var(--cyber-primary, #00ff41);
+    color: #000;
+    border-color: var(--cyber-primary, #00ff41);
+    box-shadow: 0 0 10px rgba(0, 255, 65, 0.3);
+}
+
+.design-mode-toggle {
+    margin-bottom: 5px;
+}
+
 /* ===========================
    Dashboard Form Styling
    =========================== */

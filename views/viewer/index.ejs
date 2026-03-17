@@ -18,6 +18,9 @@
             <button id="toggle-gutter-btn" class="nav-button btn">
                 Gutter Guide <ion-icon size="large" name="cut-outline"></ion-icon>
             </button>
+            <button id="toggle-mode-btn" class="nav-button btn">
+                <span id="mode-text">Portrait</span> <ion-icon size="large" name="phone-portrait-outline"></ion-icon>
+            </button>
         </div>
     `,
     body: `
@@ -43,6 +46,10 @@
                 background: rgba(255, 0, 0, 0.2);
                 border-color: rgba(255, 0, 0, 0.5);
             }
+            #toggle-mode-btn.portrait-active {
+                background: var(--cyber-primary, #00ff41);
+                color: #000;
+            }
         </style>
     `,
     extraScripts: `
@@ -56,6 +63,27 @@
             // NEW: Portrait and Spread Mode detection
             window.GEMINI_PORTRAIT_MODE = params.get('mode') === 'portrait' || params.get('spread') === 'true';
             window.GEMINI_SPREAD_MODE = params.get('spread') === 'true';
+
+            // --- UI Setup for Mode Toggle ---
+            const modeBtn = document.getElementById('toggle-mode-btn');
+            const modeText = document.getElementById('mode-text');
+            if (modeBtn && modeText) {
+                if (window.GEMINI_PORTRAIT_MODE) {
+                    modeBtn.classList.add('portrait-active');
+                    modeText.textContent = "Landscape";
+                    modeBtn.querySelector('ion-icon').setAttribute('name', 'image-outline');
+                }
+
+                modeBtn.onclick = () => {
+                    const newUrl = new URL(window.location.href);
+                    if (window.GEMINI_PORTRAIT_MODE) {
+                        newUrl.searchParams.delete('mode');
+                    } else {
+                        newUrl.searchParams.set('mode', 'portrait');
+                    }
+                    window.location.href = newUrl.href;
+                };
+            }
 
             // --- Robust Interceptor for Exporter Authentication ---
             if (exportSecret) {

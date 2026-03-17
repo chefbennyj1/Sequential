@@ -1,0 +1,27 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Kinetic Slant 2x3
+    Landscape version of the slanted 2x3 layout.
+*/
+.page-layout.layout-kinetic-slant-2x3 {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+.layout-kinetic-slant-2x3 .panel-1a { grid-column: 1 / 2; grid-row: 1 / 2; }
+.layout-kinetic-slant-2x3 .panel-1b { grid-column: 2 / 3; grid-row: 1 / 2; }
+.layout-kinetic-slant-2x3 .panel-1c { grid-column: 1 / 2; grid-row: 2 / 3; }
+.layout-kinetic-slant-2x3 .panel-1d { grid-column: 2 / 3; grid-row: 2 / 3; }
+.layout-kinetic-slant-2x3 .panel-1e { grid-column: 1 / 3; grid-row: 3 / 4; }
+</style>
+<div class="section-container page-layout layout-kinetic-slant-2x3">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-1d"></div>
+    <div class="panel panel-1e"></div>
+</div>

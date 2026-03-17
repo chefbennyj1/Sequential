@@ -26,7 +26,7 @@ import {
     showChaptersForVolume,
     showVolumesForSeries
 } from './studio/js/LibraryManager.js';
-import { setActivePage } from './studio/js/PageConfigManager.js';
+import { setActivePage, currentDesignMode } from './studio/js/PageConfigManager.js';
 import { 
     initSceneEditor,
     initVisualEditor,
@@ -197,8 +197,8 @@ export async function init(container) {
         }
 
         // Editor Openers
-        if (target.id === 'openLayoutEditorBtn') openVisualEditor(target.dataset.vol, target.dataset.chap, target.dataset.page);
-        if (target.id === 'openSceneEditorBtn') openSceneEditor(target.dataset.vol, target.dataset.chap, target.dataset.page);
+        if (target.id === 'openLayoutEditorBtn') openVisualEditor(target.dataset.vol, target.dataset.chap, target.dataset.page, currentDesignMode);
+        if (target.id === 'openSceneEditorBtn') openSceneEditor(target.dataset.vol, target.dataset.chap, target.dataset.page, currentDesignMode);
 
         // Library Cards
         if (target.closest('.series-card')) {

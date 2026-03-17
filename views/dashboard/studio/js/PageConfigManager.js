@@ -8,6 +8,8 @@ import {
 import { renderLayoutBrowser } from '../../components/LayoutBrowser/LayoutBrowser.js';
 import { openFileBrowser } from '../../components/FileBrowser/FileBrowser.js';
 
+export let currentDesignMode = 'landscape';
+
 /**
  * Manages the "Active Page" tools (Audio, Layout, etc)
  */
@@ -38,14 +40,49 @@ export async function setActivePage(vol, chap, page) {
         }
     });
 
+    // --- Mode Toggle Setup ---
+    const landscapeBtn = document.getElementById('designModeLandscape');
+    const portraitBtn = document.getElementById('designModePortrait');
+
+    const refreshLayoutDisplay = async (pageEntry) => {
+        let lid = "";
+        if (pageEntry?.layouts) {
+            lid = currentDesignMode === 'portrait' ? pageEntry.layouts.portrait : pageEntry.layouts.landscape;
+        } else {
+            // Legacy fallback
+            lid = currentDesignMode === 'portrait' ? (pageEntry?.portraitLayoutId || "") : (pageEntry?.layoutId || "");
+        }
+        await renderLayoutBrowser('activePageLayoutBrowser', 'activePageLayoutValue', lid);
+    };
+
+    if (landscapeBtn && portraitBtn) {
+        landscapeBtn.onclick = async () => {
+            currentDesignMode = 'landscape';
+            landscapeBtn.classList.add('active');
+            portraitBtn.classList.remove('active');
+            const volumeObj = await fetchSingleVolumeWithChapters(vol);
+            const chapter = volumeObj?.chapters?.find(c => `chapter-${c.chapterNumber}` === chap);
+            const pageEntry = chapter?.pages?.find(p => `page${p.index}` === page || p.path.includes(page));
+            await refreshLayoutDisplay(pageEntry);
+        };
+        portraitBtn.onclick = async () => {
+            currentDesignMode = 'portrait';
+            portraitBtn.classList.add('active');
+            landscapeBtn.classList.remove('active');
+            const volumeObj = await fetchSingleVolumeWithChapters(vol);
+            const chapter = volumeObj?.chapters?.find(c => `chapter-${c.chapterNumber}` === chap);
+            const pageEntry = chapter?.pages?.find(p => `page${p.index}` === page || p.path.includes(page));
+            await refreshLayoutDisplay(pageEntry);
+        };
+    }
+
     // 1. --- LAYOUT CONFIG ---
     if (layoutBrowser) {
         const volumeObj = await fetchSingleVolumeWithChapters(vol);
         const chapter = volumeObj?.chapters?.find(c => `chapter-${c.chapterNumber}` === chap);
         const pageEntry = chapter?.pages?.find(p => `page${p.index}` === page || p.path.includes(page));
         
-        const currentLayoutId = pageEntry ? pageEntry.layoutId : "";
-        await renderLayoutBrowser('activePageLayoutBrowser', 'activePageLayoutValue', currentLayoutId);
+        await refreshLayoutDisplay(pageEntry);
 
         if (applyLayoutBtn) {
             applyLayoutBtn.onclick = async () => {
@@ -60,7 +97,13 @@ export async function setActivePage(vol, chap, page) {
                     const res = await fetch('/api/editor/change-layout', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ volumeId: volumeObj._id, chapterId: chap, pageId: page, layout: newLayoutFile })
+                        body: JSON.stringify({ 
+                            volumeId: volumeObj._id, 
+                            chapterId: chap, 
+                            pageId: page, 
+                            layout: newLayoutFile,
+                            mode: currentDesignMode
+                        })
                     });
                     const result = await res.json();
                     if (result.ok) {

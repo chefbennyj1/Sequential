@@ -68,8 +68,17 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
         if (!fs.existsSync(atomicPath)) {
             console.log(`[Scanner] Scaffolding ${pageFolder}`);
             const defJson = {
-                header: { version: "2.0", pageId: pageFolder, chapter: chapFolder, volume: path.basename(volume.volumePath),
-                          layout: { id: "Standard_Page", html: "Standard_Page.html", css: "" }, ambientAudio: {} },
+                header: { 
+                    version: "2.0", 
+                    pageId: pageFolder, 
+                    chapter: chapFolder, 
+                    volume: path.basename(volume.volumePath),
+                    layouts: {
+                        landscape: { id: "Standard_Page", html: "Standard_Page.html", css: "" },
+                        portrait: { id: "Standard_Page", html: "Standard_Page.html", css: "" }
+                    },
+                    ambientAudio: {} 
+                },
                 media: [], scene: []
             };
             const defJs = "export async function onPageLoad(container, pageInfo) {\n" +
@@ -79,7 +88,8 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
                 "        const { panelSelector, type, fileName, action } = e.detail;\n" +
                 "        console.log('Panel ' + panelSelector + ' changed:', { type, fileName, action });\n" +
                 "    });\n}";
-            const defCss = `@import url('/layouts/styles/base-comic-layout.css');\n\n.${pageFolder} {\n\n}`;            fs.writeFileSync(atomicPath, JSON.stringify(defJson, null, 2));
+            const defCss = `@import url('/layouts/styles/base-comic-layout.css');\n\n.${pageFolder} {\n\n}`;
+            fs.writeFileSync(atomicPath, JSON.stringify(defJson, null, 2));
             if (!fs.existsSync(jsPath)) fs.writeFileSync(jsPath, defJs);
             if (!fs.existsSync(cssPath)) fs.writeFileSync(cssPath, defCss);
         }
@@ -87,12 +97,21 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
         // 2. PARSE ATOMIC DATA FOR CACHE
         let mediaData = { media: [], ambientAudio: {} };
         let sceneData = [];
-        let layoutId = "Standard_Page";
+        let layouts = { landscape: "Standard_Page", portrait: "Standard_Page" };
 
         try {
             const raw = fs.readFileSync(atomicPath, 'utf8');
             const atomic = JSON.parse(raw);
-            layoutId = atomic.header?.layout?.id || layoutId;
+            
+            // Handle legacy or new structure
+            if (atomic.header?.layouts) {
+                layouts.landscape = atomic.header.layouts.landscape?.id || "Standard_Page";
+                layouts.portrait = atomic.header.layouts.portrait?.id || "Standard_Page";
+            } else {
+                layouts.landscape = atomic.header?.layout?.id || "Standard_Page";
+                layouts.portrait = atomic.header?.portraitLayout?.id || layouts.landscape;
+            }
+
             mediaData = { media: atomic.media || [], ambientAudio: atomic.header?.ambientAudio || {} };
             sceneData = atomic.scene || [];
         } catch (e) { console.warn(`[Scanner] Error parsing ${atomicPath}:`, e.message); } 
@@ -100,7 +119,7 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
         const pageIndex = parseInt(pageFolder.replace(/\D/g, '')) || 0;
         const urlPath = `${volume.volumePath}/${chapFolder}/${pageFolder}/page.json`.replace(/\\/g, '/');
 
-        pages.push({ index: pageIndex, path: urlPath, layoutId, mediaData, sceneData });
+        pages.push({ index: pageIndex, path: urlPath, layouts, mediaData, sceneData });
       }
       chapter.pages = pages;
     }
@@ -142,7 +161,17 @@ async function syncSinglePage(volumeId, chapterId, pageId) {
         const pageEntry = chapter.pages.find(p => p.index === pageIndex);
         
         if (pageEntry) {
-            pageEntry.layoutId = atomic.header?.layout?.id || "Standard_Page";
+            if (atomic.header?.layouts) {
+                pageEntry.layouts = {
+                    landscape: atomic.header.layouts.landscape?.id || "Standard_Page",
+                    portrait: atomic.header.layouts.portrait?.id || "Standard_Page"
+                };
+            } else {
+                pageEntry.layouts = {
+                    landscape: atomic.header?.layout?.id || "Standard_Page",
+                    portrait: atomic.header?.portraitLayout?.id || (atomic.header?.layout?.id || "Standard_Page")
+                };
+            }
             pageEntry.mediaData = { media: atomic.media || [], ambientAudio: atomic.header?.ambientAudio || {} };
             pageEntry.sceneData = atomic.scene || [];
             volume.markModified('chapters');

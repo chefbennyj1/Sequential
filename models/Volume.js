@@ -4,8 +4,11 @@ const Schema = mongoose.Schema;
 
 const pageSchema = new Schema({
     index: Number,
-    path: String, // e.g. "views/Volumes/volume-1/chapter-1/page0/page0.html"    
-    layoutId: { type: String, default: "" }, // e.g. "layout-asymmetrical-2x2"
+    path: String, // e.g. "views/Volumes/volume-1/chapter-1/page0/page0.html"
+    layouts: {
+        landscape: { type: String, default: "Standard_Page" },
+        portrait: { type: String, default: "Standard_Page" }
+    },
     mediaData: { type: Object, default: {} }, // Cache of consolidated media config
     sceneData: { type: Array, default: [] }   // Cache of consolidated scene cues
 });

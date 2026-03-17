@@ -1,0 +1,25 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Stacked Split Bottom (Landscape)
+    Matching version for the portrait stacked layout.
+*/
+.page-layout.layout-stacked-split-bottom {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr;
+    grid-template-rows: 1fr 1fr 1.2fr;
+    gap: 10px;
+}
+
+.layout-stacked-split-bottom .panel-1a { grid-column: 1 / 3; grid-row: 1 / 2; }
+.layout-stacked-split-bottom .panel-1b { grid-column: 1 / 3; grid-row: 2 / 3; }
+.layout-stacked-split-bottom .panel-2a { grid-column: 1 / 2; grid-row: 3 / 4; }
+.layout-stacked-split-bottom .panel-2b { grid-column: 2 / 3; grid-row: 3 / 4; }
+</style>
+<div class="section-container page-layout layout-stacked-split-bottom">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>

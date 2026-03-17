@@ -14,13 +14,21 @@
     - **Dynamic Lettering**: Implemented portrait-specific CSS overrides for `SpeechBubble.css` and `TextBlock.css` using relative `em` units and `clamp()` functions.
     - **Result**: Font sizes and bubbles now scale perfectly with the page container, maintaining professional 8pt-equivalent legibility without manual intervention.
 
-### Chapter 1 Conversion (Portrait Pass)
-- **Grid Fine-Tuning**: Manually redesigned and verified portrait versions for all layouts in Volume 1, Chapter 1.
-    - **Key Layouts**: `Standard_Page`, `Grid_ZigZag_2x2`, `Grid_4_Over_3`, `Grid_4_Right_Span`, `Grid_3Col_Vertical_9x16`, `Multi_Column_Strips`, `Two_Col_Sidebar`, `Grid_4x2`, `Grid_3x2`, `Vertical_Strips_4`.
-- **Panel Flow Optimization**: Prioritized logical reading order (top-to-bottom, left-to-right) when transposing landscape grids into portrait rows.
+### Chapter 2 & 3 Completion (Portrait Pass)
+- **Grid Fine-Tuning**: Manually redesigned and verified portrait versions for the remaining Chapter 2 and 3 layouts.
+    - **Key Layouts**: `Sidebar_Right` (Staggered top), `Grid_Mixed_V2` (Zigzag flow), `Side_Panels` (Weighted top), `Grid_4_Col_Middle_Span` (H-stack), `Grid_7_Col_Staggered_Merged` (Side-anchor), `Grid_5_Col_Vertical` (2-over-3 grid).
+- **Layout Variation Strategy**: Introduced the "Stacked" variation pattern (e.g., `Grid_4_Left_Span_Stacked`) to allow specific pages to have unique portrait flows without altering the global generic layout for other pages.
+
+### Technical Engine Refinements
+- **Flexbox Centering Fix**: Resolved the "Top-Clinging" bug by updating the global `section` CSS from `flex-start` to `center`. Every page spread is now perfectly centered vertically regardless of screen size.
+- **Initialization Logic**: Updated `index.ejs` to correctly calculate initial spread indices (`Math.floor(pageIdx / 2)`), ensuring deep-linking to specific pages works accurately in dual-page mode.
+- **Custom Bubble Scaling**: Ported portrait-specific `em` scaling to the series-specific `custom/speechBubble/tags.css`. System and Vigil-style bubbles now scale responsively.
+
+### Narrative & Lorebible
+- **Villani's Theorem Integration**: Formalized the emergence of Vigil using Cédric Villani's mathematical principles of entropy. Established that Vigil's sentience was the inevitable collapse of chaotic data into a high-order consciousness within the Temporal Manifold.
 
 ### Studio Tools
-- **Editor Folder Patch**: Updated `EditorController.js` and `LayoutBrowser.js` to correctly navigate the new sub-folder structure, restoring the Visual Editor's mini-map previews and layout selection tools.
+- **Database Sync Workflow**: Identified that manual `page.json` edits bypass the MongoDB cache. Established a workflow to sync changes via the Studio Dashboard Layout Browser to ensure the Viewer reflects file system updates.
 
 ---
 

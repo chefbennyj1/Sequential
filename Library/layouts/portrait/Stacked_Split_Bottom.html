@@ -1,0 +1,42 @@
+<style>
+@import url('/layouts/styles/base-comic-layout-portrait.css');
+
+/* 
+    Layout: Stacked Split Bottom (Portrait)
+    - Row 1: panel-1a (Full width)
+    - Row 2: panel-1b (Full width)
+    - Row 3: panel-2a and panel-2b (Split, 2b is wider)
+*/
+.page-layout.layout-stacked-split-bottom {
+    display: grid;
+    grid-template-columns: 1fr 1.5fr; /* 2b is 1.5x wider than 2a */
+    grid-template-rows: 1fr 1fr 1.2fr;
+    gap: 10px;
+}
+
+.layout-stacked-split-bottom .panel-1a {
+    grid-column: 1 / 3;
+    grid-row: 1 / 2;
+}
+
+.layout-stacked-split-bottom .panel-1b {
+    grid-column: 1 / 3;
+    grid-row: 2 / 3;
+}
+
+.layout-stacked-split-bottom .panel-2a {
+    grid-column: 1 / 2;
+    grid-row: 3 / 4;
+}
+
+.layout-stacked-split-bottom .panel-2b {
+    grid-column: 2 / 3;
+    grid-row: 3 / 4;
+}
+</style>
+<div class="section-container portrait-page page-layout layout-stacked-split-bottom">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>

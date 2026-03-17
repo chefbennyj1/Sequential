@@ -86,10 +86,9 @@ exports.createPage = async (req, res) => {
         pageId: pageId,
         chapter: chapter,
         volume: volume,
-        layout: {
-          id: layoutId,
-          html: `${layoutId}.html`,
-          css: "" // Style is now inlined in the HTML
+        layouts: {
+          landscape: { id: layoutId, html: `${layoutId}.html`, css: "" },
+          portrait: { id: layoutId, html: `${layoutId}.html`, css: "" }
         },
         ambientAudio: {}
       },
@@ -226,6 +225,8 @@ exports.uploadAsset = async (req, res) => {
 
 exports.servePreview = async (req, res) => {
   const { series, volume, chapter, pageId } = req.params;
+  const { mode } = req.query; // New: mode param
+  
   try {
     const seriesFolderName = await getSeriesFolderName(series);
     const seriesPath = await resolveSeriesPath(seriesFolderName);
@@ -235,10 +236,16 @@ exports.servePreview = async (req, res) => {
     const atomicPath = path.join(pageDir, 'page.json');
     if (fs.existsSync(atomicPath)) {
       const atomic = JSON.parse(fs.readFileSync(atomicPath, 'utf8'));
-      layoutId = atomic.header?.layout?.id || layoutId;
+      if (atomic.header?.layouts) {
+        const modeKey = mode === 'portrait' ? 'portrait' : 'landscape';
+        layoutId = atomic.header.layouts[modeKey]?.id || layoutId;
+      } else {
+        layoutId = (mode === 'portrait' ? atomic.header?.portraitLayout?.id : atomic.header?.layout?.id) || layoutId;
+      }
     }
 
-    const templatePath = path.join(__dirname, '..', 'Library', 'layouts', 'landscape', `${layoutId}.html`);
+    const layoutFolder = mode === 'portrait' ? 'portrait' : 'landscape';
+    const templatePath = path.join(__dirname, '..', 'Library', 'layouts', layoutFolder, `${layoutId}.html`);
     const content = fs.existsSync(templatePath)
       ? fs.readFileSync(templatePath, 'utf8')
       : `<div class="page-layout ${layoutId}">Layout Not Found</div>`;
@@ -365,6 +372,8 @@ exports.getAssets = async (req, res) => {
 
 exports.getPanels = async (req, res) => {
   const { series, volume, chapter, pageId } = req.params;
+  const { mode } = req.query; // New: mode param (landscape/portrait)
+  
   try {
     const seriesFolderName = await getSeriesFolderName(series);
     const seriesPath = await resolveSeriesPath(seriesFolderName);
@@ -375,10 +384,16 @@ exports.getPanels = async (req, res) => {
     const atomicPath = path.join(pageDir, 'page.json');
     if (fs.existsSync(atomicPath)) {
       const atomic = JSON.parse(fs.readFileSync(atomicPath, 'utf8'));
-      layoutId = atomic.header?.layout?.id || layoutId;
+      if (atomic.header?.layouts) {
+        const modeKey = mode === 'portrait' ? 'portrait' : 'landscape';
+        layoutId = atomic.header.layouts[modeKey]?.id || layoutId;
+      } else {
+        layoutId = (mode === 'portrait' ? atomic.header?.portraitLayout?.id : atomic.header?.layout?.id) || layoutId;
+      }
     }
 
-    const templatePath = path.join(__dirname, '..', 'Library', 'layouts', 'landscape', `${layoutId}.html`);
+    const layoutFolder = mode === 'portrait' ? 'portrait' : 'landscape';
+    const templatePath = path.join(__dirname, '..', 'Library', 'layouts', layoutFolder, `${layoutId}.html`);
     let combinedContent = "";
     if (fs.existsSync(cssPath)) {
       combinedContent = fs.readFileSync(cssPath, "utf8");
@@ -506,7 +521,7 @@ exports.savePlotBoard = async (req, res) => {
 };
 
 exports.changeLayout = async (req, res) => {
-  const { volumeId, chapterId, pageId, layout } = req.body;
+  const { volumeId, chapterId, pageId, layout, mode } = req.body;
   try {
     const Volume = require('../models/Volume');
     const volume = await Volume.findById(volumeId);
@@ -526,11 +541,15 @@ exports.changeLayout = async (req, res) => {
     const layoutId = layout.replace('.html', '');
 
     if (!pageData.header) pageData.header = {};
-    if (!pageData.header.layout) pageData.header.layout = {};
-
-    pageData.header.layout.id = layoutId;
-    pageData.header.layout.html = `${layoutId}.html`;
-    pageData.header.layout.css = "";
+    if (!pageData.header.layouts) pageData.header.layouts = { landscape: {}, portrait: {} };
+    
+    // Update the correct layout based on mode
+    const modeKey = mode === 'portrait' ? 'portrait' : 'landscape';
+    if (!pageData.header.layouts[modeKey]) pageData.header.layouts[modeKey] = {};
+    
+    pageData.header.layouts[modeKey].id = layoutId;
+    pageData.header.layouts[modeKey].html = `${layoutId}.html`;
+    pageData.header.layouts[modeKey].css = "";
 
     fs.writeFileSync(atomicPath, JSON.stringify(pageData, null, 2));
 
@@ -542,7 +561,7 @@ exports.changeLayout = async (req, res) => {
     }
 
     await VolumeService.syncSinglePage(volumeId, chapterId, pageId);
-    res.json({ ok: true, message: "Layout updated successfully" });
+    res.json({ ok: true, message: `Layout updated for ${mode || 'landscape'}` });
   } catch (e) {
     console.error("Change Layout Error:", e);
     res.status(500).json({ ok: false, message: e.message });
