@@ -62,8 +62,23 @@ class ActionText {
             ? `var(${this.options.fontFamily})` 
             : this.options.fontFamily;
         container.style.setProperty('--action-font', fontValue);
-        container.style.fontSize = this.options.fontSize;
+
+        // Normalize font size
+        let fs = this.options.fontSize || '1.8rem';
+        if (!isNaN(fs) && fs !== '') fs = fs + 'rem';
+        container.style.fontSize = fs;
         container.style.color = this.options.color;
+
+        // Apply outline if enabled
+        if (this.options.outlineEnabled) {
+            const strokeColor = this.options.outlineColor || '#000000';
+            const strokeWidth = this.options.outlineSize || '1.0';
+            container.style.setProperty('--action-stroke', strokeColor);
+            container.style.setProperty('--action-stroke-width', `${strokeWidth}px`);
+        } else {
+            container.style.setProperty('--action-stroke', 'transparent');
+            container.style.setProperty('--action-stroke-width', '0px');
+        }
 
         // DEFAULT: Always render curved unless explicitly set to 'none' or 'false'
         if (this.options.curve === 'none' || this.options.curve === false) {

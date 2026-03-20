@@ -203,9 +203,14 @@ export async function loadSection(containerId, htmlPath, isComicPage = true, pag
             const isPortrait = window.GEMINI_PORTRAIT_MODE;
             const modeKey = isPortrait ? 'portrait' : 'landscape';
             const folder = isPortrait ? 'portrait' : 'landscape';
-            
+
             let lid = "";
-            if (pageData.layouts) {
+            if (pageData.header && pageData.header.layouts) {
+                // Handle new nested header.layouts structure
+                const layoutObj = pageData.header.layouts[modeKey];
+                lid = (typeof layoutObj === 'string') ? layoutObj : (layoutObj?.id || "");
+            } else if (pageData.layouts) {
+                // Handle flat layouts structure
                 const layoutObj = pageData.layouts[modeKey];
                 lid = (typeof layoutObj === 'string') ? layoutObj : (layoutObj?.id || "");
             } else if (isPortrait) {
@@ -218,13 +223,13 @@ export async function loadSection(containerId, htmlPath, isComicPage = true, pag
                 layoutUrl = `/layouts/${folder}/${lid}.html?t=${Date.now()}`;
             }
         }
-
         let response = await fetch(layoutUrl);
 
         // Fallback to landscape if portrait layout is requested but doesn't exist
-        if (window.GEMINI_PORTRAIT_MODE && response.status === 404 && pageData && pageData.layoutId) {
-            console.warn(`Portrait layout ${pageData.layoutId} not found, falling back to landscape.`);
-            layoutUrl = `/layouts/landscape/${pageData.layoutId}.html?t=${Date.now()}`;
+        if (window.GEMINI_PORTRAIT_MODE && response.status === 404 && pageData && pageData.layouts && pageData.layouts.landscape) {
+            const landscapeId = typeof pageData.layouts.landscape === 'string' ? pageData.layouts.landscape : pageData.layouts.landscape.id;
+            console.warn(`Portrait layout ${lid} not found, falling back to landscape ${landscapeId}.`);
+            layoutUrl = `/layouts/landscape/${landscapeId}.html?t=${Date.now()}`;
             response = await fetch(layoutUrl);
         }
 

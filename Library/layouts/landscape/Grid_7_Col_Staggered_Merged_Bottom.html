@@ -1,0 +1,49 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: 7-Track Staggered Merged Grid Bottom (Landscape Version)
+    
+    A variation with a single merged bottom row.
+    - Top Left: Short (1a), Bottom Left: Tall (2a)
+    - Middle Span: Full Height (1b)
+    - Top Right: Tall (1c)
+    Note: To keep panel classes consistent with portrait, this uses 1a, 2a, 1b, 1c.
+*/
+.page-layout.layout-seven-col-staggered-merged-bottom {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    grid-template-rows: repeat(4, 1fr);
+    gap: 10px;
+}
+
+/* --- Left Side --- */
+.layout-seven-col-staggered-merged-bottom .panel-1a {
+    grid-column: 1 / 5;
+    grid-row: 1 / 2;
+}
+
+.layout-seven-col-staggered-merged-bottom .panel-2a {
+    grid-column: 1 / 5;
+    grid-row: 2 / 5;
+}
+
+/* --- Middle --- */
+.layout-seven-col-staggered-merged-bottom .panel-1b {
+    grid-column: 5 / 9;
+    grid-row: 1 / 5;
+}
+
+/* --- Right Side (Merged Full Height equivalent) --- */
+.layout-seven-col-staggered-merged-bottom .panel-1c {
+    grid-column: 9 / 13;
+    grid-row: 1 / 5;
+}
+</style>
+
+<div class="section-container page-layout layout-seven-col-staggered-merged-bottom">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+</div>

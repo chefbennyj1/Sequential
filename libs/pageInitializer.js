@@ -1,11 +1,11 @@
 // libs/pageInitializer.js
 import { fetchScene, fetchMedia, loadCSS, imageMaskReveal, resolveMediaUrl } from '/libs/Utility.js';
 import { initScene } from '/services/public/SceneManager.js';
-import { initMedia, fadeElement } from '/services/public/MediaManager.js';
 
 /**
  * Page Initializer
  * Static version - Media Actions removed.
+ * Consistently handles image initialization and scene logic.
  */
 export async function init(container, pageInfo, cachedScene = null, cachedMedia = null, abortSignal = null) {
     if (!container || !pageInfo) return;
@@ -40,6 +40,7 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
 
     if (abortSignal?.aborted) return;
 
+    // Initialize media (images) locally
     initMedia(container, pageInfo, mediaResponse.media);
 
     if (abortSignal?.aborted) return;
@@ -81,6 +82,72 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
     });
 
     console.log(`PageInitializer - ${pageId} - Loaded`);
+}
+
+/**
+ * Internal helper to fade an element
+ */
+export function fadeElement(element, direction, duration = 500) {
+    return new Promise(resolve => {
+        const endOpacity = direction === 'out' ? 0 : 1;
+        element.style.transition = `opacity ${duration}ms ease`;
+
+        setTimeout(() => {
+            element.style.opacity = endOpacity;
+        }, 20);
+
+        setTimeout(resolve, duration);
+    });
+}
+
+/**
+ * Initializes image media into panels
+ */
+function initMedia(container, pageInfo, mediaDataArray) {
+    const { pageId } = pageInfo;
+
+    console.log(`PageInitializer - ${pageId} - Initializing ${mediaDataArray.length} media items.`);
+    
+    for (const media of mediaDataArray) {
+        const panel = container.querySelector(media.panel);
+        if (panel) {
+            if (media.type === 'image') {
+                const img = document.createElement('img');
+                img.src = resolveMediaUrl(media.fileName, 'image', pageInfo);
+                
+                if (media.attributes) {
+                    for (const attr in media.attributes) {
+                        img.setAttribute(attr, media.attributes[attr]);
+                    }
+                }
+                
+                // Default fallback styles
+                img.style.objectFit = 'cover';
+                img.style.objectPosition = 'center';
+
+                // Apply custom styles from media.json (this will overwrite defaults like objectPosition)
+                if (media.style) {
+                    for (const prop in media.style) {
+                        img.style[prop] = media.style[prop];
+                    }
+                }
+                
+                // Apply portrait-specific overrides if active
+                if (window.GEMINI_PORTRAIT_MODE && media.portraitStyle) {
+                    for (const prop in media.portraitStyle) {
+                        img.style[prop] = media.portraitStyle[prop];
+                    }
+                }
+                panel.appendChild(img);
+
+                // Apply Panel Effect if specified in media.json
+                if (media.panelEffect) {
+                    panel.classList.add(`panel-effect-${media.panelEffect}`);
+                    if (media.panelEffect === 'memory') panel.classList.add('active-memory');
+                }
+            }
+        }
+    }
 }
 
 function applyPanelEffect(container, panelSelector, effectType) {

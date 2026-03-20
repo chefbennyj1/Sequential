@@ -278,7 +278,11 @@ function populateFormWithItem(item) {
     document.getElementById('prop-curve-w').value = item.curveWidth || '';
     document.getElementById('prop-curve-h').value = item.curveHeight || '';
     document.getElementById('prop-rotation').value = item.rotation || '';
-    document.getElementById('prop-action-color').value = item.color || '#ffffff';
+    document.getElementById('prop-font-size').value = item.fontSize || '';
+    document.getElementById('prop-action-color').value = item.color || '#000000';
+    document.getElementById('prop-outline-enabled').checked = !!item.outlineEnabled;
+    document.getElementById('prop-outline-color').value = item.outlineColor || '#000000';
+    document.getElementById('prop-outline-size').value = item.outlineSize || '1.0';
     document.getElementById('prop-duration').value = item.duration || '';
     document.getElementById('prop-panel-effect').value = item.panelEffect || '';
 
@@ -326,7 +330,11 @@ function updateSceneItemFromForm() {
     item.curveWidth = document.getElementById('prop-curve-w').value;
     item.curveHeight = document.getElementById('prop-curve-h').value;
     item.rotation = document.getElementById('prop-rotation').value;
+    item.fontSize = document.getElementById('prop-font-size').value;
     item.color = document.getElementById('prop-action-color').value;
+    item.outlineEnabled = document.getElementById('prop-outline-enabled').checked;
+    item.outlineColor = document.getElementById('prop-outline-color').value;
+    item.outlineSize = document.getElementById('prop-outline-size').value;
 
     item.placement = {
         panel: document.getElementById('prop-panel').value,
@@ -526,6 +534,30 @@ function renderVisualEditor(panelSelector) {
                     <input type="text" id="visual-mask-bg-text" class="gov-input mono flex-1" value="${entry.maskBg || '#000000'}">
                 </div>
             </div>
+            <div class="form-group margin-b-15 flex-row gap-10">
+                <div class="flex-1">
+                    <label>Landscape Align</label>
+                    <select id="visual-style-object-position" class="gov-select width-100">
+                        <option value="cover" ${(!entry.style || (entry.style.objectFit !== 'contain' && (!entry.style.objectPosition || entry.style.objectPosition === 'center'))) ? 'selected' : ''}>Cover (Center)</option>
+                        <option value="contain" ${(entry.style && entry.style.objectFit === 'contain') ? 'selected' : ''}>Contain (Fit Full)</option>
+                        <option value="top center" ${(entry.style && entry.style.objectPosition === 'top center') ? 'selected' : ''}>Cover (Top Pinned)</option>
+                        <option value="bottom center" ${(entry.style && entry.style.objectPosition === 'bottom center') ? 'selected' : ''}>Cover (Bottom Pinned)</option>
+                        <option value="left center" ${(entry.style && entry.style.objectPosition === 'left center') ? 'selected' : ''}>Cover (Left Pinned)</option>
+                        <option value="right center" ${(entry.style && entry.style.objectPosition === 'right center') ? 'selected' : ''}>Cover (Right Pinned)</option>
+                    </select>
+                </div>
+                <div class="flex-1">
+                    <label>Portrait Align</label>
+                    <select id="visual-portrait-style-object-position" class="gov-select width-100">
+                        <option value="cover" ${(!entry.portraitStyle || (entry.portraitStyle.objectFit !== 'contain' && (!entry.portraitStyle.objectPosition || entry.portraitStyle.objectPosition === 'center'))) ? 'selected' : ''}>Cover (Center)</option>
+                        <option value="contain" ${(entry.portraitStyle && entry.portraitStyle.objectFit === 'contain') ? 'selected' : ''}>Contain (Fit Full)</option>
+                        <option value="top center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'top center') ? 'selected' : ''}>Cover (Top Pinned)</option>
+                        <option value="bottom center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'bottom center') ? 'selected' : ''}>Cover (Bottom Pinned)</option>
+                        <option value="left center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'left center') ? 'selected' : ''}>Cover (Left Pinned)</option>
+                        <option value="right center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'right center') ? 'selected' : ''}>Cover (Right Pinned)</option>
+                    </select>
+                </div>
+            </div>
             <button id="saveVisualMediaBtn" class="update__btn width-100 margin-t-10">Save Panel Asset</button>
         </div>
     `;
@@ -559,6 +591,9 @@ function renderVisualEditor(panelSelector) {
     };
 
         saveBtn.onclick = async () => {
+        const lsAlign = document.getElementById('visual-style-object-position')?.value || 'center';
+        const ptAlign = document.getElementById('visual-portrait-style-object-position')?.value || 'center';
+
         const updatedEntry = {
             panel: panelSelector,
             type: typeSelect ? typeSelect.value : 'image',
@@ -567,8 +602,45 @@ function renderVisualEditor(panelSelector) {
             maskBg: document.getElementById('visual-mask-bg-text')?.value || '#000000'
         };
 
-        // 1. Update our local cache array - CRITICAL: Find index correctly
+        // Preserve existing style objects but update objectPosition
         const idx = currentVisualMediaData.findIndex(m => m.panel === panelSelector);
+        
+        let existingStyle = {};
+        let existingPortraitStyle = {};
+        
+        if (idx !== -1) {
+            if (currentVisualMediaData[idx].style) existingStyle = { ...currentVisualMediaData[idx].style };
+            if (currentVisualMediaData[idx].portraitStyle) existingPortraitStyle = { ...currentVisualMediaData[idx].portraitStyle };
+        }
+
+        // Handle Landscape Alignment
+        if (lsAlign === 'contain') {
+            existingStyle.objectFit = 'contain';
+            delete existingStyle.objectPosition;
+        } else if (lsAlign === 'cover' || lsAlign === 'center') {
+            existingStyle.objectFit = 'cover';
+            delete existingStyle.objectPosition; // Center is default
+        } else {
+            existingStyle.objectFit = 'cover';
+            existingStyle.objectPosition = lsAlign;
+        }
+
+        // Handle Portrait Alignment
+        if (ptAlign === 'contain') {
+            existingPortraitStyle.objectFit = 'contain';
+            delete existingPortraitStyle.objectPosition;
+        } else if (ptAlign === 'cover' || ptAlign === 'center') {
+            existingPortraitStyle.objectFit = 'cover';
+            delete existingPortraitStyle.objectPosition; // Center is default
+        } else {
+            existingPortraitStyle.objectFit = 'cover';
+            existingPortraitStyle.objectPosition = ptAlign;
+        }
+
+        if (Object.keys(existingStyle).length > 0) updatedEntry.style = existingStyle;
+        if (Object.keys(existingPortraitStyle).length > 0) updatedEntry.portraitStyle = existingPortraitStyle;
+
+        // 1. Update our local cache array - CRITICAL: Find index correctly
         if (idx !== -1) {
             currentVisualMediaData[idx] = updatedEntry;
         } else {

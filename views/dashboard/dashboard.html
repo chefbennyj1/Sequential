@@ -413,6 +413,10 @@
                         <ion-icon name="create-outline"></ion-icon>
                         <h4>Edit Page</h4>
                     </div>
+                    <div class="mode-card width-200 padding-30" id="modeScriptBtn">
+                        <ion-icon name="document-text-outline"></ion-icon>
+                        <h4>Export Script</h4>
+                    </div>
                 </div>
             </div>
 
@@ -447,6 +451,18 @@
                     <button class="update__btn w-full" type="submit" id="insertPageBtn">Insert & Shift Pages</button>
                 </form>
                 <div id="insertStatus" class="builder-status"></div>
+            </div>
+
+            <!-- EXPORT SCRIPT -->
+            <div id="exportScriptContainer" class="bg-dark padding-30 border-radius-12 border-dim hidden">
+                <button class="small mode-back-btn margin-b-15">&larr; Back</button>
+                <h3 class="margin-b-20">Export Script</h3>
+                <p class="text-muted margin-b-20">This will generate a concatenated .txt file containing all dialogue from the selected volume.</p>
+                
+                <div class="form-group"><label>Select Volume</label><select id="scriptVolumeSelect"></select></div>
+                
+                <button class="update__btn w-full margin-t-20" id="generateScriptBtn">Generate Script File</button>
+                <div id="scriptStatus" class="builder-status"></div>
             </div>
 
             <!-- EDIT PAGE -->
@@ -598,16 +614,34 @@
                                 </div>
                                 <div class="input-field flex-1"><label>Tail Skew</label><input type="number" id="prop-tail-skew" placeholder="25"></div>
                                 <div class="input-field flex-1"><label>Tail Scale</label><input type="text" id="prop-tail-scale" placeholder="1.0"></div>
+                                <div class="input-field flex-1">
+                                    <label>Font Size</label>
+                                    <input type="text" id="prop-font-size" placeholder="0.85rem">
+                                </div>
+                                <div class="input-field flex-1">
+                                    <label>Text Color</label>
+                                    <input type="color" id="prop-action-color" value="#000000" class="gov-color-input">
+                                </div>
+                            </div>
+                            <div class="flex-gap-10">
+                                <div class="input-field flex-1" style="display:flex; flex-direction:row; align-items:center; gap:8px;">
+                                    <input type="checkbox" id="prop-outline-enabled" style="margin:0;">
+                                    <label style="margin:0;">Text Outline</label>
+                                </div>
+                                <div class="input-field flex-1">
+                                    <label>Outline Color</label>
+                                    <input type="color" id="prop-outline-color" value="#000000" class="gov-color-input">
+                                </div>
+                                <div class="input-field flex-1">
+                                    <label>Thickness (px)</label>
+                                    <input type="number" step="0.1" id="prop-outline-size" placeholder="1.0">
+                                </div>
                             </div>
                             <div class="flex-gap-10 prop-group-curve">
                                 <div class="input-field flex-2"><label>SVG Curve Path</label><input type="text" id="prop-curve" placeholder="M 10,90 Q 150,10 290,90"></div>
                                 <div class="input-field flex-1"><label>Curve W</label><input type="number" id="prop-curve-w" placeholder="300"></div>
                                 <div class="input-field flex-1"><label>Curve H</label><input type="number" id="prop-curve-h" placeholder="100"></div>
                                 <div class="input-field flex-1"><label>Rotation</label><input type="number" step="0.1" id="prop-rotation" placeholder="-20"></div>
-                                <div class="input-field flex-1">
-                                    <label>Color</label>
-                                    <input type="color" id="prop-action-color" value="#ffffff" class="gov-color-input">
-                                </div>
                             </div>
                         </div>
                         <div class="prop-group-duration hidden"><div class="input-field"><label>Duration (ms)</label><input type="number" id="prop-duration"></div></div>

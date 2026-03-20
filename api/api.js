@@ -14,6 +14,7 @@ const { isAuthApi: isAuth } = require('../middleware/auth.js');
 // --- EDITOR ROUTES ---
 router.get('/editor/layouts', isAuth, EditorController.getLayouts);
 router.post('/editor/export-volume/:series/:volume', isAuth, ExportController.exportVolume);
+router.post('/editor/export-script/:series/:volume', isAuth, ExportController.exportScript);
 router.get('/editor/preview/:series/:volume/:chapter/:pageId', isAuth, EditorController.servePreview);
 router.get('/editor/scene/:series/:volume/:chapter/:pageId', isAuth, EditorController.getScene);
 router.post('/editor/create-page', isAuth, EditorController.createPage);

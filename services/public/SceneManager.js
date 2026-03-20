@@ -1,7 +1,6 @@
 // services/public/SceneManager.js
 import SpeechBubble from '/libs/SpeechBubble/SpeechBubble.js';
 import TextBlock from '/libs/TextBlock/TextBlock.js';
-import SoundEffect from '/libs/SoundEffect/SoundEffect.js';
 import ActionText from '/libs/ActionText/ActionText.js';
 import { resolveMediaUrl } from '/libs/Utility.js';
 
@@ -49,15 +48,6 @@ export async function initScene(container, pageInfo, sceneData) {
             await textBlock.render();
             visualItem = textBlock;
 
-        } else if (item.displayType.type === 'SoundEffect') {
-            // Sound Effects are purely visual ActionText objects now in the new engine
-            const panelEl = (item.placement && item.placement.panel) ? container.querySelector(item.placement.panel) : null;
-            const soundEffectOptions = { ...item, series, volume, chapter, pageId };
-            if (item.placement) Object.assign(soundEffectOptions, item.placement);
-            const soundEffect = new SoundEffect(panelEl, soundEffectOptions);
-            await soundEffect.render();
-            visualItem = soundEffect;
-            
         } else if (item.displayType.type === 'ActionText') {
             const panelEl = (item.placement && item.placement.panel) ? container.querySelector(item.placement.panel) : null;
             const actionTextOptions = { ...item, series, volume, chapter, pageId };

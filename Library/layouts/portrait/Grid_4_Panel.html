@@ -2,31 +2,34 @@
 @import url('/layouts/styles/base-comic-layout-portrait.css');
 
 /* 
-    Layout: Four Panel Grid (Portrait Stack Version)
-    Each panel is assigned its own row for a vertical flow.
+    Layout: Four Panel Grid (Portrait 2x2 Version)
+    Two on top, two on bottom.
 */
 .page-layout.layout-four-panel-grid {  
     display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: repeat(4, 1fr);
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr;
     gap: 10px;
 }
 
+/* Row 1 */
 .layout-four-panel-grid .panel-1a { 
     grid-column: 1 / 2;
     grid-row: 1 / 2;
 }
 .layout-four-panel-grid .panel-1b { 
-    grid-column: 1 / 2; 
-    grid-row: 2 / 3;
+    grid-column: 2 / 3; 
+    grid-row: 1 / 2;
 }
+
+/* Row 2 */
 .layout-four-panel-grid .panel-2a { 
     grid-column: 1 / 2;
-    grid-row: 3 / 4; 
+    grid-row: 2 / 3; 
 }
 .layout-four-panel-grid .panel-2b { 
-    grid-column: 1 / 2;
-    grid-row: 4 / 5; 
+    grid-column: 2 / 3; 
+    grid-row: 2 / 3; 
 }
 </style>
 <div class="section-container portrait-page page-layout layout-four-panel-grid">

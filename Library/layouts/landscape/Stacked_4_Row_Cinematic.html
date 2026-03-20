@@ -1,0 +1,40 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Stacked 4 Row Cinematic (Landscape)
+    - 4 equal height stacked rows optimized for 16:9 cinematic images.
+*/
+.page-layout.layout-stacked-4-row-cinematic {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+.layout-stacked-4-row-cinematic .panel-1a {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+
+.layout-stacked-4-row-cinematic .panel-1b {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+
+.layout-stacked-4-row-cinematic .panel-1c {
+    grid-column: 1 / 2;
+    grid-row: 3 / 4;
+}
+
+.layout-stacked-4-row-cinematic .panel-1d {
+    grid-column: 1 / 2;
+    grid-row: 4 / 5;
+}
+</style>
+<div class="section-container page-layout layout-stacked-4-row-cinematic">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-1d"></div>
+</div>

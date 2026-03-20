@@ -27,8 +27,10 @@
     letter-spacing: 0.05em;
     text-transform: uppercase;
     white-space: nowrap;
-    fill: currentColor;
-    /* For SVG */
+    fill: currentColor; /* For SVG */
+    stroke: var(--action-stroke, transparent);
+    stroke-width: var(--action-stroke-width, 0px);
+    paint-order: stroke fill; /* Ensures stroke is under the fill */
 
     /* Removed outline filters */
 }

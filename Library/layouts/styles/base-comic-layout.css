@@ -10,8 +10,8 @@
   margin: 0 auto;
 
   /* --- NEW ASPECT RATIO BOX --- */
-  height: 98vh;
-  /* Slightly taller */
+  height: 96vh;
+  /* Slightly shorter for clearance */
   aspect-ratio: 1 / 1.41;
   /* Classic Comic Page Ratio (Tall) */
   width: auto;
@@ -24,8 +24,7 @@
   flex-direction: column;
   overflow: hidden;
   opacity: 0;
-  top: 2vh;
-  /* Positioned closer to the top */
+  /* top: 2vh; -- REMOVED TO PREVENT VIEWPORT OVERFLOW */
 }
 
 /* GLOBAL STYLE */

@@ -1,0 +1,45 @@
+<style>
+@import url('/layouts/styles/base-comic-layout-portrait.css');
+
+/* 
+    Layout: Mixed Two Tall One Stack (Portrait Version)
+    
+    - Row 1: panel-1a and panel-1b (Side-by-side, Split 1:1)
+    - Row 2: panel-2a (Full Width)
+    - Row 3: panel-2b (Full Width)
+*/
+.page-layout.layout-mixed-two-tall-stack {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* Make the top row much taller to force the 9:16 aspect ratio */
+    grid-template-rows: 2fr 1fr 1fr;
+    gap: 10px;
+}
+
+/* --- Top Row: Side-by-Side --- */
+.layout-mixed-two-tall-stack .panel-1a {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+.layout-mixed-two-tall-stack .panel-1b {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+}
+
+/* --- Bottom Rows: Stacked --- */
+.layout-mixed-two-tall-stack .panel-2a {
+    grid-column: 1 / 3;
+    grid-row: 2 / 3;
+}
+.layout-mixed-two-tall-stack .panel-2b {
+    grid-column: 1 / 3;
+    grid-row: 3 / 4;
+}
+</style>
+
+<div class="section-container portrait-page page-layout layout-mixed-two-tall-stack">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>

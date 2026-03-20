@@ -168,11 +168,49 @@ export async function init(container) {
             document.getElementById('pageBuilderModeSelection').classList.add('hidden');
             document.getElementById('editPageContainer').classList.remove('hidden');
         }
+        if (target.closest('#modeScriptBtn')) {
+            populateVolumeSelect('scriptVolumeSelect');
+            document.getElementById('pageBuilderModeSelection').classList.add('hidden');
+            document.getElementById('exportScriptContainer').classList.remove('hidden');
+        }
         if (target.classList.contains('mode-back-btn')) { 
             document.getElementById('pageBuilderModeSelection').classList.remove('hidden'); 
             document.getElementById('createPageContainer').classList.add('hidden'); 
             document.getElementById('editPageContainer').classList.add('hidden'); 
             document.getElementById('insertPageContainer').classList.add('hidden');
+            document.getElementById('exportScriptContainer').classList.add('hidden');
+        }
+
+        // Generate Script Logic
+        if (target.id === 'generateScriptBtn') {
+            const vS = document.getElementById('scriptVolumeSelect');
+            const vol = vS.options[vS.selectedIndex]?.getAttribute('data-folder');
+            const seriesId = vS.options[vS.selectedIndex]?.getAttribute('data-series-id');
+            const statusMsg = document.getElementById('scriptStatus');
+
+            if (!vol || !seriesId) {
+                alert("Please select a volume.");
+                return;
+            }
+
+            statusMsg.textContent = "Generating script...";
+            statusMsg.style.color = "var(--cyber-primary)";
+
+            fetch(`/api/editor/export-script/${seriesId}/${vol}`, { method: 'POST' })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.ok) {
+                        statusMsg.textContent = data.message;
+                        statusMsg.style.color = "#00ff41";
+                    } else {
+                        statusMsg.textContent = "Error: " + data.message;
+                        statusMsg.style.color = "#ff4141";
+                    }
+                })
+                .catch(err => {
+                    statusMsg.textContent = "Request failed.";
+                    statusMsg.style.color = "#ff4141";
+                });
         }
 
         // Load Page Tools

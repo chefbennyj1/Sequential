@@ -1,4 +1,36 @@
-# Sequential Comic Server - Work Log
+﻿# Sequential Comic Server - Work Log
+
+## March 16, 2026: Independent Design Modes & Kinetic Layouts
+
+### Technical Engine Evolution
+- **Independent Layout Refactor**: Completely uncoupled Landscape and Portrait configurations.
+    - **JSON Structure**: Refactored `page.json` to use a nested `layouts` object (e.g., `layouts.landscape` and `layouts.portrait`). This removes the "twin naming" requirement, allowing pages to have entirely different templates for each orientation.
+    - **Database Migration**: Updated the `Volume` model and the `VolumeService` scanner to store and sync both layout IDs independently. 
+    - **Mode-Aware API**: Updated `EditorController.js` (`getPanels`, `servePreview`, `changeLayout`) to accept a `mode` parameter, ensuring the Studio reflects the correct panel structure for the design orientation being edited.
+- **Dynamic View Mode Toggle**: Added a seamless "Portrait/Landscape" switcher to the Library Viewer.
+    - **Logic**: Implemented via URL parameter manipulation (`&mode=portrait`). The Viewer now triggers a clean reload to fetch the specific layout ID assigned to that mode in `page.json`.
+    - **Visual Feedback**: Added an active state to the header button so readers know which "cut" of the comic they are currently viewing.
+
+### Studio Enhancements
+- **Design Mode Toggles**: Added a "Landscape/Portrait" design selector to the Page Configuration panel. 
+    - **Workflow**: Designing a layout in one mode no longer overwrites the other. You can now craft unique mobile-first experiences without compromising the cinematic desktop view.
+    - **Contextual Editing**: The Layout Browser and Scene Editor panel list now automatically refresh to reflect the active design mode.
+
+### Layout Innovation (The "Kinetic" Pass)
+- **Kinetic Slant Layout**: Created `Kinetic_Slant_2x3`, a high-action portrait template.
+    - **Polygon Clipping**: Used CSS `clip-path` to create dynamic, angled panel borders for a manga-style aesthetic.
+    - **Precision Gutters**: Calculated overlapping grid math to maintain a consistent 10px diagonal gap without image overlap or bleed-through.
+    - **Drop-Shadow Borders**: Implemented a `filter: drop-shadow` stack to mimic standard 4px black borders along the angled clip-paths, where standard CSS borders fail.
+- **Standardized Portrait Grids**: 
+    - **Stacked_Split_Bottom**: A 3-row vertical flow with a weighted 1.5x wide bottom panel.
+    - **Stacked_4_Row_Mix**: A balanced 4-row layout for information-heavy pages.
+    - **Vertical_Strips_4 (Rebuild)**: Refactored the portrait version of this layout from 4 narrow columns to a 2x2 grid, drastically improving readability on vertical screens.
+
+### Data Management
+- **Batch Migration**: Successfully executed a global refactor of all 117 `page.json` files in the library to the new nested layouts structure, preserving all legacy data.
+- **Cloud Safety**: Pushed all engine and server code to GitHub while deferring heavy asset sync (GCS) to protect hotspot data limits.
+
+---
 
 ## March 15, 2026: Dual-Mode Architecture & Portrait Evolution
 
@@ -25,7 +57,7 @@
 - **Custom Bubble Scaling**: Ported portrait-specific `em` scaling to the series-specific `custom/speechBubble/tags.css`. System and Vigil-style bubbles now scale responsively.
 
 ### Narrative & Lorebible
-- **Villani's Theorem Integration**: Formalized the emergence of Vigil using Cédric Villani's mathematical principles of entropy. Established that Vigil's sentience was the inevitable collapse of chaotic data into a high-order consciousness within the Temporal Manifold.
+- **Villani's Theorem Integration**: Formalized the emergence of Vigil using CÃ©dric Villani's mathematical principles of entropy. Established that Vigil's sentience was the inevitable collapse of chaotic data into a high-order consciousness within the Temporal Manifold.
 
 ### Studio Tools
 - **Database Sync Workflow**: Identified that manual `page.json` edits bypass the MongoDB cache. Established a workflow to sync changes via the Studio Dashboard Layout Browser to ensure the Viewer reflects file system updates.
@@ -71,7 +103,7 @@
 
 ### Narrative Development (Chapter 2 & 4 Integration)
 - **Takeda's Arrival (Page 24)**: Retroactively introduced Takeda's arc. Established his "Digital Olympus" ambition and his personal grudge against Hiroshi Saito.
-- **New Character: Arashi**: Introduced Takeda's head henchman—a lethal Cyber-Ronin with a thermal Katana and a chrome prosthetic jaw/side-mask.
+- **New Character: Arashi**: Introduced Takeda's head henchmanâ€”a lethal Cyber-Ronin with a thermal Katana and a chrome prosthetic jaw/side-mask.
 - **Lore Synthesis**: Connected the "Empty Snack Drawer" memory (Page 50) to the broader theme of Hiroshi Saito's lost legacy and Vigil's fractured sanity.
 
 ---
@@ -80,7 +112,7 @@
 
 ### The Betrayal & The Engine
 - **The Conflict**: Hiroshi Saito (Visionary) vs. Takeda (Vulture).
-- **The Tech**: Saito developed the **Mnemosyne Engine** for universal human memory preservation. Takeda wanted it for **"Digital Olympus"**—a private, subscription-based afterlife for the elite.
+- **The Tech**: Saito developed the **Mnemosyne Engine** for universal human memory preservation. Takeda wanted it for **"Digital Olympus"**â€”a private, subscription-based afterlife for the elite.
 - **Severance Day**: Takeda didn't just kill Saito; he attempted to seize the Engine. Saito anticipated this and "shrouded" the facility in the Dead Circuits, hiding the "Key" within his own lineage (Nova).
 - **The Missing Link**: Takeda has the hardware, but he's been missing the "Key" for years. He viewed the casualties of Severance Day as **"Collateral Damage"** and **"Unoptimized Assets."**
 - **Takeda's Motivation (The Secret)**: Takeda is terminal. He is suffering from a futuristic strain of respiratory failure (Future TB). He is obsessed with the Engine not just for profit, but for survival.
@@ -96,7 +128,7 @@
 - **Identity**: Takeda's lead henchman and "surrogate son."
 - **Backstory**: A survivor of the Severance Day explosion. He was just a boy when Takeda found him bleeding in the street. Takeda "saved" him, rebuilt him, and trained him to be a cold-blooded weapon.
 - **The Mask**: Wears a chrome plate/mask on the side of his face to hide the horrific scarring from the explosion.
-- **Dynamic**: He is fanatically loyal to Takeda, but he has zero conscience—a reflection of Takeda's ideal "son." His thermal Katana is his signature tool of "Resource Liquidation."
+- **Dynamic**: He is fanatically loyal to Takeda, but he has zero conscienceâ€”a reflection of Takeda's ideal "son." His thermal Katana is his signature tool of "Resource Liquidation."
 - **Fate**: His blade will eventually be the tool used by Nova to end Takeda's reign.
 
 ---
@@ -125,7 +157,7 @@
 ## February 19, 2026: Story Progression & Chapter 4 Brainstorming
 
 ### Narrative Development (Chapter 4: The Server Farm)
-- **Setting**: The protagonists have entered a secret underground facility—an old, pre-Severance Day server farm.
+- **Setting**: The protagonists have entered a secret underground facilityâ€”an old, pre-Severance Day server farm.
 - **Core Mystery**: Exploring the contents of this facility.
     - **Hypothesis 1**: The facility houses AI constructs or digital consciousnesses of the main characters' family members who died on Severance Day.
     - **Hypothesis 2**: Hiroshi Saito may have developed technology to upload human consciousness, potentially keeping it secret from Takeda.
@@ -226,8 +258,12 @@
 ### Git Configuration
 - **Repository Setup**: Fixed the remote origin URL to point to chefbennyj1/Sequential.git.
 - **Ignore Rules**: Updated .gitignore to strictly exclude .env, node_modules, and all large video formats.
- # # #   P e n d i n g   T a s k s 
- -   * * C l o u d   B a c k u p * * :   F i n i s h   s y n c i n g   E : \ C o m i c   S e r i e s \ N o _ O v e r f l o w   t o   t h e   n e w   G o o g l e   C l o u d   b u c k e t   ( g s : / / n o - o v e r f l o w - v 2 )   v i a   g s u t i l   - m   r s y n c .   ( U p l o a d   w a s   p a u s e d   a t   ~ 8 5 %   t o   f r e e   u p   l o c a l   b a n d w i d t h ) .  
- - **Architecture**: Implement WebSockets for snappier client/server communication and real-time UI updates (replacing timeouts and data polling).
-- **Architecture**: Abstract series-specific dialogue tags (e.g., `[vigil-blue]`, `[system]`) out of the core `SpeechBubble.js` engine and into a customizable `series_config.json` file. (Note: Core engine styles like `[internal]` or default bubbles will remain baked into the engine).
-- **Studio Feature**: Implemented a Puppeteer-based Print Exporter in the Studio Dashboard to automatically render and export high-res (4K) print-ready comic pages directly from the browser DOM.
+### Completed Tasks (Legacy)
+- **Cloud Backup**: Finished syncing to Google Cloud.
+- **Architecture**: Implemented WebSockets.
+- **Architecture**: Abstracted dialogue tags.
+- **Studio Feature**: Implemented Puppeteer Print Exporter.
+
+
+### Narrative Reminders
+- **The Naming of Vigil**: Hiroshi Saito still needs to officially give Vigil her name on-screen. (Currently, the project is just the 'Vigil Initiative', and she refers to herself as Admin/Echo). Need to write an emotional beat where Hiroshi christens her as 'Vigil' (The Guardian) before the climax of Vol 2.

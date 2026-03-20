@@ -21,17 +21,7 @@ async function getSceneByPageId(volumeFolder, chapterId, pageId, seriesFolderNam
 
     if (!page) return { ok: false, status: 404, message: "Page not found" };
 
-    let scene = page.sceneData || [];
-
-    // Dynamic Audio Path Expansion
-    const baseAudioPath = `/api/audio/${seriesFolderName}/${volumeFolder}/${chapterId}/${pageId}/assets/`;
-
-    scene = scene.map(cue => {
-      if (cue.audioSrc && !cue.audioSrc.includes('/') && !cue.audioSrc.includes(':')) {
-        return { ...cue, audioSrc: baseAudioPath + cue.audioSrc };
-      }
-      return cue;
-    });
+    const scene = page.sceneData || [];
 
     console.log(`[SceneService] Serving cached scene for: ${pageId}`);
     return { ok: true, scene: scene };

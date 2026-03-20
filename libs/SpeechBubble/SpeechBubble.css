@@ -45,18 +45,19 @@
     border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
     box-shadow: 0.25rem 0.25rem 0px rgba(0,0,0,0.2);
     text-align: center;
-    font-family: var(--bubble-font);
-    font-size: 0.85rem;
-    line-height: 1.2;
-    color: var(--bubble-text);
-    word-wrap: break-word;
     transform: rotate(-1deg);
     z-index: 5;
 }
 
-.bubble-text {
+.speech-text {
     position: relative;
     z-index: 20;
+    font-family: var(--bubble-font);
+    font-size: var(--bubble-font-size, 0.85rem);
+    line-height: 1.2;
+    color: var(--speech-text);
+    word-wrap: break-word;
+    -webkit-text-stroke: var(--speech-text-stroke, 0px transparent);
 }
 
 /* Wobbly Border Effect */
@@ -199,7 +200,9 @@
     padding: 1.25em 1.85em;
     border-width: 0.18em;
     box-shadow: 0.25em 0.25em 0px rgba(0,0,0,0.2);
-    font-size: 0.85em;
+}
+.portrait-page .speech-text {
+    font-size: var(--bubble-font-size, 0.85em);
 }
 .portrait-page .super-bubble::before { inset: -0.18em; }
 .portrait-page .super-bubble::after { inset: -0.06em; border-width: 0.12em; }

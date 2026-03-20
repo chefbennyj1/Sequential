@@ -3,21 +3,19 @@
 
 /* 
     Layout: Four Panel Grid with Right Side Span (Portrait Version)
-    Redesigned into 3 rows:
-    Row 1: 1a, 1b
-    Row 2: 2a (Left), 1c (Right, Top Half)
-    Row 3: 2b (Left), 1c (Right, Bottom Half)
+    Redesigned as:
+    Row 1: 1a, 1b (Split)
+    Row 2: 2a, 2b (Split)
+    Row 3: 1c (Full Width Banner)
 */
 .page-layout.layout-four-panel-grid-with-right-side-span {
     display: grid;
-    /* 2 Columns */
     grid-template-columns: 1fr 1fr;
-    /* 3 Rows */
-    grid-template-rows: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1.2fr;
     gap: 10px;
 }
 
-/* Row 1 (1a, 1b) */
+/* Row 1 */
 .layout-four-panel-grid-with-right-side-span .panel-1a {
     grid-column: 1 / 2;
     grid-row: 1 / 2;
@@ -27,26 +25,26 @@
     grid-row: 1 / 2;
 }
 
-/* Left side of Row 2 and Row 3 */
+/* Row 2 */
 .layout-four-panel-grid-with-right-side-span .panel-2a {
     grid-column: 1 / 2;
     grid-row: 2 / 3;
 }
 .layout-four-panel-grid-with-right-side-span .panel-2b {
-    grid-column: 1 / 2;
-    grid-row: 3 / 4;
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
 }
 
-/* Right side of Row 2 and Row 3 (1c spans both) */
+/* Row 3: The Climax / Entrance */
 .layout-four-panel-grid-with-right-side-span .panel-1c {
-    grid-column: 2 / 3;
-    grid-row: 2 / 4; /* Spans Row 2 and Row 3 */
+    grid-column: 1 / 3;
+    grid-row: 3 / 4;
 }
 </style>
 <div class="section-container portrait-page page-layout layout-four-panel-grid-with-right-side-span">
     <div class="panel panel-1a"></div>
     <div class="panel panel-1b"></div>
-    <div class="panel panel-1c"></div>
     <div class="panel panel-2a"></div>
     <div class="panel panel-2b"></div>
+    <div class="panel panel-1c"></div>
 </div>

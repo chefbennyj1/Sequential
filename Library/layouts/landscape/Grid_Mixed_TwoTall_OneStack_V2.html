@@ -1,0 +1,50 @@
+<style>
+    @import url('/layouts/styles/base-comic-layout.css');
+
+    /* 
+    Layout: Grid_Mixed_TwoTall_OneStack_V2
+    
+    Structure:
+    - Column 1: Vertical Panel (Compressed)
+    - Column 2: Vertical Panel (Compressed)
+    - Column 3: Two Horizontal Panels stacked vertically, given more visual focus.
+    
+*/
+    .page-layout.layout-mixed-two-tall-stack-v2 {
+        display: grid;
+        /* Balanced: 9:16 columns get more room, but the right 16:9 stack still dominates */
+        grid-template-columns: 1.2fr 1.2fr 2fr;
+        grid-template-rows: 1fr 1fr;
+        gap: 10px;
+    }
+
+    /* Column 1: Compressed Vertical */
+    .layout-mixed-two-tall-stack-v2 .panel-1a {
+        grid-column: 1 / 2;
+        grid-row: 1 / 3;
+    }
+
+    /* Column 2: Compressed Vertical */
+    .layout-mixed-two-tall-stack-v2 .panel-1b {
+        grid-column: 2 / 3;
+        grid-row: 1 / 3;
+    }
+
+    /* Column 3: Top Stacked Wide (Focus) */
+    .layout-mixed-two-tall-stack-v2 .panel-2a {
+        grid-column: 3 / 4;
+        grid-row: 1 / 2;
+    }
+
+    /* Column 3: Bottom Stacked Wide (Focus) */
+    .layout-mixed-two-tall-stack-v2 .panel-2b {
+        grid-column: 3 / 4;
+        grid-row: 2 / 3;
+    }
+</style>
+<div class="section-container page-layout layout-mixed-two-tall-stack-v2">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>

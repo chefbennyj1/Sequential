@@ -2,49 +2,43 @@
 @import url('/layouts/styles/base-comic-layout-portrait.css');
 
 /* 
-    Layout: Four Panel Grid with Left Side Span (Stacked Variation)
-    - Left Span: 1a (Spans Rows 1 & 2)
-    - Right Stack: 1b (Row 1), 1c (Row 2)
-    - Bottom Row 3: 2a (Full Width)
-    - Bottom Row 4: 2b (Full Width)
+    Layout: Four Panel Grid with Left Side Span (Portrait Version)
+    Redesigned as:
+    Row 1: 1a (Full Width)
+    Row 2: 1b, 1c (Split)
+    Row 3: 2a, 2b (Split)
 */
-.page-layout.layout-four-panel-grid-with-left-side-span-stacked {
+.page-layout.layout-four-panel-grid-with-left-side-span {
     display: grid;
-    /* 2 Columns */
     grid-template-columns: 1fr 1fr;
-    /* 4 Rows */
-    grid-template-rows: 1fr 1fr 1fr 1fr;
+    grid-template-rows: 1.2fr 1fr 1fr;
     gap: 10px;
 }
 
-/* --- Top Section --- */
-/* Left Span */
-.layout-four-panel-grid-with-left-side-span-stacked .panel-1a {
-    grid-column: 1 / 2;
-    grid-row: 1 / 3; /* Spans Row 1 and 2 */
-}
-
-/* Right Stack */
-.layout-four-panel-grid-with-left-side-span-stacked .panel-1b {
-    grid-column: 2 / 3;
+.layout-four-panel-grid-with-left-side-span .panel-1a {
+    grid-column: 1 / 3;
     grid-row: 1 / 2;
 }
-.layout-four-panel-grid-with-left-side-span-stacked .panel-1c {
+
+.layout-four-panel-grid-with-left-side-span .panel-1b {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+.layout-four-panel-grid-with-left-side-span .panel-1c {
     grid-column: 2 / 3;
     grid-row: 2 / 3;
 }
 
-/* --- Bottom Stacked Rows --- */
-.layout-four-panel-grid-with-left-side-span-stacked .panel-2a {
-    grid-column: 1 / 3; /* Spans both columns */
+.layout-four-panel-grid-with-left-side-span .panel-2a {
+    grid-column: 1 / 2;
     grid-row: 3 / 4;
 }
-.layout-four-panel-grid-with-left-side-span-stacked .panel-2b {
-    grid-column: 1 / 3; /* Spans both columns */
-    grid-row: 4 / 5;
+.layout-four-panel-grid-with-left-side-span .panel-2b {
+    grid-column: 2 / 3;
+    grid-row: 3 / 4;
 }
 </style>
-<div class="section-container portrait-page page-layout layout-four-panel-grid-with-left-side-span-stacked">
+<div class="section-container portrait-page page-layout layout-four-panel-grid-with-left-side-span">
     <div class="panel panel-1a"></div>
     <div class="panel panel-1b"></div>
     <div class="panel panel-1c"></div>

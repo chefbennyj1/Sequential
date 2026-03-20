@@ -1,0 +1,55 @@
+<style>
+@import url('/layouts/styles/base-comic-layout-portrait.css');
+
+/* 
+    Layout: Grid Right Span Split Stack V3 (Portrait Version)
+    
+    - Row 1 & 2 (Left): panel-1a and panel-1b stacked.
+    - Row 1 & 2 (Right): panel-1c spanning both rows.
+    - Row 3: panel-2a (Full width, Taller focus)
+    - Row 4: panel-2b (Full width, Compressed)
+*/
+.page-layout.layout-grid-right-span-split-stack-v3 {
+    display: grid;
+    /* Left column wider for 16:9 panels */
+    grid-template-columns: 1.5fr 1fr;
+    /* Adjusted Rows: Row 3 (1.4fr) is taller than Row 4 (1fr) */
+    grid-template-rows: 0.9fr 0.9fr 1.4fr 1fr;
+    gap: 10px;
+}
+
+/* --- Top Section --- */
+.layout-grid-right-span-split-stack-v3 .panel-1a {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+.layout-grid-right-span-split-stack-v3 .panel-1b {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+
+/* Right Span */
+.layout-grid-right-span-split-stack-v3 .panel-1c {
+    grid-column: 2 / 3;
+    grid-row: 1 / 3; /* Spans Row 1 and 2 */
+}
+
+/* --- Bottom Banners (Full Width) --- */
+.layout-grid-right-span-split-stack-v3 .panel-2a {
+    grid-column: 1 / 3; 
+    grid-row: 3 / 4;
+}
+
+.layout-grid-right-span-split-stack-v3 .panel-2b {
+    grid-column: 1 / 3; 
+    grid-row: 4 / 5;
+}
+</style>
+
+<div class="section-container portrait-page page-layout layout-grid-right-span-split-stack-v3">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>

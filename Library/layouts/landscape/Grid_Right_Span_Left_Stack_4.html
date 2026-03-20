@@ -1,0 +1,49 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: Right Span with Left Side Stack of 4 (Landscape Version)
+    
+    - Left Stack: 1a, 1b, 2a, 2b
+    - Right Span: 1c (Full Height)
+*/
+.page-layout.layout-right-span-left-stack-4 {
+    display: grid;
+    /* Give the left stack more room for 16:9 ratio in landscape */
+    grid-template-columns: 1.8fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr 1fr;
+    gap: 10px;
+}
+
+/* --- Left Stack --- */
+.layout-right-span-left-stack-4 .panel-1a {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+.layout-right-span-left-stack-4 .panel-1b {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+.layout-right-span-left-stack-4 .panel-2a {
+    grid-column: 1 / 2;
+    grid-row: 3 / 4;
+}
+.layout-right-span-left-stack-4 .panel-2b {
+    grid-column: 1 / 2;
+    grid-row: 4 / 5;
+}
+
+/* --- Right Span --- */
+.layout-right-span-left-stack-4 .panel-1c {
+    grid-column: 2 / 3;
+    grid-row: 1 / 5;
+}
+</style>
+
+<div class="section-container page-layout layout-right-span-left-stack-4">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2a"></div>
+    <div class="panel panel-2b"></div>
+</div>
