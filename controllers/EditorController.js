@@ -44,8 +44,14 @@ async function getSeriesFolderName(identifier) {
 
 exports.getLayouts = (req, res) => {
   try {
-    const landscapeDir = path.join(layoutsDir, "landscape");
-    const files = fs.readdirSync(landscapeDir);
+    const mode = req.query.mode === 'portrait' ? 'portrait' : 'landscape';
+    const modeDir = path.join(layoutsDir, mode);
+    
+    if (!fs.existsSync(modeDir)) {
+      return res.json({ ok: true, layouts: [] });
+    }
+
+    const files = fs.readdirSync(modeDir);
     const layouts = files.filter(
       (f) => f.endsWith(".html")
     );

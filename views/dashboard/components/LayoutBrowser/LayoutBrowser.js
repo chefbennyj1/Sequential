@@ -4,7 +4,7 @@ import { fetchLayouts } from '../../studio/js/ApiService.js';
 /**
  * Renders a visual grid of layout "Mini-Maps" for selection.
  */
-export async function renderLayoutBrowser(containerId, hiddenInputId, currentLayoutId) {
+export async function renderLayoutBrowser(containerId, hiddenInputId, currentLayoutId, mode = 'landscape') {
     const container = document.getElementById(containerId);
     const hiddenInput = document.getElementById(hiddenInputId);
     if (!container) return;
@@ -12,7 +12,7 @@ export async function renderLayoutBrowser(containerId, hiddenInputId, currentLay
     container.innerHTML = '<div style="color:#666; padding:20px;">Loading Visual Previews...</div>';
 
     try {
-        const data = await fetchLayouts();
+        const data = await fetchLayouts(mode);
         if (!data.ok) throw new Error("Failed to fetch layouts");
 
         container.innerHTML = '';
@@ -30,9 +30,12 @@ export async function renderLayoutBrowser(containerId, hiddenInputId, currentLay
             // Mini-map container
             const miniMap = document.createElement('div');
             miniMap.className = 'mini-map-container';
+            if (mode === 'portrait') {
+                miniMap.classList.add('portrait-mode');
+            }
             
             // Fetch the layout HTML directly from server
-            const res = await fetch(`/layouts/landscape/${layoutFile}`);
+            const res = await fetch(`/layouts/${mode}/${layoutFile}`);
             const html = await res.text();
             
             // Inject and clean (remove scripts if any)

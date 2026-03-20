@@ -166,13 +166,13 @@ export async function uploadAsset(formData) {
     }
 }
 
-export async function fetchLayouts() {
+export async function fetchLayouts(mode = 'landscape') {
     try {
-        const res = await fetch('/api/editor/layouts');
+        const res = await fetch(`/api/editor/layouts?mode=${mode}`);
         return await res.json();
     } catch (err) {
         console.error(err);
-        return { ok: false, layouts: [] };
+        return { ok: false };
     }
 }
 

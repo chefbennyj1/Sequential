@@ -48,11 +48,15 @@ export async function setActivePage(vol, chap, page) {
         let lid = "";
         if (pageEntry?.layouts) {
             lid = currentDesignMode === 'portrait' ? pageEntry.layouts.portrait : pageEntry.layouts.landscape;
+            // Handle the case where the layout is stored as an object { id, html, css }
+            if (typeof lid === 'object' && lid !== null) {
+                lid = lid.id;
+            }
         } else {
             // Legacy fallback
             lid = currentDesignMode === 'portrait' ? (pageEntry?.portraitLayoutId || "") : (pageEntry?.layoutId || "");
         }
-        await renderLayoutBrowser('activePageLayoutBrowser', 'activePageLayoutValue', lid);
+        await renderLayoutBrowser('activePageLayoutBrowser', 'activePageLayoutValue', lid, currentDesignMode);
     };
 
     if (landscapeBtn && portraitBtn) {

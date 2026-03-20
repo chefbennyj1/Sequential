@@ -58,6 +58,21 @@
     position: absolute;
     top: 0;
     left: 0;
+    max-width: none; /* Override base-comic-layout max-width */
+}
+
+/* Portrait Mode Overrides */
+.mini-map-container.portrait-mode {
+    width: 100px;
+    height: 155px; /* US Comic Aspect Ratio approx 1:1.55 */
+}
+
+.mini-map-container.portrait-mode .section-container {
+    width: 1000px; /* 1000 * 0.1 = 100px */
+    height: 1550px; /* 1550 * 0.1 = 155px */
+    transform: scale(0.1);
+    transform-origin: top left;
+    max-width: none; /* Override any max-width from the base CSS */
 }
 
 /* Labels for panels in preview mode */
