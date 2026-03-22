@@ -311,3 +311,7 @@
     background: #444;
     border-radius: 3px;
 }
+
+.btn-nudge { background: #333; color: white; border: 1px solid #555; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-weight: bold; } 
+.btn-nudge:hover { background: #555; } 
+input[type='range'].flex-1 { min-width: 50px; cursor: ew-resize; }

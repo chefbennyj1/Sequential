@@ -1,0 +1,29 @@
+<style>
+@import url('/layouts/styles/base-comic-layout-portrait.css');
+
+/* 
+    Layout: Spread Split Vertical (Portrait)
+    - Row 1: panel-1a (Top Half)
+    - Row 2: panel-1b (Bottom Half)
+*/
+.page-layout.layout-spread-split-vertical {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+}
+
+.layout-spread-split-vertical .panel-1a {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+
+.layout-spread-split-vertical .panel-1b {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+</style>
+<div class="section-container portrait-page page-layout layout-spread-split-vertical">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+</div>

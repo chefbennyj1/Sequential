@@ -504,6 +504,29 @@ function renderVisualEditor(panelSelector) {
         entry = { panel: panelSelector, type: 'image', fileName: '' };
     }
 
+    const parsePos = (posStr) => {
+        if (!posStr || ['center', 'top center', 'bottom center', 'left center', 'right center'].includes(posStr)) {
+            if (posStr === 'top center') return { x: 50, y: 0 };
+            if (posStr === 'bottom center') return { x: 50, y: 100 };
+            if (posStr === 'left center') return { x: 0, y: 50 };
+            if (posStr === 'right center') return { x: 100, y: 50 };
+            return { x: 50, y: 50 };
+        }
+        const parts = posStr.split(' ');
+        const x = parseFloat(parts[0]);
+        const y = parseFloat(parts[1]);
+        return { 
+            x: isNaN(x) ? 50 : x, 
+            y: isNaN(y) ? 50 : y 
+        };
+    };
+
+    const isLsCustom = entry.style?.objectPosition && !['center', 'top center', 'bottom center', 'left center', 'right center'].includes(entry.style.objectPosition);
+    const isPtCustom = entry.portraitStyle?.objectPosition && !['center', 'top center', 'bottom center', 'left center', 'right center'].includes(entry.portraitStyle.objectPosition);
+
+    const lsPos = parsePos(entry.style?.objectPosition);
+    const ptPos = parsePos(entry.portraitStyle?.objectPosition);
+
     container.innerHTML = `
         <div class="panel-editor-ui">
             <div class="form-group margin-b-15">
@@ -538,24 +561,58 @@ function renderVisualEditor(panelSelector) {
                 <div class="flex-1">
                     <label>Landscape Align</label>
                     <select id="visual-style-object-position" class="gov-select width-100">
-                        <option value="cover" ${(!entry.style || (entry.style.objectFit !== 'contain' && (!entry.style.objectPosition || entry.style.objectPosition === 'center'))) ? 'selected' : ''}>Cover (Center)</option>
+                        <option value="cover" ${(!isLsCustom && (!entry.style || (entry.style.objectFit !== 'contain' && (!entry.style.objectPosition || entry.style.objectPosition === 'center')))) ? 'selected' : ''}>Cover (Center)</option>
                         <option value="contain" ${(entry.style && entry.style.objectFit === 'contain') ? 'selected' : ''}>Contain (Fit Full)</option>
                         <option value="top center" ${(entry.style && entry.style.objectPosition === 'top center') ? 'selected' : ''}>Cover (Top Pinned)</option>
                         <option value="bottom center" ${(entry.style && entry.style.objectPosition === 'bottom center') ? 'selected' : ''}>Cover (Bottom Pinned)</option>
                         <option value="left center" ${(entry.style && entry.style.objectPosition === 'left center') ? 'selected' : ''}>Cover (Left Pinned)</option>
                         <option value="right center" ${(entry.style && entry.style.objectPosition === 'right center') ? 'selected' : ''}>Cover (Right Pinned)</option>
+                        <option value="custom" ${isLsCustom ? 'selected' : ''}>Cover (Custom Pan)</option>
                     </select>
                 </div>
                 <div class="flex-1">
                     <label>Portrait Align</label>
                     <select id="visual-portrait-style-object-position" class="gov-select width-100">
-                        <option value="cover" ${(!entry.portraitStyle || (entry.portraitStyle.objectFit !== 'contain' && (!entry.portraitStyle.objectPosition || entry.portraitStyle.objectPosition === 'center'))) ? 'selected' : ''}>Cover (Center)</option>
+                        <option value="cover" ${(!isPtCustom && (!entry.portraitStyle || (entry.portraitStyle.objectFit !== 'contain' && (!entry.portraitStyle.objectPosition || entry.portraitStyle.objectPosition === 'center')))) ? 'selected' : ''}>Cover (Center)</option>
                         <option value="contain" ${(entry.portraitStyle && entry.portraitStyle.objectFit === 'contain') ? 'selected' : ''}>Contain (Fit Full)</option>
                         <option value="top center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'top center') ? 'selected' : ''}>Cover (Top Pinned)</option>
                         <option value="bottom center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'bottom center') ? 'selected' : ''}>Cover (Bottom Pinned)</option>
                         <option value="left center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'left center') ? 'selected' : ''}>Cover (Left Pinned)</option>
                         <option value="right center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'right center') ? 'selected' : ''}>Cover (Right Pinned)</option>
+                        <option value="custom" ${isPtCustom ? 'selected' : ''}>Cover (Custom Pan)</option>
                     </select>
+                </div>
+            </div>
+            <div class="form-group margin-b-15 flex-row gap-10">
+                <div class="flex-1" id="ls-pan-wrapper" style="display: ${isLsCustom ? 'block' : 'none'};">
+                    <label>Landscape Pan (X & Y)</label>
+                    <div class="flex-row gap-5 align-center margin-b-5">
+                       <span style="width: 15px">X</span>
+                       <button type="button" class="small btn-nudge" data-target="ls-x" data-dir="-1">-</button>
+                       <input type="range" id="ls-x-slider" min="0" max="100" value="${lsPos.x}" class="flex-1">
+                       <button type="button" class="small btn-nudge" data-target="ls-x" data-dir="1">+</button>
+                    </div>
+                    <div class="flex-row gap-5 align-center">
+                       <span style="width: 15px">Y</span>
+                       <button type="button" class="small btn-nudge" data-target="ls-y" data-dir="-1">-</button>
+                       <input type="range" id="ls-y-slider" min="0" max="100" value="${lsPos.y}" class="flex-1">
+                       <button type="button" class="small btn-nudge" data-target="ls-y" data-dir="1">+</button>
+                    </div>
+                </div>
+                <div class="flex-1" id="pt-pan-wrapper" style="display: ${isPtCustom ? 'block' : 'none'};">
+                    <label>Portrait Pan (X & Y)</label>
+                    <div class="flex-row gap-5 align-center margin-b-5">
+                       <span style="width: 15px">X</span>
+                       <button type="button" class="small btn-nudge" data-target="pt-x" data-dir="-1">-</button>
+                       <input type="range" id="pt-x-slider" min="0" max="100" value="${ptPos.x}" class="flex-1">
+                       <button type="button" class="small btn-nudge" data-target="pt-x" data-dir="1">+</button>
+                    </div>
+                    <div class="flex-row gap-5 align-center">
+                       <span style="width: 15px">Y</span>
+                       <button type="button" class="small btn-nudge" data-target="pt-y" data-dir="-1">-</button>
+                       <input type="range" id="pt-y-slider" min="0" max="100" value="${ptPos.y}" class="flex-1">
+                       <button type="button" class="small btn-nudge" data-target="pt-y" data-dir="1">+</button>
+                    </div>
                 </div>
             </div>
             <button id="saveVisualMediaBtn" class="update__btn width-100 margin-t-10">Save Panel Asset</button>
@@ -571,6 +628,23 @@ function renderVisualEditor(panelSelector) {
     const maskBgInput = document.getElementById('visual-mask-bg');
     const maskBgText = document.getElementById('visual-mask-bg-text');
     const saveBtn = document.getElementById('saveVisualMediaBtn');
+    
+    const lsAlignSelect = document.getElementById('visual-style-object-position');
+    const ptAlignSelect = document.getElementById('visual-portrait-style-object-position');
+    const lsPanWrapper = document.getElementById('ls-pan-wrapper');
+    const ptPanWrapper = document.getElementById('pt-pan-wrapper');
+
+    if (lsAlignSelect && lsPanWrapper) {
+        lsAlignSelect.addEventListener('change', () => {
+            lsPanWrapper.style.display = lsAlignSelect.value === 'custom' ? 'block' : 'none';
+        });
+    }
+
+    if (ptAlignSelect && ptPanWrapper) {
+        ptAlignSelect.addEventListener('change', () => {
+            ptPanWrapper.style.display = ptAlignSelect.value === 'custom' ? 'block' : 'none';
+        });
+    }
 
     if (maskBgInput && maskBgText) {
         maskBgInput.oninput = () => maskBgText.value = maskBgInput.value;
@@ -590,9 +664,32 @@ function renderVisualEditor(panelSelector) {
         }, 'page', null, getActiveAssets());
     };
 
+    container.querySelectorAll('.btn-nudge').forEach(btn => {
+        btn.onclick = (e) => {
+            e.preventDefault();
+            const targetId = btn.getAttribute('data-target') + '-slider';
+            const dir = parseInt(btn.getAttribute('data-dir'));
+            const slider = document.getElementById(targetId);
+            if (slider) {
+                let val = parseInt(slider.value) + dir;
+                if(val < 0) val = 0;
+                if(val > 100) val = 100;
+                slider.value = val;
+            }
+        };
+    });
+
         saveBtn.onclick = async () => {
-        const lsAlign = document.getElementById('visual-style-object-position')?.value || 'center';
-        const ptAlign = document.getElementById('visual-portrait-style-object-position')?.value || 'center';
+        const landscapeAlignment = document.getElementById('visual-style-object-position')?.value || 'center';
+        const portraitAlignment = document.getElementById('visual-portrait-style-object-position')?.value || 'center';
+        
+        const lsX = document.getElementById('ls-x-slider')?.value || '50';
+        const lsY = document.getElementById('ls-y-slider')?.value || '50';
+        const landscapeCustomPosition = (lsX === '50' && lsY === '50') ? '' : `${lsX}% ${lsY}%`;
+
+        const ptX = document.getElementById('pt-x-slider')?.value || '50';
+        const ptY = document.getElementById('pt-y-slider')?.value || '50';
+        const portraitCustomPosition = (ptX === '50' && ptY === '50') ? '' : `${ptX}% ${ptY}%`;
 
         const updatedEntry = {
             panel: panelSelector,
@@ -611,30 +708,54 @@ function renderVisualEditor(panelSelector) {
         if (idx !== -1) {
             if (currentVisualMediaData[idx].style) existingStyle = { ...currentVisualMediaData[idx].style };
             if (currentVisualMediaData[idx].portraitStyle) existingPortraitStyle = { ...currentVisualMediaData[idx].portraitStyle };
+            
+            // Clean up old transform/padding properties if they exist
+            delete existingStyle.padding;
+            delete existingStyle.transform;
+            delete existingPortraitStyle.padding;
+            delete existingPortraitStyle.transform;
         }
 
         // Handle Landscape Alignment
-        if (lsAlign === 'contain') {
+        if (landscapeAlignment === 'contain') {
             existingStyle.objectFit = 'contain';
             delete existingStyle.objectPosition;
-        } else if (lsAlign === 'cover' || lsAlign === 'center') {
+        } else if (landscapeAlignment === 'cover' || landscapeAlignment === 'center') {
             existingStyle.objectFit = 'cover';
             delete existingStyle.objectPosition; // Center is default
+        } else if (landscapeAlignment === 'custom') {
+            existingStyle.objectFit = 'cover';
+            const lsX = document.getElementById('ls-x-slider')?.value || '50';
+            const lsY = document.getElementById('ls-y-slider')?.value || '50';
+            if (lsX === '50' && lsY === '50') {
+                 delete existingStyle.objectPosition;
+            } else {
+                 existingStyle.objectPosition = `${lsX}% ${lsY}%`;
+            }
         } else {
             existingStyle.objectFit = 'cover';
-            existingStyle.objectPosition = lsAlign;
+            existingStyle.objectPosition = landscapeAlignment;
         }
 
         // Handle Portrait Alignment
-        if (ptAlign === 'contain') {
+        if (portraitAlignment === 'contain') {
             existingPortraitStyle.objectFit = 'contain';
             delete existingPortraitStyle.objectPosition;
-        } else if (ptAlign === 'cover' || ptAlign === 'center') {
+        } else if (portraitAlignment === 'cover' || portraitAlignment === 'center') {
             existingPortraitStyle.objectFit = 'cover';
             delete existingPortraitStyle.objectPosition; // Center is default
+        } else if (portraitAlignment === 'custom') {
+            existingPortraitStyle.objectFit = 'cover';
+            const ptX = document.getElementById('pt-x-slider')?.value || '50';
+            const ptY = document.getElementById('pt-y-slider')?.value || '50';
+            if (ptX === '50' && ptY === '50') {
+                 delete existingPortraitStyle.objectPosition;
+            } else {
+                 existingPortraitStyle.objectPosition = `${ptX}% ${ptY}%`;
+            }
         } else {
             existingPortraitStyle.objectFit = 'cover';
-            existingPortraitStyle.objectPosition = ptAlign;
+            existingPortraitStyle.objectPosition = portraitAlignment;
         }
 
         if (Object.keys(existingStyle).length > 0) updatedEntry.style = existingStyle;

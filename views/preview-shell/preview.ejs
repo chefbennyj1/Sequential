@@ -21,12 +21,16 @@
         (async () => {
             await loadCSS("/views/preview-shell/preview.css");
             
+            const urlParams = new URLSearchParams(window.location.search);
+            const mode = urlParams.get('mode') || 'landscape';
+
             const container = document.getElementById('preview-container');
             const params = {
                 series: "<%= typeof series !== 'undefined' ? series : 'No_Overflow' %>",
                 volume: "<%= volume %>",
                 chapter: "<%= chapter %>",
-                pageId: "<%= pageId %>"
+                pageId: "<%= pageId %>",
+                mode: mode
             };
 
             await initPreview(container, params);

@@ -46,17 +46,21 @@ export async function setActivePage(vol, chap, page) {
 
     const refreshLayoutDisplay = async (pageEntry) => {
         let lid = "";
+        let landscapeId = "";
         if (pageEntry?.layouts) {
             lid = currentDesignMode === 'portrait' ? pageEntry.layouts.portrait : pageEntry.layouts.landscape;
             // Handle the case where the layout is stored as an object { id, html, css }
             if (typeof lid === 'object' && lid !== null) {
                 lid = lid.id;
             }
+            const lsObj = pageEntry.layouts.landscape;
+            landscapeId = (typeof lsObj === 'object' && lsObj !== null) ? lsObj.id : lsObj;
         } else {
             // Legacy fallback
             lid = currentDesignMode === 'portrait' ? (pageEntry?.portraitLayoutId || "") : (pageEntry?.layoutId || "");
+            landscapeId = pageEntry?.layoutId || "";
         }
-        await renderLayoutBrowser('activePageLayoutBrowser', 'activePageLayoutValue', lid, currentDesignMode);
+        await renderLayoutBrowser('activePageLayoutBrowser', 'activePageLayoutValue', lid, currentDesignMode, landscapeId);
     };
 
     if (landscapeBtn && portraitBtn) {

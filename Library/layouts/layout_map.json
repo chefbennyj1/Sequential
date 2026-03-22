@@ -1,0 +1,36 @@
+{
+  "Grid_4_Left_Span": [
+    "Grid_4_Left_Span",
+    "Grid_4_Left_Span_Stacked",
+    "Grid_4_Left_Span_Stacked_Swap"
+  ],
+  "Grid_4_Right_Span": [
+    "Grid_Right_Span_Split_Stack",
+    "Grid_Right_Span_Split_Stack_V2",
+    "Grid_Right_Span_Split_Stack_V3"
+  ],
+  "Grid_Mixed_TwoTall_OneStack": [
+    "Grid_Mixed_TwoTall_OneStack",
+    "Grid_Mixed_TwoTall_OneStack_V2"
+  ],
+  "Grid_5_Panel_Center_Focus": [
+    "Grid_5_Panel_Center_Focus"
+  ],
+  "Banner_2_Col": [
+    "Banner_2_Col"
+  ],
+  "Vertical_Strips_4": [
+    "Vertical_Strips_4"
+  ],
+  "Grid_4_Panel": [
+    "Grid_4_Panel"
+  ],
+  "Standard_Page": [
+    "Spread_Split_Vertical",
+    "Standard_Page_Mobile_Swap",
+    "Standard_Page"
+  ],
+  "Grid_3x2": [
+    "Grid_5_Wide_1_Tall"
+  ]
+}

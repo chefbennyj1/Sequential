@@ -1,0 +1,56 @@
+<style>
+@import url('/layouts/styles/base-comic-layout-portrait.css');
+
+/* 
+    Layout: 4 Wide, 1 Tall (Portrait)
+    - Row 1: panel-1a (Full width top, cinematic ratio to save vertical space)
+    - Row 2-3 Left: panel-1b, panel-1c (Wider stacked panels, 16:9)
+    - Row 2-3 Right: panel-2b (Narrower tall panel, matches left height)
+    - Row 4: panel-2a (Full width bottom, shorter cinematic ratio)
+*/
+.page-layout.layout-5-wide-1-tall {
+    display: grid;
+    /* 60% Left Column, 40% Right Column to make stacked panels larger */
+    grid-template-columns: 3fr 2fr; 
+    gap: 10px;
+    padding-bottom: 20px;
+}
+
+.layout-5-wide-1-tall .panel {
+    width: 100%;
+}
+
+.layout-5-wide-1-tall .panel-1a {
+    grid-column: 1 / 3;
+    aspect-ratio: 21 / 9; 
+}
+
+.layout-5-wide-1-tall .panel-1b {
+    grid-column: 1 / 2;
+    aspect-ratio: 16 / 9;
+}
+
+.layout-5-wide-1-tall .panel-1c {
+    grid-column: 1 / 2;
+    aspect-ratio: 16 / 9;
+}
+
+.layout-5-wide-1-tall .panel-2b {
+    grid-column: 2 / 3;
+    grid-row: 2 / 4;
+    height: 100%; 
+}
+
+.layout-5-wide-1-tall .panel-2a {
+    grid-column: 1 / 3;
+    /* Shrunk the bottom panel to match the top banner, freeing up vertical space */
+    aspect-ratio: 21 / 9; 
+}
+</style>
+<div class="section-container portrait-page page-layout layout-5-wide-1-tall">
+    <div class="panel panel-1a"></div>
+    <div class="panel panel-1b"></div>
+    <div class="panel panel-1c"></div>
+    <div class="panel panel-2b"></div>
+    <div class="panel panel-2a"></div>
+</div>

@@ -44,23 +44,28 @@ async function getSeriesFolderName(identifier) {
 
 exports.getLayouts = (req, res) => {
   try {
-    const mode = req.query.mode === 'portrait' ? 'portrait' : 'landscape';
+    const mode = req.query.mode === 'portrait' ? 'portrait' : 'landscape';  
     const modeDir = path.join(layoutsDir, mode);
-    
+
+    let layoutMap = {};
+    const mapPath = path.join(layoutsDir, 'layout_map.json');
+    if (fs.existsSync(mapPath)) {
+      layoutMap = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
+    }
+
     if (!fs.existsSync(modeDir)) {
-      return res.json({ ok: true, layouts: [] });
+      return res.json({ ok: true, layouts: [], layoutMap });
     }
 
     const files = fs.readdirSync(modeDir);
     const layouts = files.filter(
       (f) => f.endsWith(".html")
     );
-    res.json({ ok: true, layouts });
+    res.json({ ok: true, layouts, layoutMap });
   } catch (err) {
-    res.status(500).json({ ok: false, message: "Failed to list layouts" });
+    res.status(500).json({ ok: false, message: "Failed to list layouts" }); 
   }
 };
-
 exports.createPage = async (req, res) => {
   const { series, volume, chapter, pageId, layout } = req.body;
 

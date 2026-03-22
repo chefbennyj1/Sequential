@@ -121,6 +121,21 @@ export async function init(container, params) {
                         el.style.width = '100%';
                         el.style.height = '100%';
                         el.style.objectFit = 'cover';
+                        el.style.objectPosition = 'center';
+
+                        // Apply custom styles from media.json
+                        if (item.style) {
+                            for (const prop in item.style) {
+                                el.style[prop] = item.style[prop];
+                            }
+                        }
+                        
+                        // Apply portrait-specific overrides if active
+                        if (params.mode === 'portrait' && item.portraitStyle) {
+                            for (const prop in item.portraitStyle) {
+                                el.style[prop] = item.portraitStyle[prop];
+                            }
+                        }
                         
                         panel.innerHTML = '';
                         panel.appendChild(el);

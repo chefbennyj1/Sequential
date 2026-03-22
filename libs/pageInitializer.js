@@ -122,6 +122,8 @@ function initMedia(container, pageInfo, mediaDataArray) {
                 }
                 
                 // Default fallback styles
+                img.style.width = '100%';
+                img.style.height = '100%';
                 img.style.objectFit = 'cover';
                 img.style.objectPosition = 'center';
 
