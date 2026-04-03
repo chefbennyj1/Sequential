@@ -3,10 +3,10 @@
 
 /* 
     Layout: Stacked 4 Row Mix (Portrait)
-    - Row 1: panel-1a (Full width)
-    - Row 2: panel-1b (Full width)
-    - Row 3: panel-2a and panel-2b (Split 1:1)
-    - Row 4: panel-2c (Full width)
+    - Row 1: panel-A (Full width)
+    - Row 2: panel-B (Full width)
+    - Row 3: panel-C and panel-D (Split 1:1)
+    - Row 4: panel-E (Full width)
 */
 .page-layout.layout-stacked-4-row-mix {
     display: grid;
@@ -15,35 +15,35 @@
     gap: 10px;
 }
 
-.layout-stacked-4-row-mix .panel-1a {
+.layout-stacked-4-row-mix .panel-A {
     grid-column: 1 / 3;
     grid-row: 1 / 2;
 }
 
-.layout-stacked-4-row-mix .panel-1b {
+.layout-stacked-4-row-mix .panel-B {
     grid-column: 1 / 3;
     grid-row: 2 / 3;
 }
 
-.layout-stacked-4-row-mix .panel-2a {
+.layout-stacked-4-row-mix .panel-C {
     grid-column: 1 / 2;
     grid-row: 3 / 4;
 }
 
-.layout-stacked-4-row-mix .panel-2b {
+.layout-stacked-4-row-mix .panel-D {
     grid-column: 2 / 3;
     grid-row: 3 / 4;
 }
 
-.layout-stacked-4-row-mix .panel-2c {
+.layout-stacked-4-row-mix .panel-E {
     grid-column: 1 / 3;
     grid-row: 4 / 5;
 }
 </style>
 <div class="section-container portrait-page page-layout layout-stacked-4-row-mix">
-    <div class="panel panel-1a"></div>
-    <div class="panel panel-1b"></div>
-    <div class="panel panel-2a"></div>
-    <div class="panel panel-2b"></div>
-    <div class="panel panel-2c"></div>
+    <div class="panel panel-A"></div>
+    <div class="panel panel-B"></div>
+    <div class="panel panel-C"></div>
+    <div class="panel panel-D"></div>
+    <div class="panel panel-E"></div>
 </div>

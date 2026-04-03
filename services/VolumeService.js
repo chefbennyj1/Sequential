@@ -48,7 +48,7 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
 
       let chapter = volume.chapters.find(c => c.chapterNumber === chapterNumber);
       if (!chapter) {
-        chapter = { title: `Chapter ${chapterNumber}`, chapterNumber, pages: [], backgroundAudioSrc: null };
+        chapter = { title: `Chapter ${chapterNumber}`, chapterNumber, pages: [] };
         volume.chapters.push(chapter);
       }
 
@@ -76,8 +76,7 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
                     layouts: {
                         landscape: { id: "Standard_Page", html: "Standard_Page.html", css: "" },
                         portrait: { id: "Standard_Page", html: "Standard_Page.html", css: "" }
-                    },
-                    ambientAudio: {} 
+                    }
                 },
                 media: [], scene: []
             };
@@ -95,7 +94,7 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
         }
 
         // 2. PARSE ATOMIC DATA FOR CACHE
-        let mediaData = { media: [], ambientAudio: {} };
+        let mediaData = { media: [] };
         let sceneData = [];
         let layouts = { landscape: "Standard_Page", portrait: "Standard_Page" };
 
@@ -112,7 +111,7 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
                 layouts.portrait = atomic.header?.portraitLayout?.id || layouts.landscape;
             }
 
-            mediaData = { media: atomic.media || [], ambientAudio: atomic.header?.ambientAudio || {} };
+            mediaData = { media: atomic.media || [] };
             sceneData = atomic.scene || [];
         } catch (e) { console.warn(`[Scanner] Error parsing ${atomicPath}:`, e.message); } 
 
@@ -172,7 +171,7 @@ async function syncSinglePage(volumeId, chapterId, pageId) {
                     portrait: atomic.header?.portraitLayout?.id || (atomic.header?.layout?.id || "Standard_Page")
                 };
             }
-            pageEntry.mediaData = { media: atomic.media || [], ambientAudio: atomic.header?.ambientAudio || {} };
+            pageEntry.mediaData = { media: atomic.media || [] };
             pageEntry.sceneData = atomic.scene || [];
             volume.markModified('chapters');
             await volume.save();
@@ -278,30 +277,6 @@ async function insertPage({ seriesFolderName, volumeFolderName, chapterFolderNam
         await updateChaptersFromFS(volume);
     }
 
-    // 5. Update Audio Map
-    try {
-        const audioMapPath = path.join(volumePath, 'audio_map.json');
-        if (fs.existsSync(audioMapPath)) {
-            const map = JSON.parse(fs.readFileSync(audioMapPath, 'utf8'));
-            map.forEach(entry => {
-                if (entry.pages) {
-                    entry.pages = entry.pages.map(p => {
-                        const m = p.match(/page(\d+)/);
-                        if (m) {
-                            const num = parseInt(m[1]);
-                            if (num >= insertIdx) return `page${num + 1}`;
-                        }
-                        return p;
-                    });
-                }
-            });
-            fs.writeFileSync(audioMapPath, JSON.stringify(map, null, 2));
-            console.log(`  [AudioMap] Updated page references for shift >= ${insertIdx}`);
-        }
-    } catch (err) {
-        console.error("Failed to update audio map during shift:", err);
-    }
-
     return { ok: true, message: `Global Page Insertion complete at ${insertIdx}` };
 }
 
@@ -356,15 +331,14 @@ async function createChapter({ seriesFolderName, volumeFolderName, title, chapte
             pageId: pageId,
             chapter: chapterFolderName,
             volume: volumeFolderName,
-            layout: { id: "Standard_Page", html: "Standard_Page.html", css: "" },
-            ambientAudio: {}
-        },
-        media: [],
-        scene: []
-    };
+            layout: { id: "Standard_Page", html: "Standard_Page.html", css: "" }
+            },
+            media: [],
+            scene: []
+            };
 
-    const css = `@import url('/layouts/styles/base-comic-layout.css');\n\n.${pageId} {\n\n}`;
-    const js = "export async function onPageLoad(container, pageInfo) {\n" +
+            const css = `@import url('/layouts/styles/base-comic-layout.css');\n\n.${pageId} {\n\n}`;
+            const js = "export async function onPageLoad(container, pageInfo) {\n" +
                "    container.addEventListener('view_visible', async () => { console.log(`Page ${pageInfo.pageId} is visible.`); });\n" +
                "    container.addEventListener('view_hidden', () => { console.log(`Page ${pageInfo.pageId} is hidden.`); });\n" +
                "    container.addEventListener('panel_media_changed', (e) => {\n" +
@@ -372,15 +346,13 @@ async function createChapter({ seriesFolderName, volumeFolderName, title, chapte
                "        console.log(`Panel ${panelSelector} changed:`, { type, fileName, action });\n" +
                "    });\n}";
 
-    await fs.promises.writeFile(path.join(firstPagePath, 'page.json'), JSON.stringify(pageJson, null, 2));
-    await fs.promises.writeFile(path.join(firstPagePath, 'page.js'), js);
-    await fs.promises.writeFile(path.join(firstPagePath, 'page.css'), css);
-    
-    // Create asset subfolders
-    await fs.promises.mkdir(path.join(firstPagePath, "assets", "image"), { recursive: true });
-    await fs.promises.mkdir(path.join(firstPagePath, "assets", "video"), { recursive: true });
-    await fs.promises.mkdir(path.join(firstPagePath, "assets", "audio"), { recursive: true });
+            await fs.promises.writeFile(path.join(firstPagePath, 'page.json'), JSON.stringify(pageJson, null, 2));
+            await fs.promises.writeFile(path.join(firstPagePath, 'page.js'), js);
+            await fs.promises.writeFile(path.join(firstPagePath, 'page.css'), css);
 
+            // Create asset subfolders
+            await fs.promises.mkdir(path.join(firstPagePath, "assets", "image"), { recursive: true });
+            await fs.promises.mkdir(path.join(firstPagePath, "assets", "video"), { recursive: true });
     // 4. Update Database
     const VolumeModel = require('../models/Volume');
     const volPathRegex = new RegExp(`${volumeFolderName}[\\\\/]?$`, 'i');

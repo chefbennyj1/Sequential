@@ -135,17 +135,6 @@ async function scanVolumesInSeries(seriesDoc, volumesPath, seriesFolderName, io 
         // Sync chapters and pages
         await VolumeService.updateChaptersFromFS(volume, absolutePath);
 
-        // --- Cache audio_map.json ---
-        const audioMapPath = path.join(absolutePath, 'audio_map.json');
-        if (fs.existsSync(audioMapPath)) {
-            try {
-                const mapData = JSON.parse(fs.readFileSync(audioMapPath, 'utf8'));
-                volume.audioMap = Array.isArray(mapData) ? mapData : [];
-            } catch (e) {
-                console.error(`Error caching audio_map for ${volFolder}:`, e.message);
-            }
-        }
-
         await volume.save();
     }
 }

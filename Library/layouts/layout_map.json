@@ -23,7 +23,9 @@
     "Vertical_Strips_4"
   ],
   "Grid_4_Panel": [
-    "Grid_4_Panel"
+    "Grid_4_Panel",
+    "Stacked_4_Row_Cinematic",
+    "Stacked_4_Row_Mix"
   ],
   "Standard_Page": [
     "Spread_Split_Vertical",
@@ -31,6 +33,9 @@
     "Standard_Page"
   ],
   "Grid_3x2": [
-    "Grid_5_Wide_1_Tall"
+    "Grid_5_Wide_1_Tall",
+    "Grid_5_Wide_1_Tall_V2",
+    "Grid_Mixed_V2",
+    "Grid_Mixed_V3"
   ]
 }

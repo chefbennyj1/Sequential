@@ -383,7 +383,7 @@ export function initSceneEditor() {
             displayType: { type: 'SpeechBubble' }, 
             character: 'New', 
             text: 'Text', 
-            placement: { panel: '.panel-1a', top: '10%', left: '10%' },
+            placement: { panel: '.panel-A', top: '10%', left: '10%' },
             mediaAction: []
         };
         currentSceneData.push(newItem);
@@ -543,11 +543,20 @@ function renderVisualEditor(panelSelector) {
                     <button id="visual-asset-browse" class="small btn-browse">...</button>
                 </div>
             </div>
-            <div class="form-group margin-b-15">
-                <label>Panel Mask (Repeatable GIF)</label>
-                <div class="flex-row gap-5">
-                    <input type="text" id="visual-mask-name" class="gov-select flex-1" value="${entry.maskGif || ''}" placeholder="e.g. memory_mask.gif">
-                    <button id="visual-mask-browse" class="small btn-browse">...</button>
+            <div class="form-group margin-b-15 flex-row gap-10">
+                <div class="flex-1">
+                    <label>Privacy Blinder</label>
+                    <div class="flex-row gap-5 align-center">
+                        <input type="checkbox" id="visual-privacy-enabled" ${entry.privacy ? 'checked' : ''}>
+                        <span>Click to reveal</span>
+                    </div>
+                </div>
+                <div class="flex-1">
+                    <label>Panel Mask (Repeatable GIF)</label>
+                    <div class="flex-row gap-5">
+                        <input type="text" id="visual-mask-name" class="gov-select flex-1" value="${entry.maskGif || ''}" placeholder="e.g. memory_mask.gif">
+                        <button id="visual-mask-browse" class="small btn-browse">...</button>
+                    </div>
                 </div>
             </div>
             <div class="form-group margin-b-15">
@@ -696,7 +705,8 @@ function renderVisualEditor(panelSelector) {
             type: typeSelect ? typeSelect.value : 'image',
             fileName: nameInput.value,
             maskGif: maskInput.value,
-            maskBg: document.getElementById('visual-mask-bg-text')?.value || '#000000'
+            maskBg: document.getElementById('visual-mask-bg-text')?.value || '#000000',
+            privacy: document.getElementById('visual-privacy-enabled')?.checked || false
         };
 
         // Preserve existing style objects but update objectPosition

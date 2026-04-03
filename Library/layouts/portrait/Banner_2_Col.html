@@ -3,8 +3,8 @@
 
 /* 
     Layout: Banner Two Column (Portrait)
-    - Row 1: panel-1a (Full width banner)
-    - Row 2: panel-1b, panel-1c (Split 1:1)
+    - Row 1: panel-A (Full width banner)
+    - Row 2: panel-B, panel-C (Split 1:1)
 */
 .page-layout.layout-banner-two-column-portrait {
     display: grid;
@@ -13,23 +13,23 @@
     gap: 10px;
 }
 
-.layout-banner-two-column-portrait .panel-1a {
+.layout-banner-two-column-portrait .panel-A {
     grid-column: 1 / 3;
     grid-row: 1 / 2;
 }
 
-.layout-banner-two-column-portrait .panel-1b {
+.layout-banner-two-column-portrait .panel-B {
     grid-column: 1 / 2;
     grid-row: 2 / 3;
 }
 
-.layout-banner-two-column-portrait .panel-1c {
+.layout-banner-two-column-portrait .panel-C {
     grid-column: 2 / 3;
     grid-row: 2 / 3;
 }
 </style>
 <div class="section-container portrait-page page-layout layout-banner-two-column-portrait">
-    <div class="panel panel-1a"></div>
-    <div class="panel panel-1b"></div>
-    <div class="panel panel-1c"></div>
+    <div class="panel panel-A"></div>
+    <div class="panel panel-B"></div>
+    <div class="panel panel-C"></div>
 </div>

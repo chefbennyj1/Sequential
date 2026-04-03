@@ -1,0 +1,59 @@
+<style>
+@import url('/layouts/styles/base-comic-layout-portrait.css');
+
+/* 
+    Layout: 5 Wide, 1 Tall V4 (Portrait)
+    Fix: Swapped middle column so the Tall panel is on the LEFT.
+    - Row 1: panel-A (Banner Top)
+    - Row 2: panel-D (Left Tall - starts), panel-B (Right Stack)
+    - Row 3: panel-D (Left Tall - ends), panel-C (Right Stack)
+    - Row 4: panel-E (Banner Bottom)
+*/
+.page-layout.layout-5-wide-1-tall-v4 {
+    display: grid;
+    grid-template-columns: 2fr 3fr; 
+    grid-template-rows: auto 1fr 1fr auto; 
+    gap: 10px;
+    padding-bottom: 20px;
+    height: 94vh; 
+}
+
+.layout-5-wide-1-tall-v4 .panel {
+    width: 100%;
+    height: 100%;
+}
+
+.layout-5-wide-1-tall-v4 .panel-A {
+    grid-column: 1 / 3;
+    grid-row: 1;
+    aspect-ratio: 21 / 9; 
+}
+
+.layout-5-wide-1-tall-v4 .panel-D {
+    grid-column: 1 / 2;
+    grid-row: 2 / 4; 
+}
+
+.layout-5-wide-1-tall-v4 .panel-B {
+    grid-column: 2 / 3;
+    grid-row: 2;
+}
+
+.layout-5-wide-1-tall-v4 .panel-C {
+    grid-column: 2 / 3;
+    grid-row: 3;
+}
+
+.layout-5-wide-1-tall-v4 .panel-E {
+    grid-column: 1 / 3;
+    grid-row: 4;
+    aspect-ratio: 21 / 9; 
+}
+</style>
+<div class="section-container portrait-page page-layout layout-5-wide-1-tall-v4">
+    <div class="panel panel-A"></div>
+    <div class="panel panel-B"></div>
+    <div class="panel panel-C"></div>
+    <div class="panel panel-D"></div>
+    <div class="panel panel-E"></div>
+</div>

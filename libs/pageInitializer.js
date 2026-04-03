@@ -74,13 +74,6 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
         });
     });
 
-    container.addEventListener('dialogueAudioStarted', (e) => {
-        const { dialogueItem } = e.detail;
-        if (dialogueItem?.panelEffect && dialogueItem.placement?.panel) {
-            applyPanelEffect(container, dialogueItem.placement.panel, dialogueItem.panelEffect);
-        }
-    });
-
     console.log(`PageInitializer - ${pageId} - Loaded`);
 }
 
@@ -140,7 +133,31 @@ function initMedia(container, pageInfo, mediaDataArray) {
                         img.style[prop] = media.portraitStyle[prop];
                     }
                 }
-                panel.appendChild(img);
+
+                // --- Privacy Blinder ---
+                if (media.privacy) {
+                    const blinder = document.createElement('div');
+                    blinder.className = 'panel-privacy-blinder';
+                    blinder.innerHTML = '<span>Click to reveal</span>';
+                    
+                    panel.style.position = 'relative'; // Ensure blinder covers panel
+                    panel.appendChild(img);
+                    panel.appendChild(blinder);
+
+                    blinder.onclick = (e) => {
+                        e.stopPropagation();
+                        blinder.style.transition = 'opacity 0.6s ease, filter 0.6s ease';
+                        blinder.style.opacity = '0';
+                        img.style.transition = 'filter 0.6s ease';
+                        img.style.filter = 'none';
+                        setTimeout(() => blinder.remove(), 600);
+                    };
+                    
+                    // Initial blur
+                    img.style.filter = 'blur(30px)';
+                } else {
+                    panel.appendChild(img);
+                }
 
                 // Apply Panel Effect if specified in media.json
                 if (media.panelEffect) {

@@ -73,8 +73,6 @@ app.use(async (req, res, next) => {
     gcsBaseUrl: process.env.GCS_BASE_URL
   };
 
-  res.locals.globalBackgroundAudio = [];
-  res.locals.globalPageTransitionAudio = null;
   res.locals.user = null;
 
   if (!req.session.userId) {
