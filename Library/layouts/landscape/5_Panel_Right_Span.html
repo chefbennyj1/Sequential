@@ -1,0 +1,49 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: 5 Panel Right Span (Landscape)
+    - Row 1: panel-A, panel-B (Split)
+    - Row 2: panel-D, panel-E (Split)
+    - Right Span: panel-C (Spans Row 1 & 2)
+*/
+.page-layout.layout-5-panel-right-span {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1.2fr;
+    grid-template-rows: 1fr 1fr;
+    gap: 10px;
+}
+
+/* Right Panel: Tall (Vertical Strip) */
+.layout-5-panel-right-span .panel-C {
+    grid-column: 3 / 4;
+    grid-row: 1 / 3;
+}
+
+/* Top Left Pair */
+.layout-5-panel-right-span .panel-A {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+.layout-5-panel-right-span .panel-B {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+}
+
+/* Bottom Left Pair */
+.layout-5-panel-right-span .panel-D {
+    grid-column: 1 / 2;
+    grid-row: 2 / 3;
+}
+.layout-5-panel-right-span .panel-E {
+    grid-column: 2 / 3;
+    grid-row: 2 / 3;
+}
+</style>
+<div class="section-container page-layout layout-5-panel-right-span">
+    <div class="panel panel-A"></div>
+    <div class="panel panel-B"></div>
+    <div class="panel panel-C"></div>
+    <div class="panel panel-D"></div>
+    <div class="panel panel-E"></div>
+</div>

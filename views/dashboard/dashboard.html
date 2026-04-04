@@ -128,39 +128,28 @@
 
             <form id="volume-info" action="/api/volume/create" method="POST">
 
+                <div class="form-group">
+                    <label>Select Series</label>
+                    <select id="createVolumeSeriesSelect" name="seriesId" required></select>
+                </div>
+
                 <div class="input-field">
 
-                    <label for="index">Volume Index (0 - 9)</label>
+                    <label for="index">Volume Index (Number)</label>
 
-                    <input type="number" id="index" name="index" required />
+                    <input type="number" id="index" name="index" placeholder="e.g. 1" required />
 
                 </div>
 
                 <div class="input-field">
 
-                    <label for="title">Title</label>
+                    <label for="title">Volume Title</label>
 
-                    <input type="string" id="title" name="title" required />
-
-                </div>
-
-                <div class="input-field">
-
-                    <label for="volumePath">Folder Path</label>
-
-                    <input type="string" id="volumePath" name="volumePath" required />
+                    <input type="text" id="title" name="title" placeholder="e.g. The Beginning" required />
 
                 </div>
 
-                <div class="input-field">
-
-                    <label for="backgroundAudioSrc">Background Audio Source</label>
-
-                    <input type="string" id="backgroundAudioSrc" name="backgroundAudioSrc" />
-
-                </div>
-
-                <button class="update__btn" type="submit">Create</button>
+                <button class="update__btn w-full" type="submit">Create Volume Structure</button>
 
             </form>
 
@@ -172,8 +161,12 @@
             <p class="text-muted margin-b-20">This will create the next chapter folder and the first page within it.</p>
             <form id="chapter-info">
                 <div class="form-group">
+                    <label>Select Series</label>
+                    <select id="chapterSeriesSelect"></select>
+                </div>
+                <div class="form-group">
                     <label>Select Volume</label>
-                    <select id="chapterVolumeSelect"></select>
+                    <select id="chapterVolumeSelect" disabled><option value="">Select a Series first</option></select>
                 </div>
                 <div class="input-field">
                     <label for="chapterIndex">Chapter Index (Number)</label>
@@ -192,17 +185,17 @@
 
             <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
 
-            <h3>Edit Volume</h3>
+            <h3>Edit Volume Metadata</h3>
 
             <div class="form-group">
-
-                <label for="volumeSelect">Select Volume:</label>
-
-                <select id="volumeSelect"></select>
-
+                <label for="volumeSeriesSelect">Select Series:</label>
+                <select id="volumeSeriesSelect"></select>
             </div>
 
-            <!-- This section usually gets populated by JS, we keep the container -->
+            <div class="form-group">
+                <label for="volumeSelect">Select Volume:</label>
+                <select id="volumeSelect" disabled><option value="">Select a Series first</option></select>
+            </div>
 
             <div id="editVolumeContainer"></div> 
 
@@ -273,16 +266,6 @@
                                     <input type="text" id="char-color-text" class="gov-input mono flex-1" placeholder="#ffffff">
 
                                 </div>
-
-                            </div>
-
-    
-
-                            <div class="gov-field-group">
-
-                                <label>Voice Print ID</label>
-
-                                <input type="text" id="char-voice-id" class="gov-input mono" placeholder="ElevenLabs ID">
 
                             </div>
 
@@ -424,8 +407,9 @@
             <div id="createPageContainer" class="bg-dark padding-30 border-radius-12 border-dim hidden">
                 <button class="small mode-back-btn margin-b-15">&larr; Back</button>
                 <h3 class="margin-b-20">Create New Page</h3>
-                <div class="form-group"><label>Select Volume</label><select id="builderVolumeSelect"></select></div>
-                <div class="form-group"><label>Select Chapter</label><select id="builderChapterSelect" disabled><option value="">Select a Chapter</option></select></div>
+                <div class="form-group"><label>Select Series</label><select id="builderSeriesSelect"></select></div>
+                <div class="form-group"><label>Select Volume</label><select id="builderVolumeSelect" disabled><option value="">Select a Series first</option></select></div>
+                <div class="form-group"><label>Select Chapter</label><select id="builderChapterSelect" disabled><option value="">Select a Volume first</option></select></div>
                 <form id="page-builder-form">
                     <div class="input-field"><label>Page ID (e.g. page17)</label><input type="text" id="builderPageId" name="pageId" placeholder="page17" required /></div>
                     <div class="form-group"><label>Select Layout Template</label><select id="builderLayoutSelect" required><option value="">Loading Layouts...</option></select></div>
@@ -440,8 +424,9 @@
                 <h3 class="margin-b-20">Insert New Page</h3>
                 <p class="text-muted margin-b-20">This will shift all subsequent pages up and clone the preceding page to the new slot.</p>
                 
-                <div class="form-group"><label>Select Volume</label><select id="insertVolumeSelect"></select></div>
-                <div class="form-group"><label>Select Chapter</label><select id="insertChapterSelect" disabled><option value="">Select a Chapter</option></select></div>
+                <div class="form-group"><label>Select Series</label><select id="insertSeriesSelect"></select></div>
+                <div class="form-group"><label>Select Volume</label><select id="insertVolumeSelect" disabled><option value="">Select a Series first</option></select></div>
+                <div class="form-group"><label>Select Chapter</label><select id="insertChapterSelect" disabled><option value="">Select a Volume first</option></select></div>
                 
                 <form id="insert-page-form">
                     <div class="input-field">
@@ -459,7 +444,8 @@
                 <h3 class="margin-b-20">Export Script</h3>
                 <p class="text-muted margin-b-20">This will generate a concatenated .txt file containing all dialogue from the selected volume.</p>
                 
-                <div class="form-group"><label>Select Volume</label><select id="scriptVolumeSelect"></select></div>
+                <div class="form-group"><label>Select Series</label><select id="scriptSeriesSelect"></select></div>
+                <div class="form-group"><label>Select Volume</label><select id="scriptVolumeSelect" disabled><option value="">Select a Series first</option></select></div>
                 
                 <button class="update__btn w-full margin-t-20" id="generateScriptBtn">Generate Script File</button>
                 <div id="scriptStatus" class="builder-status"></div>
@@ -473,8 +459,9 @@
                 <!-- 1. SELECTION (Top) -->
                 <div class="bg-select padding-25 border-radius-12 border-bright margin-b-30 box-shadow-soft">
                     <div class="flex-row gap-15 margin-b-20">
-                        <div class="form-group flex-1"><label>Volume</label><select id="editVolumeSelect"></select></div>
-                        <div class="form-group flex-1"><label>Chapter</label><select id="editChapterSelect" disabled><option value="">Select a Chapter</option></select></div>
+                        <div class="form-group flex-1"><label>Series</label><select id="editSeriesSelect"></select></div>
+                        <div class="form-group flex-1"><label>Volume</label><select id="editVolumeSelect" disabled><option value="">Select a Series first</option></select></div>
+                        <div class="form-group flex-1"><label>Chapter</label><select id="editChapterSelect" disabled><option value="">Select a Volume first</option></select></div>
                         <div class="form-group flex-1"><label>Page</label><select id="editPageSelect" disabled><option value="">Select a Page</option></select></div>
                     </div>
                     <button id="loadPageBtn" class="update__btn width-100 font-size-1-1 page-tool-load-btn">Load Page Tools</button>
@@ -505,7 +492,7 @@
                             </div>
                         </div>
                         <div class="form-group">
-                            <label class="audio-config-label">Structural Layout</label>
+                            <label>Structural Layout</label>
                             <input type="hidden" id="activePageLayoutValue" value="">
                             <div id="activePageLayoutBrowser" class="layout-browser-grid">
                                 <!-- Layout cards injected here by JS -->
@@ -664,7 +651,6 @@
                     <option value="page">Page Assets</option>
                     <option value="volume">Volume Assets</option>
                     <option value="series">Series Assets</option>
-                    <option value="global">Global Resources</option>
                  </select>
                  <input type="text" id="fbSearchInput" placeholder="Search..." class="flex-1 gov-select">
                  <select id="fbSortSelect" class="gov-select">
@@ -724,9 +710,15 @@
         <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
         <h3>Print Exporter</h3>
         <p>Render high-resolution PNGs of an entire volume.</p>
+                  
+                  <div class="form-group" style="margin-top:20px;">
+                      <label for="exportSeriesSelect">Select Series:</label>
+                      <select id="exportSeriesSelect"></select>
+                  </div>
+
                   <div class="form-group" style="margin-top:20px;">
                       <label for="exportVolumeSelect">Select Volume to Export:</label>
-                      <select id="exportVolumeSelect"></select>
+                      <select id="exportVolumeSelect" disabled><option value="">Select a Series first</option></select>
                   </div>
 
                   <div class="form-group" style="margin-top:20px;">

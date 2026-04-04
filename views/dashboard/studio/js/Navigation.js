@@ -28,6 +28,8 @@ export function restoreStateFromUrl(container) {
     const vol = params.get('vol');
     const chap = params.get('chap');
     const page = params.get('page');
+    const series = params.get('series');
+    const seriesFolder = params.get('seriesFolder');
 
     if (tab) {
         const li = container.querySelector(`.sidebar li[data-page="${tab}"]`);
@@ -36,9 +38,9 @@ export function restoreStateFromUrl(container) {
         if (vol && chap && page) {
             setTimeout(() => {
                 // Dispatch to registered handlers
-                if (tab === 'scene-editor' && _handlers.openSceneEditor) _handlers.openSceneEditor(vol, chap, page);
-                else if (tab === 'layout-editor' && _handlers.openVisualEditor) _handlers.openVisualEditor(vol, chap, page);
-                if (tab === 'page-builder' && _handlers.setActivePage) _handlers.setActivePage(vol, chap, page);
+                if (tab === 'scene-editor' && _handlers.openSceneEditor) _handlers.openSceneEditor(vol, chap, page, 'landscape', series);
+                else if (tab === 'layout-editor' && _handlers.openVisualEditor) _handlers.openVisualEditor(vol, chap, page, 'landscape', series, seriesFolder);
+                if (tab === 'page-builder' && _handlers.setActivePage) _handlers.setActivePage(vol, chap, page, series, seriesFolder);
             }, 100);
         }
     }

@@ -24,7 +24,8 @@ import {
     populateLayoutSelect, 
     renderLibraryHtml, 
     showChaptersForVolume,
-    showVolumesForSeries
+    showVolumesForSeries,
+    populateSeriesSelect
 } from './studio/js/LibraryManager.js';
 import { setActivePage, currentDesignMode } from './studio/js/PageConfigManager.js';
 import { 
@@ -124,11 +125,15 @@ export async function init(container) {
             if (targetSection) {
                 targetSection.classList.remove('hidden');
                 
-                if (targetPage === 'edit-volume') populateVolumeSelect('volumeSelect');
-                if (targetPage === 'create-new-chapter') populateVolumeSelect('chapterVolumeSelect');
-                if (targetPage === 'export-tool') populateVolumeSelect('exportVolumeSelect');
+                if (targetPage === 'create-new-volume') populateSeriesSelect('createVolumeSeriesSelect');
+                if (targetPage === 'edit-volume') populateSeriesSelect('volumeSeriesSelect');
+                if (targetPage === 'create-new-chapter') populateSeriesSelect('chapterSeriesSelect');
+                if (targetPage === 'export-tool') populateSeriesSelect('exportSeriesSelect');
                 if (targetPage === 'page-builder') { 
-                    populateVolumeSelect('builderVolumeSelect'); 
+                    populateSeriesSelect('builderSeriesSelect');
+                    populateSeriesSelect('insertSeriesSelect');
+                    populateSeriesSelect('scriptSeriesSelect');
+                    populateSeriesSelect('editSeriesSelect');
                     populateLayoutSelect(); 
                     const modeSel = document.getElementById('pageBuilderModeSelection');
                     const createCont = document.getElementById('createPageContainer');
@@ -153,23 +158,23 @@ export async function init(container) {
 
         // Page Builder Internal Mode Cards
         if (target.closest('#modeCreateBtn')) {
-            populateVolumeSelect('builderVolumeSelect');
+            populateSeriesSelect('builderSeriesSelect');
             populateLayoutSelect();
             document.getElementById('pageBuilderModeSelection').classList.add('hidden');
             document.getElementById('createPageContainer').classList.remove('hidden');
         }
         if (target.closest('#modeInsertBtn')) {
-            populateVolumeSelect('insertVolumeSelect');
+            populateSeriesSelect('insertSeriesSelect');
             document.getElementById('pageBuilderModeSelection').classList.add('hidden');
             document.getElementById('insertPageContainer').classList.remove('hidden');
         }
         if (target.closest('#modeEditBtn')) {
-            populateVolumeSelect('editVolumeSelect');
+            populateSeriesSelect('editSeriesSelect');
             document.getElementById('pageBuilderModeSelection').classList.add('hidden');
             document.getElementById('editPageContainer').classList.remove('hidden');
         }
         if (target.closest('#modeScriptBtn')) {
-            populateVolumeSelect('scriptVolumeSelect');
+            populateSeriesSelect('scriptSeriesSelect');
             document.getElementById('pageBuilderModeSelection').classList.add('hidden');
             document.getElementById('exportScriptContainer').classList.remove('hidden');
         }
@@ -218,25 +223,28 @@ export async function init(container) {
             const vS = document.getElementById('editVolumeSelect');
             const cS = document.getElementById('editChapterSelect');
             const pS = document.getElementById('editPageSelect');
+            const sS = document.getElementById('editSeriesSelect');
 
             const vol = vS.options[vS.selectedIndex]?.getAttribute('data-folder');
+            const seriesId = sS.value;
+            const seriesFolder = sS.options[sS.selectedIndex]?.getAttribute('data-folder');
             const chapNum = cS.options[cS.selectedIndex]?.getAttribute('data-number');
             const pageId = pS.value;
 
-            if (!vol || !chapNum || !pageId) {
-                alert("Please select Volume, Chapter, and Page.");
+            if (!vol || !chapNum || !pageId || !seriesId) {
+                alert("Please select Series, Volume, Chapter, and Page.");
                 return;
             }
 
             const chap = `chapter-${chapNum}`;
-            currentSceneInfo = { volume: vol, chapter: chap, pageId: pageId }; 
-            setActivePage(vol, chap, pageId);
-            updateUrlState({ tab: 'page-builder', vol, chap, page: pageId });
+            currentSceneInfo = { volume: vol, chapter: chap, pageId: pageId, seriesId, seriesFolder }; 
+            setActivePage(vol, chap, pageId, seriesId, seriesFolder);
+            updateUrlState({ tab: 'page-builder', vol, chap, page: pageId, series: seriesId, seriesFolder });
         }
 
         // Editor Openers
-        if (target.id === 'openLayoutEditorBtn') openVisualEditor(target.dataset.vol, target.dataset.chap, target.dataset.page, currentDesignMode);
-        if (target.id === 'openSceneEditorBtn') openSceneEditor(target.dataset.vol, target.dataset.chap, target.dataset.page, currentDesignMode);
+        if (target.id === 'openLayoutEditorBtn') openVisualEditor(target.dataset.vol, target.dataset.chap, target.dataset.page, currentDesignMode, target.dataset.series, target.dataset.seriesFolder);
+        if (target.id === 'openSceneEditorBtn') openSceneEditor(target.dataset.vol, target.dataset.chap, target.dataset.page, currentDesignMode, target.dataset.series);
 
         // Library Cards
         if (target.closest('.series-card')) {
@@ -251,6 +259,15 @@ export async function init(container) {
 
     // Input Change Events
     container.addEventListener('change', e => {
+        // Series to Volume Filtering
+        if (e.target.id === 'volumeSeriesSelect') populateVolumeSelect('volumeSelect', e.target.value);
+        if (e.target.id === 'chapterSeriesSelect') populateVolumeSelect('chapterVolumeSelect', e.target.value);
+        if (e.target.id === 'builderSeriesSelect') populateVolumeSelect('builderVolumeSelect', e.target.value);
+        if (e.target.id === 'insertSeriesSelect') populateVolumeSelect('insertVolumeSelect', e.target.value);
+        if (e.target.id === 'scriptSeriesSelect') populateVolumeSelect('scriptVolumeSelect', e.target.value);
+        if (e.target.id === 'editSeriesSelect') populateVolumeSelect('editVolumeSelect', e.target.value);
+        if (e.target.id === 'exportSeriesSelect') populateVolumeSelect('exportVolumeSelect', e.target.value);
+
         if (e.target.id === 'builderVolumeSelect') populateChapterSelect(e.target.value, 'builderChapterSelect', true);
         if (e.target.id === 'insertVolumeSelect') populateChapterSelect(e.target.value, 'insertChapterSelect', true);
         if (e.target.id === 'editVolumeSelect') populateChapterSelect(e.target.value, 'editChapterSelect', false);
@@ -432,7 +449,7 @@ export async function init(container) {
     initFileBrowser();
     initSceneEditor();
     initVisualEditor();
-    new CharacterEditor();
+    new CharacterEditor(container);
     new ScheduledTaskView();
     initPlotLab(container);
 
@@ -504,7 +521,11 @@ export async function init(container) {
             try {
                 // Parse series and volume folder from the select text (e.g. "No_Overflow - Volume 1")
                 const [seriesPart, volumePart] = optionText.split(' - ');
-                const cleanSeries = seriesPart ? seriesPart.trim() : 'No_Overflow';
+                const cleanSeries = seriesPart ? seriesPart.trim() : null;
+                if (!cleanSeries) {
+                    console.error("Could not determine series from volume title:", volTitle);
+                    return;
+                }
                 
                 // Convert "Volume 1" to "volume-1"
                 let cleanVolume = 'volume-1';

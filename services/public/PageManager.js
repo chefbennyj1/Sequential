@@ -5,7 +5,14 @@ class PageManager {
     static getPageInfo(url) {
         const urlParts = url.split('/').filter(p => p.length > 0);
         const libraryIndex = urlParts.indexOf('Library');
-        let series = "No_Overflow"; 
+        // Resolve series from path (e.g., /Library/No_Overflow/...)
+        const pathParts = url.split('/').filter(p => p.length > 0);
+        let series = pathParts[1]; // Index 1 is the folder name after 'Library'
+        
+        if (!series) {
+            console.error("Could not resolve series from URL:", url);
+            series = "No_Overflow"; // Last resort fallback for legacy
+        } 
         let volume = "volume-1";
         let chapter = "chapter-1";
         let pageId = "page1";

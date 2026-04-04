@@ -84,7 +84,8 @@ function appendSecret(url) {
     return `${url}${separator}exportSecret=${secret}`;
 }
 
-export async function fetchScene(volume, chapter, pageId, series = "No_Overflow") {
+export async function fetchScene(volume, chapter, pageId, series) {
+    if (!series) throw new Error("series is required for fetchScene");
     if (pageId === 'login') return [];
     try {
         const response = await fetch(appendSecret(`/api/scene/${series}/${volume}/${chapter}/${pageId}`));
@@ -96,12 +97,13 @@ export async function fetchScene(volume, chapter, pageId, series = "No_Overflow"
     }
 }
 
-export async function fetchMedia(volume, chapter, pageId, series = "No_Overflow") {
+export async function fetchMedia(volume, chapter, pageId, series) {
+    if (!series) throw new Error("series is required for fetchMedia");
     if (pageId === 'login') return { media: [], sequentialVideoPlayback: false, ambientAudio: null };
     try {
         const response = await fetch(appendSecret(`/api/media/${series}/${volume}/${chapter}/${pageId}`));
-        const data = await response.json(); 
-        const mediaContent = data.media || {}; 
+        const data = await response.json();
+        const mediaContent = data.media || {};
         let mediaArray = Array.isArray(mediaContent) ? mediaContent : (mediaContent.media || []);
         return {
             media: mediaArray,
@@ -110,12 +112,12 @@ export async function fetchMedia(volume, chapter, pageId, series = "No_Overflow"
         };
     } catch (error) {
         console.error(error);
-        return { media: [], sequentialVideoPlayback: false, ambientAudio: null }; 
+        return { media: [], sequentialVideoPlayback: false, ambientAudio: null };
     }
 }
 
 export function setLastVisitedPage(chapterNumber, pageId) {
-    try { localStorage.setItem(`lastVisitedPage_chapter_${chapterNumber}`, pageId); } catch (e) {}
+    try { localStorage.setItem(`lastVisitedPage_chapter_${chapterNumber}`, pageId); } catch (e) { }
 }
 
 export function getLastVisitedPage(chapterNumber) {
@@ -123,7 +125,7 @@ export function getLastVisitedPage(chapterNumber) {
 }
 
 export function wrapCharsInSpans(str) {
-  return str.split('').map(char => `<span>${char}</span>`).join('');
+    return str.split('').map(char => `<span>${char}</span>`).join('');
 }
 
 export function preloadMediaAsset(url, type) {
@@ -165,7 +167,12 @@ export function loadScript(src) {
 
 export function resolveMediaUrl(fileName, type, pageInfo, cacheBust = false) {
     if (!fileName) return '';
-    const series = pageInfo.series || "No_Overflow";
+    const series = pageInfo.series;
+    if (!series) {
+        console.error("No series provided in pageInfo for resolveMediaUrl", pageInfo);
+        return fileName;
+    }
+
     const config = window.APP_CONFIG || {};
     const useCloud = config.useCloudStorage;
     const gcsBase = `${config.gcsBaseUrl}/${config.gcsBucketName}`;
@@ -182,8 +189,8 @@ export function resolveMediaUrl(fileName, type, pageInfo, cacheBust = false) {
         url = useCloud ? `${gcsBase}/Volumes/${pageInfo.volume}/assets/${type}/${name}` : `/Library/${series}/Volumes/${pageInfo.volume}/assets/${type}/${name}`;
     } else {
         const { volume, chapter, pageId } = pageInfo;
-        const apiType = 'images'; // Only images remain
-        url = useCloud ? `${gcsBase}/Volumes/${volume}/${chapter}/${pageId}/assets/${type}/${fileName}` : `/api/${apiType}/${series}/${volume}/${chapter}/${pageId}/assets/${fileName}`;
+        const apiType = 'images'; 
+        url = useCloud ? `${gcsBase}/Volumes/${volume}/${chapter}/${pageId}/assets/${fileName}` : `/api/${apiType}/${series}/${volume}/${chapter}/${pageId}/assets/${fileName}`;
     }
 
     if (cacheBust && url) {

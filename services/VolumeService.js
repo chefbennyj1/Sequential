@@ -1,14 +1,45 @@
 const fs = require('fs');
 const path = require('path');
 const VolumeModel = require('../models/Volume');
+const mongoose = require('mongoose');
 
-async function createVolume({ index, title, volumePath }) {
-  const existing = await VolumeModel.findOne({ index });
-  if (existing) throw Error("Existing Volume");
+async function createVolume({ index, title, seriesId }) {
+  const { resolveSeriesPath } = require('./MediaService');
+  const Series = require('../models/Series');
+  
+  const seriesDoc = await Series.findById(seriesId);
+  if (!seriesDoc) throw new Error("Series not found");
 
-  const newVolume = new VolumeModel({ index, title, volumePath, chapters: [] });
+  const seriesFolderName = seriesDoc.folderName;
+  const volumeFolderName = `volume-${index}`;
+  
+  // Resolve the absolute path for physical directory creation
+  const seriesPath = await resolveSeriesPath(seriesFolderName);
+  const absoluteVolumePath = path.join(seriesPath, 'Volumes', volumeFolderName);
+
+  // Check if volume with this index already exists for THIS series
+  const existing = await VolumeModel.findOne({ index, series: seriesId });
+  if (existing) throw Error("Existing Volume for this series");
+
+  // Physical directory creation
+  if (!fs.existsSync(absoluteVolumePath)) {
+      fs.mkdirSync(absoluteVolumePath, { recursive: true });
+  }
+
+  // Store volumePath in the internal format used by the scanner (/Library/Series/Volumes/volume-N)
+  const volumePath = `/Library/${seriesFolderName}/Volumes/${volumeFolderName}`;
+
+  const newVolume = new VolumeModel({ 
+      series: seriesId,
+      index, 
+      title, 
+      volumePath, 
+      chapters: [] 
+  });
+
   await newVolume.save();
-  let volumeWithData = await updateChaptersFromFS(newVolume);
+  // We pass the absolute path to updateChaptersFromFS to ensure it can scan immediately
+  let volumeWithData = await updateChaptersFromFS(newVolume, absoluteVolumePath);
   await volumeWithData.save();
   return true;
 }
@@ -22,6 +53,8 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
         // Resolve series folder name from the volume path (e.g., /Library/No_Overflow/Volumes/volume-1)
         const pathParts = volume.volumePath.split('/').filter(p => p.length > 0);
         const seriesFolderName = pathParts[1]; // Index 1 is the folder name after 'Library'
+        
+        if (!seriesFolderName) throw new Error("Could not determine series from volumePath: " + volume.volumePath);
         
         const { resolveSeriesPath } = require('./MediaService');
         const seriesPath = await resolveSeriesPath(seriesFolderName);
@@ -128,26 +161,48 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
     await volume.save();
     console.log(`[Scanner] Volume ${volume.index} updated. Total Chapters: ${volume.chapters.length}`);
     return volume;
-
   } catch (err) {
     console.error(`[Scanner] Failed:`, err);
     return volume;
   }
 }
 
-async function syncSinglePage(volumeId, chapterId, pageId) {
+async function syncSinglePage(volumeId, chapterId, pageId, seriesFolderName = null) {
     try {
         const Volume = require('../models/Volume');
+        const Series = require('../models/Series');
         const { resolveSeriesPath } = require('./MediaService');
-        const volume = await Volume.findById(volumeId);
+        
+        let volume;
+        if (seriesFolderName) {
+            const seriesDoc = await Series.findOne({ folderName: seriesFolderName });
+            if (seriesDoc) {
+                if (mongoose.Types.ObjectId.isValid(volumeId)) {
+                    volume = await Volume.findOne({ _id: volumeId, series: seriesDoc._id });
+                } else {
+                    const volPathRegex = new RegExp(`${volumeId}[\\\\/]?$`, 'i');
+                    volume = await Volume.findOne({ volumePath: volPathRegex, series: seriesDoc._id });
+                }
+            }
+        }
+
+        if (!volume && mongoose.Types.ObjectId.isValid(volumeId)) {
+            volume = await Volume.findById(volumeId).populate('series');
+        }
+
         if (!volume) throw new Error("Volume not found");
 
-        const pathParts = volume.volumePath.split('/').filter(p => p.length > 0);
-        const seriesFolderName = pathParts[1]; 
-        const seriesPath = await resolveSeriesPath(seriesFolderName);
-        const pageFolder = path.join(seriesPath, 'Volumes', path.basename(volume.volumePath), chapterId, pageId);
-        const atomicPath = path.join(pageFolder, 'page.json');
+        const actualSeriesFolderName = seriesFolderName || (volume.series ? volume.series.folderName : null) || (() => {
+            const pathParts = volume.volumePath.split('/').filter(p => p.length > 0);
+            return pathParts[1];
+        })();
 
+        if (!actualSeriesFolderName) throw new Error("Could not determine series folder name");
+        
+        const seriesPath = await resolveSeriesPath(actualSeriesFolderName);
+        const volumeSubFolder = path.basename(volume.volumePath);
+        const pageFolder = path.join(seriesPath, 'Volumes', volumeSubFolder, chapterId, pageId);
+        const atomicPath = path.join(pageFolder, 'page.json');
         console.log(`[Sync] Refreshing ${pageId}`);
         const raw = fs.readFileSync(atomicPath, 'utf8');
         const atomic = JSON.parse(raw);
@@ -183,8 +238,21 @@ async function syncSinglePage(volumeId, chapterId, pageId) {
     }
 }
 
-async function insertPage({ seriesFolderName, volumeFolderName, chapterFolderName, insertPoint }) {
+async function insertPage({ series, volume: volumeFolderName, chapter: chapterFolderName, insertPoint }) {
     const { resolveSeriesPath } = require('./MediaService');
+    const Series = require('../models/Series');
+    const VolumeModel = require('../models/Volume');
+
+    const seriesFolderName = await (async () => {
+        if (mongoose.Types.ObjectId.isValid(series)) {
+            const doc = await Series.findById(series);
+            return doc ? doc.folderName : null;
+        }
+        return series;
+    })();
+
+    if (!seriesFolderName) throw new Error("Series folder name is required for insertPage");
+
     const seriesPath = await resolveSeriesPath(seriesFolderName);
     const volumePath = path.join(seriesPath, 'Volumes', volumeFolderName);
     
@@ -193,9 +261,6 @@ async function insertPage({ seriesFolderName, volumeFolderName, chapterFolderNam
     const insertIdx = parseInt(insertPoint);
     if (isNaN(insertIdx)) throw new Error("Invalid insert point");
 
-    console.log(`[VolumeService] GLOBAL Insert: Point ${insertIdx} starting in ${chapterFolderName}`);
-
-    // 1. Get all chapters and sort them
     const chapterDirs = (await fs.promises.readdir(volumePath, { withFileTypes: true }))
         .filter(d => d.isDirectory() && d.name.startsWith('chapter-'))
         .map(d => d.name)
@@ -204,42 +269,27 @@ async function insertPage({ seriesFolderName, volumeFolderName, chapterFolderNam
     const targetChapIdx = chapterDirs.indexOf(chapterFolderName);
     if (targetChapIdx === -1) throw new Error("Target chapter not found in volume");
 
-    // 2. Shift pages in REVERSE order (Last Chapter -> Target Chapter)
     for (let i = chapterDirs.length - 1; i >= targetChapIdx; i--) {
         const currentChapName = chapterDirs[i];
         const currentChapPath = path.join(volumePath, currentChapName);
         const isTargetChapter = (i === targetChapIdx);
 
-        // CHECK FOR IGNORE FILE
-        if (fs.existsSync(path.join(currentChapPath, '.ignore-shift'))) {
-            console.log(`  [Skip] ${currentChapName} contains .ignore-shift. Skipping.`);
-            continue;
-        }
+        if (fs.existsSync(path.join(currentChapPath, '.ignore-shift'))) continue;
 
-        console.log(`  Scanning ${currentChapName} for shifts...`);
-        
         const pageDirs = (await fs.promises.readdir(currentChapPath, { withFileTypes: true }))
             .filter(d => d.isDirectory() && d.name.startsWith('page'))
-            .map(d => ({ 
-                name: d.name, 
-                num: parseInt(d.name.replace(/\D/g, '')) || 0 
-            }))
+            .map(d => ({ name: d.name, num: parseInt(d.name.replace(/\D/g, '')) || 0 }))
             .filter(p => isTargetChapter ? p.num >= insertIdx : true)
-            .sort((a, b) => b.num - a.num); // Sort descending
+            .sort((a, b) => b.num - a.num);
 
         for (const page of pageDirs) {
-            const oldName = page.name;
-            const newName = `page${page.num + 1}`;
-            const oldPath = path.join(currentChapPath, oldName);
-            const newPath = path.join(currentChapPath, newName);
-
-            console.log(`    [Shift] ${currentChapName}/${oldName} -> ${newName}`);
+            const oldPath = path.join(currentChapPath, page.name);
+            const newPath = path.join(currentChapPath, `page${page.num + 1}`);
             await tryRename(oldPath, newPath);
-            await updateInternalFiles(newPath, oldName, newName);
+            await updateInternalFiles(newPath, page.name, `page${page.num + 1}`);
         }
     }
 
-    // 3. Clone Previous Page -> New Page (at the insert point)
     const targetChapterPath = path.join(volumePath, chapterFolderName);
     const sourceIdx = insertIdx - 1;
     const sourceName = `page${sourceIdx}`;
@@ -248,34 +298,21 @@ async function insertPage({ seriesFolderName, volumeFolderName, chapterFolderNam
     const newPagePath = path.join(targetChapterPath, newPageName);
 
     if (fs.existsSync(sourcePagePath)) {
-        console.log(`  Cloning ${sourceName} -> ${newPageName}`);
         await fs.promises.cp(sourcePagePath, newPagePath, { recursive: true });
         await updateInternalFiles(newPagePath, sourceName, newPageName);
-
-        // Reset JSON for the new "clean" page
         const jsonPath = path.join(newPagePath, 'page.json');
         if (fs.existsSync(jsonPath)) {
-            const data = JSON.parse(await fs.promises.readFile(jsonPath, 'utf8'));
-            if (data.header) {
-                data.header.pageId = newPageName;
-                data.header.chapter = chapterFolderName;
-            }
-            data.scene = []; 
-            await fs.promises.writeFile(jsonPath, JSON.stringify(data, null, 2));
+            const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+            data.media = []; data.scene = [];
+            if (data.header) { data.header.pageId = newPageName; data.header.chapter = chapterFolderName; data.header.volume = volumeFolderName; }
+            fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2));
         }
-    } else {
-        console.log(`  No source page ${sourceName} found. Creating blank page structure.`);
-        await fs.promises.mkdir(newPagePath, { recursive: true });
-        // Scaffolding will happen on the next DB sync/scan
     }
 
-    // 4. Update Database
-    const VolumeModel = require('../models/Volume');
+    const seriesDoc = await Series.findOne({ folderName: seriesFolderName });
     const volPathRegex = new RegExp(`${volumeFolderName}[\\\\/]?$`, 'i');
-    const volume = await VolumeModel.findOne({ volumePath: volPathRegex });
-    if (volume) {
-        await updateChaptersFromFS(volume);
-    }
+    const volume = await VolumeModel.findOne({ volumePath: volPathRegex, series: seriesDoc ? seriesDoc._id : { $exists: false } });
+    if (volume) await updateChaptersFromFS(volume);
 
     return { ok: true, message: `Global Page Insertion complete at ${insertIdx}` };
 }
@@ -284,24 +321,15 @@ async function createChapter({ seriesFolderName, volumeFolderName, title, chapte
     const { resolveSeriesPath } = require('./MediaService');
     const seriesPath = await resolveSeriesPath(seriesFolderName);
     const volumePath = path.join(seriesPath, 'Volumes', volumeFolderName);
-    
     if (!fs.existsSync(volumePath)) throw new Error("Volume directory not found");
 
     const chapIdx = parseInt(chapterIndex);
-    if (isNaN(chapIdx)) throw new Error("Invalid chapter index");
-
     const chapterFolderName = `chapter-${chapIdx}`;
     const chapterPath = path.join(volumePath, chapterFolderName);
+    if (fs.existsSync(chapterPath)) throw new Error(`Chapter ${chapIdx} already exists.`);
 
-    // Safety: Don't overwrite existing chapters
-    if (fs.existsSync(chapterPath)) {
-        throw new Error(`Chapter ${chapIdx} already exists on disk.`);
-    }
-
-    // 1. Determine Next GLOBAL Page Number
     const dirs = await fs.promises.readdir(volumePath, { withFileTypes: true });
     let maxPageNum = -1;
-
     for (const d of dirs) {
         if (d.isDirectory() && d.name.startsWith('chapter-')) {
             const chapDir = path.join(volumePath, d.name);
@@ -319,54 +347,28 @@ async function createChapter({ seriesFolderName, volumeFolderName, title, chapte
     const firstPageName = `page${nextPageNum}`;
     const firstPagePath = path.join(chapterPath, firstPageName);
 
-    // 2. Create Folders
     await fs.promises.mkdir(chapterPath, { recursive: true });
     await fs.promises.mkdir(firstPagePath, { recursive: true });
 
-    // 3. Initialize first page (Atomic scaffold)
-    const pageId = firstPageName;
     const pageJson = {
-        header: {
-            version: "2.0",
-            pageId: pageId,
-            chapter: chapterFolderName,
-            volume: volumeFolderName,
-            layout: { id: "Standard_Page", html: "Standard_Page.html", css: "" }
-            },
-            media: [],
-            scene: []
-            };
-
-            const css = `@import url('/layouts/styles/base-comic-layout.css');\n\n.${pageId} {\n\n}`;
-            const js = "export async function onPageLoad(container, pageInfo) {\n" +
-               "    container.addEventListener('view_visible', async () => { console.log(`Page ${pageInfo.pageId} is visible.`); });\n" +
-               "    container.addEventListener('view_hidden', () => { console.log(`Page ${pageInfo.pageId} is hidden.`); });\n" +
-               "    container.addEventListener('panel_media_changed', (e) => {\n" +
-               "        const { panelSelector, type, fileName, action } = e.detail;\n" +
-               "        console.log(`Panel ${panelSelector} changed:`, { type, fileName, action });\n" +
-               "    });\n}";
-
-            await fs.promises.writeFile(path.join(firstPagePath, 'page.json'), JSON.stringify(pageJson, null, 2));
-            await fs.promises.writeFile(path.join(firstPagePath, 'page.js'), js);
-            await fs.promises.writeFile(path.join(firstPagePath, 'page.css'), css);
-
-            // Create asset subfolders
-            await fs.promises.mkdir(path.join(firstPagePath, "assets", "image"), { recursive: true });
-            await fs.promises.mkdir(path.join(firstPagePath, "assets", "video"), { recursive: true });
-    // 4. Update Database
-    const VolumeModel = require('../models/Volume');
-    const volPathRegex = new RegExp(`${volumeFolderName}[\\\\/]?$`, 'i');
-    const volume = await VolumeModel.findOne({ volumePath: volPathRegex });
-    if (volume) {
-        await updateChaptersFromFS(volume);
-    }
-
-    return { 
-        ok: true, 
-        message: `Chapter ${chapIdx} created with ${firstPageName}`,
-        chapter: chapterFolderName,
-        pageId: firstPageName
+        header: { version: "2.0", pageId: firstPageName, chapter: chapterFolderName, volume: volumeFolderName, layout: { id: "Standard_Page", html: "Standard_Page.html", css: "" } },
+        media: [], scene: []
     };
+    await fs.promises.writeFile(path.join(firstPagePath, 'page.json'), JSON.stringify(pageJson, null, 2));
+    await fs.promises.mkdir(path.join(firstPagePath, "assets", "image"), { recursive: true });
+
+    const VolumeModel = require('../models/Volume');
+    const Series = require('../models/Series');
+    const seriesDoc = await Series.findOne({ folderName: seriesFolderName });
+    
+    const volPathRegex = new RegExp(`${volumeFolderName}[\\\\/]?$`, 'i');
+    const volume = await VolumeModel.findOne({ 
+        volumePath: volPathRegex,
+        series: seriesDoc ? seriesDoc._id : { $exists: false }
+    });
+    if (volume) await updateChaptersFromFS(volume);
+
+    return { ok: true, message: `Chapter ${chapIdx} created`, chapter: chapterFolderName, pageId: firstPageName };
 }
 
 async function updateInternalFiles(dir, oldName, newName) {
@@ -377,15 +379,13 @@ async function updateInternalFiles(dir, oldName, newName) {
             await tryRename(path.join(dir, f), path.join(dir, newF));
         }
     }
-    
-    // Update JSON pageId
     const jsonPath = path.join(dir, 'page.json');
     if (fs.existsSync(jsonPath)) {
         try {
-            const data = JSON.parse(await fs.promises.readFile(jsonPath, 'utf8'));
+            const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
             if (data.header && data.header.pageId === oldName) {
                 data.header.pageId = newName;
-                await fs.promises.writeFile(jsonPath, JSON.stringify(data, null, 2));
+                fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2));
             }
         } catch(e) {}
     }
@@ -398,11 +398,8 @@ async function tryRename(oldP, newP, retries = 3) {
             return;
         } catch (e) {
             if (e.code === 'EPERM' && i < retries - 1) {
-                console.log(`    Locked... retrying ${path.basename(oldP)} (${i+1}/${retries})`);
                 await new Promise(r => setTimeout(r, 500));
-            } else {
-                throw e;
-            }
+            } else throw e;
         }
     }
 }

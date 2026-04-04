@@ -77,7 +77,8 @@ async function scanLibrary(io = null) {
                     const seriesData = {
                         title: entry.name,
                         folderName: entry.name,
-                        libraryRoot: root._id
+                        libraryRoot: root._id,
+                        libraryRootPath: root.path
                     };
 
                     const seriesDoc = await syncSeriesToDB(seriesData);
@@ -133,9 +134,8 @@ async function scanVolumesInSeries(seriesDoc, volumesPath, seriesFolderName, io 
         }
 
         // Sync chapters and pages
+        // updateChaptersFromFS already saves the volume at the end.
         await VolumeService.updateChaptersFromFS(volume, absolutePath);
-
-        await volume.save();
     }
 }
 
@@ -165,6 +165,31 @@ async function syncSeriesToDB(data) {
                 console.log(`Updated existing series metadata: ${data.title}`);
             }
         }
+
+        // --- Ensure custom speech bubble folder and files exist ---
+        try {
+            const seriesPath = path.join(data.libraryRootPath, data.folderName);
+            const customDir = path.join(seriesPath, 'custom', 'speechBubble');
+            if (!fs.existsSync(customDir)) {
+                fs.mkdirSync(customDir, { recursive: true });
+                console.log(`Created custom speech bubble directory: ${customDir}`);
+            }
+            
+            const tagsJsonPath = path.join(customDir, 'tags.json');
+            if (!fs.existsSync(tagsJsonPath)) {
+                fs.writeFileSync(tagsJsonPath, JSON.stringify([], null, 2));
+                console.log(`Created empty tags.json: ${tagsJsonPath}`);
+            }
+
+            const tagsCssPath = path.join(customDir, 'tags.css');
+            if (!fs.existsSync(tagsCssPath)) {
+                fs.writeFileSync(tagsCssPath, '/* Custom Speech Bubble Styles */\n');
+                console.log(`Created empty tags.css: ${tagsCssPath}`);
+            }
+        } catch (err) {
+            console.error(`Failed to verify custom directories for ${data.title}:`, err.message);
+        }
+
         return series;
     } catch (e) {
         console.error(`Error syncing ${data.title}:`, e);

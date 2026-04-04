@@ -5,7 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Page Preview</title>
     <!-- Page-specific layout CSS -->
-    <link rel="stylesheet" href="/Library/No_Overflow/Volumes/<%= volume %>/<%= chapter %>/<%= pageId %>/page.css">
+    <% 
+       let seriesFolder = series;
+    %>
+    <link rel="stylesheet" href="/Library/<%= seriesFolder %>/Volumes/<%= volume %>/<%= chapter %>/<%= pageId %>/page.css">
 </head>
 <body class="preview-mode">
     <input type="file" id="globalPanelUpload" style="display:none" accept="image/*,video/*">
@@ -26,7 +29,7 @@
 
             const container = document.getElementById('preview-container');
             const params = {
-                series: "<%= typeof series !== 'undefined' ? series : 'No_Overflow' %>",
+                series: "<%= series %>",
                 volume: "<%= volume %>",
                 chapter: "<%= chapter %>",
                 pageId: "<%= pageId %>",

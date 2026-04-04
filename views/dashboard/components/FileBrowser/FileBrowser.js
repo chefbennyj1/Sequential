@@ -3,7 +3,7 @@
 import { fetchPageAssets, uploadAsset } from '../../studio/js/ApiService.js';
 
 let fileBrowserCallback = null;
-let fileBrowserCurrentType = 'image'; // 'image', 'video', 'audio'
+let fileBrowserCurrentType = 'image'; // 'image', 'video'
 let currentContext = { series: null, volume: null, chapter: null, pageId: null };
 let currentActiveFiles = [];
 let allFiles = []; // Raw list from server: Array of { name, mtime }
@@ -45,13 +45,19 @@ async function refreshFileBrowser() {
     grid.innerHTML = '<p class="text-muted">Loading...</p>';
     status.textContent = `Browsing ${fileBrowserCurrentType}s (${scope})...`;
 
+    const series = currentContext.series;
+    if (!series) {
+        grid.innerHTML = '<p class="text-accent">Error: No series context found.</p>';
+        return;
+    }
+
     const data = await fetchPageAssets(
         currentContext.volume, 
         currentContext.chapter, 
         currentContext.pageId, 
         fileBrowserCurrentType,
         scope,
-        currentContext.series || "No_Overflow"
+        series
     );
 
     if (data.ok) {
@@ -107,9 +113,11 @@ function renderFileBrowserGrid(files) {
         if (scope === 'page') {
             assetUrl = `/api/images/${series}/${currentContext.volume}/${currentContext.chapter}/${currentContext.pageId}/assets/${file.name}`;
         } else if (scope === 'series') {
-            assetUrl = `/Library/No_Overflow/assets/image/${file.name}`;
+            // Path relative to Series root: assets/image/file.name
+            assetUrl = `/api/images/${series}/volumes/../assets/image/${file.name}`;
         } else if (scope === 'volume') {
-             assetUrl = `/Library/No_Overflow/Volumes/${currentContext.volume}/assets/image/${file.name}`;
+            // Path relative to Series root: Volumes/volume-N/assets/image/file.name
+             assetUrl = `/api/images/${series}/volumes/${currentContext.volume}/assets/image/${file.name}`;
         }
 
         // Preview logic

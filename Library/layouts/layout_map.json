@@ -1,41 +1,49 @@
 {
-  "Grid_4_Left_Span": [
-    "Grid_4_Left_Span",
-    "Grid_4_Left_Span_Stacked",
-    "Grid_4_Left_Span_Stacked_Swap"
+  "5_Panel_Left_Span": [
+    "5_Panel_Left_Span"
   ],
-  "Grid_4_Right_Span": [
-    "Grid_Right_Span_Split_Stack",
-    "Grid_Right_Span_Split_Stack_V2",
-    "Grid_Right_Span_Split_Stack_V3"
+  "5_Panel_Right_Span": [
+    "5_Panel_Right_Span",
+    "5_Panel_Right_Span_Stacked"
   ],
-  "Grid_Mixed_TwoTall_OneStack": [
-    "Grid_Mixed_TwoTall_OneStack",
-    "Grid_Mixed_TwoTall_OneStack_V2"
+  "5_Panel_Right_Span_Stacked": [
+    "5_Panel_Right_Span_Stacked"
   ],
-  "Grid_5_Panel_Center_Focus": [
-    "Grid_5_Panel_Center_Focus"
+  "4_Panel_Left_Span": [
+    "4_Panel_Left_Span"
+  ],
+  "4_Panel_Right_Span": [
+    "4_Panel_Right_Span"
+  ],
+  "6_Panel": [
+    "6_Panel"
+  ],
+  "6_Panel_Span_Left_Span_Right": [
+    "6_Panel_Span_Left_Span_Right"
+  ],
+  "4_Panel_Vertical": [
+    "4_Panel_Vertical"
+  ],
+  "4_Panel_Grid": [
+    "4_Panel_Grid",
+    "Stacked_4_Row_Cinematic",
+    "Stacked_4_Row_Mix"
+  ],
+  "3_Panel_Vertical": [
+    "3_Panel_Vertical"
+  ],
+  "5_Panel_Middle_Span": [
+    "5_Panel_Middle_Span"
+  ],
+  "4_Panel_2_Left_Span": [
+    "4_Panel_2_Left_Span"
   ],
   "Banner_2_Col": [
     "Banner_2_Col"
-  ],
-  "Vertical_Strips_4": [
-    "Vertical_Strips_4"
-  ],
-  "Grid_4_Panel": [
-    "Grid_4_Panel",
-    "Stacked_4_Row_Cinematic",
-    "Stacked_4_Row_Mix"
   ],
   "Standard_Page": [
     "Spread_Split_Vertical",
     "Standard_Page_Mobile_Swap",
     "Standard_Page"
-  ],
-  "Grid_3x2": [
-    "Grid_5_Wide_1_Tall",
-    "Grid_5_Wide_1_Tall_V2",
-    "Grid_Mixed_V2",
-    "Grid_Mixed_V3"
   ]
 }

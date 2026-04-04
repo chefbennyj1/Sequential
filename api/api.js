@@ -17,6 +17,7 @@ router.post('/editor/export-volume/:series/:volume', isAuth, ExportController.ex
 router.post('/editor/export-script/:series/:volume', isAuth, ExportController.exportScript);
 router.get('/editor/preview/:series/:volume/:chapter/:pageId', isAuth, EditorController.servePreview);
 router.get('/editor/scene/:series/:volume/:chapter/:pageId', isAuth, EditorController.getScene);
+router.get('/editor/media/:series/:volume/:chapter/:pageId', isAuth, EditorController.getMedia);
 router.post('/editor/create-page', isAuth, EditorController.createPage);
 router.post('/editor/upload-asset', isAuth, EditorController.uploadMiddleware, EditorController.uploadAsset);
 router.get('/editor/panels/:series/:volume/:chapter/:pageId', isAuth, EditorController.getPanels);
@@ -55,8 +56,7 @@ router.get('/volume/:id/chapter/:chapterNumber', isAuth, VolumeController.getCha
 // --- MEDIA ROUTES ---
 router.get('/images/:series/volumes/*path', isAuth, MediaController.serveImage); // Named series
 router.get('/images/volumes/*path', isAuth, MediaController.serveImage); // Legacy fallback
-router.get("/images/:series/:volume/:chapter/:page/assets/:file", isAuth, MediaController.servePageImage);
-router.get("/api/images/:series/:volume/:chapter/:pageId/assets/:file", isAuth, MediaController.servePageImage); 
+router.get("/images/:series/:volume/:chapter/:pageId/assets/:file", isAuth, MediaController.servePageImage); 
 
 // --- SCENE & MEDIA DATA ROUTES ---
 router.get('/scene/:series/:volume/:chapter/:pageId', isAuth, MediaController.getScene);

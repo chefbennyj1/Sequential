@@ -3,21 +3,18 @@ const VolumeModel = require('../models/Volume.js');
 const mongoose = require('mongoose');
 const path = require('path');
 const fs = require('fs');
-const { validateAudioMap } = require('../utils/jsonValidators');
 const { resolveSeriesPath } = require('../services/MediaService');
 
 exports.createVolume = async (req, res) => {
-  //TODO: alert the ui that an existing volume is there, and a new one was not made.
-  const { index, title, volumePath, pages } = req.body;
+  const { index, title, seriesId, pages } = req.body;
 
   try {
-    // Create new volume
-    await VolumeManager.createVolume({ index, title, volumePath, pages });
-    res.redirect('/dashboard'); // browser navigates back to dashboard
+    // Create new volume with automated path handling
+    await VolumeManager.createVolume({ index, title, seriesId, pages });
+    res.redirect('/dashboard'); 
   } catch (err) {
-    // Basic error handling - could be more specific
     console.error("Error creating volume:", err);
-    res.status(500).redirect('/dashboard'); // Redirect with error status or message
+    res.status(500).redirect('/dashboard'); 
   }
 };
 
@@ -135,6 +132,7 @@ exports.updateChapter = async (req, res) => {
 
 exports.getVolumeById = async (req, res) => {
   const { id } = req.params;
+  const { series } = req.query;
 
   if (!id) {
     return res.status(400).json({ ok: false, message: "Missing Volume ID" });
@@ -148,7 +146,20 @@ exports.getVolumeById = async (req, res) => {
         // Fallback: search by folder name in volumePath
         const safeId = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); 
         const regex = new RegExp(`${safeId}[\\\\/]?$`, 'i');
-        volume = await VolumeModel.findOne({ volumePath: regex }).populate('series').lean();
+        
+        let query = { volumePath: regex };
+        if (series) {
+            if (mongoose.Types.ObjectId.isValid(series)) {
+                query.series = series;
+            } else {
+                // If series is folderName, we need to find series first or use populate
+                const Series = require('../models/Series');
+                const seriesDoc = await Series.findOne({ folderName: series });
+                if (seriesDoc) query.series = seriesDoc._id;
+            }
+        }
+        
+        volume = await VolumeModel.findOne(query).populate('series').lean();
     }
 
     if (!volume) {
@@ -192,7 +203,8 @@ exports.getChapterPages = async (req, res) => {
       return res.status(404).json({ ok: false, message: "Chapter not found" });
     }
 
-    const seriesFolderName = volume.series ? volume.series.folderName : "No_Overflow";
+    const seriesFolderName = volume.series ? volume.series.folderName : null;
+    if (!seriesFolderName) throw new Error("Series folder name not found for volume");
     const enrichedPages = chapter.pages.map(p => ({ ...p, series: seriesFolderName }));
 
     // Return a new object that looks like the old 'volume' object for client compatibility
@@ -209,5 +221,3 @@ exports.getChapterPages = async (req, res) => {
     res.status(500).json({ ok: false, message: "Server error" });
   }
 };
-
-

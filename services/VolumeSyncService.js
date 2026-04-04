@@ -14,9 +14,6 @@ async function updateVolumesFromFS() {
     // Calculate total pages for logging
     const totalPages = updatedVol.chapters.reduce((sum, chapter) => sum + chapter.pages.length, 0);
 
-    // Save changes to MongoDB
-    await updatedVol.save();
-
     console.log(`Updated volume ${updatedVol.title} with ${updatedVol.chapters.length} chapters and ${totalPages} pages.`);
   }
 }

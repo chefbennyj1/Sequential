@@ -51,7 +51,7 @@ export async function init(container, params) {
                 labelElement.innerText = "Success!";
                 const el = document.createElement('img');
                 
-                const series = params.series || 'No_Overflow';
+                const series = params.series;
                 el.src = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${file.name}`;
                 
                 el.style.width = '100%'; 
@@ -101,7 +101,8 @@ export async function init(container, params) {
     // --- 4. Loader ---
     async function loadExistingMedia() {
         try {
-            const series = params.series || 'No_Overflow';
+            const series = params.series;
+            if (!series) throw new Error("No series context in params");
             const res = await fetch(`/api/media/${series}/${volume}/${chapter}/${pageId}`);
             const data = await res.json();
             
@@ -111,7 +112,7 @@ export async function init(container, params) {
                     if (!panel) return;
 
                     let el;
-                    const series = params.series || 'No_Overflow';
+                    const series = params.series;
                     if (item.type === 'image') {
                         el = document.createElement('img');
                         el.src = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${item.fileName}`;
@@ -142,7 +143,7 @@ export async function init(container, params) {
 
                         // Apply persistent mask if defined
                         if (item.maskGif) {
-                            const series = params.series || 'No_Overflow';
+                            const series = params.series;
                             const maskUrl = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${item.maskGif}`;
                             
                             // Important: Give the DOM a moment to ensure 'el' is rendered

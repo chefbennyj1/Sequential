@@ -94,15 +94,17 @@ export async function getCurrentUser() {
     }
 }
 
-export async function fetchSingleVolumeWithChapters(id) {
+export async function fetchSingleVolumeWithChapters(id, seriesId = null) {
     try {
-        const res = await fetch(`/api/volume/${id}`);
+        const query = seriesId ? `?series=${seriesId}` : '';
+        const res = await fetch(`/api/volume/${id}${query}`);
         const data = await res.json();
         return data.ok ? data.view : null;
     } catch (err) { console.error(err); return null; }
 }
 
-export async function fetchSceneData(volume, chapter, pageId, seriesId = "No_Overflow") {
+export async function fetchSceneData(volume, chapter, pageId, seriesId) {
+    if (!seriesId) throw new Error("seriesId is required");
     try {
         const res = await fetch(`/api/editor/scene/${seriesId}/${volume}/${chapter}/${pageId}`);
         const data = await res.json();
@@ -113,7 +115,8 @@ export async function fetchSceneData(volume, chapter, pageId, seriesId = "No_Ove
     }
 }
 
-export async function saveSceneData(volume, chapter, pageId, sceneData, seriesId = "No_Overflow") {
+export async function saveSceneData(volume, chapter, pageId, sceneData, seriesId) {
+    if (!seriesId) throw new Error("seriesId is required");
     try {
         const res = await fetch(`/api/editor/scene/${seriesId}/${volume}/${chapter}/${pageId}`, {
             method: 'POST',
@@ -127,7 +130,8 @@ export async function saveSceneData(volume, chapter, pageId, sceneData, seriesId
     }
 }
 
-export async function saveMediaAPI(volume, chapter, pageId, media, seriesId = "No_Overflow") {
+export async function saveMediaAPI(volume, chapter, pageId, media, seriesId) {
+    if (!seriesId) throw new Error("seriesId is required");
     try {
         const res = await fetch(`/api/editor/media/${seriesId}/${volume}/${chapter}/${pageId}`, {
             method: 'POST',
@@ -148,7 +152,20 @@ export async function saveMediaAPI(volume, chapter, pageId, media, seriesId = "N
     }
 }
 
-export async function fetchPageAssets(volume, chapter, pageId, type, scope = 'page', seriesId = "No_Overflow") {
+export async function fetchMedia(volume, chapter, pageId, seriesId) {
+    if (!seriesId) throw new Error("seriesId is required");
+    try {
+        const res = await fetch(`/api/editor/media/${seriesId}/${volume}/${chapter}/${pageId}`);
+        const data = await res.json();
+        return data.ok ? data.media : { media: [] };
+    } catch (err) {
+        console.error(err);
+        return { media: [] };
+    }
+}
+
+export async function fetchPageAssets(volume, chapter, pageId, type, scope = 'page', seriesId) {
+    if (!seriesId) throw new Error("seriesId is required");
     try {
         const res = await fetch(`/api/editor/assets/${seriesId}/${volume}/${chapter}/${pageId}/${type}?scope=${scope}&t=${Date.now()}`);
         return await res.json();
@@ -176,68 +193,8 @@ export async function fetchLayouts(mode = 'landscape') {
     }
 }
 
-export async function fetchAudioMap(volumeId) {
-    try {
-        const res = await fetch(`/api/volumes/${volumeId}/audio-map`);
-        return await res.json();
-    } catch (err) {
-        console.error("Error fetching audio map:", err);
-        return { ok: false, map: [] };
-    }
-}
-
-export async function updateAudioMap(volumeId, map) {
-    try {
-        const res = await fetch(`/api/volumes/${volumeId}/audio-map`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ map })
-        });
-        return await res.json();
-    } catch (err) {
-        console.error("Error updating audio map:", err);
-        return { ok: false, message: "Network error" };
-    }
-}
-
-export async function fetchAmbientMedia(vol, chap, page, series = 'No_Overflow') {
-     try {
-        const res = await fetch(`/api/media/${series}/${vol}/${chap}/${page}`);
-        return await res.json();
-    } catch (e) {
-        return { ok: false };
-    }
-}
-
-export async function setPageAmbientAudioAPI(volume, chapter, pageId, fileName, seriesId = "No_Overflow") {
-    try {
-        const res = await fetch('/api/editor/set-ambient', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ series: seriesId, volume, chapter, pageId, fileName })
-        });
-        return await res.json();
-    } catch (err) {
-        console.error("Error setting ambient audio:", err);
-        return { ok: false, message: "Network error" };
-    }
-}
-
-export async function updateAmbientVolumeAPI(volume, chapter, pageId, ambientVolume, seriesId = "No_Overflow") {
-    try {
-        const res = await fetch('/api/editor/ambient-volume', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ series: seriesId, volume, chapter, pageId, ambientVolume })
-        });
-        return await res.json();
-    } catch (err) {
-        console.error("Error updating ambient volume:", err);
-        return { ok: false, message: "Network error" };
-    }
-}
-
-export async function fetchPagePanels(volume, chapter, pageId, mode = 'landscape', seriesId = "No_Overflow") {
+export async function fetchPagePanels(volume, chapter, pageId, mode = 'landscape', seriesId) {
+    if (!seriesId) throw new Error("seriesId is required");
     try {
         const res = await fetch(`/api/editor/panels/${seriesId}/${volume}/${chapter}/${pageId}?mode=${mode}`);
         const data = await res.json();

@@ -126,12 +126,6 @@ server.listen(PORT, () => {
   console.log(`Website running on http://${hostname}:${PORT}`);
 });
 
-VolumeSync.updateVolumesFromFS();
-// Optionally, schedule updates every 5 minutes
-setInterval(() => {
-  VolumeSync.updateVolumesFromFS();
-}, 5 * 60 * 1000);
-
 function getLocalIPv4() {
   const interfaces = os.networkInterfaces();
   const allAddrs = Object.values(interfaces).flat();

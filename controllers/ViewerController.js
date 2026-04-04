@@ -28,12 +28,8 @@ exports.getViewer = async (req, res) => {
       return res.status(404).send("Volume not found.");
     }
 
-    const globalMedia = await loadGlobalMedia();
-
     res.render('viewer/index', { 
       volume,
-      globalBackgroundAudio: globalMedia.backgroundAudio, 
-      globalPageTransitionAudio: globalMedia.pageTransitionAudio,
       initialChapter: req.query.chapter || null,
       initialPage: req.query.page || null,
       config: req.app.get('APP_CONFIG')
@@ -70,18 +66,4 @@ async function resolveVolumeFromSeries(seriesName, volumeFolderName, res) {
 
   series.volumes.sort((a, b) => a.index - b.index);
   return series.volumes[0]._id;
-}
-
-async function loadGlobalMedia() {
-  const globalMediaFilePath = path.join(__dirname, '..', 'global_media.json');
-  try {
-    const data = await fs.promises.readFile(globalMediaFilePath, 'utf8');
-    const parsed = JSON.parse(data);
-    return {
-      backgroundAudio: Array.isArray(parsed.backgroundAudio) ? parsed.backgroundAudio : [],
-      pageTransitionAudio: parsed.pageTransition || ""
-    };
-  } catch {
-    return { backgroundAudio: [], pageTransitionAudio: "" };
-  }
 }

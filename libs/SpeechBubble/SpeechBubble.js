@@ -11,7 +11,7 @@ class SpeechBubble {
       character: '',
       chapter: null,
       pageId: null,
-      series: 'No_Overflow', // Default fallback
+      series: null, // Should be provided by context
       top: null,
       bottom: null,
       left: null,

@@ -13,21 +13,66 @@ import { getFolderNameFromPath } from './Navigation.js';
 import { renderCard, renderChapterCard, renderSeriesCard } from '../../components/CardBuilder/CardBuilder.js';
 
 /**
- * Populates volume selection dropdowns.
+ * Populates series selection dropdowns.
  */
-export async function populateVolumeSelect(id = 'volumeSelect') {
+export async function populateSeriesSelect(id) {
     const select = document.getElementById(id);
     if (!select) return;
+    select.innerHTML = '<option value="">Select a Series</option>';
+    try {
+        const seriesList = await fetchSeriesAPI();
+        seriesList.forEach(series => {
+            const option = document.createElement('option');
+            option.value = series._id;
+            option.setAttribute('data-folder', series.folderName);
+            option.textContent = series.title;
+            select.appendChild(option);
+        });
+    } catch (err) {
+        console.error("Error populating series select:", err);
+    }
+}
+
+/**
+ * Populates volume selection dropdowns, optionally filtered by series.
+ */
+export async function populateVolumeSelect(id = 'volumeSelect', seriesId = null) {
+    const select = document.getElementById(id);
+    if (!select) return;
+    
+    if (!seriesId) {
+        select.innerHTML = '<option value="">Select a Series first</option>';
+        select.disabled = true;
+        return;
+    }
+
     select.innerHTML = '<option value="">Select a Volume</option>';
     const volumes = await fetchVolumesAPI();
-    volumes.forEach(volume => {
+    
+    // Filter volumes by series if seriesId is provided
+    const filteredVolumes = volumes.filter(v => v.series === seriesId);
+    
+    if (filteredVolumes.length === 0) {
+        select.innerHTML = '<option value="">No volumes found</option>';
+        select.disabled = true;
+        return;
+    }
+
+    filteredVolumes.forEach(volume => {
         const option = document.createElement('option');
-        option.value = (id === 'builderVolumeSelect' || id === 'insertVolumeSelect' || id === 'chapterVolumeSelect') ? getFolderNameFromPath(volume.volumePath) : volume._id;
-        if (id === 'editVolumeSelect' || id === 'scriptVolumeSelect') option.setAttribute('data-folder', getFolderNameFromPath(volume.volumePath));
+        // Folder mode logic used by create/insert/chapter forms
+        const isFolderMode = (id === 'builderVolumeSelect' || id === 'insertVolumeSelect' || id === 'chapterVolumeSelect');
+        option.value = isFolderMode ? getFolderNameFromPath(volume.volumePath) : volume._id;
+        
+        if (id === 'editVolumeSelect' || id === 'scriptVolumeSelect' || id === 'exportVolumeSelect') {
+            option.setAttribute('data-folder', getFolderNameFromPath(volume.volumePath));
+        }
+        
         if (volume.series) option.setAttribute('data-series-id', volume.series);
         option.textContent = volume.title;
         select.appendChild(option);
     });
+    select.disabled = false;
 }
 
 /**
