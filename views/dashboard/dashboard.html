@@ -35,7 +35,23 @@
             <h3>Sequential Studio</h3>
             <p class="text-muted margin-b-40">Select a tool to begin.</p>
             
-            <div class="flex-row gap-20 flex-center flex-wrap">
+            
+                <div class="global-settings bg-dark padding-20 border-radius-12 border-dim margin-b-30">
+                    <h4 class="margin-b-15">Active Workspace</h4>
+                    <div class="flex-row gap-15">
+                        <div class="form-group flex-1">
+                            <label>Global Series</label>
+                            <select id="globalSeriesSelect" class="gov-select"><option value="">Select a Series</option></select>
+                        </div>
+                        <div class="form-group flex-1">
+                            <label>Global Volume</label>
+                            <select id="globalVolumeSelect" class="gov-select" disabled><option value="">Select a Series first</option></select>
+                        </div>
+                    </div>
+                    <p class="font-size-07 text-muted margin-t-10">Setting these will auto-populate series/volume dropdowns across the studio.</p>
+                </div>
+
+                <div class="flex-row gap-20 flex-center flex-wrap">
                 
                 <div class="mode-card" data-target="create-new-volume">
                     <ion-icon name="book-outline"></ion-icon>

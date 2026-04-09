@@ -49,6 +49,7 @@ export async function renderLayoutBrowser(containerId, hiddenInputId, currentLay
                 const layoutId = layoutFile.replace('.html', '');
                 const card = document.createElement('div');
                 card.className = `layout-preview-card ${layoutId === currentLayoutId ? 'selected' : ''}`;
+                if (mode === 'portrait') card.classList.add('portrait-mode');
                 
                 if (layoutId === currentLayoutId && hiddenInput) {
                     hiddenInput.value = layoutFile;

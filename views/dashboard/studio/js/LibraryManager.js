@@ -28,6 +28,19 @@ export async function populateSeriesSelect(id) {
             option.textContent = series.title;
             select.appendChild(option);
         });
+
+        if (id !== 'globalSeriesSelect') {
+            const globalSeries = localStorage.getItem('globalSeries');
+            if (globalSeries) {
+                // Delay dispatching to allow UI render cycle to complete if needed
+                setTimeout(() => {
+                    if(Array.from(select.options).some(opt => opt.value === globalSeries)) {
+                        select.value = globalSeries;
+                        select.dispatchEvent(new Event('change', { bubbles: true }));
+                    }
+                }, 50);
+            }
+        }
     } catch (err) {
         console.error("Error populating series select:", err);
     }
@@ -64,7 +77,7 @@ export async function populateVolumeSelect(id = 'volumeSelect', seriesId = null)
         const isFolderMode = (id === 'builderVolumeSelect' || id === 'insertVolumeSelect' || id === 'chapterVolumeSelect');
         option.value = isFolderMode ? getFolderNameFromPath(volume.volumePath) : volume._id;
         
-        if (id === 'editVolumeSelect' || id === 'scriptVolumeSelect' || id === 'exportVolumeSelect') {
+        if (id === 'editVolumeSelect' || id === 'scriptVolumeSelect' || id === 'exportVolumeSelect' || id === 'globalVolumeSelect') {
             option.setAttribute('data-folder', getFolderNameFromPath(volume.volumePath));
         }
         
@@ -73,6 +86,21 @@ export async function populateVolumeSelect(id = 'volumeSelect', seriesId = null)
         select.appendChild(option);
     });
     select.disabled = false;
+
+    if (id !== 'globalVolumeSelect') {
+        const globalVolumeFolder = localStorage.getItem('globalVolumeFolder');
+        const globalVolumeId = localStorage.getItem('globalVolumeId');
+        const isFolderMode = (id === 'builderVolumeSelect' || id === 'insertVolumeSelect' || id === 'chapterVolumeSelect');
+        const targetVal = isFolderMode ? globalVolumeFolder : globalVolumeId;
+        if (targetVal) {
+            setTimeout(() => {
+                if(Array.from(select.options).some(opt => opt.value === targetVal)) {
+                    select.value = targetVal;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }, 50);
+        }
+    }
 }
 
 /**

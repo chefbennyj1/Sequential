@@ -13,14 +13,23 @@ export async function init(container, params) {
         // Add the pageId class so page.css selectors match
         sectionContainer.classList.add(pageId);
         
+        // Reset transform to get natural size
         sectionContainer.style.transform = 'none';
+        
         const padding = 40;
         const availableWidth = window.innerWidth - padding;
         const availableHeight = window.innerHeight - padding;
-        const rect = sectionContainer.getBoundingClientRect();
-        const scaleX = availableWidth / rect.width;
-        const scaleY = availableHeight / rect.height;
+        
+        // Use offsetWidth/Height for natural unscaled dimensions
+        const naturalWidth = sectionContainer.offsetWidth;
+        const naturalHeight = sectionContainer.offsetHeight;
+
+        if (naturalWidth === 0 || naturalHeight === 0) return;
+        
+        const scaleX = availableWidth / naturalWidth;
+        const scaleY = availableHeight / naturalHeight;
         const scale = Math.min(scaleX, scaleY, 1);
+        
         sectionContainer.style.transform = `scale(${scale})`;
     }
 

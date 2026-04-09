@@ -7,14 +7,23 @@ body {
     overflow: hidden; 
 }
 
+#preview-container {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 /* Force container visibility and fit */
 .section-container, .page-layout { 
-    transform-origin: center top; 
+    transform-origin: center center; 
     /* transform set via JS */
-    margin: 20px auto; 
+    margin: 0; 
     box-shadow: 0 0 20px rgba(0,0,0,0.1); 
     opacity: 1 !important; /* Override base layout hidden state */
     background: #fff;
+    flex-shrink: 0;
 }
 
 .panel { 

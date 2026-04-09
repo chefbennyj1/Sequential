@@ -30,6 +30,11 @@
     gap: 10px;
 }
 
+.layout-preview-card.portrait-mode {
+    width: 140px; /* Constrain width for portrait items in grid */
+    min-height: 200px;
+}
+
 .layout-preview-card:hover {
     border-color: var(--accent, #007bff);
     background: #222;
@@ -54,29 +59,34 @@
 }
 
 /* Force the layout inside to be tiny */
-.mini-map-container .section-container {
-    width: 1400px; /* 10x scale target */
-    height: 1000px;
+.mini-map-container .section-container,
+.mini-map-container .page-layout {
+    width: 1400px !important; /* 10x scale target */
+    height: 1000px !important;
+    min-height: 0 !important;
+    max-height: none !important;
     transform: scale(0.1);
     transform-origin: top left;
     position: absolute;
     top: 0;
     left: 0;
-    max-width: none; /* Override base-comic-layout max-width */
+    max-width: none !important; /* Override base-comic-layout max-width */
 }
 
 /* Portrait Mode Overrides */
 .mini-map-container.portrait-mode {
     width: 100px;
-    height: 155px; /* US Comic Aspect Ratio approx 1:1.55 */
+    height: 155px; /* Fixed height for portrait thumbnails */
 }
 
-.mini-map-container.portrait-mode .section-container {
-    width: 1000px; /* 1000 * 0.1 = 100px */
-    height: 1550px; /* 1550 * 0.1 = 155px */
+.mini-map-container.portrait-mode .section-container,
+.mini-map-container.portrait-mode .page-layout {
+    width: 1000px !important; /* 1000 * 0.1 = 100px */
+    height: 1550px !important; /* 1550 * 0.1 = 155px */
+    min-height: 0 !important;
     transform: scale(0.1);
     transform-origin: top left;
-    max-width: none; /* Override any max-width from the base CSS */
+    max-width: none !important; 
 }
 
 /* Labels for panels in preview mode */

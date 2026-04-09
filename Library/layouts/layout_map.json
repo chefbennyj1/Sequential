@@ -25,25 +25,28 @@
     "4_Panel_Vertical"
   ],
   "4_Panel_Grid": [
-    "4_Panel_Grid",
+    "4_Panel_Vertical",
     "Stacked_4_Row_Cinematic",
     "Stacked_4_Row_Mix"
   ],
   "3_Panel_Vertical": [
-    "3_Panel_Vertical"
+    "3_Panel_Vertical",
+    "3_Panel_Top_Span"
+  ],
+  "3_Panel_Top_Span": [
+    "3_Panel_Top_Span"
   ],
   "5_Panel_Middle_Span": [
     "5_Panel_Middle_Span"
   ],
-  "4_Panel_2_Left_Span": [
-    "4_Panel_2_Left_Span"
+  "4_Panel_2_Tall": [
+    "4_Panel_2_Tall"
   ],
-  "Banner_2_Col": [
-    "Banner_2_Col"
+  "5_Panel_Top_Bottom_Banner_Right_Tall": [
+    "5_Panel_Top_Bottom_Banner_Right_Tall"
   ],
   "Standard_Page": [
     "Spread_Split_Vertical",
-    "Standard_Page_Mobile_Swap",
     "Standard_Page"
   ]
 }

@@ -1,20 +1,24 @@
 <style>
-@import url('/layouts/styles/base-comic-layout-5-panel-left-span.css');
+@import url('/layouts/styles/base-comic-layout-portrait.css');
 
 /* 
-    Layout: Four Panel Grid with Left Side Span (Portrait Version)
-    Redesigned to keep the left span:
-    - Left Span: 1a (Spans Rows 1 & 2)
-    - Right Stack: 1b (Row 1), 1c (Row 2)
-    - Bottom Row: 2a (Left), 2b (Right)
+    Layout: 5 Panel Left Span (Portrait)
+    - Left Span: panel-A (Spans Rows 1 & 2)
+    - Right Stack: panel-B (Row 1), panel-C (Row 2)
+    - Bottom Row: panel-D (Left), panel-E (Right)
 */
 .page-layout.layout-5-panel-left-span {
     display: grid;
-    /* 2 Columns */
     grid-template-columns: 1fr 1fr;
-    /* 3 Rows */
     grid-template-rows: 1fr 1fr 1fr;
     gap: 10px;
+    height: 94vh; /* Constraint for editor scaling */
+    width: 100%;
+}
+
+.layout-5-panel-left-span .panel {
+    width: 100%;
+    height: 100%;
 }
 
 /* --- Top Section --- */
