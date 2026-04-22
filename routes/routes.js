@@ -6,7 +6,7 @@ const SiteController = require('../controllers/SiteController.js');
 const DashboardController = require('../controllers/DashboardController.js');
 const ViewerController = require('../controllers/ViewerController.js');
 
-const { isAuth } = require('../middleware/auth.js');
+const { isAuth, isModerator } = require('../middleware/auth.js');
 
 // LANDING PAGE
 router.get("/", SiteController.getLandingPage);

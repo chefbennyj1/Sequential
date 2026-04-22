@@ -171,4 +171,74 @@ export function initFormHandlers(container) {
             }
         };
     }
+
+    // Library Settings Form Submission
+    initLibrarySettings();
+}
+
+function initLibrarySettings() {
+    const seriesSelect = document.getElementById('settingsSeriesSelect');
+    const formContainer = document.getElementById('series-settings-form-container');
+    const form = document.getElementById('library-settings-form');
+    const seriesIdInput = document.getElementById('settings-series-id');
+    const defaultViewSelect = document.getElementById('settings-default-view-mode');
+
+    if (seriesSelect) {
+        seriesSelect.onchange = async () => {
+            const seriesId = seriesSelect.value;
+            if (!seriesId) {
+                formContainer.classList.add('hidden');
+                return;
+            }
+
+            try {
+                const res = await fetch(`/api/library/series/${seriesId}`);
+                const data = await res.json();
+                if (data.ok && data.series) {
+                    seriesIdInput.value = data.series._id;
+                    if (data.series.settings) {
+                        defaultViewSelect.value = data.series.settings.defaultViewMode || 'landscape';
+                    }
+                    formContainer.classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error("Failed to load series settings", err);
+            }
+        };
+    }
+
+    if (form) {
+        form.onsubmit = async (e) => {
+            e.preventDefault();
+            const seriesId = seriesIdInput.value;
+            const settings = {
+                defaultViewMode: defaultViewSelect.value
+            };
+
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.textContent;
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Saving...";
+
+            try {
+                const res = await fetch(`/api/library/series/${seriesId}/settings`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ settings })
+                });
+                const data = await res.json();
+                if (data.ok) {
+                    alert("Library settings saved successfully!");
+                } else {
+                    alert("Error saving settings: " + data.message);
+                }
+            } catch (err) {
+                console.error("Failed to save series settings", err);
+                alert("Request failed.");
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = originalText;
+            }
+        };
+    }
 }

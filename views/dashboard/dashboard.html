@@ -4,7 +4,8 @@
         <ul>
             <li data-page="studio" class="active"><span>Studio</span><ion-icon name="construct"></ion-icon></li>
             <li data-page="scheduled-tasks"><span>Scanner</span><ion-icon name="time-outline"></ion-icon></li>
-            <li data-page="user"><span>User</span><ion-icon name="person-circle"></ion-icon></li>
+            <li data-page="library-settings"><span>Settings</span><ion-icon name="settings-outline"></ion-icon></li>
+            <li data-page="user-settings"><span>User</span><ion-icon name="person-circle"></ion-icon></li>
         </ul>
     </nav>
     <div class="user">
@@ -53,6 +54,12 @@
 
                 <div class="flex-row gap-20 flex-center flex-wrap">
                 
+                <div class="mode-card" data-target="library-settings">
+                    <ion-icon name="settings-outline"></ion-icon>
+                    <h4>Library Settings</h4>
+                    <p>Global defaults and series-wide preferences.</p>
+                </div>
+
                 <div class="mode-card" data-target="create-new-volume">
                     <ion-icon name="book-outline"></ion-icon>
                     <h4>Create Volume</h4>
@@ -107,7 +114,7 @@
     </div>
 
     <!-- USER / ACCOUNT SETTINGS -->
-    <div class="user dashboard-section hidden">
+    <div class="user-settings dashboard-section hidden">
         <h3>User Settings</h3>
         <form id="credentials" action="/api/user/update" method="POST">
             <div class="input-field">
@@ -215,6 +222,39 @@
 
             <div id="editVolumeContainer"></div> 
 
+        </div>
+
+        <!-- LIBRARY SETTINGS -->
+        <div class="library-settings dashboard-section hidden">
+            <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+            <h3>Library Settings</h3>
+            <p class="text-muted margin-b-20">Configure global defaults for your series.</p>
+            
+            <div class="form-group">
+                <label>Select Series to Configure</label>
+                <select id="settingsSeriesSelect" class="gov-select">
+                    <option value="">Select a Series</option>
+                </select>
+            </div>
+
+            <div id="series-settings-form-container" class="hidden margin-t-20 bg-dark padding-30 border-radius-12 border-dim">
+                <form id="library-settings-form">
+                    <input type="hidden" id="settings-series-id">
+                    
+                    <div class="form-group">
+                        <label>Default Viewer Mode</label>
+                        <select id="settings-default-view-mode" class="gov-select">
+                            <option value="landscape">Landscape (Standard)</option>
+                            <option value="portrait">Portrait (Tall)</option>
+                        </select>
+                        <p class="font-size-07 text-muted margin-t-10">This determines how the comic loads by default for all readers of this series.</p>
+                    </div>
+
+                    <div class="margin-t-30">
+                        <button type="submit" class="update__btn w-full">Save Library Settings</button>
+                    </div>
+                </form>
+            </div>
         </div>
 
     

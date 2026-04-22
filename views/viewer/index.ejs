@@ -61,8 +61,15 @@
             const exportSecret = params.get('exportSecret');
 
             // NEW: Portrait and Spread Mode detection
-            window.GEMINI_PORTRAIT_MODE = params.get('mode') === 'portrait' || params.get('spread') === 'true';
+            // Default to series settings if no explicit override in URL
+            const defaultMode = "` + (volume.series && volume.series.settings ? volume.series.settings.defaultViewMode : 'landscape') + `";
+            const urlMode = params.get('mode');
+            
+            window.GEMINI_PORTRAIT_MODE = urlMode ? (urlMode === 'portrait') : (defaultMode === 'portrait');
             window.GEMINI_SPREAD_MODE = params.get('spread') === 'true';
+
+            // Override portrait mode if spread mode is active (usually landscape)
+            if (window.GEMINI_SPREAD_MODE) window.GEMINI_PORTRAIT_MODE = true; 
 
             // --- UI Setup for Mode Toggle ---
             const modeBtn = document.getElementById('toggle-mode-btn');

@@ -178,3 +178,25 @@ async function resolveCarouselImages(seriesDir, folderName) {
         return [];
     }
 }
+
+exports.updateSeriesSettings = async (req, res) => {
+    const { seriesId } = req.params;
+    const { settings } = req.body;
+
+    try {
+        const series = await Series.findById(seriesId);
+        if (!series) {
+            return res.status(404).json({ ok: false, message: "Series not found" });
+        }
+
+        if (settings) {
+            series.settings = { ...series.settings, ...settings };
+            await series.save();
+        }
+
+        res.json({ ok: true, message: "Settings updated", settings: series.settings });
+    } catch (err) {
+        console.error("Error updating series settings:", err);
+        res.status(500).json({ ok: false, message: "Server error" });
+    }
+};

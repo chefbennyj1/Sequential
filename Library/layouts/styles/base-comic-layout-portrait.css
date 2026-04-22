@@ -40,8 +40,8 @@
   flex-grow: 1;
   margin-top: 0;
   font-family: var(--font-family-comic);
-  /* Scaled comic book lettering size (smaller base) */
-  font-size: clamp(0.45rem, 1.1vh, 0.75rem);
+  /* Scaled comic book lettering size (Increased for better digital readability) */
+  font-size: clamp(0.85rem, 1.5vh, 1rem);
   box-sizing: border-box;
 }
 

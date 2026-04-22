@@ -166,7 +166,7 @@ export function initSceneEditor() {
             displayType: { type: 'SpeechBubble' },
             character: 'New',
             text: 'Text',
-            placement: { panel: '.panel-A', top: '10%', left: '10%' },
+            placement: { panel: '.panel-A', bottom: '2%', left: '2%', right: '2%' },
             mediaAction: []
         };
         currentSceneData.push(newItem);

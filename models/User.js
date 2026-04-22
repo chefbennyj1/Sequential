@@ -22,9 +22,10 @@ const userSchema = new Schema({
             message: "You must be 18 or older to access this site", //"${props.value}"
         }
     },
-    administrator: {
-        type: Boolean,
-        default: false
+    role: {
+        type: String,
+        enum: ['basic', 'moderator', 'admin'],
+        default: 'basic'
     }
 },
 {

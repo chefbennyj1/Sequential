@@ -245,6 +245,8 @@ section.exiting {
 .section-container {
   position: relative;
   background: transparent;
+  transform: translateZ(0);
+  backface-visibility: hidden;
 }
 
 

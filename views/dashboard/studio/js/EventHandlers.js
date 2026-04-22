@@ -62,8 +62,8 @@ export function initEventHandlers(container, allSections) {
         if (target.id === 'accountSettingsBtn') {
             e.preventDefault();
             allSections.forEach(s => s.classList.add('hidden'));
-            container.querySelector('.user.dashboard-section').classList.remove('hidden');
-            updateUrlState({ tab: 'user' });
+            container.querySelector('.user-settings.dashboard-section').classList.remove('hidden');
+            updateUrlState({ tab: 'user-settings' });
         }
 
         // STUDIO HUB: Mode Cards

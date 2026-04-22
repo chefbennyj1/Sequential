@@ -43,8 +43,25 @@ const { isAuth } = require('./middleware/auth.js');
 mongoose.connect(mongoDbURI, {
   useNewUrlParser: true,
   useUnifiedTopology: true
-}).then((res) => {
+}).then(async (res) => {
   console.log('mongoDb Connected');
+  
+  // Migration: Convert old administrator boolean to new role field
+  try {
+    const User = require('./models/User.js');
+    const result = await User.updateMany(
+      { administrator: { $exists: true } },
+      [
+        { $set: { role: { $cond: { if: { $eq: ["$administrator", true] }, then: "admin", else: "$role" } } } },
+        { $unset: "administrator" }
+      ]
+    );
+    if (result.modifiedCount > 0) {
+      console.log(`[Migration] Processed ${result.modifiedCount} users: migrated 'administrator' to 'role' and removed legacy field.`);
+    }
+  } catch (err) {
+    console.error("[Migration] Error updating roles:", err);
+  }
 })
 
 const store = new MongoDbSession({

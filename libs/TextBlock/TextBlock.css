@@ -53,6 +53,8 @@
   font-weight: 500;
   font-size: clamp(0.6rem, 0.9vw, 0.75rem);
   font-style: normal;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
   /* Default to normal, specific types can override */
   padding: 10px;
   /* box-shadow: rgba(0, 0, 0, 0.9) 6px 6px 10px; */
@@ -126,5 +128,5 @@
     font-size: 1em; /* Inherits from portrait-page clamp */
 }
 .portrait-page .text-block {
-    font-size: 0.85em; /* Scale text relative to portrait-page clamp */
+    font-size: 1em; /* Do not scale down further in portrait */
 }

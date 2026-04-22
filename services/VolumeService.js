@@ -291,23 +291,36 @@ async function insertPage({ series, volume: volumeFolderName, chapter: chapterFo
     }
 
     const targetChapterPath = path.join(volumePath, chapterFolderName);
-    const sourceIdx = insertIdx - 1;
-    const sourceName = `page${sourceIdx}`;
-    const newPageName = `page${insertIdx}`;
-    const sourcePagePath = path.join(targetChapterPath, sourceName);
-    const newPagePath = path.join(targetChapterPath, newPageName);
+      const newPageName = `page${insertIdx}`;
+      const newPagePath = path.join(targetChapterPath, newPageName);
 
-    if (fs.existsSync(sourcePagePath)) {
-        await fs.promises.cp(sourcePagePath, newPagePath, { recursive: true });
-        await updateInternalFiles(newPagePath, sourceName, newPageName);
-        const jsonPath = path.join(newPagePath, 'page.json');
-        if (fs.existsSync(jsonPath)) {
-            const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-            data.media = []; data.scene = [];
-            if (data.header) { data.header.pageId = newPageName; data.header.chapter = chapterFolderName; data.header.volume = volumeFolderName; }
-            fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2));
-        }
-    }
+      let cloneSourcePath = path.join(targetChapterPath, `page${insertIdx + 1}`);
+      let sourceName = `page${insertIdx + 1}`;
+      if (!fs.existsSync(cloneSourcePath)) {
+          cloneSourcePath = path.join(targetChapterPath, `page${insertIdx - 1}`);
+          sourceName = `page${insertIdx - 1}`;
+      }
+
+      if (fs.existsSync(cloneSourcePath)) {
+          await fs.promises.cp(cloneSourcePath, newPagePath, { recursive: true });
+          await updateInternalFiles(newPagePath, sourceName, newPageName);
+          const jsonPath = path.join(newPagePath, 'page.json');
+          if (fs.existsSync(jsonPath)) {
+              const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+              data.media = []; data.scene = [];
+              if (data.header) { data.header.pageId = newPageName; data.header.chapter = chapterFolderName; data.header.volume = volumeFolderName; }
+              fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2));
+          }
+      } else {
+          fs.mkdirSync(newPagePath, { recursive: true });
+          const jsonPath = path.join(newPagePath, 'page.json');
+          const defaultData = {
+              header: { version: "2.0", pageId: newPageName, chapter: chapterFolderName, volume: volumeFolderName, layout: { id: "Standard_Page", html: "Standard_Page.html", css: "" }, layouts: {} },
+              media: [],
+              scene: []
+          };
+          fs.writeFileSync(jsonPath, JSON.stringify(defaultData, null, 2));
+      }
 
     const seriesDoc = await Series.findOne({ folderName: seriesFolderName });
     const volPathRegex = new RegExp(`${volumeFolderName}[\\\\/]?$`, 'i');

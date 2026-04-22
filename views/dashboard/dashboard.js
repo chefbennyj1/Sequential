@@ -60,6 +60,8 @@ export async function init(container) {
         }
     });
 
+    populateSeriesSelect('settingsSeriesSelect');
+
     const allSections = container.querySelectorAll('.dashboard-section');     
 
     // --- Register Navigation Handlers ---
@@ -100,6 +102,55 @@ export async function init(container) {
     }
 
     document.getElementById('user-name').textContent = user.username;
+
+    // --- Role-Based UI Filtering ---
+    const role = user.role || 'basic';
+    console.log(`[Dashboard] Initializing for role: ${role}`);
+
+    // Define restrictions
+    const moderatorHidden = ['user-settings', 'create-new-volume', 'scheduled-tasks', 'create-new-chapter'];
+    const basicHidden = ['studio', 'scheduled-tasks', 'user-settings'];
+
+    const hiddenTargets = role === 'admin' ? [] : (role === 'moderator' ? moderatorHidden : basicHidden);
+
+    // Sidebar items
+    const sidebarItems = container.querySelectorAll('.sidebar li');
+    sidebarItems.forEach(li => {
+        if (hiddenTargets.includes(li.dataset.page)) {
+            li.style.display = 'none';
+        }
+    });
+
+    // Studio cards (if visible)
+    const modeCards = container.querySelectorAll('.mode-card');
+    modeCards.forEach(card => {
+        if (hiddenTargets.includes(card.dataset.target)) {
+            card.style.display = 'none';
+        }
+    });
+
+    if (role === 'moderator' || role === 'basic') {
+        // Specific sub-tool restrictions (e.g. within Page Builder)
+        const adminOnlyBuilderTools = ['modeInsertBtn', 'modeCreateBtn'];
+        adminOnlyBuilderTools.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.style.display = 'none';
+        });
+    }
+
+    // Default view for basic users (who don't have 'studio' active)
+    if (role === 'basic') {
+        const studioTab = container.querySelector('.sidebar li[data-page="studio"]');
+        if (studioTab) studioTab.classList.remove('active');
+        
+        const settingsTab = container.querySelector('.sidebar li[data-page="library-settings"]');
+        if (settingsTab) settingsTab.classList.add('active');
+
+        container.querySelector('.studio').classList.add('hidden');
+        container.querySelector('.library-settings').classList.remove('hidden');
+    }
+
+    // Admins see everything (default state of dashboard.html)
 
     // Restore State
     restoreStateFromUrl(container);

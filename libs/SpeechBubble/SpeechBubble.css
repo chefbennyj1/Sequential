@@ -35,7 +35,7 @@
 
 .super-bubble {
     position: relative;
-    padding: 1.25rem 1.85rem;
+    padding: 0.625rem 0.925rem;
     background-color: var(--bubble-bg-one);
     background-image: radial-gradient(var(--bubble-bg-two) 25%, transparent 26%),
                       radial-gradient(var(--bubble-bg-two) 25%, transparent 26%);
@@ -54,7 +54,8 @@
     z-index: 20;
     font-family: var(--bubble-font);
     font-size: var(--bubble-font-size, 0.85rem);
-    line-height: 1.2;
+    line-height: 1.1;
+    letter-spacing: -0.02em;
     color: var(--speech-text);
     word-wrap: break-word;
     -webkit-text-stroke: var(--speech-text-stroke, 0px transparent);
@@ -197,12 +198,12 @@
 
 /* --- PORTRAIT OVERRIDES --- */
 .portrait-page .super-bubble {
-    padding: 1.25em 1.85em;
+    padding: 0.625em 0.925em;
     border-width: 0.18em;
     box-shadow: 0.25em 0.25em 0px rgba(0,0,0,0.2);
 }
 .portrait-page .speech-text {
-    font-size: var(--bubble-font-size, 0.85em);
+    font-size: var(--bubble-font-size, 1em);
 }
 .portrait-page .super-bubble::before { inset: -0.18em; }
 .portrait-page .super-bubble::after { inset: -0.06em; border-width: 0.12em; }

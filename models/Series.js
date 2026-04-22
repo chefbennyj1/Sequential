@@ -31,7 +31,14 @@ const seriesSchema = new Schema({
     volumes: [{
         type: Schema.Types.ObjectId,
         ref: 'Volume'
-    }]
+    }],
+    settings: {
+        defaultViewMode: {
+            type: String,
+            enum: ['landscape', 'portrait'],
+            default: 'landscape'
+        }
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Series', seriesSchema);
