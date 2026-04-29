@@ -1,5 +1,27 @@
 // views/dashboard/js/ApiService.js
 
+export async function fetchChapterRange(seriesId, volumeFolder, chapterFolder) {
+    try {
+        const res = await fetch(`/api/editor/chapter-range?series=${seriesId}&volume=${volumeFolder}&chapter=${chapterFolder}`);
+        const data = await res.json();
+        return data.ok ? data.range : null;
+    } catch (err) {
+        console.error("Error fetching chapter range:", err);
+        return null;
+    }
+}
+
+export async function fetchNextPanelId(seriesId, volumeFolder, chapterFolder, pageId, mode = 'landscape') {
+    try {
+        const res = await fetch(`/api/editor/next-panel-id?series=${seriesId}&volume=${volumeFolder}&chapter=${chapterFolder}&pageId=${pageId}&mode=${mode}`);
+        const data = await res.json();
+        return data.ok ? data.nextId : null;
+    } catch (err) {
+        console.error("Error fetching next panel ID:", err);
+        return null;
+    }
+}
+
 export async function fetchCharactersAPI(seriesId) {
     try {
         const query = seriesId ? `?series=${seriesId}` : '';

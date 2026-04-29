@@ -417,4 +417,42 @@ async function tryRename(oldP, newP, retries = 3) {
     }
 }
 
-module.exports = { createVolume, populatePagesFromFS: updateChaptersFromFS, updateChaptersFromFS, syncSinglePage, insertPage, createChapter };
+async function getChapterRange({ series, volume: volumeFolderName, chapter: chapterFolderName }) {
+    const { resolveSeriesPath } = require('./MediaService');
+    const Series = require('../models/Series');
+
+    const seriesFolderName = await (async () => {
+        if (mongoose.Types.ObjectId.isValid(series)) {
+            const doc = await Series.findById(series);
+            return doc ? doc.folderName : null;
+        }
+        return series;
+    })();
+
+    if (!seriesFolderName) throw new Error("Series folder name is required");
+
+    const seriesPath = await resolveSeriesPath(seriesFolderName);
+    const chapterPath = path.join(seriesPath, 'Volumes', volumeFolderName, chapterFolderName);
+    
+    if (!fs.existsSync(chapterPath)) {
+        return { min: 0, max: 0, count: 0, pages: [] };
+    }
+
+    const pageDirs = (await fs.promises.readdir(chapterPath, { withFileTypes: true }))
+        .filter(d => d.isDirectory() && d.name.startsWith('page'))
+        .map(d => parseInt(d.name.replace(/\D/g, '')) || 0)
+        .sort((a, b) => a - b);
+
+    if (pageDirs.length === 0) {
+        return { min: 0, max: 0, count: 0, pages: [] };
+    }
+
+    return {
+        min: pageDirs[0],
+        max: pageDirs[pageDirs.length - 1],
+        count: pageDirs.length,
+        pages: pageDirs
+    };
+}
+
+module.exports = { createVolume, populatePagesFromFS: updateChaptersFromFS, updateChaptersFromFS, syncSinglePage, insertPage, createChapter, getChapterRange };

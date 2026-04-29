@@ -2,6 +2,7 @@
 
 import { setActivePage } from './PageConfigManager.js';
 import { updateUrlState } from './Navigation.js';
+import { fetchChapterRange } from './ApiService.js';
 
 export function initFormHandlers(container) {
     // Page Builder Form Submission (Create Page)
@@ -61,6 +62,49 @@ export function initFormHandlers(container) {
         };
     }
 
+    // Next Consecutive Button Logic
+    const getNextPageIdBtn = document.getElementById('getNextPageIdBtn');
+    if (getNextPageIdBtn) {
+        getNextPageIdBtn.onclick = async () => {
+            const volSelect = document.getElementById('builderVolumeSelect');
+            const vol = volSelect.value;
+            const seriesId = volSelect.options[volSelect.selectedIndex]?.getAttribute('data-series-id');
+            const chapSelect = document.getElementById('builderChapterSelect');
+            const chap = chapSelect.value;
+            const pageInput = document.getElementById('builderPageId');
+            const status = document.getElementById('builderStatus');
+
+            if (!vol || !chap) {
+                status.textContent = "Please select Volume and Chapter first.";
+                status.className = "builder-status text-accent";
+                return;
+            }
+
+            getNextPageIdBtn.disabled = true;
+            const originalText = getNextPageIdBtn.textContent;
+            getNextPageIdBtn.textContent = "...";
+
+            try {
+                const res = await fetch(`/api/editor/next-page-id?series=${seriesId}&volume=${vol}&chapter=${chap}`);
+                const data = await res.json();
+                if (data.ok) {
+                    pageInput.value = data.nextPageId;
+                    status.textContent = "Next consecutive page ID determined.";
+                    status.className = "builder-status text-accent";
+                } else {
+                    status.textContent = "Error: " + data.message;
+                    status.className = "builder-status text-accent";
+                }
+            } catch (err) {
+                console.error(err);
+                status.textContent = "Request Failed.";
+            } finally {
+                getNextPageIdBtn.disabled = false;
+                getNextPageIdBtn.textContent = originalText;
+            }
+        };
+    }
+
     // Insert Page Form Submission
     const insertPageForm = document.getElementById('insert-page-form');       
     if (insertPageForm) {
@@ -74,12 +118,29 @@ export function initFormHandlers(container) {
             const seriesId = volSelect.options[volSelect.selectedIndex]?.getAttribute('data-series-id');
             const chapSelect = document.getElementById('insertChapterSelect');
             const chap = chapSelect.value;
-            const insertPoint = document.getElementById('insertPoint').value; 
+            const insertPointStr = document.getElementById('insertPoint').value; 
+            const insertPoint = parseInt(insertPointStr);
 
-            if (!vol || !chap || !insertPoint) {
+            if (!vol || !chap || isNaN(insertPoint)) {
                 status.textContent = "Please fill all fields.";
                 status.className = "builder-status text-accent";
                 return;
+            }
+
+            // Chapter Range Validation
+            status.textContent = "Validating chapter range...";
+            const range = await fetchChapterRange(seriesId, vol, chap);
+            if (range && range.count > 0) {
+                if (insertPoint < range.min || insertPoint > (range.max + 1)) {
+                    const confirmMsg = `WARNING: The selected chapter (${chap}) typically contains pages ${range.min} to ${range.max}.\n\n` +
+                                     `You are attempting to insert page ${insertPoint}.\n\n` +
+                                     `This may cause structural issues if this chapter isn't the correct place for that index.\n\n` +
+                                     `Are you sure you want to proceed?`;
+                    if (!confirm(confirmMsg)) {
+                        status.textContent = "Operation cancelled by user.";
+                        return;
+                    }
+                }
             }
 
             btn.disabled = true;

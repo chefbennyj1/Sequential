@@ -102,7 +102,28 @@ function initMedia(container, pageInfo, mediaDataArray) {
     console.log(`PageInitializer - ${pageId} - Initializing ${mediaDataArray.length} media items.`);
     
     for (const media of mediaDataArray) {
-        const panel = container.querySelector(media.panel);
+        let panel = container.querySelector(media.panel);
+
+        // --- Handle Floating Panels ---
+        if (!panel && media.isFloating) {
+            console.log(`PageInitializer - ${pageId} - Creating floating panel ${media.panel}`);
+            panel = document.createElement('div');
+            // media.panel is usually ".panel-E", we strip the dot for the class
+            const panelClass = media.panel.startsWith('.') ? media.panel.substring(1) : media.panel;
+            panel.className = `panel ${panelClass} floating-panel`;
+            
+            // Apply floating styles (X, Y, Z, Width, Height)
+            if (media.style) {
+                for (const prop in media.style) {
+                    panel.style[prop] = media.style[prop];
+                }
+            }
+            
+            // Add to the main section-container or the container itself
+            const pageContainer = container.querySelector('.section-container') || container;
+            pageContainer.appendChild(panel);
+        }
+
         if (panel) {
             if (media.type === 'image') {
                 const img = document.createElement('img');
@@ -116,21 +137,34 @@ function initMedia(container, pageInfo, mediaDataArray) {
                 
                 // Default fallback styles
                 img.style.width = '100%';
-                img.style.height = '100%';
+                if (media.isFloating) {
+                    img.style.height = '100%'; // Image fills the floating container
+                } else {
+                    img.style.height = '100%';
+                }
                 img.style.objectFit = 'cover';
                 img.style.objectPosition = 'center';
 
                 // Apply custom styles from media.json (this will overwrite defaults like objectPosition)
-                if (media.style) {
+                // If it's a floating panel, styles are applied to the panel div, 
+                // but img-specific styles can still be applied here.
+                if (media.style && !media.isFloating) {
+                    // For non-floating, styles apply to image
                     for (const prop in media.style) {
                         img.style[prop] = media.style[prop];
+                    }
+                } else if (media.imageStyle) {
+                    // Specific image styles if floating
+                    for (const prop in media.imageStyle) {
+                        img.style[prop] = media.imageStyle[prop];
                     }
                 }
                 
                 // Apply portrait-specific overrides if active
                 if (window.GEMINI_PORTRAIT_MODE && media.portraitStyle) {
                     for (const prop in media.portraitStyle) {
-                        img.style[prop] = media.portraitStyle[prop];
+                        const target = media.isFloating ? panel : img;
+                        target.style[prop] = media.portraitStyle[prop];
                     }
                 }
 

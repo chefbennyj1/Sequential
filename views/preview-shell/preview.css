@@ -89,3 +89,22 @@ body {
     border-color: #ff9800 !important;
     box-shadow: 0 0 10px #ff9800;
 }
+
+.panel.floating-panel {
+    border: solid 2px #000;
+    box-shadow: 0 0 0 5px #fff, 0 15px 30px rgba(0, 0, 0, 0.5);
+    z-index: 100;
+    border-radius: 0;
+}
+
+.panel.floating-panel.is-dragging {
+    cursor: grabbing !important;
+    border-color: #ff00ff; /* Purple when dragging */
+    box-shadow: 0 0 20px rgba(255, 0, 255, 0.5);
+    z-index: 1000 !important;
+    opacity: 0.8;
+}
+
+.panel.floating-panel:hover {
+    border-color: #00ffff;
+}

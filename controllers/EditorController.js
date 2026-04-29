@@ -6,6 +6,7 @@ const { v4: uuidv4 } = require("uuid");
 const { validateMediaJson, validateSceneJson } = require("../utils/jsonValidators");
 const { resolveSeriesPath } = require("../services/MediaService");
 const VolumeService = require("../services/VolumeService");
+const PanelService = require("../services/PanelService");
 const Volume = require("../models/Volume");
 const Series = require("../models/Series");
 
@@ -159,6 +160,76 @@ exports.createPage = async (req, res) => {
     res
       .status(500)
       .json({ ok: false, message: "Failed to create page structure" });
+  }
+};
+
+exports.getNextPageId = async (req, res) => {
+  const { series, volume, chapter } = req.query;
+
+  if (!series || !volume || !chapter) {
+    return res.status(400).json({ ok: false, message: "Missing required parameters" });
+  }
+
+  try {
+    const seriesFolderName = await getSeriesFolderName(series);
+    const seriesPath = await resolveSeriesPath(seriesFolderName);
+    const chapterPath = path.join(seriesPath, "Volumes", volume, chapter);
+
+    if (!fs.existsSync(chapterPath)) {
+      return res.json({ ok: true, nextPageId: "page0" });
+    }
+
+    const folders = fs.readdirSync(chapterPath).filter(f => 
+      f.startsWith("page") && fs.statSync(path.join(chapterPath, f)).isDirectory()
+    );
+
+    let maxNum = -1;
+    folders.forEach(f => {
+      const num = parseInt(f.replace("page", ""));
+      if (!isNaN(num) && num > maxNum) maxNum = num;
+    });
+
+    res.json({ ok: true, nextPageId: `page${maxNum + 1}` });
+  } catch (err) {
+    console.error("Next Page ID Error:", err);
+    res.status(500).json({ ok: false, message: "Failed to determine next page ID" });
+  }
+};
+
+exports.getNextPanelId = async (req, res) => {
+  const { series, volume, chapter, pageId, mode } = req.query;
+
+  if (!series || !volume || !chapter || !pageId) {
+    return res.status(400).json({ ok: false, message: "Missing required parameters" });
+  }
+
+  try {
+    const seriesFolderName = await getSeriesFolderName(series);
+    const seriesPath = await resolveSeriesPath(seriesFolderName);
+    const pageDir = path.join(seriesPath, "Volumes", volume, chapter, pageId);
+    const atomicPath = path.join(pageDir, 'page.json');
+
+    if (!fs.existsSync(atomicPath)) {
+        return res.status(404).json({ ok: false, message: "page.json not found" });
+    }
+
+    const pageJson = JSON.parse(fs.readFileSync(atomicPath, 'utf8'));
+    const modeKey = mode === 'portrait' ? 'portrait' : 'landscape';
+    const layoutId = (pageJson.header?.layouts?.[modeKey]?.id) || (mode === 'portrait' ? pageJson.header?.portraitLayout?.id : pageJson.header?.layout?.id) || "Standard_Page";
+
+    const layoutFolder = mode === 'portrait' ? 'portrait' : 'landscape';
+    const templatePath = path.join(__dirname, '..', 'Library', 'layouts', layoutFolder, `${layoutId}.html`);
+    
+    let templateHtml = "";
+    if (fs.existsSync(templatePath)) {
+        templateHtml = fs.readFileSync(templatePath, 'utf8');
+    }
+
+    const nextId = PanelService.getNextPanelId(templateHtml, pageJson);
+    res.json({ ok: true, nextId });
+  } catch (err) {
+    console.error("Get Next Panel ID Error:", err);
+    res.status(500).json({ ok: false, message: err.message });
   }
 };
 
@@ -606,6 +677,22 @@ exports.insertPage = async (req, res) => {
     res.json(result);
   } catch (err) {
     console.error("Insert Page Error:", err);
+    res.status(500).json({ ok: false, message: err.message });
+  }
+};
+
+exports.getChapterRange = async (req, res) => {
+  const { series, volume, chapter } = req.query;
+
+  if (!series || !volume || !chapter) {
+    return res.status(400).json({ ok: false, message: "Missing required parameters" });
+  }
+
+  try {
+    const range = await VolumeService.getChapterRange({ series, volume, chapter });
+    res.json({ ok: true, range });
+  } catch (err) {
+    console.error("Get Chapter Range Error:", err);
     res.status(500).json({ ok: false, message: err.message });
   }
 };

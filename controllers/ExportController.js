@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const { PDFDocument } = require('pdf-lib');
 const Series = require('../models/Series');
+const ScriptService = require('../services/ScriptService');
 
 const INTERNAL_SECRET = 'sequential_internal_export_key_2026';
 
@@ -85,54 +86,12 @@ class ExportController {
         const { series: seriesId, volume: volumeFolderName } = req.params;
 
         try {
-            const series = await Series.findById(seriesId).populate('libraryRoot');
-            if (!series) return res.status(404).json({ ok: false, message: 'Series not found' });
-
-            let rootPath = series.sourcePath || path.join(series.libraryRoot.path, series.folderName);
-            const volumePath = path.join(rootPath, 'Volumes', volumeFolderName);
-
-            if (!fs.existsSync(volumePath)) return res.status(404).json({ ok: false, message: 'Volume folder not found' });
-
-            let scriptContent = `SCRIPT EXPORT: ${series.title} - ${volumeFolderName}\nGenerated on: ${new Date().toLocaleString()}\n\n`;
-
-            const chapters = fs.readdirSync(volumePath).filter(d => d.startsWith('chapter-')).sort();
-
-            for (const chapter of chapters) {
-                const chapterPath = path.join(volumePath, chapter);
-                scriptContent += `\n=== CHAPTER: ${chapter.toUpperCase()} ===\n`;
-
-                const pages = fs.readdirSync(chapterPath, { withFileTypes: true })
-                    .filter(d => d.isDirectory() && d.name.startsWith('page'))
-                    .map(d => d.name)
-                    .sort((a, b) => parseInt(a.replace('page', '')) - parseInt(b.replace('page', '')));
-
-                for (const pageId of pages) {
-                    const jsonPath = path.join(chapterPath, pageId, 'page.json');
-                    if (fs.existsSync(jsonPath)) {
-                        const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-                        scriptContent += `\n--- ${pageId.toUpperCase()} ---\n`;
-
-                        if (data.scene && Array.isArray(data.scene)) {
-                            data.scene.forEach(item => {
-                                if (item.text) {
-                                    const speaker = item.character || 'UNKNOWN';
-                                    // Strip HTML-like tags for the text file
-                                    const cleanText = item.text.replace(/<br\s*\/?>/gi, '\n').replace(/\[.*?\]/g, '').trim();
-                                    scriptContent += `[${speaker}] ${cleanText}\n`;
-                                }
-                            });
-                        }
-                    }
-                }
-            }
-
-            const exportFileName = `${series.folderName}_${volumeFolderName}_Script.txt`;
-            const exportFilePath = path.join(rootPath, exportFileName);
-
-            fs.writeFileSync(exportFilePath, scriptContent, 'utf8');
-
-            res.json({ ok: true, message: `Script exported successfully to: ${exportFileName}`, path: exportFileName });
-
+            const result = await ScriptService.generateVolumeScript(seriesId, volumeFolderName);
+            res.json({ 
+                ok: true, 
+                message: `Screenplay exported successfully to: ${result.fileName}`, 
+                path: result.fileName 
+            });
         } catch (error) {
             console.error('Script Export Error:', error);
             res.status(500).json({ ok: false, message: error.message });

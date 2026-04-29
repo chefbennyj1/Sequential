@@ -67,6 +67,15 @@ export async function openSceneEditor(volume, chapter, pageId, mode = 'landscape
     currentSceneData = scene || [];
     currentSceneData.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
 
+    // Detect Orphans
+    const panelNames = panelData.panels || [];
+    currentSceneData.forEach(item => {
+        if (item.displayType.type === 'SpeechBubble' || (item.displayType.type === 'TextBlock' && item.placement?.panel)) {
+            const target = item.placement?.panel;
+            item.isOrphaned = target && !panelNames.includes(target);
+        }
+    });
+
     // Initialize/Update Managers
     timeline.setData(currentSceneData, characters || []);
     properties.setAvailableData(characters || [], panelData.panels || []);
@@ -97,6 +106,9 @@ export function openVisualEditor(volume, chapter, pageId, mode = 'landscape', se
 
     const targetSrc = `/api/editor/preview/${activeSeriesFolder}/${volume}/${chapter}/${pageId}?mode=${mode}`;
     iframe.src = targetSrc;
+
+    // Reset visual editor sidebar to "Layout Tools" view
+    visual.loadPanel({ panel: null, volume, chapter, pageId }, activeSeriesId);
 }
 
 /**
@@ -229,6 +241,10 @@ export function initSceneEditor() {
         if (e.data.type === 'assetUploaded') {
             const { panel, type, fileName } = e.data;
             visual.updateCache(panel, type, fileName);
+        }
+
+        if (e.data.type === 'panelDragged') {
+            visual.updatePosition(e.data);
         }
     });
 }

@@ -13,6 +13,9 @@ const { isAuthApi: isAuth, isModerator, isAdmin } = require('../middleware/auth.
 
 // --- EDITOR ROUTES ---
 router.get('/editor/layouts', isModerator, EditorController.getLayouts);
+router.get('/editor/next-page-id', isModerator, EditorController.getNextPageId);
+router.get('/editor/next-panel-id', isModerator, EditorController.getNextPanelId);
+router.get('/editor/chapter-range', isModerator, EditorController.getChapterRange);
 router.post('/editor/export-volume/:series/:volume', isAdmin, ExportController.exportVolume);
 router.post('/editor/export-script/:series/:volume', isModerator, ExportController.exportScript);
 router.get('/editor/preview/:series/:volume/:chapter/:pageId', isModerator, EditorController.servePreview);

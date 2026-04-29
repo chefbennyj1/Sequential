@@ -117,12 +117,23 @@ export async function init(container, params) {
             
             if (data.ok && data.media && Array.isArray(data.media.media)) {
                 data.media.media.forEach(item => {
-                    const panel = container.querySelector(item.panel);
+                    let panel = container.querySelector(item.panel);
+                    
+                    // --- Handle Floating Panels in Preview ---
+                    if (!panel && item.isFloating) {
+                        panel = document.createElement('div');
+                        const panelClass = item.panel.startsWith('.') ? item.panel.substring(1) : item.panel;
+                        panel.className = `panel ${panelClass} floating-panel`;
+                        
+                        // Add to the layout container
+                        const layoutCont = container.querySelector('.section-container') || container.querySelector('.page-layout') || container;
+                        layoutCont.appendChild(panel);
+                    }
+
                     if (!panel) return;
 
                     let el;
-                    const series = params.series;
-                    if (item.type === 'image') {
+                    if (item.type === 'image' && item.fileName) {
                         el = document.createElement('img');
                         el.src = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${item.fileName}`;
                     }
@@ -134,16 +145,19 @@ export async function init(container, params) {
                         el.style.objectPosition = 'center';
 
                         // Apply custom styles from media.json
+                        // For floating panels, styles apply to the panel DIV
                         if (item.style) {
+                            const target = item.isFloating ? panel : el;
                             for (const prop in item.style) {
-                                el.style[prop] = item.style[prop];
+                                target.style[prop] = item.style[prop];
                             }
                         }
                         
                         // Apply portrait-specific overrides if active
                         if (params.mode === 'portrait' && item.portraitStyle) {
                             for (const prop in item.portraitStyle) {
-                                el.style[prop] = item.portraitStyle[prop];
+                                const target = item.isFloating ? panel : el;
+                                target.style[prop] = item.portraitStyle[prop];
                             }
                         }
                         
@@ -152,13 +166,17 @@ export async function init(container, params) {
 
                         // Apply persistent mask if defined
                         if (item.maskGif) {
-                            const series = params.series;
                             const maskUrl = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${item.maskGif}`;
-                            
-                            // Important: Give the DOM a moment to ensure 'el' is rendered
                             setTimeout(() => {
                                 applyPersistentMask(panel, maskUrl, item.maskBg);
                             }, 50);
+                        }
+                    } else if (item.isFloating) {
+                        // If it's a floating panel with no image yet, still apply styles so it shows up as a box
+                        if (item.style) {
+                            for (const prop in item.style) {
+                                panel.style[prop] = item.style[prop];
+                            }
                         }
                     }
                 });
@@ -178,6 +196,11 @@ export async function init(container, params) {
             label.innerHTML = `${panelClass || 'Unknown'}<br><span>Click or Drop to Upload</span>`;
             panel.appendChild(label);
 
+            // --- Floating Panel Specific Logic ---
+            if (panel.classList.contains('floating-panel')) {
+                makeDraggable(panel);
+            }
+
             panel.addEventListener('dragover', (e) => { e.preventDefault(); panel.classList.add('drag-over'); });
             panel.addEventListener('dragleave', (e) => { panel.classList.remove('drag-over'); });
             panel.addEventListener('drop', (e) => {
@@ -188,6 +211,12 @@ export async function init(container, params) {
             });
 
             panel.addEventListener('click', (e) => {
+                // If the panel was just dragged, don't trigger the selection reload
+                if (panel.dataset.wasDragged === 'true') {
+                    panel.dataset.wasDragged = 'false';
+                    return;
+                }
+
                 container.querySelectorAll('.panel').forEach(p => p.classList.remove('selected'));
                 panel.classList.add('selected');
 
@@ -197,6 +226,69 @@ export async function init(container, params) {
                     volume, chapter, pageId 
                 }, '*');
             }, true);
+        });
+    }
+
+    function makeDraggable(el) {
+        let isDragging = false;
+        let hasMoved = false;
+        let startX, startY, initialLeft, initialTop;
+
+        el.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            
+            isDragging = true;
+            hasMoved = false;
+            el.classList.add('is-dragging');
+            
+            const parent = el.offsetParent || container.querySelector('.section-container') || container;
+            const parentRect = parent.getBoundingClientRect();
+            
+            startX = e.clientX;
+            startY = e.clientY;
+            
+            initialLeft = parseFloat(el.style.left) || 0;
+            initialTop = parseFloat(el.style.top) || 0;
+
+            const onMouseMove = (e) => {
+                if (!isDragging) return;
+                
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                // Threshold to distinguish between a click and a drag
+                if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+                    hasMoved = true;
+                    el.dataset.wasDragged = 'true';
+                }
+
+                const pctX = (dx / parentRect.width) * 100;
+                const pctY = (dy / parentRect.height) * 100;
+
+                const newLeft = initialLeft + pctX;
+                const newTop = initialTop + pctY;
+
+                el.style.left = `${newLeft.toFixed(2)}%`;
+                el.style.top = `${newTop.toFixed(2)}%`;
+
+                window.parent.postMessage({
+                    type: 'panelDragged',
+                    panel: '.' + Array.from(el.classList).find(c => c.startsWith('panel-')),
+                    left: newLeft.toFixed(2),
+                    top: newTop.toFixed(2)
+                }, '*');
+            };
+
+            const onMouseUp = () => {
+                isDragging = false;
+                el.classList.remove('is-dragging');
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            };
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            e.preventDefault();
         });
     }
 

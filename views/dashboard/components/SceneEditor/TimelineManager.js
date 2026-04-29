@@ -27,7 +27,7 @@ export class TimelineManager {
         this.list.innerHTML = '';
         this.currentSceneData.forEach((item, index) => {
             const li = document.createElement('li');
-            li.className = `scene-item ${index === this.selectedItemIndex ? 'selected' : ''}`;
+            li.className = `scene-item ${index === this.selectedItemIndex ? 'selected' : ''} ${item.isOrphaned ? 'is-orphaned' : ''}`;
             li.draggable = true;
             li.dataset.index = index;
 

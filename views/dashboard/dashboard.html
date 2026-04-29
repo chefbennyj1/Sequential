@@ -436,6 +436,8 @@
         <div class="narrow-container padding-20">
             <button class="small back-to-studio-btn margin-b-20">&larr; Back to Studio</button>
             
+            <div id="pageBuilderAlerts" class="margin-b-20"></div>
+
             <div id="pageBuilderModeSelection" class="page-builder-selection">
                 <h3>Page Management</h3>
                 <p class="text-muted margin-b-30">Select an action to continue</p>
@@ -467,9 +469,14 @@
                 <div class="form-group"><label>Select Volume</label><select id="builderVolumeSelect" disabled><option value="">Select a Series first</option></select></div>
                 <div class="form-group"><label>Select Chapter</label><select id="builderChapterSelect" disabled><option value="">Select a Volume first</option></select></div>
                 <form id="page-builder-form">
-                    <div class="input-field"><label>Page ID (e.g. page17)</label><input type="text" id="builderPageId" name="pageId" placeholder="page17" required /></div>
-                    <div class="form-group"><label>Select Layout Template</label><select id="builderLayoutSelect" required><option value="">Loading Layouts...</option></select></div>
-                    <button class="update__btn w-full" type="submit" id="createPageBtn">Create Page Structure</button>
+                   <div class="input-field">
+                       <label>Page ID (e.g. page17)</label>
+                       <div class="flex-row gap-10">
+                           <input type="text" id="builderPageId" name="pageId" placeholder="page17" required />
+                           <button type="button" id="getNextPageIdBtn" class="update__btn small" title="Auto-fill next consecutive page number">Next Consecutive</button>
+                       </div>
+                   </div>
+                   <div class="form-group"><label>Select Layout Template</label><select id="builderLayoutSelect" required><option value="">Loading Layouts...</option></select></div>                    <button class="update__btn w-full" type="submit" id="createPageBtn">Create Page Structure</button>
                 </form>
                 <div id="builderStatus" class="builder-status"></div>
             </div>

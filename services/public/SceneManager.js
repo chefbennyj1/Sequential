@@ -8,28 +8,59 @@ export async function initScene(container, pageInfo, sceneData) {
     const { series, pageId, pageIndex, chapter, volume } = pageInfo;
     const page = container.querySelector('.section-container') || container;
 
+    // --- Detect Global Mode (Any floating panels exist?) ---
+    const hasFloatingPanels = container.querySelector('.floating-panel') !== null;
     const visualItemsToRender = [];
+
+    const getGlobalPos = (placement, panelEl) => {
+        if (!panelEl || panelEl === page) return placement;
+        
+        const pageRect = page.getBoundingClientRect();
+        const panelRect = panelEl.getBoundingClientRect();
+
+        const result = { ...placement };
+
+        const translateCoord = (val, size, panelSize, pageOffset, pageSize) => {
+            if (!val || val === 'auto') return 'auto';
+            const pixels = (parseFloat(val) / 100) * panelSize;
+            const globalPixels = (size - pageOffset) + pixels;
+            return ((globalPixels / pageSize) * 100).toFixed(2) + '%';
+        };
+
+        // Resolve Left/Right
+        result.left = translateCoord(placement.left, panelRect.left, panelRect.width, pageRect.left, pageRect.width);
+        result.right = translateCoord(placement.right, panelRect.right, -panelRect.width, pageRect.right, -pageRect.width);
+
+        // Resolve Top/Bottom
+        result.top = translateCoord(placement.top, panelRect.top, panelRect.height, pageRect.top, pageRect.height);
+        result.bottom = translateCoord(placement.bottom, panelRect.bottom, -panelRect.height, pageRect.bottom, -pageRect.height);
+
+        return result;
+    };
     
     for (const [index, item] of sceneData.entries()) {
         let visualItem = null;
+        const panelEl = (item.placement && item.placement.panel) ? container.querySelector(item.placement.panel) : (item.displayType.type === 'TextBlock' ? page : null);
+
+        // --- Orphan Detection ---
+        if ((item.displayType.type === 'SpeechBubble' || item.displayType.type === 'TextBlock') && !panelEl) {
+            console.warn(`Orphaned item detected: ${item.id} targeting ${item.placement?.panel}`);
+            item.isOrphaned = true;
+            continue; 
+        }
+
+        const renderParent = hasFloatingPanels ? page : panelEl;
+        const finalPlacement = hasFloatingPanels ? getGlobalPos(item.placement, panelEl) : item.placement;
 
         if (item.displayType.type === 'SpeechBubble') {
-            const panelEl = container.querySelector(item.placement.panel);
-            if (!panelEl) continue;
-
             const bubbleOptions = { ...item, series, volume, chapter, pageId, pageIndex, dialogueIndex: index };
-            if (item.attributes) bubbleOptions.attributes = item.attributes;
-            if (item.style) bubbleOptions.style = item.style;
-            Object.assign(bubbleOptions, item.placement); 
+            Object.assign(bubbleOptions, finalPlacement); 
             
-            const bubble = new SpeechBubble(panelEl, bubbleOptions);
+            const bubble = new SpeechBubble(renderParent, bubbleOptions);
             await bubble.render();
             visualItem = bubble;
 
         } else if (item.displayType.type === 'TextBlock') {
-            const panelEl = (item.placement && item.placement.panel) ? container.querySelector(item.placement.panel) : page;
-            if (!panelEl) continue;
-
             const textBlockOptions = { 
                 ...item, 
                 series, 
@@ -40,11 +71,9 @@ export async function initScene(container, pageInfo, sceneData) {
                 pageIndex, 
                 dialogueIndex: index
             };
-            if (item.attributes) textBlockOptions.attributes = item.attributes;
-            if (item.style) textBlockOptions.style = item.style;
-            Object.assign(textBlockOptions, item.placement); 
+            Object.assign(textBlockOptions, finalPlacement); 
             
-            const textBlock = new TextBlock(panelEl, textBlockOptions);
+            const textBlock = new TextBlock(renderParent, textBlockOptions);
             await textBlock.render();
             visualItem = textBlock;
 

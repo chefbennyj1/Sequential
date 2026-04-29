@@ -1,10 +1,53 @@
 // views/dashboard/js/PageConfigManager.js
 import {
-    fetchSingleVolumeWithChapters
+    fetchSingleVolumeWithChapters,
+    fetchSceneData,
+    fetchPagePanels
 } from './ApiService.js';
 import { renderLayoutBrowser } from '../../components/LayoutBrowser/LayoutBrowser.js';
 
 export let currentDesignMode = 'landscape';
+
+/**
+ * Checks for orphaned dialogue items and displays a warning banner.
+ */
+async function checkOrphans(vol, chap, page, seriesId) {
+    const alertsContainer = document.getElementById('pageBuilderAlerts');
+    if (!alertsContainer) return;
+
+    try {
+        const [scene, panelData] = await Promise.all([
+            fetchSceneData(vol, chap, page, seriesId),
+            fetchPagePanels(vol, chap, page, currentDesignMode, seriesId)
+        ]);
+
+        const panels = panelData.panels || [];
+        const orphans = scene.filter(item => {
+            if (item.displayType.type === 'SpeechBubble' || (item.displayType.type === 'TextBlock' && item.placement?.panel)) {
+                const target = item.placement?.panel;
+                return target && !panels.includes(target);
+            }
+            return false;
+        });
+
+        if (orphans.length > 0) {
+            alertsContainer.innerHTML = `
+                <div class="alert alert-danger border-dim padding-15 border-radius-8 bg-black-20 flex-row align-center gap-15">
+                    <ion-icon name="warning-outline" class="text-danger font-size-2"></ion-icon>
+                    <div class="flex-1">
+                        <h5 class="text-danger margin-b-5">Orphaned Dialogue Detected</h5>
+                        <p class="text-muted font-size-08">There are ${orphans.length} items targeting panels that do not exist in the current <strong>${currentDesignMode}</strong> layout. These will not appear in the viewer until re-assigned.</p>
+                    </div>
+                    <button class="small btn-danger-outline" onclick="document.getElementById('openSceneEditorBtn').click()">Fix in Scene Editor</button>
+                </div>
+            `;
+        } else {
+            alertsContainer.innerHTML = '';
+        }
+    } catch (err) {
+        console.error("Orphan check failed:", err);
+    }
+}
 
 /**
  * Manages the "Active Page" tools (Layout, etc)
@@ -34,6 +77,9 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
         }
     });
 
+    // Run orphan check
+    if (seriesId) checkOrphans(vol, chap, page, seriesId);
+
     // --- Mode Toggle Setup ---
     const landscapeBtn = document.getElementById('designModeLandscape');
     const portraitBtn = document.getElementById('designModePortrait');
@@ -55,6 +101,9 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
             landscapeId = pageEntry?.layoutId || "";
         }
         await renderLayoutBrowser('activePageLayoutBrowser', 'activePageLayoutValue', lid, currentDesignMode, landscapeId);
+        
+        // Re-run orphan check when mode changes
+        if (seriesId) checkOrphans(vol, chap, page, seriesId);
     };
 
     if (landscapeBtn && portraitBtn) {
