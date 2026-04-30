@@ -28,7 +28,7 @@ exports.getViewer = async (req, res) => {
       return res.status(404).send("Volume not found.");
     }
 
-    res.render('viewer/index', { 
+    res.render('reader/viewer/index', { 
       volume,
       initialChapter: req.query.chapter || null,
       initialPage: req.query.page || null,

@@ -57,6 +57,21 @@ class PanelService {
     }
 
     /**
+     * Extracts all panel selectors (.panel-X) from a layout template.
+     * @param {string} templateHtml - The content of the layout HTML file.
+     * @returns {Set<string>} - A set of selectors.
+     */
+    static getPanelsFromTemplate(templateHtml) {
+        const panels = new Set();
+        const templatePanelRegex = /class=\"[^"]*panel-([a-zA-Z0-9]+)[^"]*\"/g;
+        let match;
+        while ((match = templatePanelRegex.exec(templateHtml)) !== null) {
+            panels.add(`.panel-${match[1]}`);
+        }
+        return panels;
+    }
+
+    /**
      * Checks if a panel ID exists in either the template or the json.
      */
     static panelIdExists(id, templateHtml, pageJson) {

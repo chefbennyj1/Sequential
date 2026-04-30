@@ -36,16 +36,16 @@
 
   <script type="module">
     import { loadSection } from '/services/public/PageManager.js';
-    import { init as landingPageInit } from '/views/landingPage/landingPage.js';
+    import { init as landingPageInit } from '/views/reader/landing/landingPage.js';
     import { imageMaskReveal, loadCSS, loadScript } from '/libs/Utility.js';
 
     (async () => {
-      await loadSection('landing-page', '/views/landingPage/landingPage.html', false);
+      await loadSection('landing-page', '/views/reader/landing/landingPage.html', false);
 
       const landingPageSection = document.getElementById('landing-page');
       await landingPageInit(landingPageSection);
 
-      await loadCSS('/views/landingPage/landingPage.css');
+      await loadCSS('/views/reader/landing/landingPage.css');
       await loadCSS('/libs/TiltEffect/tiltEffects.css');
 
       // loading page elements

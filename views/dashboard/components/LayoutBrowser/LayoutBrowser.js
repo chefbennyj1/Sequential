@@ -1,5 +1,5 @@
 // views/dashboard/js/LayoutBrowser.js
-import { fetchLayouts } from '../../studio/js/ApiService.js';
+import { fetchLayouts } from '../../studio/api/StudioClient.js';
 
 /**
  * Renders a visual grid of layout "Mini-Maps" for selection.

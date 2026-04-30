@@ -1,4 +1,4 @@
-<%- include('../layouts/main', { 
+<%- include('../../shared/layouts/main', { 
     title: 'Viewer - ' + (volume.series ? volume.series.title : 'No Overflow'), 
     bodyClass: 'viewer-page',
     headerButtons: `
@@ -56,22 +56,19 @@
         <script type="module">
             import { initPageManager } from "/services/public/PageManager.js";
             import { getLastVisitedPage, setLastVisitedPage } from "/libs/Utility.js";
+            import { fetchChapterData, syncPageData } from "/views/reader/api/ReaderClient.js";
 
             const params = new URLSearchParams(window.location.search);
             const exportSecret = params.get('exportSecret');
 
-            // NEW: Portrait and Spread Mode detection
-            // Default to series settings if no explicit override in URL
             const defaultMode = "` + (volume.series && volume.series.settings ? volume.series.settings.defaultViewMode : 'landscape') + `";
             const urlMode = params.get('mode');
             
             window.GEMINI_PORTRAIT_MODE = urlMode ? (urlMode === 'portrait') : (defaultMode === 'portrait');
             window.GEMINI_SPREAD_MODE = params.get('spread') === 'true';
 
-            // Override portrait mode if spread mode is active (usually landscape)
             if (window.GEMINI_SPREAD_MODE) window.GEMINI_PORTRAIT_MODE = true; 
 
-            // --- UI Setup for Mode Toggle ---
             const modeBtn = document.getElementById('toggle-mode-btn');
             const modeText = document.getElementById('mode-text');
             if (modeBtn && modeText) {
@@ -92,7 +89,6 @@
                 };
             }
 
-            // --- Robust Interceptor for Exporter Authentication ---
             if (exportSecret) {
                 const originalFetch = window.fetch;
                 window.fetch = function(input, init) {
@@ -117,19 +113,20 @@
                     window.history.replaceState({ path: newUrl.href }, "", newUrl.href);
                 }
 
-                const chapter = await getChapterData(volumeId, chapterNumber);
-                if (!chapter || !chapter.pages || chapter.pages.length === 0) {
+                const chapter = await fetchChapterData(volumeId, chapterNumber);
+                if (!chapter || !chapter.ok || !chapter.view || !chapter.view.pages || chapter.view.pages.length === 0) {
                     console.error("No chapter data found.");
                     return;
                 }
 
-                chapter.pages.sort((a, b) => a.index - b.index);
+                const chapterView = chapter.view;
+                chapterView.pages.sort((a, b) => a.index - b.index);
 
                 let pages;
                 if (window.GEMINI_SPREAD_MODE) {
                     const spreads = [];
-                    for (let i = 0; i < chapter.pages.length; i += 2) {
-                        spreads.push(chapter.pages.slice(i, i + 2));
+                    for (let i = 0; i < chapterView.pages.length; i += 2) {
+                        spreads.push(chapterView.pages.slice(i, i + 2));
                     }
 
                     spreads.forEach((spread, index) => {
@@ -161,14 +158,14 @@
                         containerId: 'section-' + index
                     }));
                 } else {
-                    chapter.pages.forEach((page, index) => {
+                    chapterView.pages.forEach((page, index) => {
                         const section = document.createElement("section");
                         section.id = 'section-' + index;
                         section.className = 'section-' + index + " scroll-section page-container";
                         scrollWrapper.appendChild(section);
                     });
 
-                    pages = chapter.pages.map((page, index) => ({
+                    pages = chapterView.pages.map((page, index) => ({
                         ...page,
                         html: page.path,
                         containerId: 'section-' + index,
@@ -210,11 +207,10 @@
                     const parts = curr.html.split("/");
                     const pId = parts[parts.length - 2];
                     const cId = parts[parts.length - 3];
-                    const res = await fetch('/api/editor/sync-page/' + volumeId + '/' + cId + '/' + pId);
+                    const res = await syncPageData(volumeId, cId, pId);
                     if (res.ok) window.location.reload();
                 });
 
-                // Gutter Guide Toggle
                 const toggleGutterBtn = document.getElementById("toggle-gutter-btn");
                 const gutterGuide = document.getElementById("gutter-guide");
                 if (toggleGutterBtn && gutterGuide) {
@@ -227,8 +223,7 @@
                 let initialIdx = 0;
                 const pageParam = params.get("page");
                 if (pageParam) {
-                    // Precision matching for page IDs (e.g. /page1/ vs /page10/)
-                    const fIdx = chapter.pages.findIndex(p => p.path.includes('/page' + pageParam + '/'));
+                    const fIdx = chapterView.pages.findIndex(p => p.path.includes('/page' + pageParam + '/'));
                     if (fIdx !== -1) {
                         initialIdx = window.GEMINI_SPREAD_MODE ? Math.floor(fIdx / 2) : fIdx;
                     }
@@ -242,11 +237,9 @@
                 }
 
                 await pageManager.goToPage(initialIdx);                
-                // Signal to Puppeteer that we are ready
                 window.renderComplete = true;
             })();
 
-            // --- UI Interaction Logic ---
             const header = document.querySelector("header");
             let hideTimeout;
             document.addEventListener("mousemove", () => {
@@ -263,14 +256,6 @@
                 if (e.key === "ArrowRight") document.getElementById("load-next-btn").click();
                 if (e.key === "ArrowLeft") document.getElementById("load-prev-btn").click();
             });
-
-            async function getChapterData(vid, cNum) {
-                try {
-                    const res = await fetch('/api/volume/' + vid + '/chapter/' + cNum);
-                    const data = await res.json();
-                    return data.ok ? data.view : null;
-                } catch (err) { console.error(err); return null; }
-            }
         </script>
     `
 }) %>

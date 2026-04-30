@@ -52,7 +52,7 @@ body {
   background-position: center center;
   background-repeat: no-repeat;
   transition: opacity 1s ease-in-out;
-  background: url(/views/login/background.png) center center / cover no-repeat;
+  background: url(/views/auth/background.png) center center / cover no-repeat;
 }
 
 .login {

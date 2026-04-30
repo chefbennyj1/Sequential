@@ -62,7 +62,7 @@ async function fetchImagePlaylist() {
       
       // Load the first image immediately so it's ready behind the loader
       if (imagePlaylist.length > 0) {
-        _heroImage.src = `/views/landingPage/images/${imagePlaylist[0]}`;
+        _heroImage.src = `/views/reader/landing/images/${imagePlaylist[0]}`;
         currentImageIndex = 0;
       }
 
@@ -97,7 +97,7 @@ async function showNextImage() {
 
   const nextIndex = (currentImageIndex + 1) % imagePlaylist.length;
   const imageFile = imagePlaylist[nextIndex];
-  const imageUrl = `/views/landingPage/images/${imageFile}`;
+  const imageUrl = `/views/reader/landing/images/${imageFile}`;
 
   console.log(`Preparing next image: ${imageFile}`);
 

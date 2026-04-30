@@ -32,7 +32,7 @@ exports.updateUser = async (req, res) => {
   const result = await UserService.updateUser(userId, email, currentPassword, newPassword);
 
   if (result.ok) {
-    res.render('dashboard', { user: result.user });
+    res.render('dashboard/index', { user: result.user });
   } else {
     res.status(result.status).json({ message: result.message });
   }

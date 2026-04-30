@@ -187,9 +187,11 @@ export async function init(container, params) {
     }
 
     function initPanels() {
+        const panels = [];
         container.querySelectorAll('.panel').forEach(panel => {
             const classes = Array.from(panel.classList);
             const panelClass = classes.find(c => c.startsWith('panel-') && c !== 'panel');
+            if (panelClass) panels.push('.' + panelClass);
             
             const label = document.createElement('div');
             label.className = 'panel-label';
@@ -227,6 +229,8 @@ export async function init(container, params) {
                 }, '*');
             }, true);
         });
+
+        window.GEMINI_PANELS = panels;
     }
 
     function makeDraggable(el) {
@@ -305,4 +309,7 @@ export async function init(container, params) {
     });
 
     await loadExistingMedia();
+
+    // Notify parent that layout is fully loaded and GEMINI_PANELS is populated
+    window.parent.postMessage({ type: 'previewReady' }, '*');
 }

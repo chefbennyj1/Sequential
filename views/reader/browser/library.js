@@ -18,7 +18,7 @@ export async function init(container) {
     nextBtn = container.querySelector('#nextBtn');
 
     // Fetch Data
-    await fetchLibraryData();
+    await fetchLibraryDataLocal();
 
     // Render Carousel
     renderCarousel();
@@ -217,5 +217,8 @@ async function rotateImage(images) {
         // Skip to next
         currentImageIndex = (currentImageIndex + 1) % images.length;
         slideshowTimeout = setTimeout(() => rotateImage(images), 2000);
+    }
+}
+ setTimeout(() => rotateImage(images), 2000);
     }
 }

@@ -203,7 +203,7 @@ class PageManager {
 
 export async function loadSection(containerId, htmlPath, isComicPage = true, pageData = null, abortSignal = null) {
     try {
-        await loadCSS('/views/page.css');
+        await loadCSS('/views/shared/css/page.css');
 
         let layoutUrl = htmlPath;
         if (pageData) {

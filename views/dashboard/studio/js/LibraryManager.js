@@ -8,7 +8,7 @@ import {
     fetchLayouts,
     fetchSeriesAPI,
     fetchSeriesDetailsAPI
-} from './ApiService.js';
+} from '../api/StudioClient.js';
 import { getFolderNameFromPath } from './Navigation.js';
 import { renderCard, renderChapterCard, renderSeriesCard } from '../../components/CardBuilder/CardBuilder.js';
 

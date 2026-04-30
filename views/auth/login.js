@@ -27,9 +27,9 @@ export function init() {
 
   //Background image cross-fade logic
   // const bgImages = [
-  //     "url('/views/login/background.png')",
-  //     "url('/views/login/background_2.png')",
-  //     "url('/views/login/background_3.png')"
+  //     "url('/views/auth/background.png')",
+  //     "url('/views/auth/background_2.png')",
+  //     "url('/views/auth/background_3.png')"
   // ];
   // let currentImageIndex = 0;
   // const bgImg1 = document.getElementById('bg-img-1');

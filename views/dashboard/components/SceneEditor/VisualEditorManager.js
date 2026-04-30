@@ -1,15 +1,104 @@
 // views/dashboard/components/SceneEditor/VisualEditorManager.js
-import { saveMediaAPI, fetchMedia, fetchNextPanelId } from '../../studio/js/ApiService.js';
+import { saveMediaAPI, fetchMedia, fetchNextPanelId } from '../../studio/api/StudioClient.js';
 import { openFileBrowser } from '../FileBrowser/FileBrowser.js';
 
 export class VisualEditorManager {
-    constructor(container, getActiveAssets, activeSeriesId) {
+    constructor(container, getActiveAssets, activeSeriesId, activeSeriesFolder) {
         this.container = container;
         this.getActiveAssets = getActiveAssets;
         this.activeSeriesId = activeSeriesId;
+        this.activeSeriesFolder = activeSeriesFolder;
         this.currentVisualMediaData = [];
         this.currentVisualContext = {};
         this.selectedPanelSelector = null;
+    }
+
+    renderAllPanels(panelNames = []) {
+        const toolsPane = document.querySelector('.layout-editor .tools-pane');
+        
+        // --- Union-Based Data Collector ---
+        // Combine panels found in the iframe DOM with panels stored in media.json
+        const allUniqueSelectors = new Set([
+            ...panelNames,
+            ...this.currentVisualMediaData.map(m => m.panel)
+        ]);
+
+        const allItems = Array.from(allUniqueSelectors).map(p => {
+            const entry = this.currentVisualMediaData.find(m => m.panel === p);
+            return {
+                panel: p,
+                isFloating: entry?.isFloating || false,
+                fileName: entry?.fileName || '',
+                type: entry?.type || 'image'
+            };
+        });
+
+        // Sort: Non-floating (A, B, C...) then Floating
+        allItems.sort((a, b) => {
+            if (a.isFloating !== b.isFloating) return a.isFloating ? 1 : -1;
+            return a.panel.localeCompare(b.panel);
+        });
+
+        toolsPane.innerHTML = `
+            <div class="flex-row justify-between align-center margin-b-15">
+                <h4 style="margin:0;">Page Panels</h4>
+                <button id="addFloatingPanelBtn" class="small btn-accent">+ Add Floating</button>
+            </div>
+            
+            <div class="panel-editor-ui">
+                <p class="text-muted margin-b-15">Select any element to edit its asset and alignment.</p>
+                
+                <div class="geometry-list margin-b-20">
+                    ${allItems.map(item => `
+                        <div class="geometry-item ${item.isFloating ? 'bg-black-20 border-accent' : 'bg-black-10 border-dim'} padding-10 border-radius-8 margin-b-10 flex-row align-center cursor-pointer hover-bright" data-panel="${item.panel}">
+                            <div class="flex-row align-center gap-10 flex-1">
+                                <div class="geometry-thumb border-dim border-radius-4" style="width:40px; height:40px; background:#000; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
+                                    ${item.fileName ? `<img src="/api/images/${this.activeSeriesFolder || this.activeSeriesId}/${this.currentVisualContext.volume}/${this.currentVisualContext.chapter}/${this.currentVisualContext.pageId}/assets/${item.fileName}" style="width:100%; height:100%; object-fit:cover;">` : '<ion-icon name="image-outline" class="text-muted"></ion-icon>'}
+                                </div>
+                                <div style="min-width:0;">
+                                    <div class="text-accent font-weight-bold font-size-09 flex-row align-center gap-5">
+                                        ${item.panel.replace('.', '')}
+                                        ${item.isFloating ? '<span class="text-muted font-size-06 uppercase border-dim padding-x-5 border-radius-4">Floating</span>' : ''}
+                                    </div>
+                                    <div class="text-muted font-size-07 truncate">${item.fileName || 'No asset assigned'}</div>
+                                </div>
+                            </div>
+                            ${item.isFloating ? `
+                            <button class="small btn-danger-outline delete-geom-btn margin-l-10" data-panel="${item.panel}" title="Delete Geometry">
+                                <ion-icon name="trash-outline"></ion-icon>
+                            </button>
+                            ` : ''}
+                        </div>
+                    `).join('')}
+                </div>
+            </div>
+        `;
+
+        const addBtn = document.getElementById('addFloatingPanelBtn');
+        if (addBtn) addBtn.onclick = () => this.createFloatingPanel();
+
+        // Bind clicks to selection
+        toolsPane.querySelectorAll('.geometry-item').forEach(el => {
+            el.onclick = (e) => {
+                if (e.target.closest('.delete-geom-btn')) return;
+                const panel = el.dataset.panel;
+                this.loadPanel({ ...this.currentVisualContext, panel }, this.activeSeriesId);
+                
+                // Highlight in preview
+                const iframe = document.getElementById('pagePreviewFrame');
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage({ type: 'triggerPanelSelection', panel }, '*');
+                }
+            };
+        });
+
+        // Bind deletes
+        toolsPane.querySelectorAll('.delete-geom-btn').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                this.handleDeletePanel(btn.dataset.panel);
+            };
+        });
     }
 
     async loadPanel(data, seriesId) {
@@ -18,26 +107,23 @@ export class VisualEditorManager {
         this.selectedPanelSelector = panel;
         this.activeSeriesId = seriesId;
 
-        const toolsPane = document.querySelector('.layout-editor .tools-pane');
-
-        if (!panel) {
-            toolsPane.innerHTML = `
-                <h4 style="margin-top:0;">Layout Tools</h4>
-                <div class="panel-editor-ui">
-                    <p class="text-muted margin-b-15">Click a panel in the preview to edit its content, or create a new floating element.</p>
-                    <button id="addFloatingPanelBtn" class="update__btn width-100">Add Floating Geometry</button>
-                </div>
-            `;
-            const addBtn = document.getElementById('addFloatingPanelBtn');
-            if (addBtn) addBtn.onclick = () => this.createFloatingPanel();
-            return;
+        // Get panels from iframe if available
+        let panelNames = [];
+        const iframe = document.getElementById('pagePreviewFrame');
+        if (iframe && iframe.contentWindow && iframe.contentWindow.GEMINI_PANELS) {
+            panelNames = iframe.contentWindow.GEMINI_PANELS;
         }
-
-        toolsPane.innerHTML = `<h4 style="margin-top:0;">Panel Settings</h4><div id="visualEditorContainer">Loading...</div>`;
 
         const res = await fetchMedia(volume, chapter, pageId, seriesId);
         this.currentVisualMediaData = Array.isArray(res) ? res : (res.media || []);
 
+        if (!panel) {
+            this.renderAllPanels(panelNames);
+            return;
+        }
+
+        const container = document.querySelector('.layout-editor .tools-pane');
+        container.innerHTML = `<h4 style="margin-top:0;">Panel Settings</h4><div id="visualEditorContainer">Loading...</div>`;
         this.render(panel);
     }
 
@@ -68,17 +154,24 @@ export class VisualEditorManager {
         this.currentVisualMediaData.push(newEntry);
         this.selectedPanelSelector = panelSelector;
 
-        const toolsPane = document.querySelector('.layout-editor .tools-pane');
-        toolsPane.innerHTML = `<h4 style="margin-top:0;">Panel Settings</h4><div id="visualEditorContainer"></div>`;
+        // Auto-save the new panel so it persists
+        await saveMediaAPI(volume, chapter, pageId, this.currentVisualMediaData, this.activeSeriesId);
 
-        this.render(panelSelector);
+        // Notify preview to render the new panel
+        const iframe = document.getElementById('pagePreviewFrame');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.location.reload();
+        }
+
+        // Show the properties for the new panel
+        this.loadPanel({ ...this.currentVisualContext, panel: panelSelector }, this.activeSeriesId);
     }
 
     updateCache(panel, type, fileName) {
         const idx = this.currentVisualMediaData.findIndex(m => m.panel === panel);
         const updatedEntry = { panel, type, fileName };
         if (idx !== -1) {
-            this.currentVisualMediaData[idx] = updatedEntry;
+            this.currentVisualMediaData[idx] = { ...this.currentVisualMediaData[idx], ...updatedEntry };
         } else {
             this.currentVisualMediaData.push(updatedEntry);
         }
@@ -133,7 +226,6 @@ export class VisualEditorManager {
         const lsPos = parsePos(entry.style?.objectPosition);
         const ptPos = parsePos(entry.portraitStyle?.objectPosition);
 
-        // Helper to extract numeric values from CSS strings (e.g. "10%" -> 10)
         const getNum = (val) => {
             if (typeof val === 'number') return val;
             return parseFloat(val) || 0;
@@ -141,6 +233,8 @@ export class VisualEditorManager {
 
         container.innerHTML = `
             <div class="panel-editor-ui">
+                <button id="backToDirectoryBtn" class="small margin-b-15">&larr; Geometry Directory</button>
+
                 ${entry.isFloating ? `
                 <div class="floating-panel-settings border-dim padding-10 margin-b-15 border-radius-8 bg-black-20">
                     <div class="flex-row justify-between align-center margin-b-10">
@@ -281,6 +375,7 @@ export class VisualEditorManager {
     }
 
     bindEvents(entry, panelSelector) {
+        const backBtn = document.getElementById('backToDirectoryBtn');
         const typeSelect = document.getElementById('visual-asset-type');
         const nameInput = document.getElementById('visual-asset-name');
         const maskInput = document.getElementById('visual-mask-name');
@@ -295,6 +390,8 @@ export class VisualEditorManager {
         const ptAlignSelect = document.getElementById('visual-portrait-style-object-position');
         const lsPanWrapper = document.getElementById('ls-pan-wrapper');
         const ptPanWrapper = document.getElementById('pt-pan-wrapper');
+
+        if (backBtn) backBtn.onclick = () => this.loadPanel({ ...this.currentVisualContext, panel: null }, this.activeSeriesId);
 
         if (lsAlignSelect && lsPanWrapper) {
             lsAlignSelect.onchange = () => { lsPanWrapper.style.display = lsAlignSelect.value === 'custom' ? 'block' : 'none'; };

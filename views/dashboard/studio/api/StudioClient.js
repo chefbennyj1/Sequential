@@ -1,4 +1,8 @@
-// views/dashboard/js/ApiService.js
+// views/dashboard/studio/api/StudioClient.js
+/**
+ * Sequential Comic Server - Frontend API Client
+ * Provides centralized fetch wrappers for all backend communication.
+ */
 
 export async function fetchChapterRange(seriesId, volumeFolder, chapterFolder) {
     try {

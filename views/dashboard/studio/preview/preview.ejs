@@ -19,10 +19,10 @@
 
     <script type="module">
         import { loadCSS } from "/libs/Utility.js";
-        import { init as initPreview } from "/views/preview-shell/preview.js";
+        import { init as initPreview } from "/views/dashboard/studio/preview/preview.js";
 
         (async () => {
-            await loadCSS("/views/preview-shell/preview.css");
+            await loadCSS("/views/dashboard/studio/preview/preview.css");
             
             const urlParams = new URLSearchParams(window.location.search);
             const mode = urlParams.get('mode') || 'landscape';

@@ -1,5 +1,5 @@
 // views/dashboard/components/CharacterLab/CharacterLab.js
-import { fetchCharactersAPI, fetchSeriesAPI } from '../../studio/js/ApiService.js';
+import { fetchCharactersAPI, fetchSeriesAPI } from '../../studio/api/StudioClient.js';
 
 export default class CharacterLab {
     constructor(container) {

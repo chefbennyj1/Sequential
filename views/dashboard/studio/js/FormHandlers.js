@@ -2,7 +2,7 @@
 
 import { setActivePage } from './PageConfigManager.js';
 import { updateUrlState } from './Navigation.js';
-import { fetchChapterRange } from './ApiService.js';
+import { fetchChapterRange } from '../api/StudioClient.js';
 
 export function initFormHandlers(container) {
     // Page Builder Form Submission (Create Page)

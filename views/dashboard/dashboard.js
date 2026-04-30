@@ -11,7 +11,7 @@ window.fetch = async (...args) => {
     return response;
 };
 
-import { getCurrentUser } from './studio/js/ApiService.js';
+import { getCurrentUser } from './studio/api/StudioClient.js';
 import {
     registerNavigationHandlers,
     restoreStateFromUrl

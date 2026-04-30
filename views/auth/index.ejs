@@ -1,4 +1,4 @@
-<%- include('../layouts/main', { 
+<%- include('../../shared/layouts/main', { 
     title: 'Login', 
     bodyClass: 'login-page-shell',
     body: `
@@ -8,11 +8,11 @@
         <script type="module">
             import { loadSection } from "/services/public/PageManager.js";
             import { loadCSS, loadScript } from "/libs/Utility.js";
-            import { init as initLoginPage } from "/views/login/login.js";
+            import { init as initLoginPage } from "/views/auth/login.js";
 
             (async () => {
-                await loadSection('login', '/views/login/login.html', false);
-                await loadCSS('/views/login/login.css');
+                await loadSection('login', '/views/auth/login.html', false);
+                await loadCSS('/views/auth/login.css');
                 initLoginPage();
             })();
         </script>

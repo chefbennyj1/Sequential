@@ -1,6 +1,6 @@
 // views/dashboard/js/FileBrowser.js
 
-import { fetchPageAssets, uploadAsset } from '../../studio/js/ApiService.js';
+import { fetchPageAssets, uploadAsset } from '../../studio/api/StudioClient.js';
 
 let fileBrowserCallback = null;
 let fileBrowserCurrentType = 'image'; // 'image', 'video'

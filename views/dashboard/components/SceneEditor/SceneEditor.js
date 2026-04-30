@@ -10,7 +10,7 @@ import {
     fetchSeriesAPI, 
     fetchCharactersAPI, 
     fetchMedia 
-} from '../../studio/js/ApiService.js';
+} from '../../studio/api/StudioClient.js';
 import { updateUrlState } from '../../studio/js/Navigation.js';
 
 // Import Sub-Managers
@@ -92,6 +92,14 @@ export function openVisualEditor(volume, chapter, pageId, mode = 'landscape', se
     if (seriesId) activeSeriesId = seriesId;
     if (seriesFolder) activeSeriesFolder = seriesFolder;
 
+    currentSceneInfo = { volume, chapter, pageId };
+
+    // Sync visual manager context
+    if (visual) {
+        visual.activeSeriesId = activeSeriesId;
+        visual.activeSeriesFolder = activeSeriesFolder;
+    }
+
     document.querySelectorAll('.dashboard-section').forEach(s => s.classList.add('hidden'));
     document.querySelector('.layout-editor').classList.remove('hidden');
 
@@ -157,7 +165,8 @@ export function initSceneEditor() {
     visual = new VisualEditorManager(
         document.querySelector('.layout-editor'),
         getActiveAssets,
-        activeSeriesId
+        activeSeriesId,
+        activeSeriesFolder
     );
 
     // 2. Global Button Handlers
@@ -234,6 +243,14 @@ export function initSceneEditor() {
 
     // 4. Iframe / Cross-Window Messaging
     window.addEventListener('message', (e) => {
+        if (e.data.type === 'previewReady') {
+            // Layout is loaded in iframe, refresh directory to catch new panels
+            // But if we are currently editing a panel, don't navigate away!
+            if (!visual.selectedPanelSelector) {
+                visual.loadPanel({ ...currentSceneInfo, panel: null }, activeSeriesId);
+            }
+        }
+
         if (e.data.type === 'panelSelected') {
             visual.loadPanel(e.data, activeSeriesId);
         }

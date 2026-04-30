@@ -3,7 +3,7 @@ import {
     fetchSingleVolumeWithChapters,
     fetchSceneData,
     fetchPagePanels
-} from './ApiService.js';
+} from '../api/StudioClient.js';
 import { renderLayoutBrowser } from '../../components/LayoutBrowser/LayoutBrowser.js';
 
 export let currentDesignMode = 'landscape';
