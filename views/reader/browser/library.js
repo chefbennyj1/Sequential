@@ -42,7 +42,7 @@ export async function init(container) {
     window.addEventListener('resize', updateCarouselPosition);
 }
 
-async function fetchLibraryData() {
+async function fetchLibraryDataLocal() {
     try {
         const res = await fetch('/api/landing-page/library');
         const data = await res.json();
