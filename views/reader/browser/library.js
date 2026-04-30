@@ -219,6 +219,3 @@ async function rotateImage(images) {
         slideshowTimeout = setTimeout(() => rotateImage(images), 2000);
     }
 }
- setTimeout(() => rotateImage(images), 2000);
-    }
-}
