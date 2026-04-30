@@ -5,7 +5,7 @@ exports.getLandingPage = (req, res) => {
 };
 
 exports.getLogin = (req, res) => {
-  res.render("auth/login/index", { config: req.app.get('APP_CONFIG') });
+  res.render("auth/index", { config: req.app.get('APP_CONFIG') });
 };
 
 exports.getLibrary = (req, res) => {
