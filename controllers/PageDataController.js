@@ -50,9 +50,19 @@ exports.saveMedia = async (req, res) => {
     }
 
     const pageData = JSON.parse(fs.readFileSync(pageJsonPath, "utf8"));
+    const oldMedia = pageData.media || [];
     
-    // Overwrite media with the incoming array to support deletions
-    pageData.media = media;
+    // Overwrite media and check for changes
+    pageData.media = media.map(newItem => {
+        const existing = oldMedia.find(m => m.panel === newItem.panel);
+        // If fileName changed or is new, mark for AI update
+        if (!existing || existing.fileName !== newItem.fileName) {
+            if (newItem.fileName && newItem.type === 'image') {
+                newItem.DescriptionUpdateRequired = true;
+            }
+        }
+        return newItem;
+    });
 
     if (!pageData.header) pageData.header = {};
     pageData.header.lastUpdated = new Date();
@@ -63,6 +73,16 @@ exports.saveMedia = async (req, res) => {
     if (volumeId) {
       await VolumeService.syncSinglePage(volumeId, chapter, pageId, seriesFolderName);
     }
+
+    // Trigger Background AI Scan if auto-scan is enabled
+    const GlobalSettings = require('../models/GlobalSettings');
+    const settings = await GlobalSettings.findOne({ key: "main" });
+    if (settings?.vision?.enabled && settings?.vision?.autoScanOnSave) {
+        const VisionController = require('./VisionController');
+        // Run in background, don't await
+        VisionController.runVisionScan().catch(err => console.error("[Vision] Background scan failed:", err));
+    }
+
     res.json({ ok: true, message: "Media merged successfully." });
   } catch (err) {
     console.error("Save Media Error:", err);

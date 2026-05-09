@@ -144,7 +144,13 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
                 layouts.portrait = atomic.header?.portraitLayout?.id || layouts.landscape;
             }
 
-            mediaData = { media: atomic.media || [] };
+            mediaData = { media: (atomic.media || []).map(m => {
+                // If it's an image and has no description/alt, mark it as needing update
+                if (m.type === 'image' && m.fileName && (!m.alt || !m.description)) {
+                    m.DescriptionUpdateRequired = true;
+                }
+                return m;
+            }) };
             sceneData = atomic.scene || [];
         } catch (e) { console.warn(`[Scanner] Error parsing ${atomicPath}:`, e.message); } 
 
@@ -226,7 +232,12 @@ async function syncSinglePage(volumeId, chapterId, pageId, seriesFolderName = nu
                     portrait: atomic.header?.portraitLayout?.id || (atomic.header?.layout?.id || "Standard_Page")
                 };
             }
-            pageEntry.mediaData = { media: atomic.media || [] };
+            pageEntry.mediaData = { media: (atomic.media || []).map(m => {
+                if (m.type === 'image' && m.fileName && (!m.alt || !m.description)) {
+                    m.DescriptionUpdateRequired = true;
+                }
+                return m;
+            }) };
             pageEntry.sceneData = atomic.scene || [];
             volume.markModified('chapters');
             await volume.save();

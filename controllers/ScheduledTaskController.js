@@ -57,6 +57,11 @@ class ScheduledTaskController {
             // For now, we await it to show results immediately.
             const io = req.app.locals.io;
             const results = await scanLibrary(io);
+
+            // Trigger Vision Scan after library sync
+            const VisionController = require('./VisionController');
+            await VisionController.runVisionScan(io);
+
             res.json({ ok: true, message: "Scan complete.", results });
         } catch (e) {
             console.error("Manual Scan Error:", e);

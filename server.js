@@ -37,6 +37,7 @@ const contentRoutes = require("./routes/content.js");
 
 const User = require("./models/User.js");
 const VolumeSync = require("./services/VolumeSyncService.js")
+const BinaryManager = require("./services/BinaryManager.js");
 const { isAuth } = require('./middleware/auth.js');
 
 
@@ -46,6 +47,9 @@ mongoose.connect(mongoDbURI, {
 }).then(async (res) => {
   console.log('mongoDb Connected');
   
+  // Bootstrap cross-platform binaries
+  await BinaryManager.bootstrap();
+
   // Migration: Convert old administrator boolean to new role field
   try {
     const User = require('./models/User.js');

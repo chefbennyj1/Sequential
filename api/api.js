@@ -15,8 +15,15 @@ const PageLayoutController = require('../controllers/PageLayoutController.js');
 const AssetUploadController = require('../controllers/AssetUploadController.js');
 const PageDataController = require('../controllers/PageDataController.js');
 const PageStructureController = require('../controllers/PageStructureController.js');
+const SystemSettingsController = require('../controllers/SystemSettingsController.js');
+const VisionController = require('../controllers/VisionController.js');
 
 const { isAuthApi: isAuth, isModerator, isAdmin } = require('../middleware/auth.js');
+
+// --- SYSTEM SETTINGS ---
+router.get('/settings/global', isAdmin, SystemSettingsController.getGlobalSettings);
+router.put('/settings/global', isAdmin, SystemSettingsController.updateGlobalSettings);
+router.post('/vision/scan', isAdmin, (req, res) => VisionController.processPendingDescriptions(req, res));
 
 // --- EDITOR ROUTES ---
 

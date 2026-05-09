@@ -375,7 +375,7 @@ export class VisualEditorManager {
                     </div>
                 </div>
                 <div class="form-group margin-b-15 flex-wrap-tight">
-                    <div class="flex-1" id="ls-pan-wrapper" style="display: ${isLsCustom ? 'block' : 'none'};">
+                    <div class="flex-1 min-width-150" id="ls-pan-wrapper" style="display: ${isLsCustom ? 'block' : 'none'};">
                         <label>Landscape Pan (X & Y)</label>
                         <div class="flex-row gap-5 align-center margin-b-5">
                            <span style="width: 15px">X</span>
@@ -390,7 +390,7 @@ export class VisualEditorManager {
                            <button type="button" class="small btn-nudge" data-target="ls-y" data-dir="1">+</button>
                         </div>
                     </div>
-                    <div class="flex-1" id="pt-pan-wrapper" style="display: ${isPtCustom ? 'block' : 'none'};">
+                    <div class="flex-1 min-width-150" id="pt-pan-wrapper" style="display: ${isPtCustom ? 'block' : 'none'};">
                         <label>Portrait Pan (X & Y)</label>
                         <div class="flex-row gap-5 align-center margin-b-5">
                            <span style="width: 15px">X</span>

@@ -235,6 +235,96 @@ export function initFormHandlers(container) {
 
     // Library Settings Form Submission
     initLibrarySettings();
+
+    // Global Settings Form Submission
+    initGlobalSettings();
+}
+
+async function initGlobalSettings() {
+    const form = document.getElementById('global-settings-form');
+    if (!form) return;
+
+    const visionEnabled = document.getElementById('global-vision-enabled');
+    const fieldsContainer = document.getElementById('vision-settings-fields');
+    
+    const llamaWin32 = document.getElementById('global-llama-win32');
+    const llamaLinux = document.getElementById('global-llama-linux');
+    const llamaDarwin = document.getElementById('global-llama-darwin');
+    const modelPath = document.getElementById('global-model-path');
+    const mmprojPath = document.getElementById('global-mmproj-path');
+    const systemPrompt = document.getElementById('global-system-prompt');
+    const maxTokens = document.getElementById('global-max-tokens');
+    const temperature = document.getElementById('global-temperature');
+    const autoScan = document.getElementById('global-auto-scan');
+
+    const toggleFields = () => {
+        fieldsContainer.style.display = visionEnabled.checked ? 'block' : 'none';
+    };
+    visionEnabled.onchange = toggleFields;
+
+    // Load initial data
+    try {
+        const res = await fetch('/api/settings/global');
+        const data = await res.json();
+        if (data.ok && data.settings) {
+            const v = data.settings.vision || {};
+            visionEnabled.checked = v.enabled || false;
+            llamaWin32.value = v.binaries?.win32 || '';
+            llamaLinux.value = v.binaries?.linux || '';
+            llamaDarwin.value = v.binaries?.darwin || '';
+            modelPath.value = v.modelPath || '';
+            mmprojPath.value = v.mmprojPath || '';
+            systemPrompt.value = v.systemPrompt || '';
+            maxTokens.value = v.maxTokens || 100;
+            temperature.value = v.temperature || 0.2;
+            autoScan.checked = v.autoScanOnSave !== false;
+            toggleFields();
+        }
+    } catch (err) {
+        console.error("Failed to load global settings", err);
+    }
+
+    form.onsubmit = async (e) => {
+        e.preventDefault();
+        const settings = {
+            vision: {
+                enabled: visionEnabled.checked,
+                binaries: {
+                    win32: llamaWin32.value,
+                    linux: llamaLinux.value,
+                    darwin: llamaDarwin.value
+                },
+                modelPath: modelPath.value,
+                mmprojPath: mmprojPath.value,
+                systemPrompt: systemPrompt.value,
+                maxTokens: parseInt(maxTokens.value),
+                temperature: parseFloat(temperature.value),
+                autoScanOnSave: autoScan.checked
+            }
+        };
+
+        const btn = document.getElementById('saveGlobalSettingsBtn');
+        const originalText = btn.textContent;
+        btn.disabled = true;
+        btn.textContent = "Saving...";
+
+        try {
+            const res = await fetch('/api/settings/global', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ settings })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                alert("Global settings saved successfully!");
+            } else throw new Error(data.message);
+        } catch (err) {
+            alert("Error: " + err.message);
+        } finally {
+            btn.disabled = false;
+            btn.textContent = originalText;
+        }
+    };
 }
 
 function initLibrarySettings() {
