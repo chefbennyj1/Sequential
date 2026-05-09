@@ -145,10 +145,10 @@ export async function init(container, params) {
                         el.style.objectPosition = 'center';
 
                         // Apply custom styles from media.json
-                        // For floating panels, styles apply to the panel DIV
+                        const visualProps = ['objectFit', 'objectPosition', 'transform', 'transformOrigin', 'filter', 'opacity'];
                         if (item.style) {
-                            const target = item.isFloating ? panel : el;
                             for (const prop in item.style) {
+                                const target = (item.isFloating && !visualProps.includes(prop)) ? panel : el;
                                 target.style[prop] = item.style[prop];
                             }
                         }
@@ -156,7 +156,7 @@ export async function init(container, params) {
                         // Apply portrait-specific overrides if active
                         if (params.mode === 'portrait' && item.portraitStyle) {
                             for (const prop in item.portraitStyle) {
-                                const target = item.isFloating ? panel : el;
+                                const target = (item.isFloating && !visualProps.includes(prop)) ? panel : el;
                                 target.style[prop] = item.portraitStyle[prop];
                             }
                         }

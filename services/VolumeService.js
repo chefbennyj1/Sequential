@@ -455,4 +455,78 @@ async function getChapterRange({ series, volume: volumeFolderName, chapter: chap
     };
 }
 
-module.exports = { createVolume, populatePagesFromFS: updateChaptersFromFS, updateChaptersFromFS, syncSinglePage, insertPage, createChapter, getChapterRange };
+async function reorderPages({ series, volume: volumeFolderName, chapter: chapterFolderName, newOrder }) {
+    const { resolveSeriesPath } = require('./MediaService');
+    const Series = require('../models/Series');
+    const VolumeModel = require('../models/Volume');
+
+    const seriesFolderName = await (async () => {
+        if (mongoose.Types.ObjectId.isValid(series)) {
+            const doc = await Series.findById(series);
+            return doc ? doc.folderName : null;
+        }
+        return series;
+    })();
+
+    if (!seriesFolderName) throw new Error("Series folder name is required");
+
+    const seriesPath = await resolveSeriesPath(seriesFolderName);
+    const chapterPath = path.join(seriesPath, 'Volumes', volumeFolderName, chapterFolderName);
+    
+    if (!fs.existsSync(chapterPath)) throw new Error("Chapter directory not found");
+
+    // 1. Validate the input order
+    if (!Array.isArray(newOrder) || newOrder.length === 0) throw new Error("Invalid page order provided");
+
+    // 2. Determine the starting index (we assume they want to keep the same range but different order)
+    // Find the smallest index currently in the chapter
+    const existingPages = (await fs.promises.readdir(chapterPath, { withFileTypes: true }))
+        .filter(d => d.isDirectory() && d.name.startsWith('page'))
+        .map(d => parseInt(d.name.replace(/\D/g, '')) || 0)
+        .sort((a, b) => a - b);
+
+    if (existingPages.length === 0) throw new Error("No pages found to reorder");
+    
+    const startIdx = existingPages[0];
+
+    // 3. Temporary rename phase to avoid collisions
+    const tempMapping = [];
+    for (const oldPageName of newOrder) {
+        const oldPath = path.join(chapterPath, oldPageName);
+        if (fs.existsSync(oldPath)) {
+            const tempName = `reorder_${Math.random().toString(36).substr(2, 9)}_${oldPageName}`;
+            const tempPath = path.join(chapterPath, tempName);
+            await tryRename(oldPath, tempPath);
+            tempMapping.push({ tempPath, tempName });
+        } else {
+            console.warn(`[Reorder] Page ${oldPageName} not found, skipping.`);
+        }
+    }
+
+    // 4. Final rename phase to new sequential IDs
+    for (let i = 0; i < tempMapping.length; i++) {
+        const newIdx = startIdx + i;
+        const newPageName = `page${newIdx}`;
+        const finalPath = path.join(chapterPath, newPageName);
+        
+        const { tempPath, tempName } = tempMapping[i];
+        
+        await tryRename(tempPath, finalPath);
+        
+        // Use existing helper to update pageId inside page.json and rename assets if needed
+        // Note: updateInternalFiles expects (dir, oldName, newName)
+        // dir is the newPath, oldName is the ORIGINAL name before temp rename
+        const originalName = tempName.split('_').slice(2).join('_'); 
+        await updateInternalFiles(finalPath, originalName, newPageName);
+    }
+
+    // 5. Sync DB
+    const seriesDoc = await Series.findOne({ folderName: seriesFolderName });
+    const volPathRegex = new RegExp(`${volumeFolderName}[\\\\/]?$`, 'i');
+    const volume = await VolumeModel.findOne({ volumePath: volPathRegex, series: seriesDoc ? seriesDoc._id : { $exists: false } });
+    if (volume) await updateChaptersFromFS(volume);
+
+    return { ok: true, message: `Reordered ${tempMapping.length} pages starting from index ${startIdx}` };
+}
+
+module.exports = { createVolume, populatePagesFromFS: updateChaptersFromFS, updateChaptersFromFS, syncSinglePage, insertPage, createChapter, getChapterRange, reorderPages };

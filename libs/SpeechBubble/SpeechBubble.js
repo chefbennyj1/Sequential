@@ -85,7 +85,10 @@ class SpeechBubble {
     }
     
     for (const tag of seriesTags) {
-        if (text.includes(tag.pattern)) {
+        const patternMatch = text.toLowerCase().includes(tag.pattern.toLowerCase());
+        const characterMatch = this.options.character && `[${this.options.character.toLowerCase()}]` === tag.pattern.toLowerCase();
+        
+        if (patternMatch || characterMatch) {
             matchedTag = tag;
             break; // First match wins
         }

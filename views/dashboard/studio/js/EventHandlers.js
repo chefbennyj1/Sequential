@@ -12,10 +12,13 @@ import {
 } from './LibraryManager.js';
 import { setActivePage, currentDesignMode } from './PageConfigManager.js';
 import { openSceneEditor, openVisualEditor } from '../../components/SceneEditor/SceneEditor.js';
+import ArrangeManager from './ArrangeManager.js';
 
 let currentSceneInfo = {};
+let arrangeManager;
 
 export function initEventHandlers(container, allSections) {
+    if (!arrangeManager) arrangeManager = new ArrangeManager();
     const sidebar = container.querySelector('.sidebar');
 
     // Hover Nav
@@ -125,6 +128,11 @@ export function initEventHandlers(container, allSections) {
             document.getElementById('pageBuilderModeSelection').classList.add('hidden');
             document.getElementById('editPageContainer').classList.remove('hidden');
         }
+        if (target.closest('#modeArrangeBtn')) {
+            populateSeriesSelect('arrangeSeriesSelect');
+            document.getElementById('pageBuilderModeSelection').classList.add('hidden');
+            document.getElementById('arrangePagesContainer').classList.remove('hidden');
+        }
         if (target.closest('#modeScriptBtn')) {
             populateSeriesSelect('scriptSeriesSelect');
             document.getElementById('pageBuilderModeSelection').classList.add('hidden');
@@ -135,6 +143,7 @@ export function initEventHandlers(container, allSections) {
             document.getElementById('createPageContainer').classList.add('hidden');
             document.getElementById('editPageContainer').classList.add('hidden');
             document.getElementById('insertPageContainer').classList.add('hidden');
+            document.getElementById('arrangePagesContainer').classList.add('hidden');
             document.getElementById('exportScriptContainer').classList.add('hidden');
         }
 
@@ -237,11 +246,13 @@ export function initEventHandlers(container, allSections) {
         if (e.target.id === 'insertSeriesSelect') populateVolumeSelect('insertVolumeSelect', e.target.value);
         if (e.target.id === 'scriptSeriesSelect') populateVolumeSelect('scriptVolumeSelect', e.target.value);
         if (e.target.id === 'editSeriesSelect') populateVolumeSelect('editVolumeSelect', e.target.value);
+        if (e.target.id === 'arrangeSeriesSelect') populateVolumeSelect('arrangeVolumeSelect', e.target.value);
         if (e.target.id === 'exportSeriesSelect') populateVolumeSelect('exportVolumeSelect', e.target.value);
 
         if (e.target.id === 'builderVolumeSelect') populateChapterSelect(e.target.value, 'builderChapterSelect', true);
         if (e.target.id === 'insertVolumeSelect') populateChapterSelect(e.target.value, 'insertChapterSelect', true);
         if (e.target.id === 'editVolumeSelect') populateChapterSelect(e.target.value, 'editChapterSelect', false);
+        if (e.target.id === 'arrangeVolumeSelect') populateChapterSelect(e.target.value, 'arrangeChapterSelect', false);
         if (e.target.id === 'editChapterSelect') populateEditPageSelect(document.getElementById('editVolumeSelect').value, e.target.value);
         if (e.target.id === 'editPageSelect') {
             document.getElementById('loadPageBtn').disabled = !e.target.value;

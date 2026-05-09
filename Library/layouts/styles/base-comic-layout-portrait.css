@@ -54,6 +54,7 @@
   position: relative;
   perspective: 80vmin;
   /* filter: grayscale(1); */
+  /* filter: grayscale(0.5) sepia(10%) hue-rotate(20deg) saturate(120%); */
 }
 
 .panel.floating-panel {

@@ -90,6 +90,18 @@ class ActionText {
         this.parentElement.appendChild(container);
         this.container = container;
         
+        // Apply attributes and style from options
+        if (this.options.attributes) {
+            for (const attr in this.options.attributes) {
+                this.container.setAttribute(attr, this.options.attributes[attr]);
+            }
+        }
+        if (this.options.style) {
+            for (const prop in this.options.style) {
+                this.container.style[prop] = this.options.style[prop];
+            }
+        }
+
         return Promise.resolve();
     }
 

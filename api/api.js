@@ -45,6 +45,7 @@ router.get('/editor/next-page-id', isModerator, PageStructureController.getNextP
 router.get('/editor/chapter-range', isModerator, PageStructureController.getChapterRange);
 router.post('/editor/create-page', isAdmin, PageStructureController.createPage);
 router.post('/editor/insert-page', isAdmin, PageStructureController.insertPage);
+router.post('/editor/reorder-pages', isAdmin, PageStructureController.reorderPages);
 router.post('/editor/create-chapter', isAdmin, PageStructureController.createChapter);
 
 // --- EXPORT ROUTES ---

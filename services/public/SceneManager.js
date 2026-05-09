@@ -78,10 +78,10 @@ export async function initScene(container, pageInfo, sceneData) {
             visualItem = textBlock;
 
         } else if (item.displayType.type === 'ActionText') {
-            const panelEl = (item.placement && item.placement.panel) ? container.querySelector(item.placement.panel) : null;
             const actionTextOptions = { ...item, series, volume, chapter, pageId };
-            if (item.placement) Object.assign(actionTextOptions, item.placement);
-            const actionText = new ActionText(panelEl, actionTextOptions);
+            Object.assign(actionTextOptions, finalPlacement);
+            
+            const actionText = new ActionText(renderParent, actionTextOptions);
             await actionText.render();
             visualItem = actionText;
         }

@@ -146,14 +146,19 @@ function initMedia(container, pageInfo, mediaDataArray) {
                 img.style.objectPosition = 'center';
 
                 // Apply custom styles from media.json (this will overwrite defaults like objectPosition)
-                // If it's a floating panel, styles are applied to the panel div, 
-                // but img-specific styles can still be applied here.
-                if (media.style && !media.isFloating) {
-                    // For non-floating, styles apply to image
+                // If it's a floating panel, layout styles are applied to the panel div, 
+                // but visual styles like object-fit/transform apply to the image.
+                const visualProps = ['objectFit', 'objectPosition', 'transform', 'transformOrigin', 'filter', 'opacity'];
+                
+                if (media.style) {
                     for (const prop in media.style) {
-                        img.style[prop] = media.style[prop];
+                        if (!media.isFloating || visualProps.includes(prop)) {
+                            img.style[prop] = media.style[prop];
+                        }
                     }
-                } else if (media.imageStyle) {
+                }
+                
+                if (media.imageStyle) {
                     // Specific image styles if floating
                     for (const prop in media.imageStyle) {
                         img.style[prop] = media.imageStyle[prop];
@@ -163,7 +168,7 @@ function initMedia(container, pageInfo, mediaDataArray) {
                 // Apply portrait-specific overrides if active
                 if (window.GEMINI_PORTRAIT_MODE && media.portraitStyle) {
                     for (const prop in media.portraitStyle) {
-                        const target = media.isFloating ? panel : img;
+                        const target = (media.isFloating && !visualProps.includes(prop)) ? panel : img;
                         target.style[prop] = media.portraitStyle[prop];
                     }
                 }
@@ -176,6 +181,22 @@ function initMedia(container, pageInfo, mediaDataArray) {
                     
                     panel.style.position = 'relative'; // Ensure blinder covers panel
                     panel.appendChild(img);
+                    
+                    // Add Overlay if exists (under blinder)
+                    if (media.overlayImage) {
+                        const overlayImg = document.createElement('img');
+                        overlayImg.src = resolveMediaUrl(media.overlayImage, 'image', pageInfo);
+                        overlayImg.style.position = 'absolute';
+                        overlayImg.style.inset = '0';
+                        overlayImg.style.width = '100%';
+                        overlayImg.style.height = '100%';
+                        overlayImg.style.objectFit = 'cover';
+                        overlayImg.style.pointerEvents = 'none';
+                        overlayImg.style.zIndex = '5';
+                        overlayImg.style.opacity = media.overlayOpacity !== undefined ? media.overlayOpacity : '1';
+                        panel.appendChild(overlayImg);
+                    }
+
                     panel.appendChild(blinder);
 
                     blinder.onclick = (e) => {
@@ -191,6 +212,21 @@ function initMedia(container, pageInfo, mediaDataArray) {
                     img.style.filter = 'blur(30px)';
                 } else {
                     panel.appendChild(img);
+
+                    // Add Overlay if exists
+                    if (media.overlayImage) {
+                        const overlayImg = document.createElement('img');
+                        overlayImg.src = resolveMediaUrl(media.overlayImage, 'image', pageInfo);
+                        overlayImg.style.position = 'absolute';
+                        overlayImg.style.inset = '0';
+                        overlayImg.style.width = '100%';
+                        overlayImg.style.height = '100%';
+                        overlayImg.style.objectFit = 'cover';
+                        overlayImg.style.pointerEvents = 'none';
+                        overlayImg.style.zIndex = '5';
+                        overlayImg.style.opacity = media.overlayOpacity !== undefined ? media.overlayOpacity : '1';
+                        panel.appendChild(overlayImg);
+                    }
                 }
 
                 // Apply Panel Effect if specified in media.json

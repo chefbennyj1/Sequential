@@ -119,6 +119,9 @@ body.cursor-hidden {
 }
 
 
+
+
+
 /* HEADER */
 header {
   background-image: radial-gradient(lightblue 33%, transparent 34%), radial-gradient(lightblue 33%, transparent 34%) !important;
@@ -243,6 +246,7 @@ section.exiting {
 }
 
 .section-container {
+
   position: relative;
   background: transparent;
   transform: translateZ(0);

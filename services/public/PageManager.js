@@ -47,18 +47,28 @@ class PageManager {
 
         console.log(`PageManager: Transitioning to page ${index}`);
 
+        // Handle horizontal scroll if Lenis is active
+        if (window.lenis) {
+            const target = document.getElementById(this.pages[index].containerId);
+            if (target) {
+                window.lenis.scrollTo(target, {
+                    duration: 1.2,
+                    easing: (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)), // Expo out
+                });
+            }
+        }
+
         // 1. Sliding Window: [Previous, Current, Next]
         const windowIndices = new Set([index - 1, index, index + 1]);
         
-        // 2. Handle page transition animations
-        if (this.currentPageIndex !== -1 && this.currentPageIndex !== index) {
+        // 2. Handle page transition animations (Legacy support)
+        if (!window.lenis && this.currentPageIndex !== -1 && this.currentPageIndex !== index) {
             const oldPage = this.pages[this.currentPageIndex];
             const oldContainer = document.getElementById(oldPage.containerId);
             if (oldContainer) {
                 oldContainer.classList.remove('active');
                 oldContainer.classList.add('leaving');
 
-                // Remove 'leaving' after animation finishes (0.8s per CSS)
                 setTimeout(() => {
                     oldContainer.classList.remove('leaving');
                 }, 800);

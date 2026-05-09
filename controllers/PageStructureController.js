@@ -139,6 +139,20 @@ exports.insertPage = async (req, res) => {
   }
 };
 
+exports.reorderPages = async (req, res) => {
+  const { series, volume, chapter, newOrder } = req.body;
+  if (!series || !volume || !chapter || !newOrder) {
+    return res.status(400).json({ ok: false, message: "Missing required fields: series, volume, chapter, newOrder" });
+  }
+  try {
+    const result = await VolumeService.reorderPages({ series, volume, chapter, newOrder });
+    res.json(result);
+  } catch (err) {
+    console.error("Reorder Pages Error:", err);
+    res.status(500).json({ ok: false, message: err.message });
+  }
+};
+
 exports.getChapterRange = async (req, res) => {
   const { series, volume, chapter } = req.query;
   if (!series || !volume || !chapter) {

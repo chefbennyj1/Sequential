@@ -220,11 +220,19 @@ export class VisualEditorManager {
             return { x: parseFloat(parts[0]) || 50, y: parseFloat(parts[1]) || 50 };
         };
 
+        const parseScale = (transform) => {
+            if (!transform) return 1;
+            const match = transform.match(/scale\(([^)]+)\)/);
+            return match ? parseFloat(match[1]) : 1;
+        };
+
         const isLsCustom = entry.style?.objectPosition && !['center', 'top center', 'bottom center', 'left center', 'right center'].includes(entry.style.objectPosition);
         const isPtCustom = entry.portraitStyle?.objectPosition && !['center', 'top center', 'bottom center', 'left center', 'right center'].includes(entry.portraitStyle.objectPosition);
 
         const lsPos = parsePos(entry.style?.objectPosition);
         const ptPos = parsePos(entry.portraitStyle?.objectPosition);
+        const lsScale = parseScale(entry.style?.transform);
+        const ptScale = parseScale(entry.portraitStyle?.transform);
 
         const getNum = (val) => {
             if (typeof val === 'number') return val;
@@ -287,6 +295,19 @@ export class VisualEditorManager {
                     </div>
                 </div>
                 <div class="form-group margin-b-15 flex-row gap-10">
+                    <div class="flex-2">
+                        <label>Overlay Image (PNG)</label>
+                        <div class="flex-row gap-5">
+                            <input type="text" id="visual-overlay-name" class="gov-select flex-1" value="${entry.overlayImage || ''}" placeholder="e.g. overlay_fx.png">
+                            <button id="visual-overlay-browse" class="small btn-browse">...</button>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <label>Overlay Opacity</label>
+                        <input type="number" id="visual-overlay-opacity" class="gov-input width-100" step="0.1" min="0" max="1" value="${entry.overlayOpacity !== undefined ? entry.overlayOpacity : 1.0}">
+                    </div>
+                </div>
+                <div class="form-group margin-b-15 flex-row gap-10">
                     <div class="flex-1">
                         <label>Privacy Blinder</label>
                         <div class="flex-row gap-5 align-center">
@@ -336,18 +357,36 @@ export class VisualEditorManager {
                     </div>
                 </div>
                 <div class="form-group margin-b-15 flex-row gap-10">
+                    <div class="flex-1">
+                        <label>Landscape Scale (Zoom)</label>
+                        <div class="flex-row gap-5 align-center">
+                            <button type="button" class="small btn-nudge" data-target="ls-scale" data-dir="-0.1">-</button>
+                            <input type="number" id="visual-ls-scale" class="gov-input flex-1" step="0.1" min="1.0" value="${lsScale}">
+                            <button type="button" class="small btn-nudge" data-target="ls-scale" data-dir="0.1">+</button>
+                        </div>
+                    </div>
+                    <div class="flex-1">
+                        <label>Portrait Scale (Zoom)</label>
+                        <div class="flex-row gap-5 align-center">
+                            <button type="button" class="small btn-nudge" data-target="pt-scale" data-dir="-0.1">-</button>
+                            <input type="number" id="visual-pt-scale" class="gov-input flex-1" step="0.1" min="1.0" value="${ptScale}">
+                            <button type="button" class="small btn-nudge" data-target="pt-scale" data-dir="0.1">+</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group margin-b-15 flex-row gap-10">
                     <div class="flex-1" id="ls-pan-wrapper" style="display: ${isLsCustom ? 'block' : 'none'};">
                         <label>Landscape Pan (X & Y)</label>
                         <div class="flex-row gap-5 align-center margin-b-5">
                            <span style="width: 15px">X</span>
                            <button type="button" class="small btn-nudge" data-target="ls-x" data-dir="-1">-</button>
-                           <input type="range" id="ls-x-slider" min="0" max="100" value="${lsPos.x}" class="flex-1">
+                           <input type="range" id="ls-x-slider" min="-20" max="120" value="${lsPos.x}" class="flex-1">
                            <button type="button" class="small btn-nudge" data-target="ls-x" data-dir="1">+</button>
                         </div>
                         <div class="flex-row gap-5 align-center">
                            <span style="width: 15px">Y</span>
                            <button type="button" class="small btn-nudge" data-target="ls-y" data-dir="-1">-</button>
-                           <input type="range" id="ls-y-slider" min="0" max="100" value="${lsPos.y}" class="flex-1">
+                           <input type="range" id="ls-y-slider" min="-20" max="120" value="${lsPos.y}" class="flex-1">
                            <button type="button" class="small btn-nudge" data-target="ls-y" data-dir="1">+</button>
                         </div>
                     </div>
@@ -356,18 +395,20 @@ export class VisualEditorManager {
                         <div class="flex-row gap-5 align-center margin-b-5">
                            <span style="width: 15px">X</span>
                            <button type="button" class="small btn-nudge" data-target="pt-x" data-dir="-1">-</button>
-                           <input type="range" id="pt-x-slider" min="0" max="100" value="${ptPos.x}" class="flex-1">
+                           <input type="range" id="pt-x-slider" min="-20" max="120" value="${ptPos.x}" class="flex-1">
                            <button type="button" class="small btn-nudge" data-target="pt-x" data-dir="1">+</button>
                         </div>
                         <div class="flex-row gap-5 align-center">
                            <span style="width: 15px">Y</span>
                            <button type="button" class="small btn-nudge" data-target="pt-y" data-dir="-1">-</button>
-                           <input type="range" id="pt-y-slider" min="0" max="100" value="${ptPos.y}" class="flex-1">
+                           <input type="range" id="pt-y-slider" min="-20" max="120" value="${ptPos.y}" class="flex-1">
                            <button type="button" class="small btn-nudge" data-target="pt-y" data-dir="1">+</button>
                         </div>
                     </div>
                 </div>
-                <button id="saveVisualMediaBtn" class="update__btn width-100 margin-t-10">Save Panel Asset</button>
+                <div class="tools-footer-sticky">
+                    <button id="saveVisualMediaBtn" class="update__btn width-100">Save Panel Asset</button>
+                </div>
             </div>
         `;
 
@@ -378,8 +419,10 @@ export class VisualEditorManager {
         const backBtn = document.getElementById('backToDirectoryBtn');
         const typeSelect = document.getElementById('visual-asset-type');
         const nameInput = document.getElementById('visual-asset-name');
+        const overlayInput = document.getElementById('visual-overlay-name');
         const maskInput = document.getElementById('visual-mask-name');
         const browseBtn = document.getElementById('visual-asset-browse');
+        const overlayBrowseBtn = document.getElementById('visual-overlay-browse');
         const maskBrowseBtn = document.getElementById('visual-mask-browse');
         const maskBgInput = document.getElementById('visual-mask-bg');
         const maskBgText = document.getElementById('visual-mask-bg-text');
@@ -411,6 +454,12 @@ export class VisualEditorManager {
             }, 'page', this.activeSeriesId, this.getActiveAssets());
         };
 
+        overlayBrowseBtn.onclick = () => {
+            openFileBrowser('image', this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, (fileName) => {
+                overlayInput.value = fileName;
+            }, 'page', this.activeSeriesId, this.getActiveAssets());
+        };
+
         maskBrowseBtn.onclick = () => {
             openFileBrowser('image', this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, (fileName) => {
                 maskInput.value = fileName;
@@ -420,8 +469,19 @@ export class VisualEditorManager {
         document.querySelectorAll('.panel-editor-ui .btn-nudge').forEach(btn => {
             btn.onclick = (e) => {
                 e.preventDefault();
-                const slider = document.getElementById(btn.dataset.target + '-slider');
-                if (slider) slider.value = Math.min(100, Math.max(0, parseInt(slider.value) + parseInt(btn.dataset.dir)));
+                const targetId = btn.dataset.target.includes('scale') ? 'visual-' + btn.dataset.target : btn.dataset.target + '-slider';
+                const el = document.getElementById(targetId);
+                if (el) {
+                    const step = parseFloat(btn.dataset.dir);
+                    let val = parseFloat(el.value) + step;
+                    if (!btn.dataset.target.includes('scale')) {
+                        // Allow slight overflow for zoomed panning
+                        val = Math.min(120, Math.max(-20, Math.round(val)));
+                    } else {
+                        val = Math.max(1.0, val);
+                    }
+                    el.value = btn.dataset.target.includes('scale') ? val.toFixed(1) : val;
+                }
             };
         });
 
@@ -464,6 +524,8 @@ export class VisualEditorManager {
             panel: panelSelector,
             type: typeSelect ? typeSelect.value : 'image',
             fileName: nameInput.value,
+            overlayImage: document.getElementById('visual-overlay-name')?.value || '',
+            overlayOpacity: parseFloat(document.getElementById('visual-overlay-opacity')?.value) || 1.0,
             maskGif: maskInput.value,
             maskBg: document.getElementById('visual-mask-bg-text')?.value || '#000000',
             privacy: document.getElementById('visual-privacy-enabled')?.checked || false
@@ -502,28 +564,61 @@ export class VisualEditorManager {
         if (lsAlign === 'custom') {
             const x = document.getElementById('ls-x-slider')?.value || '50';
             const y = document.getElementById('ls-y-slider')?.value || '50';
-            existingStyle.objectPosition = `${x}% ${y}%`;
+            const pos = `${x}% ${y}%`;
+            existingStyle.objectPosition = pos;
+            existingStyle.transformOrigin = pos;
             existingStyle.objectFit = 'cover';
         } else if (lsAlign === 'contain') {
             existingStyle.objectFit = 'contain';
             delete existingStyle.objectPosition;
+            delete existingStyle.transformOrigin;
         } else {
             existingStyle.objectFit = 'cover';
-            lsAlign === 'cover' ? delete existingStyle.objectPosition : existingStyle.objectPosition = lsAlign;
+            if (lsAlign === 'cover') {
+                delete existingStyle.objectPosition;
+                delete existingStyle.transformOrigin;
+            } else {
+                existingStyle.objectPosition = lsAlign;
+                existingStyle.transformOrigin = lsAlign;
+            }
         }
 
         const ptAlign = document.getElementById('visual-portrait-style-object-position')?.value || 'center';
         if (ptAlign === 'custom') {
             const x = document.getElementById('pt-x-slider')?.value || '50';
             const y = document.getElementById('pt-y-slider')?.value || '50';
-            existingPortraitStyle.objectPosition = `${x}% ${y}%`;
+            const pos = `${x}% ${y}%`;
+            existingPortraitStyle.objectPosition = pos;
+            existingPortraitStyle.transformOrigin = pos;
             existingPortraitStyle.objectFit = 'cover';
         } else if (ptAlign === 'contain') {
             existingPortraitStyle.objectFit = 'contain';
             delete existingPortraitStyle.objectPosition;
+            delete existingPortraitStyle.transformOrigin;
         } else {
             existingPortraitStyle.objectFit = 'cover';
-            ptAlign === 'cover' ? delete existingPortraitStyle.objectPosition : existingPortraitStyle.objectPosition = ptAlign;
+            if (ptAlign === 'cover') {
+                delete existingPortraitStyle.objectPosition;
+                delete existingPortraitStyle.transformOrigin;
+            } else {
+                existingPortraitStyle.objectPosition = ptAlign;
+                existingPortraitStyle.transformOrigin = ptAlign;
+            }
+        }
+
+        // --- Handle Scaling ---
+        const lsScaleVal = document.getElementById('visual-ls-scale')?.value || '1';
+        if (parseFloat(lsScaleVal) !== 1) {
+            existingStyle.transform = `scale(${lsScaleVal})`;
+        } else {
+            delete existingStyle.transform;
+        }
+
+        const ptScaleVal = document.getElementById('visual-pt-scale')?.value || '1';
+        if (parseFloat(ptScaleVal) !== 1) {
+            existingPortraitStyle.transform = `scale(${ptScaleVal})`;
+        } else {
+            delete existingPortraitStyle.transform;
         }
 
         updatedEntry.style = existingStyle;

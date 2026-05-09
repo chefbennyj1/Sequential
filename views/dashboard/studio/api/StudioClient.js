@@ -15,6 +15,20 @@ export async function fetchChapterRange(seriesId, volumeFolder, chapterFolder) {
     }
 }
 
+export async function reorderPagesAPI(reorderData) {
+    try {
+        const res = await fetch('/api/editor/reorder-pages', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(reorderData)
+        });
+        return await res.json();
+    } catch (err) {
+        console.error("Error reordering pages:", err);
+        return { ok: false, message: err.message };
+    }
+}
+
 export async function fetchNextPanelId(seriesId, volumeFolder, chapterFolder, pageId, mode = 'landscape') {
     try {
         const res = await fetch(`/api/editor/next-panel-id?series=${seriesId}&volume=${volumeFolder}&chapter=${chapterFolder}&pageId=${pageId}&mode=${mode}`);
