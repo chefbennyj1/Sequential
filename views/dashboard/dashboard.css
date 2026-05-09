@@ -671,6 +671,17 @@ input[type="checkbox"]:focus {
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
+  min-width: 320px;
+}
+
+.flex-wrap-tight {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.min-width-150 {
+  min-width: 150px;
 }
 
 .tools-footer-sticky {

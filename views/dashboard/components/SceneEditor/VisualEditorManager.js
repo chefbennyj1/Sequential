@@ -356,8 +356,8 @@ export class VisualEditorManager {
                         </select>
                     </div>
                 </div>
-                <div class="form-group margin-b-15 flex-row gap-10">
-                    <div class="flex-1">
+                <div class="form-group margin-b-15 flex-wrap-tight">
+                    <div class="flex-1 min-width-150">
                         <label>Landscape Scale (Zoom)</label>
                         <div class="flex-row gap-5 align-center">
                             <button type="button" class="small btn-nudge" data-target="ls-scale" data-dir="-0.1">-</button>
@@ -365,7 +365,7 @@ export class VisualEditorManager {
                             <button type="button" class="small btn-nudge" data-target="ls-scale" data-dir="0.1">+</button>
                         </div>
                     </div>
-                    <div class="flex-1">
+                    <div class="flex-1 min-width-150">
                         <label>Portrait Scale (Zoom)</label>
                         <div class="flex-row gap-5 align-center">
                             <button type="button" class="small btn-nudge" data-target="pt-scale" data-dir="-0.1">-</button>
@@ -374,7 +374,7 @@ export class VisualEditorManager {
                         </div>
                     </div>
                 </div>
-                <div class="form-group margin-b-15 flex-row gap-10">
+                <div class="form-group margin-b-15 flex-wrap-tight">
                     <div class="flex-1" id="ls-pan-wrapper" style="display: ${isLsCustom ? 'block' : 'none'};">
                         <label>Landscape Pan (X & Y)</label>
                         <div class="flex-row gap-5 align-center margin-b-5">
