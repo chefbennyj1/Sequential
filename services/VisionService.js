@@ -4,14 +4,17 @@ const fs = require('fs');
 const GlobalSettings = require('../models/GlobalSettings');
 const axios = require('axios');
 
+const sharp = require('sharp');
+
 class VisionService {
     constructor() {
         this.process = null;
         this.isStarting = false;
         this.shutdownTimer = null;
-        this.port = 8081; // Use a dedicated port for Llama
+        this.port = 8081; 
         this.baseUrl = `http://localhost:${this.port}`;
-        this.inactivityTimeout = 60000; // 1 minute
+        this.inactivityTimeout = 60000; 
+        this.isAnalyzing = false;
     }
 
     async getSettings() {
@@ -32,7 +35,8 @@ class VisionService {
         }
 
         const platform = process.platform;
-        const binaryPath = settings.vision.binaries[platform];
+        const binaryName = platform === 'win32' ? 'llama-server.exe' : 'llama-server';
+        const binaryPath = path.join(__dirname, '..', 'bin', platform, binaryName);
         const modelPath = settings.vision.modelPath;
         const mmprojPath = settings.vision.mmprojPath;
 
@@ -54,9 +58,11 @@ class VisionService {
             '-m', modelPath,
             '--mmproj', mmprojPath,
             '--port', this.port.toString(),
-            '--ctx-size', '2048',
+            '--ctx-size', '4096', // Increased for vision tasks
             '--threads', '4',
-            '--n-gpu-layers', '0'
+            '--n-gpu-layers', '0',
+            '--ubatch-size', '256', // Smaller batches for CPU stability
+            '--batch-size', '256'
         ];
 
         this.process = spawn(binaryPath, args, {
@@ -108,6 +114,10 @@ class VisionService {
 
     resetShutdownTimer() {
         if (this.shutdownTimer) clearTimeout(this.shutdownTimer);
+        
+        // CRITICAL: Do not start the shutdown timer if an analysis is in progress!
+        if (this.isAnalyzing) return;
+
         this.shutdownTimer = setTimeout(() => {
             console.log(`[Vision] Shutting down llama-server due to inactivity.`);
             this.stopServer();
@@ -115,22 +125,33 @@ class VisionService {
     }
 
     async analyzeImage(imagePath, customPrompt = null) {
-        this.resetShutdownTimer();
-        await this.startServer();
-
-        const settings = await this.getSettings();
-        const prompt = customPrompt || settings.vision.systemPrompt;
-
-        // Convert image to base64
-        const imageBuffer = fs.readFileSync(imagePath);
-        const base64Image = imageBuffer.toString('base64');
-
-        console.log(`[Vision] Analyzing image: ${path.basename(imagePath)}`);
+        this.isAnalyzing = true;
+        if (this.shutdownTimer) {
+            clearTimeout(this.shutdownTimer);
+            this.shutdownTimer = null;
+        }
 
         try {
+            await this.startServer();
+
+            const settings = await this.getSettings();
+            const prompt = customPrompt || settings.vision.systemPrompt;
+
+            // 1. Process image: Resize to 448px max to speed up CPU encoding
+            const sharp = require('sharp');
+            console.log(`[Vision] Optimizing image for i3 CPU analysis (448px): ${path.basename(imagePath)}`);
+
+            const optimizedBuffer = await sharp(imagePath)
+                .resize(448, 448, { fit: 'inside', withoutEnlargement: true })
+                .jpeg({ quality: 70 })
+                .toBuffer();
+            const base64Image = optimizedBuffer.toString('base64');
+
+            console.log(`[Vision] Sending to Gemma 3...`);
+
             // Llama-server OpenAI compatible multimodal request
             const response = await axios.post(`${this.baseUrl}/v1/chat/completions`, {
-                model: "gpt-4o", // Gemma 3 often maps to gpt-4o for multimodal compatibility in llama-server
+                model: "gpt-4o", 
                 messages: [
                     {
                         role: "user",
@@ -147,13 +168,17 @@ class VisionService {
                 ],
                 max_tokens: settings.vision.maxTokens,
                 temperature: settings.vision.temperature
+            }, {
+                timeout: 600000 // 10 minutes for laptop CPU processing
             });
 
-            this.resetShutdownTimer();
             return response.data.choices[0].message.content.trim();
         } catch (err) {
             console.error(`[Vision] Analysis Error:`, err.message);
             throw err;
+        } finally {
+            this.isAnalyzing = false;
+            this.resetShutdownTimer();
         }
     }
 }

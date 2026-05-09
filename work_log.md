@@ -267,3 +267,17 @@
 
 ### Narrative Reminders
 - **The Naming of Vigil**: Hiroshi Saito still needs to officially give Vigil her name on-screen. (Currently, the project is just the 'Vigil Initiative', and she refers to herself as Admin/Echo). Need to write an emotional beat where Hiroshi christens her as 'Vigil' (The Guardian) before the climax of Vol 2.
+
+---
+
+## May 9, 2026: Gemma 3 Vision AI Stabilization
+
+### Vision Service Fixes
+- **Syntax Repair**: Fixed a critical syntax error in `VisionService.js` where a duplicate and malformed timeout block prevented the service from running.
+- **Inactivity Timer Refactor**: Resolved a bug where the `llama-server` was being killed during long-running image analysis. Since CPU-based analysis with Gemma 3 can take 4-5 minutes per panel, the 60-second inactivity timer was prematurely terminating the process.
+- **Improved Logic**: Implemented an `isAnalyzing` flag to ensure the inactivity timer only starts *after* an analysis is complete.
+- **Timeout Extension**: Increased the Axios request timeout to 10 minutes to accommodate the slower CPU processing times on the laptop.
+
+### Verification
+- **Test Run Success**: Successfully executed a manual test analysis of `E:\example_page.png`. The system returned a high-quality, descriptive output of the panel after ~270 seconds of processing.
+- **Endpoint Ready**: The `POST /api/vision/scan` endpoint is now stable and ready for batch processing.
