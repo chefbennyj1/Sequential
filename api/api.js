@@ -23,6 +23,7 @@ const { isAuthApi: isAuth, isModerator, isAdmin } = require('../middleware/auth.
 // --- SYSTEM SETTINGS ---
 router.get('/settings/global', isAdmin, SystemSettingsController.getGlobalSettings);
 router.put('/settings/global', isAdmin, SystemSettingsController.updateGlobalSettings);
+router.post('/settings/global/download-model', isAdmin, SystemSettingsController.triggerModelDownload);
 router.post('/vision/scan', isAdmin, (req, res) => VisionController.processPendingDescriptions(req, res));
 
 // --- EDITOR ROUTES ---

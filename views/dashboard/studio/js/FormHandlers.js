@@ -256,11 +256,56 @@ async function initGlobalSettings() {
     const maxTokens = document.getElementById('global-max-tokens');
     const temperature = document.getElementById('global-temperature');
     const autoScan = document.getElementById('global-auto-scan');
+    
+    const downloadModelBtn = document.getElementById('download-model-btn');
+    const downloadMmprojBtn = document.getElementById('download-mmproj-btn');
+    const modelProgress = document.getElementById('model-download-progress');
+    const mmprojProgress = document.getElementById('mmproj-download-progress');
 
     const toggleFields = () => {
         fieldsContainer.style.display = visionEnabled.checked ? 'block' : 'none';
     };
     visionEnabled.onchange = toggleFields;
+
+    // --- Socket listener for download progress ---
+    if (window.socket) {
+        window.socket.on('model_download_progress', ({ type, percentage }) => {
+            const container = type === 'model' ? modelProgress : mmprojProgress;
+            if (container) {
+                container.classList.remove('hidden');
+                container.querySelector('.scanner-progress-bar').style.width = `${percentage}%`;
+                container.querySelector('.percent').textContent = `${percentage}%`;
+                if (percentage >= 100) {
+                    setTimeout(() => container.classList.add('hidden'), 2000);
+                }
+            }
+        });
+    }
+
+    const startDownload = async (type, btn) => {
+        btn.disabled = true;
+        btn.textContent = "Starting...";
+        try {
+            const res = await fetch('/api/settings/global/download-model', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ type })
+            });
+            const data = await res.json();
+            if (data.ok) {
+                const targetInput = type === 'model' ? modelPath : mmprojPath;
+                targetInput.value = data.path;
+                btn.textContent = "Downloading...";
+            } else throw new Error(data.message);
+        } catch (err) {
+            alert("Download Failed: " + err.message);
+            btn.disabled = false;
+            btn.textContent = "Retry Download";
+        }
+    };
+
+    if (downloadModelBtn) downloadModelBtn.onclick = () => startDownload('model', downloadModelBtn);
+    if (downloadMmprojBtn) downloadMmprojBtn.onclick = () => startDownload('mmproj', downloadMmprojBtn);
 
     // Load initial data
     try {

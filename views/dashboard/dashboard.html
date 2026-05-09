@@ -286,11 +286,25 @@
                         </div>
                         <div class="form-group">
                             <label>Gemma 3 GGUF Model Path</label>
-                            <input type="text" id="global-model-path" class="gov-input width-100" placeholder="e.g. /ai_models/gemma/gemma-3-4b.gguf">
+                            <div class="flex-row gap-5">
+                                <input type="text" id="global-model-path" class="gov-input flex-1" placeholder="e.g. /ai_models/gemma/gemma-3-4b.gguf">
+                                <button type="button" id="download-model-btn" class="small btn-browse">Download (2.5GB)</button>
+                            </div>
+                            <div id="model-download-progress" class="margin-t-5 hidden">
+                                <div class="scanner-progress-container"><div class="scanner-progress-bar" style="width: 0%"></div></div>
+                                <span class="font-size-07 text-muted">Downloading model... <span class="percent">0%</span></span>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>Multimodal Projector Path (mmproj)</label>
-                            <input type="text" id="global-mmproj-path" class="gov-input width-100" placeholder="e.g. /ai_models/gemma/mmproj-gemma-3-4b.gguf">
+                            <div class="flex-row gap-5">
+                                <input type="text" id="global-mmproj-path" class="gov-input flex-1" placeholder="e.g. /ai_models/gemma/mmproj-gemma-3-4b.gguf">
+                                <button type="button" id="download-mmproj-btn" class="small btn-browse">Download (850MB)</button>
+                            </div>
+                            <div id="mmproj-download-progress" class="margin-t-5 hidden">
+                                <div class="scanner-progress-container"><div class="scanner-progress-bar" style="width: 0%"></div></div>
+                                <span class="font-size-07 text-muted">Downloading projector... <span class="percent">0%</span></span>
+                            </div>
                         </div>
                         <div class="form-group">
                             <label>Vision System Prompt</label>

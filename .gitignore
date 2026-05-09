@@ -10,3 +10,8 @@ cache/
 *.avi
 *.mov
 *.mkv
+
+# AI Models & Binaries
+ai_models/
+bin/
+resources/binaries/
