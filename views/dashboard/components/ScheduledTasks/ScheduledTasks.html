@@ -31,10 +31,14 @@
         <div class="scanner-header">
             <h3 style="margin: 0;">System Scanner</h3>
             <div class="flex-row gap-10">
-                <button id="run-quick-scan-btn" class="small">Quick Scan (Hash Only)</button>
-                <button id="run-scan-btn" class="update__btn">Run Scan Now</button>
+                <button id="run-quick-scan-btn" class="small">Quick Scan</button>
+                <button id="run-scan-btn" class="update__btn">Full Scan (AI)</button>
             </div>
         </div>
+        <p class="font-size-07 text-muted margin-t-10">
+            <strong>Quick Scan:</strong> Fast update of image hashes only.<br>
+            <strong>Full Scan:</strong> Includes AI image analysis for missing/changed panels (takes ~4 mins per panel).
+        </p>
         
         <div class="scanner-progress-container" style="display: none;">
             <div class="scanner-progress-bar" id="scanner-progress-bar"></div>
