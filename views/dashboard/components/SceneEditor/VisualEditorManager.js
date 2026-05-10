@@ -11,6 +11,7 @@ export class VisualEditorManager {
         this.currentVisualMediaData = [];
         this.currentVisualContext = {};
         this.selectedPanelSelector = null;
+        this.activeMode = 'landscape'; // Default mode
     }
 
     renderAllPanels(panelNames = []) {
@@ -330,9 +331,17 @@ export class VisualEditorManager {
                         <input type="text" id="visual-mask-bg-text" class="gov-input mono flex-1" value="${entry.maskBg || '#000000'}">
                     </div>
                 </div>
-                <div class="form-group margin-b-15 flex-row gap-10">
-                    <div class="flex-1">
-                        <label>Landscape Align</label>
+
+                <!-- MODE TABS -->
+                <div class="flex-row gap-10 margin-b-15 border-dim-bottom padding-b-10">
+                    <button class="mode-tab-btn flex-1 small ${this.activeMode === 'landscape' ? 'active' : ''}" data-mode="landscape">Landscape</button>
+                    <button class="mode-tab-btn flex-1 small ${this.activeMode === 'portrait' ? 'active' : ''}" data-mode="portrait">Portrait</button>
+                </div>
+
+                <!-- LANDSCAPE CONTROLS -->
+                <div id="landscape-controls" class="mode-controls" style="display: ${this.activeMode === 'landscape' ? 'block' : 'none'};">
+                    <div class="form-group margin-b-15">
+                        <label>Alignment</label>
                         <select id="visual-style-object-position" class="gov-select width-100">
                             <option value="cover" ${(!isLsCustom && (!entry.style || (entry.style.objectFit !== 'contain' && (!entry.style.objectPosition || entry.style.objectPosition === 'center')))) ? 'selected' : ''}>Cover (Center)</option>
                             <option value="contain" ${(entry.style && entry.style.objectFit === 'contain') ? 'selected' : ''}>Contain (Fit Full)</option>
@@ -343,40 +352,16 @@ export class VisualEditorManager {
                             <option value="custom" ${isLsCustom ? 'selected' : ''}>Cover (Custom Pan)</option>
                         </select>
                     </div>
-                    <div class="flex-1">
-                        <label>Portrait Align</label>
-                        <select id="visual-portrait-style-object-position" class="gov-select width-100">
-                            <option value="cover" ${(!isPtCustom && (!entry.portraitStyle || (entry.portraitStyle.objectFit !== 'contain' && (!entry.portraitStyle.objectPosition || entry.portraitStyle.objectPosition === 'center')))) ? 'selected' : ''}>Cover (Center)</option>
-                            <option value="contain" ${(entry.portraitStyle && entry.portraitStyle.objectFit === 'contain') ? 'selected' : ''}>Contain (Fit Full)</option>
-                            <option value="top center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'top center') ? 'selected' : ''}>Cover (Top Pinned)</option>
-                            <option value="bottom center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'bottom center') ? 'selected' : ''}>Cover (Bottom Pinned)</option>
-                            <option value="left center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'left center') ? 'selected' : ''}>Cover (Left Pinned)</option>
-                            <option value="right center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'right center') ? 'selected' : ''}>Cover (Right Pinned)</option>
-                            <option value="custom" ${isPtCustom ? 'selected' : ''}>Cover (Custom Pan)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="form-group margin-b-15 flex-wrap-tight">
-                    <div class="flex-1 min-width-150">
-                        <label>Landscape Scale (Zoom)</label>
+                    <div class="form-group margin-b-15">
+                        <label>Scale (Zoom)</label>
                         <div class="flex-row gap-5 align-center">
                             <button type="button" class="small btn-nudge" data-target="ls-scale" data-dir="-0.1">-</button>
                             <input type="number" id="visual-ls-scale" class="gov-input flex-1" step="0.1" min="1.0" value="${lsScale}">
                             <button type="button" class="small btn-nudge" data-target="ls-scale" data-dir="0.1">+</button>
                         </div>
                     </div>
-                    <div class="flex-1 min-width-150">
-                        <label>Portrait Scale (Zoom)</label>
-                        <div class="flex-row gap-5 align-center">
-                            <button type="button" class="small btn-nudge" data-target="pt-scale" data-dir="-0.1">-</button>
-                            <input type="number" id="visual-pt-scale" class="gov-input flex-1" step="0.1" min="1.0" value="${ptScale}">
-                            <button type="button" class="small btn-nudge" data-target="pt-scale" data-dir="0.1">+</button>
-                        </div>
-                    </div>
-                </div>
-                <div class="form-group margin-b-15 flex-wrap-tight">
-                    <div class="flex-1 min-width-150" id="ls-pan-wrapper" style="display: ${isLsCustom ? 'block' : 'none'};">
-                        <label>Landscape Pan (X & Y)</label>
+                    <div id="ls-pan-wrapper" style="display: ${isLsCustom ? 'block' : 'none'};">
+                        <label>Pan (X & Y)</label>
                         <div class="flex-row gap-5 align-center margin-b-5">
                            <span style="width: 15px">X</span>
                            <button type="button" class="small btn-nudge" data-target="ls-x" data-dir="-1">-</button>
@@ -390,8 +375,32 @@ export class VisualEditorManager {
                            <button type="button" class="small btn-nudge" data-target="ls-y" data-dir="1">+</button>
                         </div>
                     </div>
-                    <div class="flex-1 min-width-150" id="pt-pan-wrapper" style="display: ${isPtCustom ? 'block' : 'none'};">
-                        <label>Portrait Pan (X & Y)</label>
+                </div>
+
+                <!-- PORTRAIT CONTROLS -->
+                <div id="portrait-controls" class="mode-controls" style="display: ${this.activeMode === 'portrait' ? 'block' : 'none'};">
+                    <div class="form-group margin-b-15">
+                        <label>Alignment</label>
+                        <select id="visual-portrait-style-object-position" class="gov-select width-100">
+                            <option value="cover" ${(!isPtCustom && (!entry.portraitStyle || (entry.portraitStyle.objectFit !== 'contain' && (!entry.portraitStyle.objectPosition || entry.portraitStyle.objectPosition === 'center')))) ? 'selected' : ''}>Cover (Center)</option>
+                            <option value="contain" ${(entry.portraitStyle && entry.portraitStyle.objectFit === 'contain') ? 'selected' : ''}>Contain (Fit Full)</option>
+                            <option value="top center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'top center') ? 'selected' : ''}>Cover (Top Pinned)</option>
+                            <option value="bottom center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'bottom center') ? 'selected' : ''}>Cover (Bottom Pinned)</option>
+                            <option value="left center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'left center') ? 'selected' : ''}>Cover (Left Pinned)</option>
+                            <option value="right center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'right center') ? 'selected' : ''}>Cover (Right Pinned)</option>
+                            <option value="custom" ${isPtCustom ? 'selected' : ''}>Cover (Custom Pan)</option>
+                        </select>
+                    </div>
+                    <div class="form-group margin-b-15">
+                        <label>Scale (Zoom)</label>
+                        <div class="flex-row gap-5 align-center">
+                            <button type="button" class="small btn-nudge" data-target="pt-scale" data-dir="-0.1">-</button>
+                            <input type="number" id="visual-pt-scale" class="gov-input flex-1" step="0.1" min="1.0" value="${ptScale}">
+                            <button type="button" class="small btn-nudge" data-target="pt-scale" data-dir="0.1">+</button>
+                        </div>
+                    </div>
+                    <div id="pt-pan-wrapper" style="display: ${isPtCustom ? 'block' : 'none'};">
+                        <label>Pan (X & Y)</label>
                         <div class="flex-row gap-5 align-center margin-b-5">
                            <span style="width: 15px">X</span>
                            <button type="button" class="small btn-nudge" data-target="pt-x" data-dir="-1">-</button>
@@ -406,6 +415,7 @@ export class VisualEditorManager {
                         </div>
                     </div>
                 </div>
+
                 <div class="tools-footer-sticky">
                     <button id="saveVisualMediaBtn" class="update__btn width-100">Save Panel Asset</button>
                 </div>
@@ -435,6 +445,21 @@ export class VisualEditorManager {
         const ptPanWrapper = document.getElementById('pt-pan-wrapper');
 
         if (backBtn) backBtn.onclick = () => this.loadPanel({ ...this.currentVisualContext, panel: null }, this.activeSeriesId);
+
+        // --- Tab Logic ---
+        document.querySelectorAll('.mode-tab-btn').forEach(btn => {
+            btn.onclick = () => {
+                const mode = btn.dataset.mode;
+                this.activeMode = mode;
+                
+                // Toggle Buttons
+                document.querySelectorAll('.mode-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
+                
+                // Toggle Sections
+                document.getElementById('landscape-controls').style.display = mode === 'landscape' ? 'block' : 'none';
+                document.getElementById('portrait-controls').style.display = mode === 'portrait' ? 'block' : 'none';
+            };
+        });
 
         if (lsAlignSelect && lsPanWrapper) {
             lsAlignSelect.onchange = () => { lsPanWrapper.style.display = lsAlignSelect.value === 'custom' ? 'block' : 'none'; };
