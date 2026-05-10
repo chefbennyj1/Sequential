@@ -19,20 +19,21 @@ class VisionController {
 
     async processPendingDescriptions(req, res) {
         try {
-            const results = await this.runVisionScan(req.app.locals.io);
-            res.json({ ok: true, message: "Vision scan complete.", results });
+            const isQuick = req.body.quick === true;
+            const results = await this.runVisionScan(req.app.locals.io, isQuick);
+            res.json({ ok: true, message: `Vision ${isQuick ? 'Quick Scan' : 'Full Scan'} complete.`, results });
         } catch (err) {
             console.error("[Vision] Scan error:", err);
             res.status(500).json({ ok: false, message: err.message });
         }
     }
 
-    async runVisionScan(io = null) {
+    async runVisionScan(io = null, quickScan = false) {
         if (this.isVisionScanRunning) {
             throw new Error("A vision scan is already in progress.");
         }
 
-        console.log("[Vision] Starting Vision Queue Processor...");
+        console.log(`[Vision] Starting Vision ${quickScan ? 'Quick Scan (Hash Only)' : 'Queue Processor'}...`);
         this.isVisionScanRunning = true;
         
         const settings = await GlobalSettings.findOne({ key: "main" });
@@ -43,33 +44,25 @@ class VisionController {
             return { processed: 0, skipped: 0 };
         }
 
-        console.log("[Vision] AI is enabled. Searching for pending descriptions...");
-        if (io) io.emit('scanner_progress', { message: "> Starting Vision AI Analysis..." });
+        console.log(`[Vision] AI is enabled. ${quickScan ? 'Initializing hashes...' : 'Searching for pending descriptions...'}`);
+        if (io) io.emit('scanner_progress', { message: `> Starting Vision ${quickScan ? 'Quick Scan' : 'AI Analysis'}...` });
 
         // 1. Find all volumes
         const volumes = await Volume.find({}).populate('series').lean();
-        console.log(`[Vision] DB Query returned ${volumes.length} total volumes.`);
-
+        
         let totalProcessed = 0;
 
         try {
             for (const [vIdx, volume] of volumes.entries()) {
                 if (!this.isVisionScanRunning) break;
 
-                console.log(`[Vision] [${vIdx}] Examining: ${volume.volumePath}`);
+                let volumeChanged = false; 
                 
-                if (!volume.series) {
-                    console.log(`[Vision] [${vIdx}] SKIP: No series linked to this volume document.`);
-                    continue;
-                }
+                if (!volume.series) continue;
 
                 const seriesPath = await resolveSeriesPath(volume.series.folderName);
-                
-                // Check for .gemmaignore file
                 const ignorePath = path.join(seriesPath, '.gemmaignore');
-                if (fs.existsSync(ignorePath)) {
-                    continue;
-                }
+                if (fs.existsSync(ignorePath)) continue;
 
                 const volumeFolder = path.basename(volume.volumePath);
                 const volumeAbsPath = path.join(seriesPath, 'Volumes', volumeFolder);
@@ -94,48 +87,61 @@ class VisionController {
                             pageData = JSON.parse(fs.readFileSync(pageJsonPath, 'utf8'));
                         } catch (e) { continue; }
 
-                        let pageChanged = false;
+                        let pageChangedInLoop = false;
                         for (const mediaItem of (pageData.media || [])) {
                             if (!this.isVisionScanRunning) break;
 
-                            // AGGREGATION LOGIC:
-                            // 1. Must be an image with a filename.
-                            // 2. Either 'DescriptionUpdateRequired' is true OR BOTH 'description' and 'alt' are missing/empty.
-                            const needsUpdate = mediaItem.DescriptionUpdateRequired || (!mediaItem.description && !mediaItem.alt);
-                            
-                            if (needsUpdate && mediaItem.type === 'image' && mediaItem.fileName) {
+                            if (mediaItem.type === 'image' && mediaItem.fileName) {
                                 const imagePath = path.join(pageAbsPath, 'assets', 'image', mediaItem.fileName);
                                 
                                 if (fs.existsSync(imagePath)) {
-                                    console.log(`[Vision] Found image needing analysis: ${pageFolder}/${mediaItem.panel}`);
-                                    if (io) io.emit('scanner_progress', { message: `  > Analyzing ${pageFolder} | ${mediaItem.panel}...` });
-                                    
-                                    try {
-                                        const description = await VisionService.analyzeImage(imagePath);
-                                        console.log(`[Vision] AI Result for ${mediaItem.panel}: "${description}"`);
-                                        
-                                        mediaItem.description = description;
-                                        mediaItem.alt = description;
-                                        mediaItem.DescriptionUpdateRequired = false;
-                                        
-                                        // CRITICAL: Write to disk immediately after each success!
-                                        fs.writeFileSync(pageJsonPath, JSON.stringify(pageData, null, 2));
-                                        
-                                        pageChanged = true;
-                                        totalProcessed++;
+                                    const currentHash = await VisionService.generateImageHash(imagePath);
+                                    const hashChanged = currentHash && (mediaItem.imageHash !== currentHash);
 
-                                        if (io) io.emit('scanner_progress', { message: `  > Success: ${mediaItem.panel} described and saved.` });
-                                    } catch (err) {
-                                        console.error(`[Vision] Failed to analyze ${imagePath}:`, err.message);
+                                    if (quickScan) {
+                                        // QUICK MODE: Only update hash if missing or changed
+                                        if (hashChanged) {
+                                            console.log(`[Vision] [Quick] Updating hash for: ${pageFolder}/${mediaItem.panel}`);
+                                            mediaItem.imageHash = currentHash;
+                                            pageChangedInLoop = true;
+                                            totalProcessed++;
+                                        }
+                                        continue;
+                                    }
+
+                                    // FULL MODE: Standard AI Logic
+                                    const needsUpdate = mediaItem.DescriptionUpdateRequired || (!mediaItem.description && !mediaItem.alt);
+                                    
+                                    if (needsUpdate || hashChanged) {
+                                        console.log(`[Vision] ${hashChanged ? 'Image changed (hash mismatch)' : 'Pending scan'}: ${pageFolder}/${mediaItem.panel}`);
+                                        if (io) io.emit('scanner_progress', { message: `  > Analyzing ${pageFolder} | ${mediaItem.panel}...` });
+                                        
+                                        try {
+                                            const description = await VisionService.analyzeImage(imagePath);
+                                            mediaItem.description = description;
+                                            mediaItem.alt = description;
+                                            mediaItem.imageHash = currentHash;
+                                            mediaItem.DescriptionUpdateRequired = false;
+                                            
+                                            pageChangedInLoop = true;
+                                            totalProcessed++;
+                                            if (io) io.emit('scanner_progress', { message: `  > Success: ${mediaItem.panel} described and saved.` });
+                                        } catch (err) {
+                                            console.error(`[Vision] Failed to analyze ${imagePath}:`, err.message);
+                                        }
                                     }
                                 }
                             }
                         }
+
+                        if (pageChangedInLoop) {
+                            fs.writeFileSync(pageJsonPath, JSON.stringify(pageData, null, 2));
+                            volumeChanged = true;
+                        }
                     }
                 }
                 
-                // Re-sync the entire volume if we made changes
-                if (pageChanged) {
+                if (volumeChanged) {
                     const realVolume = await Volume.findById(volume._id);
                     if (realVolume) {
                         const VolumeService = require('../services/VolumeService');
@@ -147,7 +153,7 @@ class VisionController {
             this.isVisionScanRunning = false;
         }
 
-        const msg = totalProcessed > 0 ? `[Vision] Analysis complete. Processed ${totalProcessed} images.` : "[Vision] No pending images found.";
+        const msg = `[Vision] ${quickScan ? 'Quick Scan' : 'Analysis'} complete. Processed ${totalProcessed} panels.`;
         console.log(msg);
         if (io) io.emit('scanner_progress', { message: msg });
         

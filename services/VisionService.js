@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const GlobalSettings = require('../models/GlobalSettings');
 const axios = require('axios');
+const crypto = require('crypto');
 
 const sharp = require('sharp');
 
@@ -15,6 +16,20 @@ class VisionService {
         this.baseUrl = `http://localhost:${this.port}`;
         this.inactivityTimeout = 60000; 
         this.isAnalyzing = false;
+    }
+
+    async generateImageHash(imagePath) {
+        try {
+            const buffer = await sharp(imagePath)
+                .resize(256, 256, { fit: 'inside' }) // Small size for fast hashing
+                .grayscale() // Remove color to focus on structure
+                .toBuffer();
+            
+            return crypto.createHash('md5').update(buffer).digest('hex');
+        } catch (err) {
+            console.error(`[Vision] Hash Generation Error:`, err.message);
+            return null;
+        }
     }
 
     async getSettings() {
