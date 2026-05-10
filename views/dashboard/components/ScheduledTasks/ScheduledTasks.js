@@ -6,6 +6,7 @@ export default class ScheduledTaskView {
         
         this.addBtn = this.container.querySelector('#add-root-btn');
         this.scanBtn = this.container.querySelector('#run-scan-btn');
+        this.quickScanBtn = this.container.querySelector('#run-quick-scan-btn');
         
         this.progressContainer = this.container.querySelector('.scanner-progress-container');
         this.progressBar = this.container.querySelector('#scanner-progress-bar');
@@ -42,7 +43,10 @@ export default class ScheduledTaskView {
 
     bindEvents() {
         this.addBtn.addEventListener('click', () => this.addRoot());
-        this.scanBtn.addEventListener('click', () => this.runScan());
+        this.scanBtn.addEventListener('click', () => this.runScan(false));
+        if (this.quickScanBtn) {
+            this.quickScanBtn.addEventListener('click', () => this.runScan(true));
+        }
         
         // Back button logic if not handled globally by Dashboard
         const backBtn = this.container.querySelector('.back-to-studio-btn');
@@ -143,18 +147,24 @@ export default class ScheduledTaskView {
         }
     }
 
-    async runScan() {
+    async runScan(isQuick = false) {
         this.scanBtn.disabled = true;
-        this.scanBtn.textContent = "Scanning...";
+        if (this.quickScanBtn) this.quickScanBtn.disabled = true;
+
+        this.scanBtn.textContent = isQuick ? "Quick Scanning..." : "Scanning...";
         
         // Reset progress bar
         this.progressContainer.style.display = 'block';
         this.progressBar.style.width = '0%';
         this.logContainer.innerHTML = ''; // clear old logs
-        this.log(`> Starting library scan...`);
+        this.log(`> Starting library ${isQuick ? 'QUICK ' : ''}scan...`);
 
         try {
-            const res = await fetch('/api/library/scan', { method: 'POST' });
+            const res = await fetch('/api/library/scan', { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quick: isQuick })
+            });
             const data = await res.json();
 
             if (data.ok) {
@@ -171,6 +181,8 @@ export default class ScheduledTaskView {
             this.log(`> Critical Error: ${e.message}`);
         } finally {
             this.scanBtn.disabled = false;
+            if (this.quickScanBtn) this.quickScanBtn.disabled = false;
+            
             this.scanBtn.textContent = "Run Scan Now";
             // Hide progress bar after 2 seconds
             setTimeout(() => {

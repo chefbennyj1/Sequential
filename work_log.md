@@ -270,14 +270,21 @@
 
 ---
 
-## May 9, 2026: Gemma 3 Vision AI Stabilization
+### May 9, 2026: Vision AI Stabilization & UI Refactor
 
-### Vision Service Fixes
-- **Syntax Repair**: Fixed a critical syntax error in `VisionService.js` where a duplicate and malformed timeout block prevented the service from running.
-- **Inactivity Timer Refactor**: Resolved a bug where the `llama-server` was being killed during long-running image analysis. Since CPU-based analysis with Gemma 3 can take 4-5 minutes per panel, the 60-second inactivity timer was prematurely terminating the process.
-- **Improved Logic**: Implemented an `isAnalyzing` flag to ensure the inactivity timer only starts *after* an analysis is complete.
-- **Timeout Extension**: Increased the Axios request timeout to 10 minutes to accommodate the slower CPU processing times on the laptop.
+### Vision Service & Scanning
+- **Syntax Repair**: Fixed a critical syntax error in `VisionService.js` (duplicate timeout block).
+- **Inactivity Timer Refactor**: Implemented `isAnalyzing` flag to prevent `llama-server` from being killed during long CPU analyses.
+- **Image Hashing**: Integrated MD5 image hashing (using 256px grayscale thumbnails) to detect artwork changes. The scanner now only runs the AI if the hash has changed or the description is missing.
+- **Quick Scan Mode**: Added a "Hash Only" mode that initializes/updates image hashes without triggering the AI. Accessible via the new "Quick Scan" button.
+- **Timeout Extension**: Increased internal timeouts to 10 minutes to accommodate i3 CPU processing speeds.
+
+### Visual Editor Enhancements
+- **Tabbed Interface**: Refactored the Panel Settings sidebar to use a tabbed UI for "Landscape" and "Portrait" controls. This prevents layout overflow and groups mode-specific Alignment, Scale, and Pan settings.
+- **Description Editor**: Added a new "Panel Description" textarea to the Visual Editor. It allows manual editing of AI metadata and automatically syncs to both `description` and `alt` fields in `page.json`.
+- **Immediate Disk Writes**: The controller now saves progress to `page.json` immediately after each successful panel analysis, preventing data loss during crashes.
 
 ### Verification
-- **Test Run Success**: Successfully executed a manual test analysis of `E:\example_page.png`. The system returned a high-quality, descriptive output of the panel after ~270 seconds of processing.
-- **Endpoint Ready**: The `POST /api/vision/scan` endpoint is now stable and ready for batch processing.
+- **Test Run Success**: Successfully executed a full AI analysis pass on `example_page.png` (270s).
+- **Quick Scan Verification**: Verified that Quick Scan initializes hashes across the entire library in seconds.
+- **UI Verification**: Confirmed that the new tabbed layout in the Visual Editor remains within the sidebar bounds.

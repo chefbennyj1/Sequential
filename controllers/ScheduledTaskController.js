@@ -53,6 +53,7 @@ class ScheduledTaskController {
 
     async triggerScan(req, res) {
         try {
+            const isQuick = req.body.quick === true;
             // Run scan (this might take time, so we might want to just start it and return 'started')
             // For now, we await it to show results immediately.
             const io = req.app.locals.io;
@@ -60,9 +61,9 @@ class ScheduledTaskController {
 
             // Trigger Vision Scan after library sync
             const VisionController = require('./VisionController');
-            await VisionController.runVisionScan(io);
+            await VisionController.runVisionScan(io, isQuick);
 
-            res.json({ ok: true, message: "Scan complete.", results });
+            res.json({ ok: true, message: `Scan ${isQuick ? '(Quick)' : ''} complete.`, results });
         } catch (e) {
             console.error("Manual Scan Error:", e);
             res.status(500).json({ ok: false, message: "Scan failed: " + e.message });
