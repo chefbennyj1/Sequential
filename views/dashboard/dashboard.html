@@ -9,8 +9,8 @@
         </ul>
     </nav>
     <div class="user">
+        <span id="user-name" class="text-accent font-weight-bold"></span>
         <img src="/views/public/images/avatar.png" alt="Profile" class="avatar" />
-        <span id="user-name"></span>
         <div class="dropdown" id="userMenu">
             <a href="#" id="accountSettingsBtn">Account</a>
             <form action="/authentication/logout" method="POST">
@@ -328,7 +328,7 @@
                     </div>
 
                     <div class="margin-t-30 flex-row gap-15">
-                        <button type="submit" class="update__btn flex-2" id="saveGlobalSettingsBtn">Save Global Settings</button>
+                        <button type="submit" class="update__btn flex-2" id="saveGlobalSettingsBtn">Save AI Settings</button>
                     </div>
                 </form>
             </div>

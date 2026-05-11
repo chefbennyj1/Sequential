@@ -132,6 +132,7 @@ body {
   padding: 15px 20px 0 0;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 10px;
   position: relative;
   z-index: 2;
@@ -228,6 +229,12 @@ body {
 .dashboard-section {
   width: 100%;
   margin-top: 20px;
+}
+
+@media (min-width: 1200px) and (orientation: landscape) {
+  .dashboard-section:not(.h-full):not(.scheduled-tasks) {
+    max-width: 50%;
+  }
 }
 
 .account-settings {
