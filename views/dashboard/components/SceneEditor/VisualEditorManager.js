@@ -12,6 +12,42 @@ export class VisualEditorManager {
         this.currentVisualContext = {};
         this.selectedPanelSelector = null;
         this.activeMode = 'landscape'; // Default mode
+
+        // Setup Socket Listener for Real-Time AI Updates
+        if (window.socket) {
+            window.socket.on('panel_ai_updated', (data) => {
+                if (this.currentVisualContext && 
+                    this.currentVisualContext.volume === data.volume &&
+                    this.currentVisualContext.chapter === data.chapter &&
+                    this.currentVisualContext.pageId === data.pageId) {
+                        
+                    // Update internal data state
+                    const mediaIdx = this.currentVisualMediaData.findIndex(m => m.panel === data.panelId);
+                    if (mediaIdx !== -1) {
+                        this.currentVisualMediaData[mediaIdx].description = data.description;
+                        this.currentVisualMediaData[mediaIdx].alt = data.alt;
+                        this.currentVisualMediaData[mediaIdx].hashtags = data.hashtags;
+                    }
+
+                    // If this panel is currently being edited in the UI, update the inputs
+                    if (this.selectedPanelSelector === data.panelId) {
+                        const descInput = document.getElementById('visual-asset-description');
+                        
+                        if (descInput) {
+                            descInput.value = data.description;
+                            descInput.style.borderColor = '#00ccff';
+                            setTimeout(() => descInput.style.borderColor = '#333', 1500);
+                        }
+                        
+                        const saveBtn = document.getElementById('saveVisualMediaBtn');
+                        if (saveBtn && saveBtn.textContent.includes('Waiting for AI')) {
+                            saveBtn.textContent = 'Save Panel Asset';
+                            saveBtn.disabled = false;
+                        }
+                    }
+                }
+            });
+        }
     }
 
     renderAllPanels(panelNames = []) {
@@ -242,7 +278,10 @@ export class VisualEditorManager {
 
         container.innerHTML = `
             <div class="panel-editor-ui">
-                <button id="backToDirectoryBtn" class="small margin-b-15">&larr; Geometry Directory</button>
+                <div class="flex-between align-center margin-b-15">
+                    <button id="backToDirectoryBtn" class="small">&larr; Geometry Directory</button>
+                    <h4 class="text-accent margin-0" style="text-transform: uppercase;">${panelSelector.replace('.', '')}</h4>
+                </div>
 
                 ${entry.isFloating ? `
                 <div class="floating-panel-settings border-dim padding-10 margin-b-15 border-radius-8 bg-black-20">
@@ -664,10 +703,15 @@ export class VisualEditorManager {
         try {
             const res = await saveMediaAPI(this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, this.currentVisualMediaData, this.activeSeriesId);
             if (res.ok) {
-                saveBtn.textContent = "Saved!";
+                const needsAI = (!updatedEntry.description || updatedEntry.description.trim() === '');
+                if (needsAI) {
+                    saveBtn.textContent = "Saved! Waiting for AI...";
+                } else {
+                    saveBtn.textContent = "Saved!";
+                    setTimeout(() => { saveBtn.disabled = false; saveBtn.textContent = "Save Panel Asset"; }, 2000);
+                }
                 const iframe = document.getElementById('pagePreviewFrame');
                 if (iframe) iframe.contentWindow.location.reload();
-                setTimeout(() => { saveBtn.disabled = false; saveBtn.textContent = "Save Panel Asset"; }, 2000);
             } else throw new Error(res.message);
         } catch (err) {
             alert("Error: " + err.message);

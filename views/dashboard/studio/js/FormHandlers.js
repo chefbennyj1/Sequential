@@ -258,26 +258,6 @@ async function initGlobalSettings() {
     };
     visionEnabled.onchange = toggleFields;
 
-    const forceFlagBtn = document.getElementById('forceVisionScanBtn');
-    if (forceFlagBtn) {
-        forceFlagBtn.onclick = async () => {
-            forceFlagBtn.disabled = true;
-            forceFlagBtn.textContent = "Flagging...";
-            try {
-                const res = await fetch('/api/settings/global/force-vision-flag', { method: 'POST' });
-                const data = await res.json();
-                if (data.ok) {
-                    alert(data.message + "\n\nNow go to the Scanner tab and click 'Full Scan (AI)' to start the Gemini analysis.");
-                } else throw new Error(data.message);
-            } catch (err) {
-                alert("Error: " + err.message);
-            } finally {
-                forceFlagBtn.disabled = false;
-                forceFlagBtn.textContent = "Analyze All Panels";
-            }
-        };
-    }
-
     // Load initial data
     try {
         const res = await fetch('/api/settings/global');

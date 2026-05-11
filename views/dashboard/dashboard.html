@@ -258,17 +258,17 @@
 
             <hr class="margin-y-40 border-dim">
 
-            <h3>Server & AI Settings</h3>
-            <p class="text-muted margin-b-20">Configure global server behavior and Gemini AI integration.</p>
+            <h3>AI Settings</h3>
+            <p class="text-muted margin-b-20">Configure global Gemini AI integration.</p>
 
             <div id="global-settings-form-container" class="bg-dark padding-30 border-radius-12 border-dim">
                 <form id="global-settings-form">
                     <div class="form-group">
                         <label class="flex-row align-center gap-10">
                             <input type="checkbox" id="global-vision-enabled">
-                            <span>Enable Gemini 1.5 Vision AI</span>
+                            <span>Enable Gemini Vision AI</span>
                         </label>
-                        <p class="font-size-07 text-muted margin-t-5">Required for automatic panel descriptions and screenplay generation via Google Gemini API.</p>
+                        <p class="font-size-07 text-muted margin-t-5">Automatic panel image description via Google Gemini</p>
                     </div>
 
                     <div id="vision-settings-fields" class="margin-t-20 border-dim padding-20 border-radius-8">
@@ -329,7 +329,6 @@
 
                     <div class="margin-t-30 flex-row gap-15">
                         <button type="submit" class="update__btn flex-2" id="saveGlobalSettingsBtn">Save Global Settings</button>
-                        <button type="button" class="small flex-1" id="forceVisionScanBtn">Analyze All Panels</button>
                     </div>
                 </form>
             </div>
@@ -391,13 +390,11 @@
 
                             <div class="gov-field-group">
 
-                                <label>Color Signature (Hex)</label>
+                                <label>Color Signature</label>
 
                                 <div class="flex-row-center gap-10">
 
-                                    <input type="color" id="char-color" value="#ffffff" class="gov-color-input">
-
-                                    <input type="text" id="char-color-text" class="gov-input mono flex-1" placeholder="#ffffff">
+                                    <input type="color" id="char-color" value="#ffffff" class="gov-color-input" style="width: 100%; height: 40px;">
 
                                 </div>
 

@@ -39,12 +39,6 @@ export default class CharacterLab {
         document.getElementById('save-character-btn').onclick = () => this.saveCharacter();
         document.getElementById('cancel-character-btn').onclick = () => this.hideForm();
 
-        // Handle color sync
-        const colorInput = document.getElementById('char-color');
-        const colorText = document.getElementById('char-color-text');
-        colorInput.oninput = (e) => { colorText.value = e.target.value; };
-        colorText.oninput = (e) => { colorInput.value = e.target.value; };
-
         // Handle Avatar Upload
         const avatarInput = document.getElementById('char-avatar-input');
         avatarInput.onchange = (e) => this.handleAvatarUpload(e);
@@ -107,7 +101,6 @@ export default class CharacterLab {
             this.activeCharacterId = character._id;
             document.getElementById('char-name').value = character.name;
             document.getElementById('char-color').value = character.color;
-            document.getElementById('char-color-text').value = character.color;
             document.getElementById('char-description').value = character.description || '';
             document.getElementById('char-avatar-preview').src = character.image || '/views/public/images/avatar.png';
             document.getElementById('form-title').innerText = 'EDIT RECORD: ' + character.name;
@@ -127,7 +120,6 @@ export default class CharacterLab {
             this.activeCharacterId = null;
             document.getElementById('char-name').value = '';
             document.getElementById('char-color').value = '#ffffff';
-            document.getElementById('char-color-text').value = '#ffffff';
             document.getElementById('char-description').value = '';
             document.getElementById('char-avatar-preview').src = '/views/public/images/avatar.png';
             document.getElementById('form-title').innerText = 'NEW RECORD';

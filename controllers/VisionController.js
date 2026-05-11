@@ -143,7 +143,21 @@ class VisionController {
                                             
                                             pageChangedInLoop = true;
                                             totalProcessed++;
-                                            if (io) io.emit('scanner_progress', { message: `  > Success: ${mediaItem.panel} described by Gemini.` });
+                                            
+                                            if (io) {
+                                                io.emit('scanner_progress', { message: `  > Success: ${mediaItem.panel} described by Gemini.` });
+                                                // Real-time UI update event
+                                                io.emit('panel_ai_updated', {
+                                                    series: volume.series.folderName,
+                                                    volume: volumeFolder,
+                                                    chapter: chapterFolder,
+                                                    pageId: pageFolder,
+                                                    panelId: mediaItem.panel,
+                                                    description: mediaItem.description,
+                                                    alt: mediaItem.alt,
+                                                    hashtags: mediaItem.hashtags
+                                                });
+                                            }
                                         } catch (err) {
                                             console.error(`[Vision] Failed to analyze ${imagePath}:`, err.message);
                                         }
