@@ -259,52 +259,52 @@
             <hr class="margin-y-40 border-dim">
 
             <h3>Server & AI Settings</h3>
-            <p class="text-muted margin-b-20">Configure global server behavior and Gemma AI integration.</p>
+            <p class="text-muted margin-b-20">Configure global server behavior and Gemini AI integration.</p>
 
             <div id="global-settings-form-container" class="bg-dark padding-30 border-radius-12 border-dim">
                 <form id="global-settings-form">
                     <div class="form-group">
                         <label class="flex-row align-center gap-10">
                             <input type="checkbox" id="global-vision-enabled">
-                            <span>Enable Gemma 3 Vision AI</span>
+                            <span>Enable Gemini 1.5 Vision AI</span>
                         </label>
-                        <p class="font-size-07 text-muted margin-t-5">Required for automatic panel descriptions and screenplay generation.</p>
+                        <p class="font-size-07 text-muted margin-t-5">Required for automatic panel descriptions and screenplay generation via Google Gemini API.</p>
                     </div>
 
                     <div id="vision-settings-fields" class="margin-t-20 border-dim padding-20 border-radius-8">
                         <div class="form-group">
-                            <label>System Binary (llama-server)</label>
-                            <div class="flex-row align-center gap-10 text-accent font-size-09">
-                                <ion-icon name="checkmark-circle-outline"></ion-icon>
-                                <span>Auto-managed by BinaryManager (bin/${process.platform})</span>
+                            <label>Gemini API Key</label>
+                            <div class="flex-row gap-10 align-center">
+                                <input type="password" id="global-api-key" class="gov-input flex-1" placeholder="Paste your API key here">
+                                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="small btn-browse text-center" style="text-decoration: none; display: inline-block; padding: 10px;">Get API Key</a>
                             </div>
+                            <p class="font-size-07 text-muted margin-t-10">
+                                <strong class="text-accent">Privacy Disclaimer:</strong> On the Free Tier, Google may use your image inputs to train their models. Use a paid plan if privacy is a concern.
+                            </p>
                         </div>
+
                         <div class="form-group">
-                            <label>AI Models Directory</label>
-                            <input type="text" id="global-models-dir" class="gov-input width-100" placeholder="e.g. E:\AI_Models or ./ai_models/gemma">
+                            <label>Gemini Model Version</label>
+                            <select id="global-model-name" class="gov-select width-100">
+                                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast, Stable)</option>
+                                <option value="gemini-1.5-pro">Gemini 1.5 Pro (Detailed, Slower)</option>
+                                <option value="gemini-flash-latest">Gemini Flash Latest (2026 Standard)</option>
+                                <option value="gemini-3.1-flash-image-preview">Gemini 3.1 Flash Image Preview (Advanced Vision)</option>
+                                <option value="gemini-3-pro-image-preview">Gemini 3.0 Pro Image Preview</option>
+                            </select>
+                            <p class="font-size-07 text-muted margin-t-5">Ensure your API key has access to the selected model tier.</p>
                         </div>
-                        <div class="form-group">
-                            <label>Gemma 3 GGUF Model Path</label>
-                            <div class="flex-row gap-5">
-                                <input type="text" id="global-model-path" class="gov-input flex-1" placeholder="e.g. /ai_models/gemma/gemma-3-4b.gguf">
-                                <button type="button" id="download-model-btn" class="small btn-browse">Download (2.5GB)</button>
-                            </div>
-                            <div id="model-download-progress" class="margin-t-5 hidden">
-                                <div class="scanner-progress-container"><div class="scanner-progress-bar" style="width: 0%"></div></div>
-                                <span class="font-size-07 text-muted">Downloading model... <span class="percent">0%</span></span>
-                            </div>
+
+                        <div class="bg-dark-red padding-15 border-radius-8 margin-b-20 border-red">
+                            <h5 class="text-red flex-row align-center gap-5 margin-b-5">
+                                <ion-icon name="warning-outline"></ion-icon>
+                                Ethical Usage Warning
+                            </h5>
+                            <p class="font-size-07 text-dim">
+                                Do not use this AI to process inappropriate, sexually explicit, or illegal content. All requests are subject to Google's safety filters and automated monitoring. Violations may result in API suspension.
+                            </p>
                         </div>
-                        <div class="form-group">
-                            <label>Multimodal Projector Path (mmproj)</label>
-                            <div class="flex-row gap-5">
-                                <input type="text" id="global-mmproj-path" class="gov-input flex-1" placeholder="e.g. /ai_models/gemma/mmproj-gemma-3-4b.gguf">
-                                <button type="button" id="download-mmproj-btn" class="small btn-browse">Download (850MB)</button>
-                            </div>
-                            <div id="mmproj-download-progress" class="margin-t-5 hidden">
-                                <div class="scanner-progress-container"><div class="scanner-progress-bar" style="width: 0%"></div></div>
-                                <span class="font-size-07 text-muted">Downloading projector... <span class="percent">0%</span></span>
-                            </div>
-                        </div>
+
                         <div class="form-group">
                             <label>Vision System Prompt</label>
                             <textarea id="global-system-prompt" class="gov-input width-100" rows="3"></textarea>
@@ -416,14 +416,13 @@
                             </div>
 
                             <label class="gov-btn-small">
-
                                 Upload Photo
-
                                 <input type="file" id="char-avatar-input" accept="image/*" class="hidden">
-
                             </label>
-
-                        </div>
+                            <button id="ai-analyze-char-btn" class="gov-btn-small margin-t-5" style="background: #1a2a3a; border-color: #00ccff; color: #00ccff;">
+                                AI Scan Profile
+                            </button>
+                            </div>
 
                     </div>
 

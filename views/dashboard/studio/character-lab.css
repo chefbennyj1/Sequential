@@ -1,5 +1,5 @@
 /* Character List Items (Character Lab) */
-.character-item {
+.character-item, .char-card {
     background: #222;
     border: 1px solid #333;
     border-radius: 8px;
@@ -8,10 +8,11 @@
     align-items: center;
     gap: 15px;
     transition: all 0.2s ease;
+    cursor: pointer;
 }
 
-.character-item:hover {
-    border-color: var(--accent);
+.character-item:hover, .char-card:hover {
+    border-color: var(--accent, #00ccff);
     background: #2a2a2a;
     transform: translateY(-2px);
 }

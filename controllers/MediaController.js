@@ -83,6 +83,27 @@ exports.servePageImage = async (req, res) => {
     }
 };
 
+exports.serveCharacterImage = async (req, res) => {
+    const { series, charId, type, file } = req.params;
+    
+    try {
+        const seriesPath = await MediaService.resolveSeriesPath(series);
+        // Path on disk: [SeriesPath]/Characters/[charId]/[type]/[file]
+        const filePath = path.join(seriesPath, 'Characters', charId, type, file);
+
+        if (fs.existsSync(filePath)) {
+            const typeMime = mime.lookup(filePath) || 'application/octet-stream';
+            res.type(typeMime);
+            res.sendFile(filePath);
+        } else {
+            res.status(404).send('Character asset not found');
+        }
+    } catch (err) {
+        console.error("Error in serveCharacterImage:", err);
+        res.status(500).send("Server Error");
+    }
+};
+
 exports.getScene = async (req, res) => {
   const { series, volume, chapter, pageId } = req.params;
   const seriesFolderName = series;

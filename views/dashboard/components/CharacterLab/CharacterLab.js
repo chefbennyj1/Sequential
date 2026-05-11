@@ -49,6 +49,10 @@ export default class CharacterLab {
         const avatarInput = document.getElementById('char-avatar-input');
         avatarInput.onchange = (e) => this.handleAvatarUpload(e);
 
+        // Handle AI Scan Profile
+        this.aiScanBtn = document.getElementById('ai-analyze-char-btn');
+        this.aiScanBtn.onclick = () => this.handleAIScan();
+
         // Handle Reference Upload
         const refInput = document.getElementById('char-reference-input');
         refInput.onchange = (e) => this.handleReferenceUpload(e);
@@ -57,15 +61,24 @@ export default class CharacterLab {
     async loadCharacters() {
         this.listContainer.innerHTML = '<div class="text-muted">Loading subjects...</div>';
         try {
-            const chars = await fetchCharactersAPI(this.activeSeriesId);
-            this.renderList(chars);
+            const res = await fetch(`/api/characters?series=${this.activeSeriesId}`);
+            const data = await res.json();
+            if (data.ok) {
+                this.renderList(data.characters);
+            } else {
+                throw new Error(data.message);
+            }
         } catch (e) {
-            this.listContainer.innerHTML = '<div class="text-accent">Failed to load dossier.</div>';
+            this.listContainer.innerHTML = `<div class="text-accent">Failed to load dossier: ${e.message}</div>`;
         }
     }
 
     renderList(chars) {
         this.listContainer.innerHTML = '';
+        if (!chars || chars.length === 0) {
+            this.listContainer.innerHTML = '<div class="text-muted padding-20 italic">No characters found for this series.</div>';
+            return;
+        }
         chars.forEach(char => {
             const card = document.createElement('div');
             card.className = 'char-card';
@@ -100,8 +113,10 @@ export default class CharacterLab {
             document.getElementById('form-title').innerText = 'EDIT RECORD: ' + character.name;
 
             // Enable uploads
-            document.getElementById('char-avatar-input').disabled = false;
-            document.getElementById('char-reference-input').disabled = false;
+            this.setUploadsState(true);
+            
+            // Enable AI Scan if image exists
+            this.aiScanBtn.disabled = !character.image;
 
             // Render References
             if (character.referenceImages && character.referenceImages.length > 0) {
@@ -117,9 +132,63 @@ export default class CharacterLab {
             document.getElementById('char-avatar-preview').src = '/views/public/images/avatar.png';
             document.getElementById('form-title').innerText = 'NEW RECORD';
 
-            // Disable uploads until saved
-            document.getElementById('char-avatar-input').disabled = true;
-            document.getElementById('char-reference-input').disabled = true;
+            // Disable uploads and AI until saved
+            this.setUploadsState(false);
+            this.aiScanBtn.disabled = true;
+        }
+    }
+
+    setUploadsState(enabled) {
+        const avatarInput = document.getElementById('char-avatar-input');
+        const refInput = document.getElementById('char-reference-input');
+        const avatarLabel = avatarInput.closest('label');
+        const refLabel = refInput.closest('label');
+
+        avatarInput.disabled = !enabled;
+        refInput.disabled = !enabled;
+
+        if (enabled) {
+            avatarLabel.style.opacity = '1';
+            avatarLabel.style.cursor = 'pointer';
+            refLabel.style.opacity = '1';
+            refLabel.style.cursor = 'pointer';
+            avatarLabel.title = "";
+            refLabel.title = "";
+        } else {
+            avatarLabel.style.opacity = '0.5';
+            avatarLabel.style.cursor = 'not-allowed';
+            refLabel.style.opacity = '0.5';
+            refLabel.style.cursor = 'not-allowed';
+            avatarLabel.title = "Save character record first to enable uploads";
+            refLabel.title = "Save character record first to enable uploads";
+        }
+    }
+
+    async handleAIScan() {
+        if (!this.activeCharacterId) return;
+        
+        const originalText = this.aiScanBtn.textContent;
+        this.aiScanBtn.disabled = true;
+        this.aiScanBtn.textContent = "Scanning...";
+
+        try {
+            const res = await fetch(`/api/characters/${this.activeCharacterId}/analyze-avatar`, {
+                method: 'POST'
+            });
+            const data = await res.json();
+            if (data.ok) {
+                document.getElementById('char-description').value = data.description;
+                // Optional: display hashtags somewhere or alert
+                console.log("[AI Scan] Tags:", data.hashtags);
+                alert("AI Scan Complete! Profile updated.");
+            } else {
+                throw new Error(data.message);
+            }
+        } catch (e) {
+            alert("AI Scan Failed: " + e.message);
+        } finally {
+            this.aiScanBtn.disabled = false;
+            this.aiScanBtn.textContent = originalText;
         }
     }
 
@@ -157,7 +226,10 @@ export default class CharacterLab {
             const data = await res.json();
             if (data.ok) {
                 document.getElementById('char-avatar-preview').src = data.image;
+                this.aiScanBtn.disabled = false; // Enable AI Scan now that we have an image
                 this.loadCharacters(); // Refresh list
+            } else {
+                alert('Avatar upload failed: ' + data.message);
             }
         } catch (e) { console.error(e); }
     }
@@ -179,7 +251,7 @@ export default class CharacterLab {
             if (data.ok) {
                 this.renderReferences(data.referenceImages);
             } else {
-                alert('Upload failed: ' + data.error);
+                alert('Reference upload failed: ' + data.message);
             }
         } catch (e) {
             console.error(e);

@@ -24,7 +24,6 @@ const { isAuthApi: isAuth, isModerator, isAdmin } = require('../middleware/auth.
 router.get('/settings/global', isAdmin, SystemSettingsController.getGlobalSettings);
 router.put('/settings/global', isAdmin, SystemSettingsController.updateGlobalSettings);
 router.post('/settings/global/force-vision-flag', isAdmin, SystemSettingsController.forceVisionFlag);
-router.post('/settings/global/download-model', isAdmin, SystemSettingsController.triggerModelDownload);
 router.post('/vision/scan', isAdmin, (req, res) => VisionController.processPendingDescriptions(req, res));
 router.post('/vision/stop', isAdmin, (req, res) => VisionController.stopVisionScan(req, res));
 
@@ -87,6 +86,7 @@ router.get('/volume/:id/chapter/:chapterNumber', isAuth, VolumeController.getCha
 router.get('/images/:series/volumes/*path', isAuth, MediaController.serveImage); 
 router.get('/images/volumes/*path', isAuth, MediaController.serveImage); 
 router.get("/images/:series/:volume/:chapter/:pageId/assets/:file", isAuth, MediaController.servePageImage); 
+router.get("/images/:series/characters/:charId/:type/:file", isAuth, MediaController.serveCharacterImage); 
 router.get('/scene/:series/:volume/:chapter/:pageId', isAuth, MediaController.getScene);
 router.get('/media/:series/:volume/:chapter/:pageId', isAuth, MediaController.getMedia);
 router.get('/landing-page/images', MediaController.getLandingPageImages);

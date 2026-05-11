@@ -10,16 +10,11 @@ const globalSettingsSchema = new Schema({
     },
     vision: {
         enabled: { type: Boolean, default: false },
-        binaries: {
-            win32: { type: String, default: "" },
-            linux: { type: String, default: "" },
-            darwin: { type: String, default: "" }
-        },
-        modelPath: { type: String, default: "" },      // e.g. /ai_models/gemma/gemma-3-4b.gguf
-        mmprojPath: { type: String, default: "" },     // e.g. /ai_models/gemma/mmproj-gemma-3-4b.gguf
+        apiKey: { type: String, default: "" }, // Encrypted
+        modelName: { type: String, default: "gemini-1.5-flash" },
         systemPrompt: { 
             type: String, 
-            default: "You are a professional comic book screenplay consultant. Describe the action, character expressions, lighting, and cinematic composition of this panel in one clear, concise sentence." 
+            default: "Describe the action, character expressions, lighting, and cinematic composition of this panel in one clear, concise sentence. Return ONLY the description. Do NOT include any introductory text, conversational filler, or markdown formatting like asterisks." 
         },
         maxTokens: { type: Number, default: 100 },
         temperature: { type: Number, default: 0.2 },

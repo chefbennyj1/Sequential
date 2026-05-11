@@ -295,6 +295,10 @@ export class VisualEditorManager {
                         <button id="visual-asset-browse" class="small btn-browse">...</button>
                     </div>
                 </div>
+                <div class="form-group margin-b-15">
+                    <label>Panel Description (AI Metadata / Alt Text)</label>
+                    <textarea id="visual-asset-description" class="gov-select width-100" rows="3" placeholder="Describe the action and composition...">${entry.description || ''}</textarea>
+                </div>
                 <div class="form-group margin-b-15 flex-row gap-10">
                     <div class="flex-2">
                         <label>Overlay Image (PNG)</label>
@@ -549,6 +553,8 @@ export class VisualEditorManager {
             panel: panelSelector,
             type: typeSelect ? typeSelect.value : 'image',
             fileName: nameInput.value,
+            description: document.getElementById('visual-asset-description')?.value || '',
+            alt: document.getElementById('visual-asset-description')?.value || '',
             overlayImage: document.getElementById('visual-overlay-name')?.value || '',
             overlayOpacity: parseFloat(document.getElementById('visual-overlay-opacity')?.value) || 1.0,
             maskGif: maskInput.value,

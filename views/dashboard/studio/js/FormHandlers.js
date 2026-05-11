@@ -246,66 +246,37 @@ async function initGlobalSettings() {
 
     const visionEnabled = document.getElementById('global-vision-enabled');
     const fieldsContainer = document.getElementById('vision-settings-fields');
-    
-    const llamaWin32 = document.getElementById('global-llama-win32');
-    const llamaLinux = document.getElementById('global-llama-linux');
-    const llamaDarwin = document.getElementById('global-llama-darwin');
-    const modelPath = document.getElementById('global-model-path');
-    const mmprojPath = document.getElementById('global-mmproj-path');
+    const apiKeyInput = document.getElementById('global-api-key');
+    const modelNameSelect = document.getElementById('global-model-name');
     const systemPrompt = document.getElementById('global-system-prompt');
     const maxTokens = document.getElementById('global-max-tokens');
     const temperature = document.getElementById('global-temperature');
     const autoScan = document.getElementById('global-auto-scan');
-    
-    const downloadModelBtn = document.getElementById('download-model-btn');
-    const downloadMmprojBtn = document.getElementById('download-mmproj-btn');
-    const modelProgress = document.getElementById('model-download-progress');
-    const mmprojProgress = document.getElementById('mmproj-download-progress');
 
     const toggleFields = () => {
         fieldsContainer.style.display = visionEnabled.checked ? 'block' : 'none';
     };
     visionEnabled.onchange = toggleFields;
 
-    // --- Socket listener for download progress ---
-    if (window.socket) {
-        window.socket.on('model_download_progress', ({ type, percentage }) => {
-            const container = type === 'model' ? modelProgress : mmprojProgress;
-            if (container) {
-                container.classList.remove('hidden');
-                container.querySelector('.scanner-progress-bar').style.width = `${percentage}%`;
-                container.querySelector('.percent').textContent = `${percentage}%`;
-                if (percentage >= 100) {
-                    setTimeout(() => container.classList.add('hidden'), 2000);
-                }
+    const forceFlagBtn = document.getElementById('forceVisionScanBtn');
+    if (forceFlagBtn) {
+        forceFlagBtn.onclick = async () => {
+            forceFlagBtn.disabled = true;
+            forceFlagBtn.textContent = "Flagging...";
+            try {
+                const res = await fetch('/api/settings/global/force-vision-flag', { method: 'POST' });
+                const data = await res.json();
+                if (data.ok) {
+                    alert(data.message + "\n\nNow go to the Scanner tab and click 'Full Scan (AI)' to start the Gemini analysis.");
+                } else throw new Error(data.message);
+            } catch (err) {
+                alert("Error: " + err.message);
+            } finally {
+                forceFlagBtn.disabled = false;
+                forceFlagBtn.textContent = "Analyze All Panels";
             }
-        });
+        };
     }
-
-    const startDownload = async (type, btn) => {
-        btn.disabled = true;
-        btn.textContent = "Starting...";
-        try {
-            const res = await fetch('/api/settings/global/download-model', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ type })
-            });
-            const data = await res.json();
-            if (data.ok) {
-                const targetInput = type === 'model' ? modelPath : mmprojPath;
-                targetInput.value = data.path;
-                btn.textContent = "Downloading...";
-            } else throw new Error(data.message);
-        } catch (err) {
-            alert("Download Failed: " + err.message);
-            btn.disabled = false;
-            btn.textContent = "Retry Download";
-        }
-    };
-
-    if (downloadModelBtn) downloadModelBtn.onclick = () => startDownload('model', downloadModelBtn);
-    if (downloadMmprojBtn) downloadMmprojBtn.onclick = () => startDownload('mmproj', downloadMmprojBtn);
 
     // Load initial data
     try {
@@ -314,11 +285,8 @@ async function initGlobalSettings() {
         if (data.ok && data.settings) {
             const v = data.settings.vision || {};
             visionEnabled.checked = v.enabled || false;
-            llamaWin32.value = v.binaries?.win32 || '';
-            llamaLinux.value = v.binaries?.linux || '';
-            llamaDarwin.value = v.binaries?.darwin || '';
-            modelPath.value = v.modelPath || '';
-            mmprojPath.value = v.mmprojPath || '';
+            apiKeyInput.value = v.apiKey || '';
+            if (modelNameSelect) modelNameSelect.value = v.modelName || 'gemini-1.5-flash';
             systemPrompt.value = v.systemPrompt || '';
             maxTokens.value = v.maxTokens || 100;
             temperature.value = v.temperature || 0.2;
@@ -334,13 +302,8 @@ async function initGlobalSettings() {
         const settings = {
             vision: {
                 enabled: visionEnabled.checked,
-                binaries: {
-                    win32: llamaWin32.value,
-                    linux: llamaLinux.value,
-                    darwin: llamaDarwin.value
-                },
-                modelPath: modelPath.value,
-                mmprojPath: mmprojPath.value,
+                apiKey: apiKeyInput.value,
+                modelName: modelNameSelect ? modelNameSelect.value : 'gemini-1.5-flash',
                 systemPrompt: systemPrompt.value,
                 maxTokens: parseInt(maxTokens.value),
                 temperature: parseFloat(temperature.value),

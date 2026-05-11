@@ -1,9 +1,10 @@
 const fs = require('fs');
 const path = require('path');
-const VisionService = require('../services/VisionService');
+const GeminiVisionService = require('../services/GeminiVisionService');
 const GlobalSettings = require('../models/GlobalSettings');
 const Volume = require('../models/Volume');
 const Series = require('../models/Series');
+const Character = require('../models/Character');
 const { resolveSeriesPath } = require('../services/MediaService');
 
 class VisionController {
@@ -33,7 +34,7 @@ class VisionController {
             throw new Error("A vision scan is already in progress.");
         }
 
-        console.log(`[Vision] Starting Vision ${quickScan ? 'Quick Scan (Hash Only)' : 'Queue Processor'}...`);
+        console.log(`[Vision] Starting Vision ${quickScan ? 'Quick Scan (Hash Only)' : 'Gemini AI Queue Processor'}...`);
         this.isVisionScanRunning = true;
         
         const settings = await GlobalSettings.findOne({ key: "main" });
@@ -45,7 +46,7 @@ class VisionController {
         }
 
         console.log(`[Vision] AI is enabled. ${quickScan ? 'Initializing hashes...' : 'Searching for pending descriptions...'}`);
-        if (io) io.emit('scanner_progress', { message: `> Starting Vision ${quickScan ? 'Quick Scan' : 'AI Analysis'}...` });
+        if (io) io.emit('scanner_progress', { message: `> Starting Vision ${quickScan ? 'Quick Scan' : 'Gemini AI Analysis'}...` });
 
         // 1. Find all volumes
         const volumes = await Volume.find({}).populate('series').lean();
@@ -59,6 +60,19 @@ class VisionController {
                 let volumeChanged = false; 
                 
                 if (!volume.series) continue;
+
+                // --- FETCH CHARACTER CONTEXT FOR THIS SERIES ---
+                let characterContext = "";
+                try {
+                    const chars = await Character.find({ series: volume.series._id }).lean();
+                    if (chars.length > 0) {
+                        characterContext = "CONTEXT: The following characters may appear in these panels. Identify them if their physical traits match:\n" + 
+                            chars.map(c => `- ${c.name}: ${c.description}`).join('\n');
+                        console.log(`[Vision] Loaded context for ${chars.length} characters.`);
+                    }
+                } catch (e) {
+                    console.error("[Vision] Failed to load character context:", e.message);
+                }
 
                 const seriesPath = await resolveSeriesPath(volume.series.folderName);
                 const ignorePath = path.join(seriesPath, '.gemmaignore');
@@ -95,7 +109,7 @@ class VisionController {
                                 const imagePath = path.join(pageAbsPath, 'assets', 'image', mediaItem.fileName);
                                 
                                 if (fs.existsSync(imagePath)) {
-                                    const currentHash = await VisionService.generateImageHash(imagePath);
+                                    const currentHash = await GeminiVisionService.generateImageHash(imagePath);
                                     const hashChanged = currentHash && (mediaItem.imageHash !== currentHash);
 
                                     if (quickScan) {
@@ -110,22 +124,26 @@ class VisionController {
                                     }
 
                                     // FULL MODE: Standard AI Logic
-                                    const needsUpdate = mediaItem.DescriptionUpdateRequired || (!mediaItem.description && !mediaItem.alt);
+                                    const needsUpdate = mediaItem.DescriptionUpdateRequired || (!mediaItem.description || !mediaItem.alt);
                                     
                                     if (needsUpdate || hashChanged) {
                                         console.log(`[Vision] ${hashChanged ? 'Image changed (hash mismatch)' : 'Pending scan'}: ${pageFolder}/${mediaItem.panel}`);
                                         if (io) io.emit('scanner_progress', { message: `  > Analyzing ${pageFolder} | ${mediaItem.panel}...` });
                                         
                                         try {
-                                            const description = await VisionService.analyzeImage(imagePath);
-                                            mediaItem.description = description;
-                                            mediaItem.alt = description;
+                                            const visionData = await GeminiVisionService.analyzeImage(imagePath, null, characterContext);
+                                            
+                                            // Save structured data
+                                            mediaItem.description = visionData.description || "";
+                                            mediaItem.alt = visionData.alt || "";
+                                            mediaItem.hashtags = visionData.hashtags || [];
+                                            
                                             mediaItem.imageHash = currentHash;
                                             mediaItem.DescriptionUpdateRequired = false;
                                             
                                             pageChangedInLoop = true;
                                             totalProcessed++;
-                                            if (io) io.emit('scanner_progress', { message: `  > Success: ${mediaItem.panel} described and saved.` });
+                                            if (io) io.emit('scanner_progress', { message: `  > Success: ${mediaItem.panel} described by Gemini.` });
                                         } catch (err) {
                                             console.error(`[Vision] Failed to analyze ${imagePath}:`, err.message);
                                         }
@@ -162,3 +180,5 @@ class VisionController {
 }
 
 module.exports = new VisionController();
+
+
