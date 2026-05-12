@@ -2,6 +2,7 @@ const puppeteer = require('puppeteer');
 const path = require('path');
 const fs = require('fs');
 const { PDFDocument } = require('pdf-lib');
+const { convertToPdf } = require('../utils/screenplayToPdf');
 const Series = require('../models/Series');
 const ScriptService = require('../services/ScriptService');
 
@@ -87,10 +88,17 @@ class ExportController {
 
         try {
             const result = await ScriptService.generateVolumeScript(seriesId, volumeFolderName);
+            const txtPath = result.fileName;
+            const pdfPath = txtPath.replace('.txt', '.pdf');
+
+            // Generate PDF in background
+            convertToPdf(txtPath, pdfPath).catch(err => console.error('[EXPORT] PDF generation failed:', err));
+
             res.json({ 
                 ok: true, 
-                message: `Screenplay exported successfully to: ${result.fileName}`, 
-                path: result.fileName 
+                message: `Screenplay exported successfully to TXT and PDF.`, 
+                txtPath: txtPath,
+                pdfPath: pdfPath
             });
         } catch (error) {
             console.error('Script Export Error:', error);

@@ -74,6 +74,21 @@ class ScriptService {
     static formatPage(pageId, data) {
         let output = `\nPAGE: ${pageId.replace('page', '')}\n`;
         
+        // --- SLUGLINE GENERATION ---
+        let slugline = data.header?.slugline || '';
+        
+        if (!slugline && data.media && data.media.length > 0) {
+            // Attempt to infer slugline from the first panel's description
+            const firstDesc = data.media[0].description || '';
+            const isExterior = /street|cityscape|skyline|alley|wasteland|outside|exterior|rooftop|sky/i.test(firstDesc);
+            const location = firstDesc.match(/(hallway|corridor|office|server room|laboratory|apartment|elevator|room|chamber|deck)/i)?.[0] || 'OSHIMA CITY';
+            const timeOfDay = /night|dark|sunset|dusk/i.test(firstDesc) ? 'NIGHT' : 'DAY';
+            
+            slugline = `${isExterior ? 'EXT.' : 'INT.'} ${location.toUpperCase()} - ${timeOfDay}`;
+        }
+
+        output += `${slugline || 'INT. OSHIMA CITY - NIGHT'}\n`;
+        
         // Layout Info
         const layoutId = data.header && data.header.layouts && data.header.layouts.landscape 
             ? data.header.layouts.landscape.id 
@@ -85,7 +100,10 @@ class ScriptService {
         if (data.media && data.media.length > 0) {
             output += `VISUALS:\n`;
             data.media.forEach(m => {
-                output += `  - ${m.panel}: [${m.type}] ${m.file}\n`;
+                const desc = m.description || m.alt || 'No description available.';
+                const type = m.type || 'image';
+                const panel = m.panel || '.panel-?';
+                output += `  - ${panel}: [${type}]: ${desc}\n`;
             });
             output += `\n`;
         }
@@ -111,7 +129,10 @@ class ScriptService {
                 // Media Actions during scene
                 if (item.mediaAction && item.mediaAction.length > 0) {
                     item.mediaAction.forEach(action => {
-                        output += `  >> MEDIA ACTION: ${action.panel} -> ${action.file} (${action.actionType})\n`;
+                        const panel = action.panel || '.panel-?';
+                        const fileName = action.fileName || action.file || 'unknown_asset';
+                        const actionType = action.actionType || 'action';
+                        output += `  >> MEDIA ACTION: ${panel} -> ${fileName} (${actionType})\n`;
                     });
                 }
             });

@@ -30,7 +30,7 @@ export class VisualEditorManager {
                     }
 
                     // If this panel is currently being edited in the UI, update the inputs
-                    if (this.selectedPanelSelector === data.panelId) {
+                    if (this.selectedPanelSelector === data.panelId || this.selectedPanelSelector === '.' + data.panelId) {
                         const descInput = document.getElementById('visual-asset-description');
                         
                         if (descInput) {
@@ -40,7 +40,7 @@ export class VisualEditorManager {
                         }
                         
                         const saveBtn = document.getElementById('saveVisualMediaBtn');
-                        if (saveBtn && saveBtn.textContent.includes('Waiting for AI')) {
+                        if (saveBtn && (saveBtn.textContent.includes('Waiting for AI') || saveBtn.disabled)) {
                             saveBtn.textContent = 'Save Panel Asset';
                             saveBtn.disabled = false;
                         }

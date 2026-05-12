@@ -4,12 +4,15 @@ import TextBlock from '/libs/TextBlock/TextBlock.js';
 import ActionText from '/libs/ActionText/ActionText.js';
 import { resolveMediaUrl } from '/libs/Utility.js';
 
-export async function initScene(container, pageInfo, sceneData) {
+export async function initScene(container, pageInfo, sceneData, mediaData = []) {
     const { series, pageId, pageIndex, chapter, volume } = pageInfo;
     const page = container.querySelector('.section-container') || container;
 
     // --- Detect Global Mode (Any floating panels exist?) ---
-    const hasFloatingPanels = container.querySelector('.floating-panel') !== null;
+    const floatingPanelSelectors = new Set(
+        mediaData.filter(m => m.isFloating).map(m => m.panel)
+    );
+    const hasFloatingPanels = floatingPanelSelectors.size > 0;
     const visualItemsToRender = [];
 
     const getGlobalPos = (placement, panelEl) => {
@@ -40,17 +43,19 @@ export async function initScene(container, pageInfo, sceneData) {
     
     for (const [index, item] of sceneData.entries()) {
         let visualItem = null;
-        const panelEl = (item.placement && item.placement.panel) ? container.querySelector(item.placement.panel) : (item.displayType.type === 'TextBlock' ? page : null);
+        const targetPanel = item.placement?.panel;
+        const panelEl = targetPanel ? container.querySelector(targetPanel) : (item.displayType.type === 'TextBlock' ? page : null);
 
         // --- Orphan Detection ---
-        if ((item.displayType.type === 'SpeechBubble' || item.displayType.type === 'TextBlock') && !panelEl) {
-            console.warn(`Orphaned item detected: ${item.id} targeting ${item.placement?.panel}`);
+        const isFloatingTarget = targetPanel && floatingPanelSelectors.has(targetPanel);
+        if ((item.displayType.type === 'SpeechBubble' || item.displayType.type === 'TextBlock') && !panelEl && !isFloatingTarget) {
+            console.warn(`Orphaned item detected: ${item.id} targeting ${targetPanel}`);
             item.isOrphaned = true;
             continue; 
         }
 
-        const renderParent = hasFloatingPanels ? page : panelEl;
-        const finalPlacement = hasFloatingPanels ? getGlobalPos(item.placement, panelEl) : item.placement;
+        const renderParent = (hasFloatingPanels || isFloatingTarget) ? page : panelEl;
+        const finalPlacement = (hasFloatingPanels || isFloatingTarget) ? getGlobalPos(item.placement, panelEl) : item.placement;
 
         if (item.displayType.type === 'SpeechBubble') {
             const bubbleOptions = { ...item, series, volume, chapter, pageId, pageIndex, dialogueIndex: index };

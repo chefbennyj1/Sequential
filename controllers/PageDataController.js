@@ -79,8 +79,9 @@ exports.saveMedia = async (req, res) => {
     const settings = await GlobalSettings.findOne({ key: "main" });
     if (settings?.vision?.enabled && settings?.vision?.autoScanOnSave) {
         const VisionController = require('./VisionController');
+        const io = req.app.locals.io;
         // Run in background, don't await
-        VisionController.runVisionScan().catch(err => console.error("[Vision] Background scan failed:", err));
+        VisionController.runVisionScan(io).catch(err => console.error("[Vision] Background scan failed:", err));
     }
 
     res.json({ ok: true, message: "Media merged successfully." });

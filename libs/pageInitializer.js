@@ -45,7 +45,7 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
 
     if (abortSignal?.aborted) return;
 
-    const sceneController = await initScene(container, pageInfo, sceneData);
+    const sceneController = await initScene(container, pageInfo, sceneData, mediaResponse.media);
 
     if (abortSignal?.aborted) {
         if (sceneController?.cleanup) sceneController.cleanup();
@@ -112,6 +112,9 @@ function initMedia(container, pageInfo, mediaDataArray) {
             const panelClass = media.panel.startsWith('.') ? media.panel.substring(1) : media.panel;
             panel.className = `panel ${panelClass} floating-panel`;
             
+            // Floating panels MUST be absolute to be positioned
+            panel.style.position = 'absolute';
+            
             // Apply floating styles (X, Y, Z, Width, Height)
             if (media.style) {
                 for (const prop in media.style) {
@@ -120,7 +123,7 @@ function initMedia(container, pageInfo, mediaDataArray) {
             }
             
             // Add to the main section-container or the container itself
-            const pageContainer = container.querySelector('.section-container') || container;
+            const pageContainer = container.querySelector('.section-container') || container.querySelector('.page-layout') || container;
             pageContainer.appendChild(panel);
         }
 
