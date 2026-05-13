@@ -5,6 +5,7 @@ const INTERNAL_SECRET = 'sequential_internal_export_key_2026';
 
 /**
  * Redirects to /login if the user is not authenticated.
+ * Detects API requests to return 401 instead of a redirect.
  */
 exports.isAuth = (req, res, next) => {
   // Bypass for headless exporter
@@ -13,10 +14,15 @@ exports.isAuth = (req, res, next) => {
   }
 
   if (req.session.isAuth) {
-    next();
-  } else {
-    res.redirect('/login');
+    return next();
   }
+
+  // Detect API/AJAX requests
+  if (req.xhr || req.path.startsWith('/api')) {
+    return res.status(401).json({ ok: false, message: "Unauthorized" });
+  }
+
+  res.redirect('/login');
 };
 
 /**

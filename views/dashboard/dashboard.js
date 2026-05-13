@@ -1,16 +1,5 @@
 // views/dashboard/dashboard.js
 
-// --- Global Fetch Interceptor ---
-// Intercept all fetch calls to catch 401/403 errors and redirect to login
-const originalFetch = window.fetch;
-window.fetch = async (...args) => {
-    const response = await originalFetch(...args);
-    if (response.status === 401 || response.status === 403) {
-        window.location.href = '/login';
-    }
-    return response;
-};
-
 import { getCurrentUser } from './studio/api/StudioClient.js';
 import {
     registerNavigationHandlers,

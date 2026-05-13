@@ -24,6 +24,22 @@
     <!-- Socket.IO -->
     <script src="/socket.io/socket.io.js"></script>
 
+    <script>
+        // --- Global Fetch Interceptor ---
+        // Intercept all fetch calls to catch 401/403 errors and redirect to login
+        (function() {
+            const originalFetch = window.fetch;
+            window.fetch = async (...args) => {
+                const response = await originalFetch(...args);
+                if ((response.status === 401 || response.status === 403) && window.location.pathname !== '/login') {
+                    console.warn("[Auth] Session expired or unauthorized. Redirecting to login...");
+                    window.location.href = '/login';
+                }
+                return response;
+            };
+        })();
+    </script>
+
     <!-- SortableJS -->
     <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.0/Sortable.min.js"></script>
 
