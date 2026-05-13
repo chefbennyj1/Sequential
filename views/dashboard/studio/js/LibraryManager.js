@@ -106,7 +106,7 @@ export async function populateVolumeSelect(id = 'volumeSelect', seriesId = null)
 /**
  * Populates chapter selection dropdowns.
  */
-export async function populateChapterSelect(volumeId, selectId = 'chapterSelect', folderMode = false) {
+export async function populateChapterSelect(volumeId, selectId = 'chapterSelect', folderMode = false, seriesId = null) {
     const select = document.getElementById(selectId);
     if (!select) return;
     select.innerHTML = '<option value="">Select a Chapter</option>';
@@ -116,7 +116,12 @@ export async function populateChapterSelect(volumeId, selectId = 'chapterSelect'
     let realVolumeId = volumeId;
     if (folderMode) {
         const volumes = await fetchVolumesAPI();
-        const v = volumes.find(v => getFolderNameFromPath(v.volumePath) === volumeId);
+        // Disambiguate using seriesId if provided, otherwise fallback to first match
+        const v = volumes.find(v => {
+            const matchesFolder = getFolderNameFromPath(v.volumePath) === volumeId;
+            if (!seriesId) return matchesFolder;
+            return matchesFolder && v.series === seriesId;
+        });
         if (!v) return;
         realVolumeId = v._id;
     }

@@ -249,8 +249,14 @@ export function initEventHandlers(container, allSections) {
         if (e.target.id === 'arrangeSeriesSelect') populateVolumeSelect('arrangeVolumeSelect', e.target.value);
         if (e.target.id === 'exportSeriesSelect') populateVolumeSelect('exportVolumeSelect', e.target.value);
 
-        if (e.target.id === 'builderVolumeSelect') populateChapterSelect(e.target.value, 'builderChapterSelect', true);
-        if (e.target.id === 'insertVolumeSelect') populateChapterSelect(e.target.value, 'insertChapterSelect', true);
+        if (e.target.id === 'builderVolumeSelect') {
+            const sId = document.getElementById('builderSeriesSelect').value;
+            populateChapterSelect(e.target.value, 'builderChapterSelect', true, sId);
+        }
+        if (e.target.id === 'insertVolumeSelect') {
+            const sId = document.getElementById('insertSeriesSelect').value;
+            populateChapterSelect(e.target.value, 'insertChapterSelect', true, sId);
+        }
         if (e.target.id === 'editVolumeSelect') populateChapterSelect(e.target.value, 'editChapterSelect', false);
         if (e.target.id === 'arrangeVolumeSelect') populateChapterSelect(e.target.value, 'arrangeChapterSelect', false);
         if (e.target.id === 'editChapterSelect') populateEditPageSelect(document.getElementById('editVolumeSelect').value, e.target.value);
