@@ -3,6 +3,21 @@ const path = require('path');
 const VolumeModel = require('../models/Volume');
 const mongoose = require('mongoose');
 
+const DEFAULT_JS = `export async function onPageLoad(container, pageInfo) {
+    container.addEventListener('view_visible', async () => { console.log(\`Page \${pageInfo.pageId} is visible.\`); });
+    container.addEventListener('view_hidden', () => { console.log(\`Page \${pageInfo.pageId} is hidden.\`); });
+    container.addEventListener('panel_media_changed', (e) => {
+        const { panelSelector, type, fileName, action } = e.detail;
+        console.log('Panel ' + panelSelector + ' changed:', { type, fileName, action });
+    });
+}`;
+
+const DEFAULT_CSS = (pageId) => `@import url('/layouts/styles/base-comic-layout.css');
+
+.\${pageId} {
+
+}`;
+
 async function createVolume({ index, title, seriesId }) {
   const { resolveSeriesPath } = require('./MediaService');
   const Series = require('../models/Series');
@@ -113,18 +128,13 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
                 },
                 media: [], scene: []
             };
-            const defJs = "export async function onPageLoad(container, pageInfo) {\n" +
-                "    container.addEventListener('view_visible', async () => { console.log(`Page ${pageInfo.pageId} is visible.`); });\n" +
-                "    container.addEventListener('view_hidden', () => { console.log(`Page ${pageInfo.pageId} is hidden.`); });\n" +
-                "    container.addEventListener('panel_media_changed', (e) => {\n" +
-                "        const { panelSelector, type, fileName, action } = e.detail;\n" +
-                "        console.log('Panel ' + panelSelector + ' changed:', { type, fileName, action });\n" +
-                "    });\n}";
-            const defCss = `@import url('/layouts/styles/base-comic-layout.css');\n\n.${pageFolder} {\n\n}`;
+            
             fs.writeFileSync(atomicPath, JSON.stringify(defJson, null, 2));
-            if (!fs.existsSync(jsPath)) fs.writeFileSync(jsPath, defJs);
-            if (!fs.existsSync(cssPath)) fs.writeFileSync(cssPath, defCss);
         }
+        
+        // Ensure JS and CSS exist
+        if (!fs.existsSync(jsPath)) fs.writeFileSync(jsPath, DEFAULT_JS);
+        if (!fs.existsSync(cssPath)) fs.writeFileSync(cssPath, DEFAULT_CSS(pageFolder));
 
         // 2. PARSE ATOMIC DATA FOR CACHE
         let mediaData = { media: [] };
@@ -331,6 +341,8 @@ async function insertPage({ series, volume: volumeFolderName, chapter: chapterFo
               scene: []
           };
           fs.writeFileSync(jsonPath, JSON.stringify(defaultData, null, 2));
+          fs.writeFileSync(path.join(newPagePath, 'page.js'), DEFAULT_JS);
+          fs.writeFileSync(path.join(newPagePath, 'page.css'), DEFAULT_CSS(newPageName));
       }
 
     const seriesDoc = await Series.findOne({ folderName: seriesFolderName });
@@ -379,6 +391,8 @@ async function createChapter({ seriesFolderName, volumeFolderName, title, chapte
         media: [], scene: []
     };
     await fs.promises.writeFile(path.join(firstPagePath, 'page.json'), JSON.stringify(pageJson, null, 2));
+    await fs.promises.writeFile(path.join(firstPagePath, 'page.js'), DEFAULT_JS);
+    await fs.promises.writeFile(path.join(firstPagePath, 'page.css'), DEFAULT_CSS(firstPageName));
     await fs.promises.mkdir(path.join(firstPagePath, "assets", "image"), { recursive: true });
 
     const VolumeModel = require('../models/Volume');
