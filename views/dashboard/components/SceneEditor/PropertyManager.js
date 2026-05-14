@@ -1,4 +1,5 @@
 // views/dashboard/components/SceneEditor/PropertyManager.js
+import { fetchFontsAPI } from '../../studio/api/StudioClient.js';
 
 export class PropertyManager {
     constructor(container, onUpdate) {
@@ -7,6 +8,49 @@ export class PropertyManager {
         this.onUpdate = onUpdate;
         this.availableCharacters = [];
         this.availablePanels = [];
+        this.availableFonts = { files: [], cssVariables: [] };
+        this.loadFonts();
+    }
+
+    async loadFonts() {
+        try {
+            this.availableFonts = await fetchFontsAPI();
+            this.setupFontInputUI();
+        } catch (e) {
+            console.error("Failed to load fonts into PropertyManager", e);
+        }
+    }
+
+    setupFontInputUI() {
+        const fontSelect = document.getElementById('prop-font-family');
+        if (!fontSelect) return;
+
+        // Clear existing except default
+        fontSelect.innerHTML = '<option value="">Default</option>';
+
+        if (this.availableFonts.cssVariables.length > 0) {
+            const group = document.createElement('optgroup');
+            group.label = 'CSS Variables';
+            this.availableFonts.cssVariables.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v;
+                opt.textContent = v.replace('--font-family-', '').replace(/-/g, ' ');
+                fontSelect.appendChild(opt);
+            });
+            fontSelect.appendChild(group);
+        }
+
+        if (this.availableFonts.files.length > 0) {
+            const group = document.createElement('optgroup');
+            group.label = 'Font Files';
+            this.availableFonts.files.forEach(f => {
+                const opt = document.createElement('option');
+                opt.value = f;
+                opt.textContent = f;
+                fontSelect.appendChild(opt);
+            });
+            fontSelect.appendChild(group);
+        }
     }
 
     setAvailableData(characters, panels) {
@@ -140,6 +184,7 @@ export class PropertyManager {
         document.getElementById('prop-outline-size').value = item.outlineSize || '1.0';
         document.getElementById('prop-duration').value = item.duration || '';
         document.getElementById('prop-panel-effect').value = item.panelEffect || '';
+        document.getElementById('prop-font-family').value = item.fontFamily || '';
 
         this.toggleVisibility(item.displayType?.type);
         this.updateDatalist();
@@ -188,6 +233,7 @@ export class PropertyManager {
         item.rotation = document.getElementById('prop-rotation').value;
         item.fontSize = document.getElementById('prop-font-size').value;
         item.color = document.getElementById('prop-action-color').value;
+        item.fontFamily = document.getElementById('prop-font-family').value;
         item.outlineEnabled = document.getElementById('prop-outline-enabled').checked;
         item.outlineColor = document.getElementById('prop-outline-color').value;
         item.outlineSize = document.getElementById('prop-outline-size').value;
@@ -213,7 +259,8 @@ export class PropertyManager {
             text: this.container.querySelector('.prop-group-text'),
             dur: this.container.querySelector('.prop-group-duration'),
             place: this.container.querySelector('.props-group'),
-            curve: this.container.querySelector('.prop-group-curve')
+            curve: this.container.querySelector('.prop-group-curve'),
+            font: this.container.querySelector('.prop-group-font')
         };
         const isPause = type === 'Pause';
         const isActionText = type === 'ActionText';
@@ -223,5 +270,6 @@ export class PropertyManager {
         if (groups.place) isPause ? groups.place.classList.add('hidden') : groups.place.classList.remove('hidden');
         if (groups.dur) isPause ? groups.dur.classList.remove('hidden') : groups.dur.classList.add('hidden');
         if (groups.curve) isActionText ? groups.curve.classList.remove('hidden') : groups.curve.classList.add('hidden');
+        if (groups.font) isActionText ? groups.font.classList.remove('hidden') : groups.font.classList.add('hidden');
     }
 }

@@ -4,6 +4,16 @@
  * Provides centralized fetch wrappers for all backend communication.
  */
 
+export async function fetchFontsAPI() {
+    try {
+        const res = await fetch('/api/fonts');
+        return await res.json();
+    } catch (err) {
+        console.error("Error fetching fonts:", err);
+        return { files: [], cssVariables: [] };
+    }
+}
+
 export async function fetchChapterRange(seriesId, volumeFolder, chapterFolder) {
     try {
         const res = await fetch(`/api/editor/chapter-range?series=${seriesId}&volume=${volumeFolder}&chapter=${chapterFolder}`);

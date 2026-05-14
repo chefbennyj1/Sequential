@@ -53,7 +53,7 @@
     position: relative;
     z-index: 20;
     font-family: var(--bubble-font);
-    font-size: var(--bubble-font-size, 0.85rem);
+    font-size: var(--bubble-font-size, 0.875rem);
     line-height: 1.1;
     letter-spacing: -0.02em;
     color: var(--speech-text);
@@ -203,7 +203,7 @@
     box-shadow: 0.25em 0.25em 0px rgba(0,0,0,0.2);
 }
 .portrait-page .speech-text {
-    font-size: var(--bubble-font-size, 1em);
+    font-size: var(--bubble-font-size, 0.875em);
 }
 .portrait-page .super-bubble::before { inset: -0.18em; }
 .portrait-page .super-bubble::after { inset: -0.06em; border-width: 0.12em; }

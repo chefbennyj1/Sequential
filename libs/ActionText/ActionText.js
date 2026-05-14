@@ -58,9 +58,29 @@ class ActionText {
         container.style.setProperty('--action-rotation', `${rotationValue}deg`);
         
         // Set Font Variable
-        const fontValue = this.options.fontFamily.startsWith('--') 
-            ? `var(${this.options.fontFamily})` 
-            : this.options.fontFamily;
+        let fontValue = this.options.fontFamily;
+        if (fontValue && fontValue.startsWith('--')) {
+            fontValue = `var(${fontValue})`;
+        } else if (fontValue && (fontValue.endsWith('.ttf') || fontValue.endsWith('.otf') || fontValue.endsWith('.woff') || fontValue.endsWith('.woff2'))) {
+            // It's a raw font file. Create a dynamic @font-face if it doesn't exist.
+            const fontName = fontValue.split('.')[0].replace(/[^a-zA-Z0-9]/g, '_');
+            if (!document.getElementById(`font-face-${fontName}`)) {
+                const style = document.createElement('style');
+                style.id = `font-face-${fontName}`;
+                const format = fontValue.endsWith('.otf') ? 'opentype' : 'truetype';
+                style.textContent = `
+                    @font-face {
+                        font-family: "${fontName}";
+                        src: url("/views/public/styles/fonts/${fontValue}") format("${format}");
+                    }
+                `;
+                document.head.appendChild(style);
+            }
+            fontValue = `"${fontName}"`;
+        } else if (!fontValue) {
+            fontValue = 'var(--font-family-mangat-bold)';
+        }
+
         container.style.setProperty('--action-font', fontValue);
 
         // Normalize font size

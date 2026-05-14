@@ -3,6 +3,7 @@ const router = express.Router();
 
 // Controllers
 const SiteController = require('../controllers/SiteController.js');
+const CriticController = require('../controllers/CriticController.js');
 const DashboardController = require('../controllers/DashboardController.js');
 const ViewerController = require('../controllers/ViewerController.js');
 
@@ -78,6 +79,7 @@ const referenceStorage = multer.diskStorage({
 const uploadReference = multer({ storage: referenceStorage });
 
 router.get('/api/characters', isAuth, CharacterController.getAll);
+router.get('/api/fonts', isAuth, SiteController.getAvailableFonts);
 router.get('/api/characters/:name', isAuth, CharacterController.getOne);
 router.post('/api/characters', isAuth, CharacterController.create);
 router.put('/api/characters/:id', isAuth, CharacterController.update);
@@ -85,5 +87,8 @@ router.delete('/api/characters/:id', isAuth, CharacterController.delete);
 router.post('/api/characters/:id/avatar', isAuth, uploadAvatar.single('avatar'), (req, res) => CharacterController.uploadAvatar(req, res));
 router.post('/api/characters/:id/analyze-avatar', isAuth, (req, res) => CharacterController.analyzeAvatar(req, res));
 router.post('/api/characters/:id/reference', isAuth, uploadReference.single('image'), (req, res) => CharacterController.uploadReferenceImage(req, res));
+
+// STORY CRITIC
+router.get('/api/critic/analyze/:series/:volumeId', isAuth, CriticController.analyzeVolume);
 
 module.exports = router;

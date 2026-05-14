@@ -96,6 +96,12 @@
                     <p>Brainstorm and storyboard your ideas.</p>
                 </div>
 
+                <div class="mode-card" data-target="story-critic">
+                    <ion-icon name="analytics-outline"></ion-icon>
+                    <h4>Story Critic</h4>
+                    <p>AI-powered narrative analysis and overview.</p>
+                </div>
+
                 <div class="mode-card" data-target="export-tool">
                     <ion-icon name="print-outline"></ion-icon>
                     <h4>Print Exporter</h4>
@@ -765,7 +771,11 @@
                         </div>
                         <div class="props-group">
                             <h5>Placement</h5>
-                            <div class="input-field"><label>Panel Selector</label><input type="text" id="prop-panel" placeholder=".panel-A"></div>
+                            <div class="input-field">
+                                <label>Panel Selector</label>
+                                <input type="text" id="prop-panel" placeholder=".panel-A">
+                                <p class="font-size-07 text-muted margin-t-5">Leave empty to place item globally on the page.</p>
+                            </div>
                             <div class="flex-gap-10">
                                 <div class="input-field flex-1"><label>Top</label><input type="text" id="prop-top"></div>
                                 <div class="input-field flex-1"><label>Left</label><input type="text" id="prop-left"></div>
@@ -789,8 +799,15 @@
                                     <label>Font Size</label>
                                     <input type="text" id="prop-font-size" placeholder="0.85rem">
                                 </div>
+                                <div class="input-field flex-1 prop-group-font">
+                                   <label>Action Font</label>
+                                   <select id="prop-font-family" class="gov-select width-100">
+                                       <option value="">Default</option>
+                                   </select>
+                                </div>
                                 <div class="input-field flex-1">
                                     <label>Text Color</label>
+
                                     <input type="color" id="prop-action-color" value="#000000" class="gov-color-input">
                                 </div>
                             </div>
@@ -909,7 +926,8 @@
                       <label for="exportPresetSelect">Export Preset (Style):</label>
                       <select id="exportPresetSelect" style="width:100%; padding:10px; background:#1a1a1a; color:white; border:1px solid #333; border-radius:4px; font-family:'Consolas', monospace;">
                           <option value="uk-table">UK Table Book (A3 Spread)</option>
-                          <option value="us-landscape">US Comic Landscape (10.25x6.625)</option>
+                          <option value="us-landscape">US Comic Landscape (Spread)</option>
+                          <option value="us-portrait">US Comic Portrait (Standard 6.625x10.25)</option>
                           <option value="cinematic-16-9">Cinematic (16:9 Aspect Ratio)</option>
                           <option value="a4-landscape-letterbox">A4 Landscape (16:9 Letterbox)</option>
                       </select>
@@ -938,7 +956,50 @@
         
                   <button id="startExportBtn" class="update__btn w-full margin-t-20">            Start Background Export <ion-icon size="small" name="print"></ion-icon>
         </button>
-        <p id="exportStatusMsg" style="margin-top: 15px; color: var(--cyber-primary, #00ff41);"></p>
+
+        <div id="exportProgressContainer" class="margin-t-20 hidden">
+            <div class="flex-between margin-b-10">
+                <span id="exportProgressLabel" class="font-size-08 text-accent">Exporting...</span>
+                <span id="exportProgressPercent" class="font-size-08 text-muted">0%</span>
+            </div>
+            <div class="scanner-progress-container" style="display: block; margin-bottom: 10px;">
+                <div class="scanner-progress-bar" id="export-progress-bar" style="width: 0%;"></div>
+            </div>
+            <p id="exportStatusMsg" style="margin-top: 5px; color: var(--cyber-primary, #00ff41); font-size: 0.8rem;"></p>
+        </div>
+    </div>
+
+    <!-- STORY CRITIC SECTION -->
+    <div class="story-critic dashboard-section hidden">
+        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+        <div class="flex-between margin-b-20">
+            <div class="flex-row-center gap-15">
+                <h3>Story Critic</h3>
+                <select id="critic-series-select" class="gov-select">
+                    <option value="">Select Series</option>
+                </select>
+                <select id="critic-volume-select" class="gov-select" disabled>
+                    <option value="">Select Volume</option>
+                </select>
+            </div>
+            <button id="run-critic-btn" class="update__btn" disabled>
+                <ion-icon name="sparkles-outline"></ion-icon> Run Gemini Critic
+            </button>
+        </div>
+
+        <div id="critic-carousel-container" class="critic-carousel-wrapper margin-b-30">
+            <div id="critic-carousel" class="critic-carousel">
+                <!-- Pages injected here -->
+                <div class="text-muted padding-20">Select a volume to view the story timeline.</div>
+            </div>
+        </div>
+
+        <div id="critic-output-container" class="critic-output bg-dark padding-30 border-radius-12 border-dim">
+            <h4 class="margin-b-15 text-accent">Narrative Analysis</h4>
+            <div id="critic-log" class="critic-log">
+                <p class="text-muted italic">Waiting for analysis command...</p>
+            </div>
+        </div>
     </div>
 
 </main>

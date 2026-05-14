@@ -17,6 +17,7 @@ import { initFileBrowser } from './components/FileBrowser/FileBrowser.js';
 import CharacterEditor from './components/CharacterLab/CharacterLab.js';      
 import ScheduledTaskView from './components/ScheduledTasks/ScheduledTasks.js';
 import { initPlotLab } from './components/PlotLab/PlotLab.js';
+import { initStoryCritic } from './components/StoryCritic/StoryCritic.js';
 
 // Imported Refactored Modules
 import { initEventHandlers } from './studio/js/EventHandlers.js';
@@ -72,12 +73,21 @@ export async function init(container) {
     new CharacterEditor(container);
     new ScheduledTaskView();
     initPlotLab(container);
+    initStoryCritic(container);
 
     // Inject PlotLab CSS
     if (!document.querySelector(`link[href="/views/dashboard/components/PlotLab/PlotLab.css"]`)) {
         const link = document.createElement('link');
         link.rel = 'stylesheet';
-        link.href = '/views/dashboard/components/PlotLab/PlotLab.css';        
+        link.href = '/views/dashboard/components/PlotLab/PlotLab.css';
+        document.head.appendChild(link);
+    }
+
+    // Inject StoryCritic CSS
+    if (!document.querySelector(`link[href="/views/dashboard/components/StoryCritic/StoryCritic.css"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = '/views/dashboard/components/StoryCritic/StoryCritic.css';
         document.head.appendChild(link);
     }
 

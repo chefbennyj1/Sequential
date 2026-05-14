@@ -49,12 +49,12 @@
 /* Local Mangat Font Family */
 @font-face {
   font-family: "Mangat";
-  src: url("/views/public/styles/fonts/mangat.ttf") format("truetype");
+  src: url("/views/public/styles/fonts/manga_t.ttf") format("truetype");
 }
 
 @font-face {
   font-family: "Mangat Bold";
-  src: url("/views/public/styles/fonts/mangatb.ttf") format("truetype");
+  src: url("/views/public/styles/fonts/manga_tb.ttf") format("truetype");
 }
 
 @font-face {

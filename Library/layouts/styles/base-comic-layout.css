@@ -30,8 +30,8 @@
 /* GLOBAL STYLE */
 .page-layout {
   display: grid;
-  gap: 10px;
-  padding: 10px;
+  gap: var(--panel-gap, 10px);
+  padding: var(--panel-padding, 10px);
   background: #fff;
   position: relative;
   /* height: 100%;  -- REMOVED TO PREVENT VIEWPORT OVERFLOW */
@@ -40,7 +40,7 @@
   /* Force grid to fill flex parent */
   margin-top: 0;
   font-family: var(--font-family-comic);
-  font-size: clamp(0.85rem, 1.2vw, 1rem);
+  font-size: 1rem;
   box-sizing: border-box;
 }
 

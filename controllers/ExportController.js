@@ -63,7 +63,7 @@ class ExportController {
                 }
             }
 
-            res.json({ ok: true, message: `Started background export of ${pagesToRender.length} pages.` });
+            res.json({ ok: true, message: `Started background export of ${pagesToRender.length} pages.`, totalPages: pagesToRender.length });
 
             const host = req.get('host');
             const baseUrl = `${req.protocol}://${host}`;
@@ -72,7 +72,8 @@ class ExportController {
                 portrait: portrait === 'true',
                 landscape: landscape === 'true',
                 pdf: pdf === 'true',
-                preset: activePreset
+                preset: activePreset,
+                io: req.app.locals.io
             };
 
             ExportController.runPuppeteerExport(series.folderName, volumeFolderName, pagesToRender, exportDir, baseUrl, options);
@@ -126,6 +127,13 @@ class ExportController {
                 BLEED_WIDTH = 3146;
                 BLEED_HEIGHT = 2058;
                 PAGE_WIDTH = 1573;
+            } else if (options.preset === 'us-portrait') {
+                // US Comic Portrait: 6.625" x 10.25"
+                // 300 DPI: 1988 x 3075
+                // + 3mm bleed (35px): 2058 x 3146
+                BLEED_WIDTH = 2058;
+                BLEED_HEIGHT = 3146;
+                PAGE_WIDTH = 2058; // Single page
             } else if (options.preset === 'cinematic-16-9') {
                 BLEED_WIDTH = 3370;
                 BLEED_HEIGHT = 1926;
@@ -146,30 +154,67 @@ class ExportController {
                 deviceScaleFactor: 1
             });
 
-            for (let i = 0; i < pagesToRender.length; i++) {
+            const totalPages = pagesToRender.length;
+            for (let i = 0; i < totalPages; i++) {
                 const target = pagesToRender[i];
                 const pageNum = target.page.replace('page', '');
-                const url = `${baseUrl}/viewer?series=${series}&volume=${volume}&chapter=${target.chapter}&page=${pageNum}&exportSecret=${INTERNAL_SECRET}`;
+                let url = `${baseUrl}/viewer?series=${series}&volume=${volume}&chapter=${target.chapter}&page=${pageNum}&exportSecret=${INTERNAL_SECRET}`;
+                
+                if (options.preset === 'us-portrait') {
+                    url += '&mode=portrait';
+                }
 
-                console.log(`[EXPORT] (${i + 1}/${pagesToRender.length}) Rendering ${target.page}...`);
+                console.log(`[EXPORT] (${i + 1}/${totalPages}) Rendering ${target.page}...`);
+                if (options.io) {
+                    options.io.emit('export_progress', {
+                        current: i + 1,
+                        total: totalPages,
+                        pageId: target.page,
+                        status: `Rendering ${target.page}...`
+                    });
+                }
 
                 try {
                     await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
-                    await page.waitForFunction(() => window.renderComplete === true, { timeout: 30000 });
-                    await page.waitForFunction(() => window.isRevealing !== true, { timeout: 30000 });
+                    await page.waitForFunction(() => window.renderComplete === true, { timeout: 60000 });
 
                     // --- FORCE PRINT LAYOUT (WHITE STAGE STRATEGY) ---
-                    await page.evaluate((viewportW, viewportH, currentPreset) => {
+                    const evalResult = await page.evaluate(async (viewportW, viewportH, currentPreset) => {
                         const bleedPx = 35; // 3mm @ 300DPI
                         const hideList = ['.viewer-controls', '.nav-zone', '#loading-overlay', 'header', '.page-nav-buttons', '.debug-info', '#loading-page'];
                         hideList.forEach(s => { document.querySelectorAll(s).forEach(el => el.style.display = 'none'); });
 
                         // 1. Identify active content
                         const activeSection = document.querySelector('section.active') || document.querySelector('.page-container');
-                        const container = activeSection ? activeSection.querySelector('.section-container') : null;
-                        const layout = activeSection ? activeSection.querySelector('.page-layout') : null;
+                        if (!activeSection) {
+                            console.error('[EXPORT] CRITICAL: No active section or page-container found!');
+                            return { error: 'no-active-section' };
+                        }
 
-                        if (!container) return;
+                        // Wait for any late-loading images again just in case
+                        const imgs = Array.from(activeSection.querySelectorAll('img'));
+                        console.log(`[EXPORT] Found ${imgs.length} images in active section.`);
+                        
+                        await Promise.all(imgs.map(img => {
+                            if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+                            return new Promise(resolve => {
+                                img.addEventListener('load', resolve, { once: true });
+                                img.addEventListener('error', resolve, { once: true });
+                                setTimeout(resolve, 10000); 
+                            });
+                        }));
+
+                        imgs.forEach((img, idx) => {
+                           console.log(`[EXPORT] Image ${idx}: src=${img.src.substring(0, 100)}... complete=${img.complete} naturalW=${img.naturalWidth}`);
+                        });
+
+                        const container = activeSection.querySelector('.section-container');
+                        const layout = activeSection.querySelector('.page-layout');
+
+                        if (!container) {
+                            console.error('[EXPORT] CRITICAL: No .section-container found in active section!');
+                            return { error: 'no-container' };
+                        }
 
                         // 2. Clear the Body and Set Black "Bleed" Background
                         Array.from(document.body.children).forEach(child => { child.style.display = 'none'; });
@@ -213,6 +258,14 @@ class ExportController {
                             const letterboxH = Math.round(trimW / (16/9));
                             containerHeight = letterboxH + 'px';
                         }
+                        
+                        // Handle US Portrait specifically
+                        if (currentPreset === 'us-portrait') {
+                           // Force portrait aspect ratio for the content container
+                           const aspect = 10.25 / 6.625; 
+                           const contentH = Math.round(trimW * aspect);
+                           containerHeight = contentH + 'px';
+                        }
 
                         // Position it perfectly inside the stage
                         container.style.setProperty('visibility', 'visible', 'important');
@@ -235,7 +288,8 @@ class ExportController {
                         if (layout) {
                             layout.style.setProperty('height', '100%', 'important');
                             layout.style.setProperty('width', '100%', 'important');
-                            layout.style.setProperty('padding', '10px', 'important'); // Match 10px panel gap
+                            layout.style.setProperty('padding', '30px', 'important'); // Scaled from 10px
+                            layout.style.setProperty('gap', '30px', 'important'); // Scaled from 10px
                             layout.style.setProperty('margin', '0', 'important');
                             layout.style.setProperty('box-sizing', 'border-box', 'important');
                         }
@@ -245,21 +299,31 @@ class ExportController {
                         style.textContent = '* { box-sizing: border-box !important; }';
                         document.head.appendChild(style);
                         
-                        document.documentElement.style.fontSize = '38px'; 
+                        document.documentElement.style.fontSize = '48px'; 
                         container.style.setProperty('--speech-bubble-scale', '2.4');
                         container.style.setProperty('--text-block-scale', '2.4');
+                        container.style.setProperty('--panel-gap', '30px');
+                        container.style.setProperty('--panel-padding', '30px');
 
                         // Disable any memory/cloudy effects that use white backgrounds
                         document.querySelectorAll('.panel-effect-memory, .panel-effect-cloudy').forEach(p => {
                             p.style.setProperty('background-color', 'transparent', 'important');
                         });
+
+                        return { ok: true };
                     }, BLEED_WIDTH, BLEED_HEIGHT, options.preset);
+
+                    if (evalResult.error) {
+                        console.error(`[EXPORT] Evaluation failed for ${target.page}: ${evalResult.error}`);
+                        continue; 
+                    }
+
                     await page.evaluateHandle('document.fonts.ready');
-                    await new Promise(r => setTimeout(r, 6000));
+                    await new Promise(r => setTimeout(r, 2000)); // Reduced from 6s as we wait for images in viewer now
 
                     const pageNumPadded = target.page.replace('page', '').padStart(3, '0');
 
-                    if (options.landscape) {
+                    if (options.landscape && options.preset !== 'us-portrait') {
                         const fullPath = path.join(exportDir, `page${pageNumPadded}_FULL.png`);
                         await page.screenshot({
                             path: fullPath,
@@ -267,18 +331,21 @@ class ExportController {
                         });
                     }
 
-                    if (options.portrait) {
-                        const leftPath = path.join(exportDir, `page${pageNumPadded}a.png`);
+                    if (options.portrait || options.preset === 'us-portrait') {
+                        const fileName = options.preset === 'us-portrait' ? `page${pageNumPadded}_PORTRAIT.png` : `page${pageNumPadded}a.png`;
+                        const leftPath = path.join(exportDir, fileName);
                         await page.screenshot({
                             path: leftPath,
                             clip: { x: 0, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT }
                         });
 
-                        const rightPath = path.join(exportDir, `page${pageNumPadded}b.png`);
-                        await page.screenshot({
-                            path: rightPath,
-                            clip: { x: PAGE_WIDTH, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT }
-                        });
+                        if (options.preset !== 'us-portrait') {
+                            const rightPath = path.join(exportDir, `page${pageNumPadded}b.png`);
+                            await page.screenshot({
+                                path: rightPath,
+                                clip: { x: PAGE_WIDTH, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT }
+                            });
+                        }
                     }
 
                     console.log(`[EXPORT] SUCCESS: ${target.page}`);
@@ -291,9 +358,24 @@ class ExportController {
             await browser.close();
             console.log(`[EXPORT] PNG Export Completed.`);
             
+            if (options.io) {
+                options.io.emit('export_progress', {
+                    current: totalPages,
+                    total: totalPages,
+                    status: options.pdf ? "PNGs complete. Generating PDF..." : "Export Complete!"
+                });
+            }
+
             // Generate the final PDF if requested
             if (options.pdf) {
                 await ExportController.convertToPDF(exportDir, volume);
+                if (options.io) {
+                    options.io.emit('export_progress', {
+                        current: totalPages,
+                        total: totalPages,
+                        status: "Export & PDF Complete!"
+                    });
+                }
             }
 
         } catch (err) {

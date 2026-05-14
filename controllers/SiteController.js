@@ -77,3 +77,31 @@ exports.getVolumeChapters = async (req, res) => {
       res.status(500).send("Error loading volume");
   }
 };
+
+exports.getAvailableFonts = async (req, res) => {
+    const fs = require('fs');
+    const path = require('path');
+    const fontsDir = path.join(__dirname, '..', 'views', 'public', 'styles', 'fonts');
+    const fontsCssPath = path.join(__dirname, '..', 'views', 'public', 'styles', 'fonts.css');
+
+    try {
+        let files = [];
+        if (fs.existsSync(fontsDir)) {
+            files = fs.readdirSync(fontsDir).filter(f => /\.(ttf|otf|woff|woff2)$/i.test(f));
+        }
+
+        let cssVariables = [];
+        if (fs.existsSync(fontsCssPath)) {
+            const content = fs.readFileSync(fontsCssPath, 'utf8');
+            const matches = content.match(/--font-family-[a-zA-Z0-9-]+/g);
+            if (matches) {
+                cssVariables = [...new Set(matches)];
+            }
+        }
+
+        res.json({ files, cssVariables });
+    } catch (e) {
+        console.error(e);
+        res.status(500).json({ error: "Failed to load fonts" });
+    }
+};

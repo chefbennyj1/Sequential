@@ -293,8 +293,9 @@ export async function loadSection(containerId, htmlPath, isComicPage = true, pag
                     }
                 } catch (err) { }
 
-                const cachedScene = pageData ? pageData.sceneData : null;
-                const cachedMedia = pageData ? pageData.mediaData : null;
+                // Bypass database cache to ensure we always get the latest data from disk
+                const cachedScene = null;
+                const cachedMedia = null;
 
                 await init(container, pageInfo, cachedScene, cachedMedia, abortSignal);
 

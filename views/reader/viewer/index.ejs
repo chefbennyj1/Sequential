@@ -81,7 +81,7 @@
                 modeBtn.onclick = () => {
                     const newUrl = new URL(window.location.href);
                     if (window.GEMINI_PORTRAIT_MODE) {
-                        newUrl.searchParams.delete('mode');
+                        newUrl.searchParams.set('mode', 'landscape');
                     } else {
                         newUrl.searchParams.set('mode', 'portrait');
                     }
@@ -238,6 +238,22 @@
                 }
 
                 await pageManager.goToPage(initialIdx);                
+                
+                // --- WAIT FOR IMAGES TO LOAD (For Print Exporter) ---
+                const activeSection = document.querySelector('section.active');
+                if (activeSection) {
+                    const imgs = Array.from(activeSection.querySelectorAll('img'));
+                    await Promise.all(imgs.map(img => {
+                        if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+                        return new Promise(resolve => {
+                            img.addEventListener('load', resolve, { once: true });
+                            img.addEventListener('error', resolve, { once: true });
+                            // Fallback timeout for a single image if it hangs
+                            setTimeout(resolve, 15000); 
+                        });
+                    }));
+                }
+
                 window.renderComplete = true;
             })();
 

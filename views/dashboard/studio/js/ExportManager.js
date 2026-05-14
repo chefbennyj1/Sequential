@@ -2,12 +2,47 @@
 
 export function initExportManager(container) {
     const startExportBtn = document.getElementById('startExportBtn');
+    
+    // Global socket access (assuming socket.io is available on window or dashboard)
+    const socket = window.io ? window.io() : null;
+
+    if (socket) {
+        socket.on('export_progress', (data) => {
+            const progressBar = document.getElementById('export-progress-bar');
+            const progressPercent = document.getElementById('exportProgressPercent');
+            const progressLabel = document.getElementById('exportProgressLabel');
+            const statusMsg = document.getElementById('exportStatusMsg');
+
+            if (progressBar && progressPercent && progressLabel) {
+                const percent = Math.round((data.current / data.total) * 100);
+                progressBar.style.width = `${percent}%`;
+                progressPercent.textContent = `${percent}%`;
+                progressLabel.textContent = `Exporting: ${data.pageId} (${data.current}/${data.total})`;
+            }
+
+            if (statusMsg) {
+                statusMsg.textContent = data.status;
+
+                // Reset button state if complete
+                if (data.status === 'Export Complete!' || data.status === 'Export & PDF Complete!') {
+                    const startExportBtn = document.getElementById('startExportBtn');
+                    if (startExportBtn) {
+                        startExportBtn.innerHTML = 'Start Print Export <ion-icon name="print-outline"></ion-icon>';
+                        startExportBtn.style.pointerEvents = 'auto';
+                    }
+                }
+            }
+        });
+    }
+
     if(startExportBtn) {
         startExportBtn.addEventListener('click', async (e) => {
             e.preventDefault();
             const volumeSelect = document.getElementById('exportVolumeSelect');
             const presetSelect = document.getElementById('exportPresetSelect');
             const targetPageInput = document.getElementById('exportTargetPage');
+            const progressContainer = document.getElementById('exportProgressContainer');
+
             if(!volumeSelect || !volumeSelect.value) {
                 alert("Please select a volume first.");
                 return;
@@ -38,9 +73,16 @@ export function initExportManager(container) {
             const originalText = btn.innerHTML;
             const statusMsg = document.getElementById('exportStatusMsg');     
 
+            // Reset and Show Progress UI
+            if (progressContainer) progressContainer.classList.remove('hidden');
+            const progressBar = document.getElementById('export-progress-bar');
+            if (progressBar) progressBar.style.width = '0%';
+            document.getElementById('exportProgressPercent').textContent = '0%';
+            document.getElementById('exportProgressLabel').textContent = 'Initializing...';
+
             btn.innerHTML = 'Exporting... <ion-icon size="small" name="hourglass"></ion-icon>';
             btn.style.pointerEvents = 'none';
-            statusMsg.textContent = "Starting headless browser... check terminal for live progress.";
+            statusMsg.textContent = "Connecting to headless engine...";
 
             try {
                 // Parse series and volume folder from the select text (e.g. "No_Overflow - Volume 1")
@@ -65,7 +107,8 @@ export function initExportManager(container) {
 
                 if (result.ok) {
                     statusMsg.textContent = result.message;
-                    btn.innerHTML = 'Exporting (Check Terminal) <ion-icon size="small" name="checkmark-circle"></ion-icon>';
+                    // Button stays disabled until completion (though we don't have a completion event yet, 
+                    // the user sees the progress bar now).
                 } else {
                     statusMsg.textContent = "Export failed: " + result.message;
                     statusMsg.style.color = "red";

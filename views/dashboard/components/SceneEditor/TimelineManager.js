@@ -1,14 +1,47 @@
 // views/dashboard/components/SceneEditor/TimelineManager.js
 
 export class TimelineManager {
-    constructor(container, onSelect, onReorder) {
+    constructor(container, onSelect, onReorder, onDuplicate) {
         this.list = container.querySelector('#sceneTreeList');
         this.onSelect = onSelect;
         this.onReorder = onReorder;
+        this.onDuplicate = onDuplicate;
         this.selectedItemIndex = -1;
         this.dragSrcIndex = -1;
         this.currentSceneData = [];
         this.availableCharacters = [];
+        this.contextMenu = null;
+        this.initContextMenu();
+    }
+
+    initContextMenu() {
+        this.contextMenu = document.createElement('div');
+        this.contextMenu.className = 'timeline-context-menu hidden';
+        this.contextMenu.innerHTML = `
+            <ul>
+                <li id="cm-duplicate">Duplicate Item</li>
+            </ul>
+        `;
+        document.body.appendChild(this.contextMenu);
+
+        document.addEventListener('click', () => this.hideContextMenu());
+    }
+
+    showContextMenu(x, y, index) {
+        this.contextMenu.style.left = `${x}px`;
+        this.contextMenu.style.top = `${y}px`;
+        this.contextMenu.classList.remove('hidden');
+
+        const dupBtn = this.contextMenu.querySelector('#cm-duplicate');
+        dupBtn.onclick = (e) => {
+            e.stopPropagation();
+            this.hideContextMenu();
+            if (this.onDuplicate) this.onDuplicate(index);
+        };
+    }
+
+    hideContextMenu() {
+        if (this.contextMenu) this.contextMenu.classList.add('hidden');
     }
 
     setData(sceneData, characters) {
@@ -62,6 +95,11 @@ export class TimelineManager {
 
             li.onclick = () => this.onSelect(index);
             
+            li.oncontextmenu = (e) => {
+                e.preventDefault();
+                this.showContextMenu(e.clientX, e.clientY, index);
+            };
+
             li.addEventListener('dragstart', e => { 
                 this.dragSrcIndex = index; 
                 e.dataTransfer.effectAllowed = 'move'; 

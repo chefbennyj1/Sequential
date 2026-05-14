@@ -44,7 +44,7 @@ export async function initScene(container, pageInfo, sceneData, mediaData = []) 
     for (const [index, item] of sceneData.entries()) {
         let visualItem = null;
         const targetPanel = item.placement?.panel;
-        const panelEl = targetPanel ? container.querySelector(targetPanel) : (item.displayType.type === 'TextBlock' ? page : null);
+        const panelEl = targetPanel ? container.querySelector(targetPanel) : (['TextBlock', 'ActionText', 'SpeechBubble'].includes(item.displayType.type) ? page : null);
 
         // --- Orphan Detection ---
         const isFloatingTarget = targetPanel && floatingPanelSelectors.has(targetPanel);

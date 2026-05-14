@@ -149,7 +149,8 @@ export function initSceneEditor() {
         (newData, newIndex) => { // onReorder
             currentSceneData = newData;
             selectSceneItem(newIndex);
-        }
+        },
+        (index) => duplicateSceneItem(index) // onDuplicate
     );
 
     properties = new PropertyManager(
@@ -272,6 +273,28 @@ function selectSceneItem(index) {
     document.getElementById('sceneItemEditor').classList.remove('hidden');
     document.getElementById('sceneItemPlaceholder').classList.add('hidden');
     properties.populate(currentSceneData[index]);
+}
+
+function duplicateSceneItem(index) {
+    const original = currentSceneData[index];
+    if (!original) return;
+
+    // Deep clone the item
+    const newItem = JSON.parse(JSON.stringify(original));
+    
+    // Assign new unique ID and adjust display order
+    newItem.id = crypto.randomUUID();
+    newItem.displayOrder = index + 1;
+    
+    // Insert after the original
+    currentSceneData.splice(index + 1, 0, newItem);
+    
+    // Re-index display orders
+    currentSceneData.forEach((itm, i) => itm.displayOrder = i);
+    
+    // Update UI
+    timeline.setData(currentSceneData, properties.availableCharacters);
+    selectSceneItem(index + 1);
 }
 
 // Keeping initVisualEditor for external dashboard call

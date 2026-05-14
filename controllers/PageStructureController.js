@@ -78,7 +78,8 @@ exports.createPage = async (req, res) => {
       "    container.addEventListener('panel_media_changed', (e) => {\n" +
       "        const { panelSelector, type, fileName, action } = e.detail;\n" +
       "        console.log(`Panel ${panelSelector} changed:`, { type, fileName, action });\n" +
-      "    });\n";
+      "    });\n" +
+      "}";
 
     fs.writeFileSync(path.join(pageDir, `page.css`), css);
     fs.writeFileSync(path.join(pageDir, `page.js`), js);

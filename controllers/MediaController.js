@@ -106,27 +106,37 @@ exports.serveCharacterImage = async (req, res) => {
 
 exports.getScene = async (req, res) => {
   const { series, volume, chapter, pageId } = req.params;
-  const seriesFolderName = series;
-  if (!seriesFolderName) return res.status(400).json({ ok: false, message: "Series folder name is required" });
-  const result = await SceneService.getSceneByPageId(volume, chapter, pageId, seriesFolderName);
+  try {
+    const seriesPath = await MediaService.resolveSeriesPath(series);
+    const pageJsonPath = path.join(seriesPath, "Volumes", volume, chapter, pageId, "page.json");
 
-  if (result.ok) {
-    res.json(result);
-  } else {
-    res.status(result.status).json({ ok: false, message: result.message });
+    if (fs.existsSync(pageJsonPath)) {
+      const pageData = JSON.parse(fs.readFileSync(pageJsonPath, "utf8"));
+      res.json({ ok: true, scene: pageData.scene || [] });
+    } else {
+      res.json({ ok: true, scene: [] });
+    }
+  } catch (err) {
+    console.error("Error in getScene:", err);
+    res.status(500).json({ ok: false, message: "Server Error" });
   }
 };
 
 exports.getMedia = async (req, res) => {
   const { series, volume, chapter, pageId } = req.params;
-  const seriesFolderName = series;
-  if (!seriesFolderName) return res.status(400).json({ ok: false, message: "Series folder name is required" });
-  const result = await MediaService.getMediaItemsByPageId(volume, chapter, pageId, seriesFolderName);
+  try {
+    const seriesPath = await MediaService.resolveSeriesPath(series);
+    const pageJsonPath = path.join(seriesPath, "Volumes", volume, chapter, pageId, "page.json");
 
-  if (result.ok) {
-    res.json(result);
-  } else {
-    res.status(result.status).json({ ok: false, message: result.message });
+    if (fs.existsSync(pageJsonPath)) {
+      const pageData = JSON.parse(fs.readFileSync(pageJsonPath, "utf8"));
+      res.json({ ok: true, media: pageData.media || [] });
+    } else {
+      res.json({ ok: true, media: [] });
+    }
+  } catch (err) {
+    console.error("Error in getMedia:", err);
+    res.status(500).json({ ok: false, message: "Server Error" });
   }
 };
 

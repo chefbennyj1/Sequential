@@ -32,16 +32,16 @@
 /* GLOBAL STYLE */
 .section-container.portrait-page.page-layout {
   display: grid;
-  gap: 10px;
-  padding: 10px;
+  gap: var(--panel-gap, 10px);
+  padding: var(--panel-padding, 10px);
   background: #fff;
   position: relative;
   /* Removed width: 100% and height: 100% to allow 94vh and aspect-ratio to rule */
   flex-grow: 1;
   margin-top: 0;
   font-family: var(--font-family-comic);
-  /* Scaled comic book lettering size (Increased for better digital readability) */
-  font-size: clamp(0.85rem, 1.5vh, 1rem);
+  /* Scaled comic book lettering size */
+  font-size: 1rem;
   box-sizing: border-box;
 }
 

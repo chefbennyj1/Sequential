@@ -55,9 +55,23 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
     container.addEventListener('view_visible', async () => {
         if (!container.classList.contains("active")) return;
 
-        window.isRevealing = true;
-        await imageMaskReveal(allPanels, gifUrl, 5000, mediaResponse.media, pageInfo);
         window.isRevealing = false;
+        
+        // Immediately apply persistent masks if they exist, skipping the initial reveal GIF
+        if (mediaResponse.media && pageInfo) {
+            mediaResponse.media.forEach(media => {
+                if (media.maskGif) {
+                    const panelEl = Array.from(allPanels).find(p => {
+                        return p.classList.contains(media.panel.replace('.', '')) || p.matches?.(media.panel);
+                    });
+                    if (panelEl) {
+                        import('/libs/Utility.js').then(u => {
+                            u.applyPersistentMask(panelEl, u.resolveMediaUrl(media.maskGif, 'image', pageInfo), media.maskBg);
+                        });
+                    }
+                }
+            });
+        }
 
         if (sceneController?.restart) sceneController.restart();
     });
@@ -115,10 +129,15 @@ function initMedia(container, pageInfo, mediaDataArray) {
             // Floating panels MUST be absolute to be positioned
             panel.style.position = 'absolute';
             
-            // Apply floating styles (X, Y, Z, Width, Height)
+            // Apply floating layout styles (X, Y, Z, Width, Height)
+            // Visual styles like 'transform' should NOT be applied to the container
+            const visualProps = ['objectFit', 'objectPosition', 'transform', 'transformOrigin', 'filter', 'opacity'];
+            
             if (media.style) {
                 for (const prop in media.style) {
-                    panel.style[prop] = media.style[prop];
+                    if (!visualProps.includes(prop)) {
+                        panel.style[prop] = media.style[prop];
+                    }
                 }
             }
             
@@ -140,17 +159,11 @@ function initMedia(container, pageInfo, mediaDataArray) {
                 
                 // Default fallback styles
                 img.style.width = '100%';
-                if (media.isFloating) {
-                    img.style.height = '100%'; // Image fills the floating container
-                } else {
-                    img.style.height = '100%';
-                }
+                img.style.height = '100%'; // Image fills the panel
                 img.style.objectFit = 'cover';
                 img.style.objectPosition = 'center';
 
-                // Apply custom styles from media.json (this will overwrite defaults like objectPosition)
-                // If it's a floating panel, layout styles are applied to the panel div, 
-                // but visual styles like object-fit/transform apply to the image.
+                // Apply visual styles from media.json (this will overwrite defaults like objectPosition)
                 const visualProps = ['objectFit', 'objectPosition', 'transform', 'transformOrigin', 'filter', 'opacity'];
                 
                 if (media.style) {
