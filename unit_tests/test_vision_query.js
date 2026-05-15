@@ -1,5 +1,5 @@
 const mongoose = require('mongoose');
-const Volume = require('./models/Volume');
+const Volume = require('../models/Volume');
 
 async function testQuery() {
     try {

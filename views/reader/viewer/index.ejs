@@ -70,38 +70,6 @@
             if (window.GEMINI_SPREAD_MODE) window.GEMINI_PORTRAIT_MODE = true; 
 
             const modeBtn = document.getElementById('toggle-mode-btn');
-            const modeText = document.getElementById('mode-text');
-            if (modeBtn && modeText) {
-                if (window.GEMINI_PORTRAIT_MODE) {
-                    modeBtn.classList.add('portrait-active');
-                    modeText.textContent = "Landscape";
-                    modeBtn.querySelector('ion-icon').setAttribute('name', 'image-outline');
-                }
-
-                modeBtn.onclick = () => {
-                    const newUrl = new URL(window.location.href);
-                    if (window.GEMINI_PORTRAIT_MODE) {
-                        newUrl.searchParams.set('mode', 'landscape');
-                    } else {
-                        newUrl.searchParams.set('mode', 'portrait');
-                    }
-                    window.location.href = newUrl.href;
-                };
-            }
-
-
-            if (exportSecret) {
-                const originalFetch = window.fetch;
-                window.fetch = function(input, init) {
-                    let url = (typeof input === 'string') ? input : (input.url || input);
-                    if (typeof url === 'string' && (url.startsWith('/') || url.includes(window.location.host) || !url.startsWith('http'))) {
-                        const separator = url.includes('?') ? '&' : '?';
-                        url += separator + "exportSecret=" + exportSecret;
-                    }
-                    if (typeof input === 'string') return originalFetch(url, init);
-                    return originalFetch(new Request(url, input), init);
-                };
-            }
 
             (async () => {
                 const scrollWrapper = document.querySelector(".scroll-wrapper");

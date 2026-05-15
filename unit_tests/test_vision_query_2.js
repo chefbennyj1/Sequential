@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const Volume = require('./models/Volume');
-const Series = require('./models/Series'); // Registered now
+const Volume = require('../models/Volume');
+const Series = require('../models/Series'); // Registered now
 
 async function testQuery() {
     try {

@@ -115,8 +115,9 @@ export async function init(container, params) {
             const res = await fetch(`/api/media/${series}/${volume}/${chapter}/${pageId}`);
             const data = await res.json();
             
-            if (data.ok && data.media && Array.isArray(data.media.media)) {
-                data.media.media.forEach(item => {
+            if (data.ok && data.media) {
+                const mediaArray = Array.isArray(data.media) ? data.media : (data.media.media || []);
+                mediaArray.forEach(item => {
                     let panel = container.querySelector(item.panel);
                     
                     // --- Handle Floating Panels in Preview ---

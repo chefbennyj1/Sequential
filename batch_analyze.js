@@ -1,6 +1,6 @@
 require('dotenv').config();
 const mongoose = require('mongoose');
-const GeminiVisionService = require('./services/GeminiVisionService');
+const GeminiVisionService = require('./services/gemini/GeminiVisionService');
 const path = require('path');
 const fs = require('fs');
 

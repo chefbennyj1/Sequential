@@ -1,5 +1,5 @@
 const fs = require('fs');
-const content = fs.readFileSync('E:/Sequential Comic Server/views/viewer/index.ejs', 'utf8');
+const content = fs.readFileSync('E:/Sequential Comic Server/views/reader/viewer/index.ejs', 'utf8');
 const scriptMatch = content.match(/<script type="module">([\s\S]*?)<\/script>/);
 
 if (scriptMatch) {

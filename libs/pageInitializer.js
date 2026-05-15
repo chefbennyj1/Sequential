@@ -116,21 +116,18 @@ function initMedia(container, pageInfo, mediaDataArray) {
     console.log(`PageInitializer - ${pageId} - Initializing ${mediaDataArray.length} media items.`);
     
     for (const media of mediaDataArray) {
-        let panel = container.querySelector(media.panel);
+        const selector = media.panel.startsWith('.') ? media.panel : '.' + media.panel;
+        let panel = container.querySelector(selector);
 
         // --- Handle Floating Panels ---
         if (!panel && media.isFloating) {
             console.log(`PageInitializer - ${pageId} - Creating floating panel ${media.panel}`);
             panel = document.createElement('div');
-            // media.panel is usually ".panel-E", we strip the dot for the class
             const panelClass = media.panel.startsWith('.') ? media.panel.substring(1) : media.panel;
             panel.className = `panel ${panelClass} floating-panel`;
             
-            // Floating panels MUST be absolute to be positioned
             panel.style.position = 'absolute';
             
-            // Apply floating layout styles (X, Y, Z, Width, Height)
-            // Visual styles like 'transform' should NOT be applied to the container
             const visualProps = ['objectFit', 'objectPosition', 'transform', 'transformOrigin', 'filter', 'opacity'];
             
             if (media.style) {
@@ -141,12 +138,12 @@ function initMedia(container, pageInfo, mediaDataArray) {
                 }
             }
             
-            // Add to the main section-container or the container itself
             const pageContainer = container.querySelector('.section-container') || container.querySelector('.page-layout') || container;
             pageContainer.appendChild(panel);
         }
 
         if (panel) {
+            panel.innerHTML = ''; // Ensure panel is empty before adding image
             if (media.type === 'image') {
                 const img = document.createElement('img');
                 img.src = resolveMediaUrl(media.fileName, 'image', pageInfo);

@@ -3,7 +3,7 @@
 ## Core Workflow: Vision & Image Hashing
 
 ### 1. Image Hashing Logic (Critical)
-To prevent redundant AI re-scans, the `imageHash` in `page.json` MUST match the server's internal hash. The server (`GeminiVisionService.js`) generates hashes using the following specific preprocessing:
+To prevent redundant AI re-scans, the `imageHash` in `page.json` MUST match the server's internal hash. The server (`services/gemini/GeminiVisionService.js`) generates hashes using the following specific preprocessing:
 - **Resize:** 256x256 (fit: 'inside')
 - **Format:** Grayscale
 - **Algorithm:** MD5

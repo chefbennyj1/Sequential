@@ -23,13 +23,18 @@ export function initExportManager(container) {
             if (statusMsg) {
                 statusMsg.textContent = data.status;
 
-                // Reset button state if complete
-                if (data.status === 'Export Complete!' || data.status === 'Export & PDF Complete!') {
+                // Reset button state if complete or error
+                const isComplete = data.status === 'Export Complete!' || data.status === 'Export & PDF Complete!';
+                const isError = data.pageId === 'ERROR' || data.pageId === 'PDF Error';
+
+                if (isComplete || isError) {
                     const startExportBtn = document.getElementById('startExportBtn');
                     if (startExportBtn) {
                         startExportBtn.innerHTML = 'Start Print Export <ion-icon name="print-outline"></ion-icon>';
                         startExportBtn.style.pointerEvents = 'auto';
                     }
+                    if (isError) statusMsg.style.color = 'red';
+                    else statusMsg.style.color = '';
                 }
             }
         });

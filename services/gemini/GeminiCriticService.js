@@ -1,6 +1,6 @@
 const { GoogleGenerativeAI } = require("@google/generative-ai");
-const GlobalSettings = require("../models/GlobalSettings");
-const { decrypt } = require("../utils/encryption");
+const GlobalSettings = require("../../models/GlobalSettings");
+const { decrypt } = require("../../utils/encryption");
 
 class GeminiCriticService {
     async getClient() {

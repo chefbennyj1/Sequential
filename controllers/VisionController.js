@@ -1,6 +1,6 @@
 const fs = require('fs');
 const path = require('path');
-const GeminiVisionService = require('../services/GeminiVisionService');
+const GeminiVisionService = require('../services/gemini/GeminiVisionService');
 const GlobalSettings = require('../models/GlobalSettings');
 const Volume = require('../models/Volume');
 const Series = require('../models/Series');

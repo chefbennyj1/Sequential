@@ -1,6 +1,6 @@
 const mongoose = require('mongoose');
-const Volume = require('./models/Volume');
-const Series = require('./models/Series');
+const Volume = require('../models/Volume');
+const Series = require('../models/Series');
 
 async function checkFlags() {
     try {

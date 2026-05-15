@@ -1,5 +1,5 @@
 const ScriptService = require("../services/ScriptService");
-const GeminiCriticService = require("../services/GeminiCriticService");
+const GeminiCriticService = require("../services/gemini/GeminiCriticService");
 const Volume = require("../models/Volume");
 const fs = require("fs");
 const path = require("path");

@@ -158,7 +158,8 @@ class ExportController {
             for (let i = 0; i < totalPages; i++) {
                 const target = pagesToRender[i];
                 const pageNum = target.page.replace('page', '');
-                let url = `${baseUrl}/viewer?series=${series}&volume=${volume}&chapter=${target.chapter}&page=${pageNum}&exportSecret=${INTERNAL_SECRET}`;
+                // Add timestamp for cache busting
+                let url = `${baseUrl}/viewer?series=${series}&volume=${volume}&chapter=${target.chapter}&page=${pageNum}&exportSecret=${INTERNAL_SECRET}&t=${Date.now()}`;
                 
                 if (options.preset === 'us-portrait') {
                     url += '&mode=portrait';
@@ -176,6 +177,8 @@ class ExportController {
 
                 try {
                     await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
+                    
+                    // Wait for the application's own render flag
                     await page.waitForFunction(() => window.renderComplete === true, { timeout: 60000 });
 
                     // --- FORCE PRINT LAYOUT (WHITE STAGE STRATEGY) ---
@@ -191,22 +194,27 @@ class ExportController {
                             return { error: 'no-active-section' };
                         }
 
-                        // Wait for any late-loading images again just in case
-                        const imgs = Array.from(activeSection.querySelectorAll('img'));
-                        console.log(`[EXPORT] Found ${imgs.length} images in active section.`);
-                        
-                        await Promise.all(imgs.map(img => {
-                            if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
-                            return new Promise(resolve => {
-                                img.addEventListener('load', resolve, { once: true });
-                                img.addEventListener('error', resolve, { once: true });
-                                setTimeout(resolve, 10000); 
+                        // --- ROBUST IMAGE LOADING CHECK ---
+                        const waitForImages = async () => {
+                            const imgs = Array.from(document.querySelectorAll('img'));
+                            console.log(`[EXPORT] Found ${imgs.length} total images for verification.`);
+                            
+                            const loadPromises = imgs.map(img => {
+                                if (img.complete && img.naturalHeight !== 0) return Promise.resolve();
+                                return new Promise(resolve => {
+                                    img.onload = () => resolve();
+                                    img.onerror = () => {
+                                        console.error(`[EXPORT] Image failed to load: ${img.src}`);
+                                        resolve(); // Resolve anyway to not hang
+                                    };
+                                    // Safety timeout per image
+                                    setTimeout(resolve, 15000);
+                                });
                             });
-                        }));
+                            await Promise.all(loadPromises);
+                        };
 
-                        imgs.forEach((img, idx) => {
-                           console.log(`[EXPORT] Image ${idx}: src=${img.src.substring(0, 100)}... complete=${img.complete} naturalW=${img.naturalWidth}`);
-                        });
+                        await waitForImages();
 
                         const container = activeSection.querySelector('.section-container');
                         const layout = activeSection.querySelector('.page-layout');
@@ -319,7 +327,7 @@ class ExportController {
                     }
 
                     await page.evaluateHandle('document.fonts.ready');
-                    await new Promise(r => setTimeout(r, 2000)); // Reduced from 6s as we wait for images in viewer now
+                    await new Promise(r => setTimeout(r, 4000)); // Increased to 4s to ensure complex layouts/masks are fully stable
 
                     const pageNumPadded = target.page.replace('page', '').padStart(3, '0');
 
@@ -327,13 +335,15 @@ class ExportController {
                         const fullPath = path.join(exportDir, `page${pageNumPadded}_FULL.png`);
                         await page.screenshot({
                             path: fullPath,
-                            clip: { x: 0, y: 0, width: BLEED_WIDTH, height: BLEED_HEIGHT }
+                            fullPage: false // Viewport is already set to BLEED_WIDTH/HEIGHT
                         });
                     }
 
                     if (options.portrait || options.preset === 'us-portrait') {
                         const fileName = options.preset === 'us-portrait' ? `page${pageNumPadded}_PORTRAIT.png` : `page${pageNumPadded}a.png`;
                         const leftPath = path.join(exportDir, fileName);
+                        
+                        // For portrait, we capture the left half of the spread (or full page if us-portrait)
                         await page.screenshot({
                             path: leftPath,
                             clip: { x: 0, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT }
@@ -362,17 +372,19 @@ class ExportController {
                 options.io.emit('export_progress', {
                     current: totalPages,
                     total: totalPages,
+                    pageId: 'Finalizing',
                     status: options.pdf ? "PNGs complete. Generating PDF..." : "Export Complete!"
                 });
             }
 
             // Generate the final PDF if requested
             if (options.pdf) {
-                await ExportController.convertToPDF(exportDir, volume);
+                await ExportController.convertToPDF(exportDir, volume, options.io, totalPages);
                 if (options.io) {
                     options.io.emit('export_progress', {
                         current: totalPages,
                         total: totalPages,
+                        pageId: 'Complete',
                         status: "Export & PDF Complete!"
                     });
                 }
@@ -380,10 +392,18 @@ class ExportController {
 
         } catch (err) {
             console.error('[EXPORT] CRITICAL ERROR:', err);
+            if (options.io) {
+                options.io.emit('export_progress', {
+                    current: 0,
+                    total: 1,
+                    pageId: 'ERROR',
+                    status: "Critical Export Error: " + err.message
+                });
+            }
         }
     }
 
-    static async convertToPDF(exportDir, volumeFolderName) {
+    static async convertToPDF(exportDir, volumeFolderName, io = null, totalPages = 1) {
         console.log(`[EXPORT] Converting PNGs to PDF...`);
         try {
             const files = fs.readdirSync(exportDir).filter(f => f.endsWith('.png')).sort();
@@ -394,8 +414,19 @@ class ExportController {
 
             const pdfDoc = await PDFDocument.create();
 
-            for (const file of files) {
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
                 const imagePath = path.join(exportDir, file);
+                
+                if (io) {
+                    io.emit('export_progress', {
+                        current: totalPages,
+                        total: totalPages,
+                        pageId: `PDF: ${file}`,
+                        status: `Embedding ${file} into PDF (${i + 1}/${files.length})...`
+                    });
+                }
+
                 const imageBytes = fs.readFileSync(imagePath);
                 const image = await pdfDoc.embedPng(imageBytes);
                 
@@ -415,6 +446,14 @@ class ExportController {
 
         } catch (error) {
             console.error('[EXPORT] Error creating PDF:', error);
+            if (io) {
+                io.emit('export_progress', {
+                    current: totalPages,
+                    total: totalPages,
+                    pageId: 'PDF Error',
+                    status: "PDF Generation failed: " + error.message
+                });
+            }
         }
     }
 }

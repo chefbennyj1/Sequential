@@ -3,8 +3,8 @@ const fs = require("fs");
 const path = require("path");
 const crypto = require("crypto");
 const sharp = require("sharp");
-const GlobalSettings = require("../models/GlobalSettings");
-const { decrypt } = require("../utils/encryption");
+const GlobalSettings = require("../../models/GlobalSettings");
+const { decrypt } = require("../../utils/encryption");
 
 class GeminiVisionService {
     constructor() {

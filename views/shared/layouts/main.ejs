@@ -26,14 +26,52 @@
 
     <script>
         // --- Global Fetch Interceptor ---
-        // Intercept all fetch calls to catch 401/403 errors and redirect to login
+        // Intercept all fetch calls to inject export secret and catch 401/403 errors
         (function() {
+            const params = new URLSearchParams(window.location.search);
+            const exportSecret = params.get('exportSecret');
             const originalFetch = window.fetch;
-            window.fetch = async (...args) => {
-                const response = await originalFetch(...args);
+
+            window.fetch = async (input, init) => {
+                let url = (typeof input === 'string') ? input : (input.url || input);
+                
+                // If export secret exists, inject it into same-origin requests
+                if (exportSecret && (url.startsWith('/') || url.includes(window.location.host) || !url.startsWith('http'))) {
+                    // Add to Query
+                    const separator = url.includes('?') ? '&' : '?';
+                    url += separator + "exportSecret=" + exportSecret;
+
+                    // Also add to Headers if init exists or create it
+                    if (!init) init = {};
+                    if (!init.headers) init.headers = {};
+                    
+                    if (init.headers instanceof Headers) {
+                        init.headers.set('x-export-secret', exportSecret);
+                    } else if (Array.isArray(init.headers)) {
+                        init.headers.push(['x-export-secret', exportSecret]);
+                    } else {
+                        init.headers['x-export-secret'] = exportSecret;
+                    }
+
+                    // If input was a Request object, we need to create a new one with the updated URL
+                    if (typeof input !== 'string') {
+                        input = new Request(url, input);
+                    } else {
+                        input = url;
+                    }
+                }
+
+                const response = await originalFetch(input, init);
+                
                 if ((response.status === 401 || response.status === 403) && window.location.pathname !== '/login') {
-                    console.warn("[Auth] Session expired or unauthorized. Redirecting to login...");
-                    window.location.href = '/login';
+                    // If we have an export secret, don't redirect on 401 - let the caller handle it
+                    // This prevents Puppeteer from being kicked to the login page by a side-fetch (like header AI check)
+                    if (!exportSecret) {
+                        console.warn("[Auth] Session expired or unauthorized. Redirecting to login...");
+                        window.location.href = '/login';
+                    } else {
+                        console.error("[Auth] Export unauthorized for URL:", url);
+                    }
                 }
                 return response;
             };

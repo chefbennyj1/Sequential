@@ -2,7 +2,7 @@ const Character = require('../models/Character');
 const fs = require('fs');
 const fsPromises = require('fs').promises;
 const path = require('path');
-const GeminiVisionService = require('../services/GeminiVisionService');
+const GeminiVisionService = require('../services/gemini/GeminiVisionService');
 const CharacterService = require('../services/CharacterService');
 const { resolveSeriesPath } = require('../services/MediaService');
 
