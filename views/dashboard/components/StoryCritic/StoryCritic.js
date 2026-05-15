@@ -92,6 +92,19 @@ async function loadVolumePages() {
         allPages = [];
         const volumeFolderName = volumeData.volumePath ? volumeData.volumePath.split(/[\\/]/).filter(Boolean).pop() : `volume-${volumeData.index}`;
 
+        // Display existing critique if present
+        if (volumeData.critique) {
+            log.innerHTML = `
+                <div class="flex-row justify-between align-center border-dim-bottom padding-b-10 margin-b-15">
+                    <h5 class="text-accent margin-0">Last Critique (${new Date(volumeData.lastCritiquedAt).toLocaleDateString()})</h5>
+                    <span class="text-muted font-size-07">Gemini Flash Analysis</span>
+                </div>
+                <div class="critique-content">${formatCritique(volumeData.critique)}</div>
+            `;
+        } else {
+            log.innerHTML = '<p class="text-muted italic">No critique found for this volume. Click "Run Analysis" to generate one.</p>';
+        }
+
         volumeData.chapters.sort((a, b) => a.chapterNumber - b.chapterNumber).forEach(chap => {
             chap.pages.forEach(p => {
                 allPages.push({

@@ -28,6 +28,9 @@ const volumeSchema = new Schema({
     title: String,
     volumePath: String, // e.g. "/views/Volumes/volume-1/"
 
+    critique: String,
+    lastCritiquedAt: Date,
+
     chapters: [chapterSchema]
 });
 

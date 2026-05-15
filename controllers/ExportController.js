@@ -307,11 +307,30 @@ class ExportController {
                         style.textContent = '* { box-sizing: border-box !important; }';
                         document.head.appendChild(style);
                         
-                        document.documentElement.style.fontSize = '48px'; 
-                        container.style.setProperty('--speech-bubble-scale', '2.4');
-                        container.style.setProperty('--text-block-scale', '2.4');
-                        container.style.setProperty('--panel-gap', '30px');
-                        container.style.setProperty('--panel-padding', '30px');
+                        // Apply dynamic font scaling based on viewport height
+                        const baseFontSize = 16;
+                        const baseHeight = 1080;
+                        const scaleFactor = viewportH / baseHeight;
+                        document.documentElement.style.fontSize = (baseFontSize * scaleFactor) + 'px'; 
+                        
+                        container.style.setProperty('--speech-bubble-scale', scaleFactor.toFixed(2));
+                        container.style.setProperty('--text-block-scale', scaleFactor.toFixed(2));
+                        container.style.setProperty('--panel-gap', (10 * scaleFactor) + 'px');
+                        container.style.setProperty('--panel-padding', (10 * scaleFactor) + 'px');
+
+                        // Brute Force CSS Injection for Speech Bubbles
+                        const overrideStyle = document.createElement('style');
+                        overrideStyle.textContent = `
+                            .speech-text, .super-bubble { 
+                                font-size: calc(var(--bubble-font-size, 0.875rem) * ${scaleFactor.toFixed(2)}) !important;
+                                line-height: 1.2 !important;
+                            }
+                            .page-layout {
+                                padding: ${(10 * scaleFactor)}px !important;
+                                gap: ${(10 * scaleFactor)}px !important;
+                            }
+                        `;
+                        document.head.appendChild(overrideStyle);
 
                         // Disable any memory/cloudy effects that use white backgrounds
                         document.querySelectorAll('.panel-effect-memory, .panel-effect-cloudy').forEach(p => {

@@ -28,6 +28,12 @@ exports.analyzeVolume = async (req, res) => {
         // 2. Send to Gemini
         const critique = await GeminiCriticService.analyzeStory(scriptText);
 
+        // 3. Save to Database
+        await Volume.findByIdAndUpdate(volumeId, {
+            critique: critique,
+            lastCritiquedAt: new Date()
+        });
+
         res.json({ ok: true, critique });
 
     } catch (err) {

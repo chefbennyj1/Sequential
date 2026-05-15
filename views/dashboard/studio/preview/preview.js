@@ -114,7 +114,6 @@ export async function init(container, params) {
             if (!series) throw new Error("No series context in params");
             const res = await fetch(`/api/media/${series}/${volume}/${chapter}/${pageId}`);
             const data = await res.json();
-            
             if (data.ok && data.media) {
                 const mediaArray = Array.isArray(data.media) ? data.media : (data.media.media || []);
                 mediaArray.forEach(item => {
