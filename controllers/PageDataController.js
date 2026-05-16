@@ -74,14 +74,15 @@ exports.saveMedia = async (req, res) => {
       await VolumeService.syncSinglePage(volumeId, chapter, pageId, seriesFolderName);
     }
 
-    // Trigger Background AI Scan if auto-scan is enabled
+    // Trigger Scoped Background AI Scan if auto-scan is enabled
     const GlobalSettings = require('../models/GlobalSettings');
     const settings = await GlobalSettings.findOne({ key: "main" });
     if (settings?.vision?.enabled && settings?.vision?.autoScanOnSave) {
         const VisionController = require('./VisionController');
         const io = req.app.locals.io;
-        // Run in background, don't await
-        VisionController.runVisionScan(io).catch(err => console.error("[Vision] Background scan failed:", err));
+        // Run in background, don't await. Use SCOPE for performance.
+        VisionController.runVisionScan(io, false, false, { volumeId, chapter, pageId })
+            .catch(err => console.error("[Vision] Scoped background scan failed:", err.message));
     }
 
     res.json({ ok: true, message: "Media merged successfully." });

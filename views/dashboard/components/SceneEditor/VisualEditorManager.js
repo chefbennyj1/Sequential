@@ -1,6 +1,7 @@
 // views/dashboard/components/SceneEditor/VisualEditorManager.js
 import { saveMediaAPI, fetchMedia, fetchNextPanelId } from '../../studio/api/StudioClient.js';
 import { openFileBrowser } from '../FileBrowser/FileBrowser.js';
+import { extractPalette } from '/libs/Utility.js';
 
 export class VisualEditorManager {
     constructor(container, getActiveAssets, activeSeriesId, activeSeriesFolder) {
@@ -48,6 +49,17 @@ export class VisualEditorManager {
                 }
             });
         }
+
+        // --- Handle Messages from Preview Iframe ---
+        window.addEventListener('message', (e) => {
+            if (e.data.type === 'assetUploaded') {
+                const { panel, type, fileName } = e.data;
+                this.updateCache(panel, type, fileName);
+            }
+            if (e.data.type === 'panelDragged') {
+                this.updatePosition(e.data);
+            }
+        });
     }
 
     renderAllPanels(panelNames = []) {
@@ -76,65 +88,123 @@ export class VisualEditorManager {
             return a.panel.localeCompare(b.panel);
         });
 
-        toolsPane.innerHTML = `
-            <div class="flex-row justify-between align-center margin-b-15">
-                <h4 style="margin:0;">Page Panels</h4>
-                <button id="addFloatingPanelBtn" class="small btn-accent">+ Add Floating</button>
-            </div>
+        toolsPane.innerHTML = ''; // Clear for full rebuild
+
+        // 1. Header Row
+        const headerRow = document.createElement('div');
+        headerRow.className = 'flex-row justify-between align-center margin-b-15';
+
+        const title = document.createElement('h4');
+        title.style.margin = '0';
+        title.textContent = 'Page Panels';
+        headerRow.appendChild(title);
+
+        const addBtn = document.createElement('button');
+        addBtn.id = 'addFloatingPanelBtn';
+        addBtn.className = 'small btn-accent';
+        addBtn.textContent = '+ Add Floating';
+        addBtn.onclick = () => this.createFloatingPanel();
+        headerRow.appendChild(addBtn);
+
+        toolsPane.appendChild(headerRow);
+
+        // 2. Body UI
+        const editorUI = document.createElement('div');
+        editorUI.className = 'panel-editor-ui';
+
+        const instructions = document.createElement('p');
+        instructions.className = 'text-muted margin-b-15';
+        instructions.textContent = 'Select any element to edit its asset and alignment.';
+        editorUI.appendChild(instructions);
+
+        const geoList = document.createElement('div');
+        geoList.className = 'geometry-list margin-b-20';
+        editorUI.appendChild(geoList);
+        toolsPane.appendChild(editorUI);
+
+        allItems.forEach(item => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = `geometry-item ${item.isFloating ? 'bg-black-20 border-accent' : 'bg-black-10 border-dim'} padding-10 border-radius-8 margin-b-10 flex-row align-center cursor-pointer hover-bright`;
+            itemDiv.dataset.panel = item.panel;
             
-            <div class="panel-editor-ui">
-                <p class="text-muted margin-b-15">Select any element to edit its asset and alignment.</p>
-                
-                <div class="geometry-list margin-b-20">
-                    ${allItems.map(item => `
-                        <div class="geometry-item ${item.isFloating ? 'bg-black-20 border-accent' : 'bg-black-10 border-dim'} padding-10 border-radius-8 margin-b-10 flex-row align-center cursor-pointer hover-bright" data-panel="${item.panel}">
-                            <div class="flex-row align-center gap-10 flex-1">
-                                <div class="geometry-thumb border-dim border-radius-4" style="width:40px; height:40px; background:#000; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
-                                    ${item.fileName ? `<img src="/api/images/${this.activeSeriesFolder || this.activeSeriesId}/${this.currentVisualContext.volume}/${this.currentVisualContext.chapter}/${this.currentVisualContext.pageId}/assets/${item.fileName}" style="width:100%; height:100%; object-fit:cover;">` : '<ion-icon name="image-outline" class="text-muted"></ion-icon>'}
-                                </div>
-                                <div style="min-width:0;">
-                                    <div class="text-accent font-weight-bold font-size-09 flex-row align-center gap-5">
-                                        ${item.panel.replace('.', '')}
-                                        ${item.isFloating ? '<span class="text-muted font-size-06 uppercase border-dim padding-x-5 border-radius-4">Floating</span>' : ''}
-                                    </div>
-                                    <div class="text-muted font-size-07 truncate">${item.fileName || 'No asset assigned'}</div>
-                                </div>
-                            </div>
-                            ${item.isFloating ? `
-                            <button class="small btn-danger-outline delete-geom-btn margin-l-10" data-panel="${item.panel}" title="Delete Geometry">
-                                <ion-icon name="trash-outline"></ion-icon>
-                            </button>
-                            ` : ''}
-                        </div>
-                    `).join('')}
-                </div>
-            </div>
-        `;
-
-        const addBtn = document.getElementById('addFloatingPanelBtn');
-        if (addBtn) addBtn.onclick = () => this.createFloatingPanel();
-
-        // Bind clicks to selection
-        toolsPane.querySelectorAll('.geometry-item').forEach(el => {
-            el.onclick = (e) => {
+            itemDiv.onclick = (e) => {
                 if (e.target.closest('.delete-geom-btn')) return;
-                const panel = el.dataset.panel;
-                this.loadPanel({ ...this.currentVisualContext, panel }, this.activeSeriesId);
+                this.loadPanel({ ...this.currentVisualContext, panel: item.panel }, this.activeSeriesId);
                 
                 // Highlight in preview
                 const iframe = document.getElementById('pagePreviewFrame');
                 if (iframe && iframe.contentWindow) {
-                    iframe.contentWindow.postMessage({ type: 'triggerPanelSelection', panel }, '*');
+                    iframe.contentWindow.postMessage({ type: 'triggerPanelSelection', panel: item.panel }, '*');
                 }
             };
-        });
 
-        // Bind deletes
-        toolsPane.querySelectorAll('.delete-geom-btn').forEach(btn => {
-            btn.onclick = (e) => {
-                e.stopPropagation();
-                this.handleDeletePanel(btn.dataset.panel);
-            };
+            const contentRow = document.createElement('div');
+            contentRow.className = 'flex-row align-center gap-10 flex-1';
+
+            // Thumbnail
+            const thumbDiv = document.createElement('div');
+            thumbDiv.className = 'geometry-thumb border-dim border-radius-4';
+            thumbDiv.style.cssText = 'width:40px; height:40px; background:#000; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;';
+            
+            if (item.fileName) {
+                const img = document.createElement('img');
+                const series = this.activeSeriesFolder || this.activeSeriesId;
+                const { volume, chapter, pageId } = this.currentVisualContext;
+                img.src = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${item.fileName}`;
+                img.style.width = '100%';
+                img.style.height = '100%';
+                img.style.objectFit = 'cover';
+                thumbDiv.appendChild(img);
+            } else {
+                const icon = document.createElement('ion-icon');
+                icon.name = 'image-outline';
+                icon.className = 'text-muted';
+                thumbDiv.appendChild(icon);
+            }
+            contentRow.appendChild(thumbDiv);
+
+            // Info
+            const infoDiv = document.createElement('div');
+            infoDiv.style.minWidth = '0';
+
+            const nameDiv = document.createElement('div');
+            nameDiv.className = 'text-accent font-weight-bold font-size-09 flex-row align-center gap-5';
+            nameDiv.textContent = item.panel.replace('.', '');
+            
+            if (item.isFloating) {
+                const floatBadge = document.createElement('span');
+                floatBadge.className = 'text-muted font-size-06 uppercase border-dim padding-x-5 border-radius-4';
+                floatBadge.textContent = 'Floating';
+                nameDiv.appendChild(floatBadge);
+            }
+            infoDiv.appendChild(nameDiv);
+
+            const fileDiv = document.createElement('div');
+            fileDiv.className = 'text-muted font-size-07 truncate';
+            fileDiv.textContent = item.fileName || 'No asset assigned';
+            infoDiv.appendChild(fileDiv);
+
+            contentRow.appendChild(infoDiv);
+            itemDiv.appendChild(contentRow);
+
+            if (item.isFloating) {
+                const delBtn = document.createElement('button');
+                delBtn.className = 'small btn-danger-outline delete-geom-btn margin-l-10';
+                delBtn.dataset.panel = item.panel;
+                delBtn.title = 'Delete Geometry';
+                
+                const trashIcon = document.createElement('ion-icon');
+                trashIcon.name = 'trash-outline';
+                delBtn.appendChild(trashIcon);
+                
+                delBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    this.handleDeletePanel(item.panel);
+                };
+                itemDiv.appendChild(delBtn);
+            }
+
+            geoList.appendChild(itemDiv);
         });
     }
 
@@ -369,9 +439,14 @@ export class VisualEditorManager {
                 </div>
                 <div class="form-group margin-b-15">
                     <label>Mask Background Color</label>
-                    <div class="flex-row gap-10">
+                    <div class="flex-row gap-5 align-center">
                         <input type="color" id="visual-mask-bg" class="gov-color-input" value="${entry.maskBg || '#000000'}">
+                        <button id="visual-mask-eyedropper" class="small btn-icon-only" title="Eye Dropper"><ion-icon name="color-filter-outline"></ion-icon></button>
+                        <button id="visual-mask-gen-palette" class="small btn-icon-only" title="Extract Palette"><ion-icon name="color-palette-outline"></ion-icon></button>
                         <input type="text" id="visual-mask-bg-text" class="gov-input mono flex-1" value="${entry.maskBg || '#000000'}">
+                    </div>
+                    <div id="visual-palette-swatches" class="flex-row gap-5 margin-t-10 hidden">
+                        <!-- Swatches injected here -->
                     </div>
                 </div>
 
@@ -510,27 +585,55 @@ export class VisualEditorManager {
         if (ptAlignSelect && ptPanWrapper) {
             ptAlignSelect.onchange = () => { ptPanWrapper.style.display = ptAlignSelect.value === 'custom' ? 'block' : 'none'; };
         }
-        if (maskBgInput && maskBgText) {
-            maskBgInput.oninput = () => maskBgText.value = maskBgInput.value;
-            maskBgText.oninput = () => maskBgInput.value = maskBgText.value;
+
+        if (nameInput) {
+            nameInput.oninput = () => this.syncPreview(panelSelector);
         }
+        if (typeSelect) {
+            typeSelect.onchange = () => this.syncPreview(panelSelector);
+        }
+
+        if (maskBgInput && maskBgText) {
+            maskBgInput.oninput = () => {
+                maskBgText.value = maskBgInput.value;
+                this.syncPreview(panelSelector);
+            };
+            maskBgText.oninput = () => {
+                maskBgInput.value = maskBgText.value;
+                this.syncPreview(panelSelector);
+            };
+        }
+
+        // --- Real-time Sync for Sliders ---
+        const sliders = [
+            'visual-ls-scale', 'ls-x-slider', 'ls-y-slider',
+            'visual-pt-scale', 'pt-x-slider', 'pt-y-slider',
+            'float-left', 'float-top', 'float-width', 'float-height', 'float-z'
+        ];
+        sliders.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.oninput = () => this.syncPreview(panelSelector);
+        });
+
+        const selects = ['visual-style-object-position', 'visual-portrait-style-object-position', 'visual-asset-type'];
+        selects.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.onchange = (e) => {
+                if (id === 'visual-style-object-position' && lsPanWrapper) {
+                    lsPanWrapper.style.display = el.value === 'custom' ? 'block' : 'none';
+                }
+                if (id === 'visual-portrait-style-object-position' && ptPanWrapper) {
+                    ptPanWrapper.style.display = el.value === 'custom' ? 'block' : 'none';
+                }
+                this.syncPreview(panelSelector);
+            };
+        });
 
         browseBtn.onclick = () => {
             const type = typeSelect ? typeSelect.value : 'image';
             openFileBrowser(type, this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, (fileName) => {
                 nameInput.value = fileName;
-            }, 'page', this.activeSeriesId, this.getActiveAssets());
-        };
-
-        overlayBrowseBtn.onclick = () => {
-            openFileBrowser('image', this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, (fileName) => {
-                overlayInput.value = fileName;
-            }, 'page', this.activeSeriesId, this.getActiveAssets());
-        };
-
-        maskBrowseBtn.onclick = () => {
-            openFileBrowser('image', this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, (fileName) => {
-                maskInput.value = fileName;
+                this.syncPreview(panelSelector);
             }, 'page', this.activeSeriesId, this.getActiveAssets());
         };
 
@@ -543,18 +646,168 @@ export class VisualEditorManager {
                     const step = parseFloat(btn.dataset.dir);
                     let val = parseFloat(el.value) + step;
                     if (!btn.dataset.target.includes('scale')) {
-                        // Allow slight overflow for zoomed panning
                         val = Math.min(120, Math.max(-20, Math.round(val)));
                     } else {
                         val = Math.max(1.0, val);
                     }
                     el.value = btn.dataset.target.includes('scale') ? val.toFixed(1) : val;
+                    this.syncPreview(panelSelector);
                 }
             };
         });
 
         saveBtn.onclick = () => this.handleSave(panelSelector);
         if (deleteBtn) deleteBtn.onclick = () => this.handleDeletePanel(panelSelector);
+
+        this.bindColorTools(panelSelector);
+    }
+
+    bindColorTools(panelSelector) {
+        const eyeBtn = document.getElementById('visual-mask-eyedropper');
+        const palBtn = document.getElementById('visual-mask-gen-palette');
+        const colorInput = document.getElementById('visual-mask-bg');
+        const colorText = document.getElementById('visual-mask-bg-text');
+        const swatchesCont = document.getElementById('visual-palette-swatches');
+
+        if (eyeBtn) {
+            eyeBtn.onclick = async () => {
+                if (!window.EyeDropper) return alert("EyeDropper API is not supported in this browser.");
+                const dropper = new EyeDropper();
+                try {
+                    const result = await dropper.open();
+                    colorInput.value = result.sRGBHex;
+                    colorText.value = result.sRGBHex;
+                    this.syncPreview(panelSelector);
+                } catch (e) {}
+            };
+        }
+
+        if (palBtn) {
+            palBtn.onclick = async () => {
+                const nameInput = document.getElementById('visual-asset-name');
+                if (!nameInput || !nameInput.value) return alert("No image assigned to this panel.");
+
+                swatchesCont.innerHTML = '<span class="text-muted font-size-07">Extracting...</span>';
+                swatchesCont.classList.remove('hidden');
+
+                const series = this.activeSeriesFolder || this.activeSeriesId;
+                const { volume, chapter, pageId } = this.currentVisualContext;
+                const imgUrl = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${nameInput.value}`;
+
+                try {
+                    const colors = await this.extractPalette(imgUrl);
+                    swatchesCont.innerHTML = '';
+                    colors.forEach(hex => {
+                        const s = document.createElement('div');
+                        s.style.cssText = `width:24px; height:24px; background:${hex}; border-radius:4px; cursor:pointer; border:1px solid rgba(255,255,255,0.1);`;
+                        s.title = hex;
+                        s.onclick = () => {
+                            colorInput.value = hex;
+                            colorText.value = hex;
+                            this.syncPreview(panelSelector);
+                        };
+                        swatchesCont.appendChild(s);
+                    });
+                } catch (err) {
+                    swatchesCont.innerHTML = '<span class="text-danger font-size-07">Failed to extract palette.</span>';
+                }
+            };
+        }
+    }
+
+    async extractPalette(url) {
+        return new Promise((resolve, reject) => {
+            const img = new Image();
+            img.crossOrigin = "Anonymous";
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                canvas.width = 100; // Small for performance
+                canvas.height = 100;
+                ctx.drawImage(img, 0, 0, 100, 100);
+
+                const data = ctx.getImageData(0, 0, 100, 100).data;
+                const counts = {};
+                
+                // Sample pixels every 4 steps
+                for (let i = 0; i < data.length; i += 16) {
+                    const r = data[i];
+                    const g = data[i+1];
+                    const b = data[i+2];
+                    // Quantize to reduce noise
+                    const qr = Math.round(r / 10) * 10;
+                    const qg = Math.round(g / 10) * 10;
+                    const qb = Math.round(b / 10) * 10;
+                    const hex = "#" + ((1 << 24) + (qr << 16) + (qg << 8) + qb).toString(16).slice(1);
+                    counts[hex] = (counts[hex] || 0) + 1;
+                }
+
+                // Sort and pick top 5
+                const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+                const top5 = sorted.slice(0, 5).map(c => c[0]);
+                resolve(top5);
+            };
+            img.onerror = reject;
+            img.src = url;
+        });
+    }
+
+    syncPreview(panelSelector) {
+        const iframe = document.getElementById('pagePreviewFrame');
+        if (!iframe || !iframe.contentWindow) return;
+
+        // Collect current UI values
+        const styles = {};
+        const mode = this.activeMode; // Current tab
+
+        const fileName = document.getElementById('visual-asset-name')?.value;
+        const assetType = document.getElementById('visual-asset-type')?.value || 'image';
+
+        if (mode === 'landscape') {
+            const align = document.getElementById('visual-style-object-position')?.value || 'center';
+            if (align === 'custom') {
+                const x = document.getElementById('ls-x-slider')?.value || '50';
+                const y = document.getElementById('ls-y-slider')?.value || '50';
+                styles.objectPosition = `${x}% ${y}%`;
+                styles.transformOrigin = `${x}% ${y}%`;
+            } else if (align === 'contain') {
+                styles.objectFit = 'contain';
+            } else {
+                styles.objectFit = 'cover';
+                styles.objectPosition = align === 'cover' ? 'center' : align;
+            }
+
+            const scale = document.getElementById('visual-ls-scale')?.value || '1';
+            styles.transform = parseFloat(scale) !== 1 ? `scale(${scale})` : 'none';
+        } else {
+            const align = document.getElementById('visual-portrait-style-object-position')?.value || 'center';
+            if (align === 'custom') {
+                const x = document.getElementById('pt-x-slider')?.value || '50';
+                const y = document.getElementById('pt-y-slider')?.value || '50';
+                styles.objectPosition = `${x}% ${y}%`;
+                styles.transformOrigin = `${x}% ${y}%`;
+            } else if (align === 'contain') {
+                styles.objectFit = 'contain';
+            } else {
+                styles.objectFit = 'cover';
+                styles.objectPosition = align === 'cover' ? 'center' : align;
+            }
+
+            const scale = document.getElementById('visual-pt-scale')?.value || '1';
+            styles.transform = parseFloat(scale) !== 1 ? `scale(${scale})` : 'none';
+        }
+
+        // Floating specific
+        const floatLeft = document.getElementById('float-left');
+        if (floatLeft) {
+            styles.left = floatLeft.value + '%';
+            styles.top = document.getElementById('float-top').value + '%';
+            styles.width = document.getElementById('float-width').value + '%';
+            styles.height = document.getElementById('float-height').value;
+            styles.zIndex = document.getElementById('float-z').value;
+        }
+
+        iframe.contentWindow.postMessage({ type: 'styleUpdate', panel: panelSelector, styles }, '*');
     }
 
     async handleDeletePanel(panelSelector) {
@@ -632,8 +885,10 @@ export class VisualEditorManager {
 
         const lsAlign = document.getElementById('visual-style-object-position')?.value || 'center';
         if (lsAlign === 'custom') {
-            const x = document.getElementById('ls-x-slider')?.value || '50';
-            const y = document.getElementById('ls-y-slider')?.value || '50';
+            const xSlider = document.getElementById('ls-x-slider');
+            const ySlider = document.getElementById('ls-y-slider');
+            const x = xSlider ? xSlider.value : '50';
+            const y = ySlider ? ySlider.value : '50';
             const pos = `${x}% ${y}%`;
             existingStyle.objectPosition = pos;
             existingStyle.transformOrigin = pos;
@@ -655,8 +910,10 @@ export class VisualEditorManager {
 
         const ptAlign = document.getElementById('visual-portrait-style-object-position')?.value || 'center';
         if (ptAlign === 'custom') {
-            const x = document.getElementById('pt-x-slider')?.value || '50';
-            const y = document.getElementById('pt-y-slider')?.value || '50';
+            const xSlider = document.getElementById('pt-x-slider');
+            const ySlider = document.getElementById('pt-y-slider');
+            const x = xSlider ? xSlider.value : '50';
+            const y = ySlider ? ySlider.value : '50';
             const pos = `${x}% ${y}%`;
             existingPortraitStyle.objectPosition = pos;
             existingPortraitStyle.transformOrigin = pos;
@@ -708,10 +965,26 @@ export class VisualEditorManager {
                     saveBtn.textContent = "Saved! Waiting for AI...";
                 } else {
                     saveBtn.textContent = "Saved!";
-                    setTimeout(() => { saveBtn.disabled = false; saveBtn.textContent = "Save Panel Asset"; }, 2000);
+                    setTimeout(() => { 
+                        saveBtn.disabled = false; 
+                        saveBtn.textContent = "Save Panel Asset"; 
+                    }, 2000);
                 }
+
+                // --- SURGICAL PREVIEW UPDATE ---
+                // Instead of a full reload (which causes race conditions/jumpbacks), 
+                // we've already synced the live values via syncPreview.
+                // We only need to tell the iframe that the data is now persisted.
                 const iframe = document.getElementById('pagePreviewFrame');
-                if (iframe) iframe.contentWindow.location.reload();
+                if (iframe && iframe.contentWindow) {
+                    // Update the iframe's internal knowledge if it has a cache
+                    iframe.contentWindow.postMessage({ 
+                        type: 'mediaPersisted', 
+                        panel: panelSelector, 
+                        entry: updatedEntry 
+                    }, '*');
+                }
+
             } else throw new Error(res.message);
         } catch (err) {
             alert("Error: " + err.message);

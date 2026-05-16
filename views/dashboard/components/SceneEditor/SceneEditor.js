@@ -58,11 +58,17 @@ export async function openSceneEditor(volume, chapter, pageId, mode = 'landscape
     } catch (e) { console.error("Could not resolve series", e); }
 
     // Fetch Data
-    const [panelData, scene, characters] = await Promise.all([
+    const [panelData, scene, characters, mediaRes] = await Promise.all([
         fetchPagePanels(volume, chapter, pageId, mode, activeSeriesId),
         fetchSceneData(volume, chapter, pageId, activeSeriesId),
-        activeSeriesId ? fetchCharactersAPI(activeSeriesId) : Promise.resolve([])
+        activeSeriesId ? fetchCharactersAPI(activeSeriesId) : Promise.resolve([]),
+        fetchMedia(volume, chapter, pageId, activeSeriesId)
     ]);
+
+    // Sync Visual Manager Cache for Palette Tool
+    if (visual) {
+        visual.currentVisualMediaData = Array.isArray(mediaRes) ? mediaRes : (mediaRes.media || []);
+    }
 
     currentSceneData = scene || [];
     currentSceneData.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
@@ -160,6 +166,14 @@ export function initSceneEditor() {
                 properties.updateItem(currentSceneData[selectedItemIndex]);
                 timeline.render();
             }
+        },
+        (selector) => {
+            if (!visual.currentVisualMediaData) return null;
+            const entry = visual.currentVisualMediaData.find(m => m.panel === selector);
+            if (!entry || !entry.fileName) return null;
+            const { volume, chapter, pageId } = currentSceneInfo;
+            const series = activeSeriesFolder || activeSeriesId;
+            return `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${entry.fileName}`;
         }
     );
 

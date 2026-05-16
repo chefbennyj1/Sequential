@@ -97,35 +97,6 @@ class SpeechBubble {
     return { cleanText, isMonologue, matchedTag };
   }
 
-  _getBubbleHtml(cleanText, isMonologue, matchedTag) {
-    if (isMonologue) {
-        return `<div class="super-bubble monologue-bubble">${cleanText}</div>`;
-    }
-
-    if (matchedTag) {
-        return `
-           <div class="super-bubble">
-              <div class="system-header">[${matchedTag.headerText}]</div>
-              <span class="speech-text">> ${cleanText}</span>
-              <div class="scanlines"></div>
-              <div class="tail-container rigid-tail tail-${this.options.tailPosition}">
-                 <div class="tail-shape"></div>
-              </div>
-           </div>
-        `;
-    }
-
-    const tailClass = `tail-${this.options.tailPosition}`;
-    return `
-       <div class="super-bubble">
-          <span class="speech-text">${cleanText}</span>
-          <div class="tail-container ${tailClass}">
-             <div class="tail-shape"></div>
-          </div>
-       </div>
-    `;
-  }
-
   async render() {
     await document.fonts.ready;
     await this._loadCustomTags();
@@ -142,9 +113,49 @@ class SpeechBubble {
         classes.forEach(c => speechBubbleContainer.classList.add(c));
     }
 
-    // 1. Physical Creation: Set HTML and Append to parent IMMEDIATELY
-    // This ensures children are available for querySelector synchronously.
-    speechBubbleContainer.innerHTML = this._getBubbleHtml(cleanText, isMonologue, matchedTag);
+    // 1. Physical Creation: Construct DOM elements programmatically
+    const superBubble = document.createElement('div');
+    superBubble.classList.add('super-bubble');
+    if (isMonologue) superBubble.classList.add('monologue-bubble');
+
+    if (matchedTag) {
+        const systemHeader = document.createElement('div');
+        systemHeader.classList.add('system-header');
+        systemHeader.textContent = `[${matchedTag.headerText}]`;
+        superBubble.appendChild(systemHeader);
+
+        const speechText = document.createElement('span');
+        speechText.classList.add('speech-text');
+        speechText.innerHTML = `> ${cleanText}`;
+        superBubble.appendChild(speechText);
+
+        const scanlines = document.createElement('div');
+        scanlines.classList.add('scanlines');
+        superBubble.appendChild(scanlines);
+
+        const tailContainer = document.createElement('div');
+        tailContainer.className = `tail-container rigid-tail tail-${this.options.tailPosition}`;
+        const tailShape = document.createElement('div');
+        tailShape.classList.add('tail-shape');
+        tailContainer.appendChild(tailShape);
+        superBubble.appendChild(tailContainer);
+    } else if (isMonologue) {
+        superBubble.innerHTML = cleanText;
+    } else {
+        const speechText = document.createElement('span');
+        speechText.classList.add('speech-text');
+        speechText.innerHTML = cleanText;
+        superBubble.appendChild(speechText);
+
+        const tailContainer = document.createElement('div');
+        tailContainer.className = `tail-container tail-${this.options.tailPosition}`;
+        const tailShape = document.createElement('div');
+        tailShape.classList.add('tail-shape');
+        tailContainer.appendChild(tailShape);
+        superBubble.appendChild(tailContainer);
+    }
+
+    speechBubbleContainer.appendChild(superBubble);
     this.parentElement.appendChild(speechBubbleContainer);
     this.container = speechBubbleContainer;
 
@@ -159,15 +170,13 @@ class SpeechBubble {
     if (this.options.tailScale) speechBubbleContainer.style.setProperty('--tail-scale', this.options.tailScale);
     if (this.options.color) speechBubbleContainer.style.setProperty('--speech-text', this.options.color);
     
-    // 4. Apply Font Size (Synchronously now that children exist)
-    if (this.options.fontSize) {
-        let fs = this.options.fontSize;
-        if (!isNaN(fs) && fs !== '') fs = fs + 'rem';
-        
-        speechBubbleContainer.style.setProperty('--bubble-font-size', fs);
-        const bubbleText = speechBubbleContainer.querySelector('.speech-text') || speechBubbleContainer.querySelector('.super-bubble');
-        if (bubbleText) bubbleText.style.setProperty('font-size', fs, 'important');
-    }
+    // 4. Apply Font Size (Standardized to 0.875rem)
+    let fs = this.options.fontSize || '0.875rem';
+    if (!isNaN(fs) && fs !== '') fs = fs + 'rem';
+    
+    speechBubbleContainer.style.setProperty('--bubble-font-size', fs);
+    const bubbleText = speechBubbleContainer.querySelector('.speech-text') || speechBubbleContainer.querySelector('.super-bubble');
+    if (bubbleText) bubbleText.style.setProperty('font-size', fs, 'important');
     
     if (this.options.outlineEnabled) {
         const size = this.options.outlineSize || '1.0';

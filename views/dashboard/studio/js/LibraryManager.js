@@ -193,12 +193,16 @@ export async function populateLayoutSelect(targetId = 'builderLayoutSelect') {
  */
 export async function renderLibraryHtml(seriesList, libraryRowElement) {
     if (!libraryRowElement) return;
-    let html = '';
+    libraryRowElement.innerHTML = ''; // Clear existing
     seriesList.forEach(series => {
         const imgUrl = series.coverImage || '/views/public/images/folder.png';
-        html += renderSeriesCard({ _id: series._id, title: series.title, imgUrl: `${imgUrl}?resize=500` });
+        const cardHtml = renderSeriesCard({ _id: series._id, title: series.title, imgUrl: `${imgUrl}?resize=500` });
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = cardHtml;
+        const card = tempDiv.firstElementChild;
+        if (card) libraryRowElement.appendChild(card);
     });
-    libraryRowElement.innerHTML = html;
 }
 
 /**
@@ -212,38 +216,64 @@ export async function showVolumesForSeries(seriesId) {
     }
     const librarySection = document.querySelector('.library');
     const libraryRow = librarySection.querySelector('.row');
-    let volumesDisplay = document.querySelector('.volumes-display') || document.createElement('div');
-    if (!volumesDisplay.classList.contains('volumes-display')) {
+    
+    let volumesDisplay = document.querySelector('.volumes-display');
+    if (!volumesDisplay) {
+        volumesDisplay = document.createElement('div');
         volumesDisplay.classList.add('volumes-display');
         librarySection.appendChild(volumesDisplay);
     }
-    volumesDisplay.innerHTML = `
-        <div class="flex-row-center gap-20 margin-b-20">
-            <button class="small" id="backToSeriesBtn">&larr; Back to Library</button>
-            <h2 class="props-header">${series.title} - Volumes</h2>
-        </div>
-        <div class="volumes-grid row flex-row flex-wrap gap-20"></div>
-    `;
-    const volumesGrid = volumesDisplay.querySelector('.volumes-grid');
+    
+    volumesDisplay.innerHTML = ''; // Full clear
+
+    // 1. Header & Back Button
+    const headerRow = document.createElement('div');
+    headerRow.className = 'flex-row-center gap-20 margin-b-20';
+
+    const backBtn = document.createElement('button');
+    backBtn.className = 'small';
+    backBtn.id = 'backToSeriesBtn';
+    backBtn.innerHTML = '&larr; Back to Library';
+    backBtn.onclick = () => {
+        volumesDisplay.classList.add('hidden');
+        libraryRow.classList.remove('hidden');
+    };
+    headerRow.appendChild(backBtn);
+
+    const title = document.createElement('h2');
+    title.className = 'props-header';
+    title.textContent = `${series.title} - Volumes`;
+    headerRow.appendChild(title);
+    
+    volumesDisplay.appendChild(headerRow);
+
+    // 2. Volumes Grid
+    const volumesGrid = document.createElement('div');
+    volumesGrid.className = 'volumes-grid row flex-row flex-wrap gap-20';
+
     series.volumes.forEach(volume => {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = renderCard({
+        const cardHtml = renderCard({
             _id: volume._id, 
             index: volume.index, 
             title: volume.title, 
             imgUrl: `${volume.coverImage || '/views/public/images/folder.png'}?resize=500`,
             seriesTitle: series.title
         });
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = cardHtml;
         const card = tempDiv.firstElementChild;
-        card.onclick = () => showChaptersForVolume(volume._id);
-        volumesGrid.appendChild(card);
+        if (card) {
+            card.onclick = () => showChaptersForVolume(volume._id);
+            volumesGrid.appendChild(card);
+        }
     });
-    document.getElementById('backToSeriesBtn').onclick = () => {
-        volumesDisplay.classList.add('hidden');
-        libraryRow.classList.remove('hidden');
-    };
+    
+    volumesDisplay.appendChild(volumesGrid);
+    
     libraryRow.classList.add('hidden');
     volumesDisplay.classList.remove('hidden');
+    
     const chaptersDisplay = document.querySelector('.chapters-display');
     if (chaptersDisplay) chaptersDisplay.classList.add('hidden');
 }
@@ -259,27 +289,25 @@ export async function showChaptersForVolume(volumeId) {
     }
     const librarySection = document.querySelector('.library');
     const volumesDisplay = document.querySelector('.volumes-display');
-    let chaptersDisplay = document.querySelector('.chapters-display') || document.createElement('div');
-    if (!chaptersDisplay.classList.contains('chapters-display')) {
+    
+    let chaptersDisplay = document.querySelector('.chapters-display');
+    if (!chaptersDisplay) {
+        chaptersDisplay = document.createElement('div');
         chaptersDisplay.classList.add('chapters-display');
         librarySection.appendChild(chaptersDisplay);
     }
-    chaptersDisplay.innerHTML = `
-        <div class="flex-row-center gap-20 margin-b-20">
-            <button class="small" id="backToVolumesBtn">&larr; Back to Volumes</button>
-            <h2 class="props-header">${volume.title} - Chapters</h2>
-        </div>
-        <div class="chapters-grid"></div>
-    `;
-    const chaptersGrid = chaptersDisplay.querySelector('.chapters-grid');
-    volume.chapters.forEach(chapter => {
-        const tempDiv = document.createElement('div');
-        tempDiv.innerHTML = renderChapterCard({ title: chapter.title, chapterNumber: chapter.chapterNumber, pages: chapter.pages, volumeId });
-        const card = tempDiv.firstElementChild;
-        card.onclick = () => window.location.href = `/viewer?id=${volumeId}&chapter=${chapter.chapterNumber}`;
-        chaptersGrid.appendChild(card);
-    });
-    document.getElementById('backToVolumesBtn').onclick = () => {
+    
+    chaptersDisplay.innerHTML = ''; // Full clear
+
+    // 1. Header & Back Button
+    const headerRow = document.createElement('div');
+    headerRow.className = 'flex-row-center gap-20 margin-b-20';
+
+    const backBtn = document.createElement('button');
+    backBtn.className = 'small';
+    backBtn.id = 'backToVolumesBtn';
+    backBtn.innerHTML = '&larr; Back to Volumes';
+    backBtn.onclick = () => {
         chaptersDisplay.classList.add('hidden');
         if (volumesDisplay) {
             volumesDisplay.classList.remove('hidden');
@@ -288,6 +316,38 @@ export async function showChaptersForVolume(volumeId) {
             if (libraryRow) libraryRow.classList.remove('hidden');
         }
     };
+    headerRow.appendChild(backBtn);
+
+    const title = document.createElement('h2');
+    title.className = 'props-header';
+    title.textContent = `${volume.title} - Chapters`;
+    headerRow.appendChild(title);
+    
+    chaptersDisplay.appendChild(headerRow);
+
+    // 2. Chapters Grid
+    const chaptersGrid = document.createElement('div');
+    chaptersGrid.className = 'chapters-grid';
+
+    volume.chapters.forEach(chapter => {
+        const cardHtml = renderChapterCard({ 
+            title: chapter.title, 
+            chapterNumber: chapter.chapterNumber, 
+            pages: chapter.pages, 
+            volumeId 
+        });
+        
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = cardHtml;
+        const card = tempDiv.firstElementChild;
+        if (card) {
+            card.onclick = () => window.location.href = `/viewer?id=${volumeId}&chapter=${chapter.chapterNumber}`;
+            chaptersGrid.appendChild(card);
+        }
+    });
+    
+    chaptersDisplay.appendChild(chaptersGrid);
+
     if (volumesDisplay) volumesDisplay.classList.add('hidden');
     const libraryRow = document.querySelector('.library .row');
     if (libraryRow) libraryRow.classList.add('hidden');

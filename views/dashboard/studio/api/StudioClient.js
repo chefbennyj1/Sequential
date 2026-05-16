@@ -205,7 +205,7 @@ export async function saveMediaAPI(volume, chapter, pageId, media, seriesId) {
 export async function fetchMedia(volume, chapter, pageId, seriesId) {
     if (!seriesId) throw new Error("seriesId is required");
     try {
-        const res = await fetch(`/api/editor/media/${seriesId}/${volume}/${chapter}/${pageId}`);
+        const res = await fetch(`/api/editor/media/${seriesId}/${volume}/${chapter}/${pageId}?t=${Date.now()}`);
         const data = await res.json();
         return data.ok ? data.media : { media: [] };
     } catch (err) {

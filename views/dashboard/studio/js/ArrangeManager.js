@@ -92,24 +92,30 @@ class ArrangeManager {
             const item = document.createElement('div');
             item.className = 'arrange-page-item';
             item.setAttribute('data-id', pageId);
-            
-            // Thumbnail placeholder or actual image if available
-            let thumbHtml = '<div class="page-thumb-placeholder"><ion-icon name="image-outline"></ion-icon></div>';
-            if (page.mediaData && page.mediaData.media && page.mediaData.media.length > 0) {
-                const firstImg = page.mediaData.media.find(m => m.type === 'image');
-                if (firstImg) {
-                    // Try to resolve path - this might need more logic depending on server setup
-                    // For now using placeholder
-                }
-            }
 
-            item.innerHTML = `
-                <div class="arrange-handle"><ion-icon name="reorder-two-outline"></ion-icon></div>
-                <div class="arrange-info">
-                    <span class="page-num">Original Index: ${page.index}</span>
-                    <span class="page-id">${pageId}</span>
-                </div>
-            `;
+            // 1. Drag Handle
+            const handle = document.createElement('div');
+            handle.className = 'arrange-handle';
+            const handleIcon = document.createElement('ion-icon');
+            handleIcon.name = 'reorder-two-outline';
+            handle.appendChild(handleIcon);
+            item.appendChild(handle);
+
+            // 2. Info Section
+            const info = document.createElement('div');
+            info.className = 'arrange-info';
+
+            const numSpan = document.createElement('span');
+            numSpan.className = 'page-num';
+            numSpan.textContent = `Original Index: ${page.index}`;
+            info.appendChild(numSpan);
+
+            const idSpan = document.createElement('span');
+            idSpan.className = 'page-id';
+            idSpan.textContent = pageId;
+            info.appendChild(idSpan);
+
+            item.appendChild(info);
             this.listElement.appendChild(item);
         });
 

@@ -1,3 +1,4 @@
+<!-- 1. SIDEBAR NAVIGATION -->
 <aside class="sidebar">
     <div class="logo">SEQUENTIAL</div>
     <nav>
@@ -20,8 +21,10 @@
     </div>
 </aside>
 
+<!-- 2. MAIN CONTENT AREA -->
 <main class="main-content">
 
+    <!-- 2.1 TOPBAR -->
     <header class="topbar">
         <!-- Search, profile pic, settings -->
         <a href="/library" class="library-link">
@@ -30,7 +33,7 @@
         </a>
     </header>
 
-    <!-- STUDIO HUB -->
+    <!-- 2.2 STUDIO HUB (Tool Selection) -->
     <div class="studio dashboard-section hidden">
         <div class="studio-header text-center padding-40-20">
             <h3>Sequential Studio</h3>
@@ -504,25 +507,44 @@
                 </div>
             </div>
 
-            <!-- RIGHT: Scanner & Logs -->
+            <!-- RIGHT: Scanners & Tools -->
             <div class="task-panel">
-                <div class="scanner-header">
-                    <h3 class="system-scanner-header">System Scanner</h3>
-                    <div class="flex-row gap-10">
-                        <button id="run-quick-scan-btn" class="small">Quick Scan</button>
-                        <button id="run-scan-btn" class="update__btn">Full Scan (AI)</button>
+                <!-- 1. Library Sync -->
+                <div class="scanner-group margin-b-30 border-dim-bottom padding-b-20">
+                    <div class="scanner-header">
+                        <h3 class="system-scanner-header">Library Synchronization</h3>
+                        <div class="flex-row gap-10">
+                            <button id="run-sync-quick-btn" class="small">Sync Quick</button>
+                            <button id="run-sync-full-btn" class="update__btn">Sync Content</button>
+                        </div>
                     </div>
+                    <p class="font-size-07 text-muted margin-t-10">
+                        Detect new series, volumes, and chapters on disk. Does <strong>not</strong> use AI.
+                    </p>
                 </div>
-                <p class="font-size-07 text-muted margin-t-10">
-                    <strong>Quick Scan:</strong> Fast update of image hashes only.<br>
-                    <strong>Full Scan:</strong> Includes AI image analysis for missing/changed panels (takes ~4 mins per panel).
-                </p>
+
+                <!-- 2. Vision AI Processor -->
+                <div class="scanner-group">
+                    <div class="scanner-header">
+                        <h3 class="system-scanner-header text-accent">Vision AI Management</h3>
+                        <div class="flex-row gap-10">
+                            <button id="run-vision-scan-btn" class="small">Run AI Scan</button>
+                            <button id="run-vision-force-btn" class="update__btn btn-danger-outline">Force Rescan All</button>
+                        </div>
+                    </div>
+                    <p class="font-size-07 text-muted margin-t-10">
+                        Generate descriptions for panels via Google Gemini.<br>
+                        <strong>AI Scan:</strong> Processes missing or changed panels.<br>
+                        <strong>Force Rescan:</strong> Re-analyzes <em>everything</em> and overwrites all descriptions.
+                    </p>
+                    <button id="stop-vision-btn" class="small width-100 margin-t-15 btn-danger-outline">Stop AI Processor</button>
+                </div>
                 
-                <div class="scanner-progress-container" style="display: none;">
+                <div class="scanner-progress-container margin-t-20" style="display: none;">
                     <div class="scanner-progress-bar" id="scanner-progress-bar"></div>
                 </div>
 
-                <div id="scanner-log" class="scanner-log">
+                <div id="scanner-log" class="scanner-log margin-t-20">
                     <span class="log-placeholder">> System ready.<br>> Waiting for command...</span>
                 </div>
             </div>
@@ -807,12 +829,27 @@
                                 </div>
                                 <div class="input-field flex-1">
                                     <label>Text Color</label>
-
                                     <input type="color" id="prop-action-color" value="#000000" class="gov-color-input">
                                 </div>
-                            </div>
-                            <div class="flex-gap-10">
-                                <div class="input-field flex-1" style="display:flex; flex-direction:row; align-items:center; gap:8px;">
+                                </div>
+
+                                <!-- AI Color Extraction Tool -->
+                                <div class="palette-extraction-row flex-row align-center gap-10 margin-b-5">
+                                <button type="button" id="prop-gen-palette" class="small btn-secondary flex-row align-center gap-5" style="white-space: nowrap;">
+                                    <ion-icon name="color-palette-outline"></ion-icon>
+                                    <span>Image color extraction</span>
+                                </button>
+                                <div id="prop-palette-swatches" class="flex-row gap-5 hidden">
+                                    <!-- Swatches injected here -->
+                                </div>
+                                </div>
+                                <div class="margin-b-15">
+                                <p class="font-size-06 text-muted italic">
+                                    <strong>Click:</strong> Text Color | <strong>Right-Click:</strong> Outline | <strong>Shift-Click:</strong> Both
+                                </p>
+                                </div>
+
+                                <div class="flex-gap-10">                                <div class="input-field flex-1" style="display:flex; flex-direction:row; align-items:center; gap:8px;">
                                     <input type="checkbox" id="prop-outline-enabled" style="margin:0;">
                                     <label style="margin:0;">Text Outline</label>
                                 </div>

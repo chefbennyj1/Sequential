@@ -199,3 +199,43 @@ export function resolveMediaUrl(fileName, type, pageInfo, cacheBust = false) {
 
     return appendSecret(url);
 }
+
+/**
+ * Extracts a 5-color palette from an image URL using canvas sampling.
+ */
+export async function extractPalette(url) {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.crossOrigin = "Anonymous";
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 100; // Small for performance
+            canvas.height = 100;
+            ctx.drawImage(img, 0, 0, 100, 100);
+
+            const data = ctx.getImageData(0, 0, 100, 100).data;
+            const counts = {};
+            
+            // Sample pixels every 16 steps for speed
+            for (let i = 0; i < data.length; i += 16) {
+                const r = data[i];
+                const g = data[i+1];
+                const b = data[i+2];
+                // Quantize to group similar colors (step of 10)
+                const qr = Math.round(r / 10) * 10;
+                const qg = Math.round(g / 10) * 10;
+                const qb = Math.round(b / 10) * 10;
+                const hex = "#" + ((1 << 24) + (qr << 16) + (qg << 8) + qb).toString(16).slice(1);
+                counts[hex] = (counts[hex] || 0) + 1;
+            }
+
+            // Sort and pick top 5
+            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+            const top5 = sorted.slice(0, 5).map(c => c[0]);
+            resolve(top5);
+        };
+        img.onerror = (e) => reject(new Error("Failed to load image for palette extraction: " + url));
+        img.src = url;
+    });
+}

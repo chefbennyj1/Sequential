@@ -112,8 +112,9 @@ export async function init(container, params) {
         try {
             const series = params.series;
             if (!series) throw new Error("No series context in params");
-            const res = await fetch(`/api/media/${series}/${volume}/${chapter}/${pageId}`);
+            const res = await fetch(`/api/media/${series}/${volume}/${chapter}/${pageId}?t=${Date.now()}`);
             const data = await res.json();
+
             if (data.ok && data.media) {
                 const mediaArray = Array.isArray(data.media) ? data.media : (data.media.media || []);
                 mediaArray.forEach(item => {
@@ -305,6 +306,71 @@ export async function init(container, params) {
                 activeUploadTarget = { panel: p, panelClass: pClass, label: label };
                 fileInput.click();
             }
+        }
+
+        if (e.data.type === 'styleUpdate' || e.data.type === 'mediaPersisted') {
+            const { panel: selector, styles, fileName, assetType, entry } = e.data;
+            const panel = container.querySelector(selector);
+            
+            if (panel) {
+                const targetFileName = fileName || entry?.fileName;
+                
+                // 1. SURGICAL ASSET SWAP
+                if (targetFileName) {
+                    let mediaEl = panel.querySelector('img') || panel.querySelector('video');
+                    const series = params.series;
+                    const { volume, chapter, pageId } = params;
+                    // Add cache buster to newSrc to force refresh
+                    const newSrc = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${targetFileName}?t=${Date.now()}`;
+
+                    const isVideo = targetFileName.match(/\.(mp4|webm|mov)$/i);
+                    const currentIsVideo = mediaEl && mediaEl.tagName === 'VIDEO';
+
+                    if (!mediaEl || (isVideo && !currentIsVideo) || (!isVideo && currentIsVideo)) {
+                        if (mediaEl) mediaEl.remove();
+                        mediaEl = document.createElement(isVideo ? 'video' : 'img');
+                        mediaEl.style.width = '100%';
+                        mediaEl.style.height = '100%';
+                        mediaEl.style.objectFit = 'cover';
+                        if (isVideo) {
+                            mediaEl.autoplay = true;
+                            mediaEl.loop = true;
+                            mediaEl.muted = true;
+                        }
+                        panel.prepend(mediaEl);
+                    }
+
+                    // Force update if filename is different or we just need to refresh
+                    mediaEl.src = newSrc;
+                }
+
+                // 2. STYLE UPDATES
+                const targetStyles = styles || entry?.style || {};
+                const img = panel.querySelector('img') || panel.querySelector('video');
+                const visualProps = ['objectFit', 'objectPosition', 'transform', 'transformOrigin', 'filter', 'opacity'];
+                
+                for (const prop in targetStyles) {
+                    const isVisual = visualProps.includes(prop);
+                    const target = (panel.classList.contains('floating-panel') && !isVisual) ? panel : (img || panel);
+                    if (target) target.style[prop] = targetStyles[prop];
+                }
+
+                // Special case for Portrait Overrides
+                if (params.mode === 'portrait' && entry?.portraitStyle) {
+                    for (const prop in entry.portraitStyle) {
+                        const isVisual = visualProps.includes(prop);
+                        const target = (panel.classList.contains('floating-panel') && !isVisual) ? panel : (img || panel);
+                        if (target) target.style[prop] = entry.portraitStyle[prop];
+                    }
+                }
+            }
+        }
+
+        if (e.data.type === 'triggerPanelSelection') {
+            const { panel: selector } = e.data;
+            container.querySelectorAll('.panel').forEach(p => p.classList.remove('selected'));
+            const p = container.querySelector(selector);
+            if (p) p.classList.add('selected');
         }
     });
 

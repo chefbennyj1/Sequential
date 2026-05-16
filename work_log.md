@@ -290,7 +290,31 @@
 
 ---
 
-### May 9, 2026: Vision AI Stabilization & UI Refactor
+### May 15, 2026: Senior Level Refactor & Post-Revert Stabilization
+
+### Architectural Shift: Programmatic DOM Construction
+- **innerHTML to createElement Refactor**: Initiated a massive architectural shift to move away from brittle string-based templates in favor of programmatic `document.createElement` construction.
+    - **Security (XSS Prevention)**: Switched core text elements (bubbles, text blocks) to `textContent` / `innerHTML` hybrid to allow creative styling while shielding structural logic from script injection.
+    - **Performance & Stability**: Elements are now surgically inserted into the DOM. This prevents the "destroy and rebuild" cycle of `innerHTML`, preserving event listeners and reducing layout thrashing.
+    - **Hybrid Content Support**: Maintained `innerHTML` support specifically for dialogue text to allow formatting tags like `<i>`, `<b>`, and `<br/>` for creative emphasis.
+- **System Hierarchy Mapping**: Created `HIERARCHY.md` and annotated `dashboard.html` with structural labels to define the project's visual and logical scaffolding.
+
+### Core Component Overhaul
+- **SpeechBubble.js & TextBlock.js**: Completely refactored to use programmatic construction. Standardized default font size to `0.875rem`.
+- **VisualEditorManager.js**: Refactored the `renderAllPanels` method to build the Studio panel list programmatically. Improved event handling for selection and deletion of panels.
+- **ArrangeManager.js (In Progress)**: Transitioning the page list builder to the new architectural pattern.
+
+### Post-Revert Restoration
+- **Visual Editor Fix**: Corrected a data structure mismatch in `preview.js` where the editor expected `media.media` instead of the actual `media` array.
+- **Story Critic Persistence**:
+    - **Database Update**: Added `critique` and `lastCritiquedAt` fields to the `Volume` model.
+    - **Controller Update**: `CriticController.js` now automatically saves Gemini's feedback to the database.
+    - **Dashboard Enhancement**: The Story Critic tool now displays the last saved review upon volume selection, preventing redundant API calls.
+
+### Maintenance & Organization
+- **Unit Test Consolidation**: Created `unit_tests/` and moved all root-level `test_*.js` files into the directory to clean up the solution root.
+- **GitHub Sync**: Successfully merged local fixes with remote changes and pushed the stabilized "Senior Level" architecture to origin.
+
 
 ### Vision Service & Scanning
 - **Syntax Repair**: Fixed a critical syntax error in `VisionService.js` (duplicate timeout block).

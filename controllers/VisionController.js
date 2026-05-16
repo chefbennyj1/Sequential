@@ -21,20 +21,28 @@ class VisionController {
     async processPendingDescriptions(req, res) {
         try {
             const isQuick = req.body.quick === true;
-            const results = await this.runVisionScan(req.app.locals.io, isQuick);
-            res.json({ ok: true, message: `Vision ${isQuick ? 'Quick Scan' : 'Full Scan'} complete.`, results });
+            const isForce = req.body.force === true;
+            // No scope provided for manual full scans
+            const results = await this.runVisionScan(req.app.locals.io, isQuick, isForce);
+            res.json({ ok: true, message: `Vision ${isQuick ? 'Quick Scan' : (isForce ? 'Force Rescan' : 'Full Scan')} complete.`, results });
         } catch (err) {
             console.error("[Vision] Scan error:", err);
             res.status(500).json({ ok: false, message: err.message });
         }
     }
 
-    async runVisionScan(io = null, quickScan = false) {
+    async runVisionScan(io = null, quickScan = false, forceRescan = false, scope = null) {
         if (this.isVisionScanRunning) {
+            // If it's a scoped scan and one is already running, just skip it to avoid overhead
+            if (scope) {
+                console.log("[Vision] Scan already in progress. Skipping scoped auto-scan.");
+                return { skipped: 1 };
+            }
             throw new Error("A vision scan is already in progress.");
         }
 
-        console.log(`[Vision] Starting Vision ${quickScan ? 'Quick Scan (Hash Only)' : 'Gemini AI Queue Processor'}...`);
+        const scanType = scope ? `Scoped Scan (${scope.pageId})` : (quickScan ? 'Quick Scan (Hash Only)' : (forceRescan ? 'FORCE Rescan (Full AI Overwrite)' : 'Gemini AI Queue Processor'));
+        console.log(`[Vision] Starting Vision ${scanType}...`);
         this.isVisionScanRunning = true;
         
         const settings = await GlobalSettings.findOne({ key: "main" });
@@ -45,11 +53,16 @@ class VisionController {
             return { processed: 0, skipped: 0 };
         }
 
-        console.log(`[Vision] AI is enabled. ${quickScan ? 'Initializing hashes...' : 'Searching for pending descriptions...'}`);
-        if (io) io.emit('scanner_progress', { message: `> Starting Vision ${quickScan ? 'Quick Scan' : 'Gemini AI Analysis'}...` });
+        console.log(`[Vision] AI is enabled. ${quickScan ? 'Initializing hashes...' : (forceRescan ? 'Re-analyzing all panels...' : 'Searching for pending descriptions...')}`);
+        if (io) io.emit('scanner_progress', { message: `> Starting Vision ${scanType}...` });
 
-        // 1. Find all volumes
-        const volumes = await Volume.find({}).populate('series').lean();
+        // 1. Determine volumes to scan
+        let volumes;
+        if (scope && scope.volumeId) {
+            volumes = await Volume.find({ _id: scope.volumeId }).populate('series').lean();
+        } else {
+            volumes = await Volume.find({}).populate('series').lean();
+        }
         
         let totalProcessed = 0;
 
@@ -68,7 +81,6 @@ class VisionController {
                     if (chars.length > 0) {
                         characterContext = "CONTEXT: The following characters may appear in these panels. Identify them if their physical traits match:\n" + 
                             chars.map(c => `- ${c.name}: ${c.description}`).join('\n');
-                        console.log(`[Vision] Loaded context for ${chars.length} characters.`);
                     }
                 } catch (e) {
                     console.error("[Vision] Failed to load character context:", e.message);
@@ -81,14 +93,18 @@ class VisionController {
                 const volumeFolder = path.basename(volume.volumePath);
                 const volumeAbsPath = path.join(seriesPath, 'Volumes', volumeFolder);
 
-                for (const chapter of volume.chapters) {
+                const chaptersToScan = scope && scope.chapter ? volume.chapters.filter(c => `chapter-${c.chapterNumber}` === scope.chapter) : volume.chapters;
+
+                for (const chapter of chaptersToScan) {
                     if (!this.isVisionScanRunning) break;
                     const chapterFolder = `chapter-${chapter.chapterNumber}`;
                     const chapterAbsPath = path.join(volumeAbsPath, chapterFolder);
 
                     if (!fs.existsSync(chapterAbsPath)) continue;
 
-                    for (const page of chapter.pages) {
+                    const pagesToScan = scope && scope.pageId ? chapter.pages.filter(p => `page${p.index}` === scope.pageId) : chapter.pages;
+
+                    for (const page of pagesToScan) {
                         if (!this.isVisionScanRunning) break;
                         const pageFolder = `page${page.index}`;
                         const pageAbsPath = path.join(chapterAbsPath, pageFolder);
@@ -114,8 +130,7 @@ class VisionController {
 
                                     if (quickScan) {
                                         // QUICK MODE: Only update hash if missing or changed
-                                        if (hashChanged) {
-                                            console.log(`[Vision] [Quick] Updating hash for: ${pageFolder}/${mediaItem.panel}`);
+                                        if (hashChanged || !mediaItem.imageHash) {
                                             mediaItem.imageHash = currentHash;
                                             pageChangedInLoop = true;
                                             totalProcessed++;
@@ -124,10 +139,10 @@ class VisionController {
                                     }
 
                                     // FULL MODE: Standard AI Logic
-                                    const needsUpdate = mediaItem.DescriptionUpdateRequired || (!mediaItem.description || !mediaItem.alt);
+                                    const needsUpdate = forceRescan || mediaItem.DescriptionUpdateRequired || (!mediaItem.description || !mediaItem.alt);
                                     
                                     if (needsUpdate || hashChanged) {
-                                        console.log(`[Vision] ${hashChanged ? 'Image changed (hash mismatch)' : 'Pending scan'}: ${pageFolder}/${mediaItem.panel}`);
+                                        console.log(`[Vision] ${forceRescan ? 'FORCE RE-SCAN' : (hashChanged ? 'Image changed' : 'Pending scan')}: ${pageFolder}/${mediaItem.panel}`);
                                         if (io) io.emit('scanner_progress', { message: `  > Analyzing ${pageFolder} | ${mediaItem.panel}...` });
                                         
                                         try {
@@ -145,7 +160,7 @@ class VisionController {
                                             totalProcessed++;
                                             
                                             if (io) {
-                                                io.emit('scanner_progress', { message: `  > Success: ${mediaItem.panel} described by Gemini.` });
+                                                io.emit('scanner_progress', { message: `  > Success: ${mediaItem.panel} updated.` });
                                                 // Real-time UI update event
                                                 io.emit('panel_ai_updated', {
                                                     series: volume.series.folderName,
@@ -160,6 +175,7 @@ class VisionController {
                                             }
                                         } catch (err) {
                                             console.error(`[Vision] Failed to analyze ${imagePath}:`, err.message);
+                                            if (io) io.emit('scanner_progress', { message: `  > Error analyzing ${mediaItem.panel}: ${err.message}` });
                                         }
                                     }
                                 }
@@ -185,7 +201,7 @@ class VisionController {
             this.isVisionScanRunning = false;
         }
 
-        const msg = `[Vision] ${quickScan ? 'Quick Scan' : 'Analysis'} complete. Processed ${totalProcessed} panels.`;
+        const msg = `[Vision] ${quickScan ? 'Quick Scan' : (forceRescan ? 'Force Rescan' : 'Analysis')} complete. Processed ${totalProcessed} panels.`;
         console.log(msg);
         if (io) io.emit('scanner_progress', { message: msg });
         

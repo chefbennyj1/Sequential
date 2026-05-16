@@ -31,17 +31,6 @@ class TextBlock {
     return this.options.text.replace(expressiveFlagRegex, '').trim();
   }
 
-  _getTextBlockHtml() {
-    const type = this.options.textBlockType || 'Narrator';
-    const textBlockTypeClass = type.toLowerCase();
-    const cleanText = this._getCleanText();
-    return `
-       <div class="text-block ${textBlockTypeClass}" style="padding: ${this.options.padding}px;">
-          ${cleanText.toUpperCase()}
-       </div>
-    `;
-  }
-
   async render() {
     await document.fonts.ready;
     const textBlockContainer = document.createElement('div');
@@ -53,8 +42,14 @@ class TextBlock {
     if (this.options.left) textBlockContainer.style.left = this.options.left;
     if (this.options.right) textBlockContainer.style.right = this.options.right;
 
-    textBlockContainer.innerHTML = this._getTextBlockHtml();
+    // Construct DOM elements programmatically
+    const type = this.options.textBlockType || 'Narrator';
+    const textBlock = document.createElement('div');
+    textBlock.className = `text-block ${type.toLowerCase()}`;
+    textBlock.style.padding = `${this.options.padding}px`;
+    textBlock.innerHTML = this._getCleanText().toUpperCase();
 
+    textBlockContainer.appendChild(textBlock);
     this.parentElement.appendChild(textBlockContainer);
     this.container = textBlockContainer;
 

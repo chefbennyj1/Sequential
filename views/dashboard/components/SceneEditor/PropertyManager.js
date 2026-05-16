@@ -1,11 +1,13 @@
 // views/dashboard/components/SceneEditor/PropertyManager.js
 import { fetchFontsAPI } from '../../studio/api/StudioClient.js';
+import { extractPalette } from '/libs/Utility.js';
 
 export class PropertyManager {
-    constructor(container, onUpdate) {
+    constructor(container, onUpdate, getPanelImageUrl) {
         this.container = container;
         this.form = container.querySelector('#sceneItemForm');
         this.onUpdate = onUpdate;
+        this.getPanelImageUrl = getPanelImageUrl;
         this.availableCharacters = [];
         this.availablePanels = [];
         this.availableFonts = { files: [], cssVariables: [] };
@@ -188,6 +190,63 @@ export class PropertyManager {
 
         this.toggleVisibility(item.displayType?.type);
         this.updateDatalist();
+        this.bindPaletteTool();
+    }
+
+    bindPaletteTool() {
+        const palBtn = document.getElementById('prop-gen-palette');
+        const swatchesCont = document.getElementById('prop-palette-swatches');
+        const textColorInput = document.getElementById('prop-action-color');
+        const outlineColorInput = document.getElementById('prop-outline-color');
+
+        if (!palBtn || !swatchesCont) return;
+
+        palBtn.onclick = async () => {
+            const panelSelector = document.getElementById('prop-panel').value;
+            if (!panelSelector) return alert("Please select a panel first.");
+
+            const imgUrl = this.getPanelImageUrl(panelSelector);
+            if (!imgUrl) return alert("No image found for the selected panel.");
+
+            swatchesCont.innerHTML = '<span class="text-muted font-size-07">Extracting...</span>';
+            swatchesCont.classList.remove('hidden');
+
+            try {
+                const colors = await extractPalette(imgUrl);
+                swatchesCont.innerHTML = '';
+                colors.forEach(hex => {
+                    const s = document.createElement('div');
+                    s.style.cssText = `width:24px; height:24px; background:${hex}; border-radius:4px; cursor:pointer; border:1px solid rgba(255,255,255,0.1);`;
+                    s.title = "Left click: Text Color | Right click: Outline Color";
+                    
+                    s.onclick = (e) => {
+                        if (e.shiftKey) {
+                            // Apply to BOTH
+                            textColorInput.value = hex;
+                            outlineColorInput.value = hex;
+                            document.getElementById('prop-outline-enabled').checked = true;
+                        } else {
+                            // Just Text
+                            textColorInput.value = hex;
+                        }
+                        this.onUpdate();
+                    };
+
+                    s.oncontextmenu = (e) => {
+                        e.preventDefault();
+                        // Just Outline
+                        outlineColorInput.value = hex;
+                        document.getElementById('prop-outline-enabled').checked = true;
+                        this.onUpdate();
+                    };
+
+                    swatchesCont.appendChild(s);
+                });
+            } catch (err) {
+                console.error(err);
+                swatchesCont.innerHTML = '<span class="text-danger font-size-07">Extraction failed.</span>';
+            }
+        };
     }
 
     updateDatalist() {

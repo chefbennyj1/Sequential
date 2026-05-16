@@ -151,3 +151,12 @@ function getLocalIPv4() {
   );
   return ipv4 ? ipv4.address : 'localhost';
 }
+
+// --- GLOBAL ERROR HANDLERS ---
+process.on('unhandledRejection', (reason, promise) => {
+  console.error('[FATAL] Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('[FATAL] Uncaught Exception:', err.stack || err);
+});
