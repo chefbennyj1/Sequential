@@ -417,19 +417,6 @@ export class VisualEditorManager {
                     </div>
                 </div>
                 
-                <div class="form-group margin-b-15">
-                    <label>Mask Background Color</label>
-                    <div class="flex-row gap-5 align-center">
-                        <input type="color" id="visual-mask-bg" class="gov-color-input" value="${entry.maskBg || '#000000'}">
-                        <button id="visual-mask-eyedropper" class="small btn-icon-only" title="Eye Dropper"><ion-icon name="color-filter-outline"></ion-icon></button>
-                        <button id="visual-mask-gen-palette" class="small btn-icon-only" title="Extract Palette"><ion-icon name="color-palette-outline"></ion-icon></button>
-                        <input type="text" id="visual-mask-bg-text" class="gov-input mono flex-1" value="${entry.maskBg || '#000000'}">
-                    </div>
-                    <div id="visual-palette-swatches" class="flex-row gap-5 margin-t-10 hidden">
-                        <!-- Swatches injected here -->
-                    </div>
-                </div>
-
                 <!-- MODE TABS -->
                 <div class="flex-row gap-10 margin-b-15 border-dim-bottom padding-b-10">
                     <button class="mode-tab-btn flex-1 small ${this.activeMode === 'landscape' ? 'active' : ''}" data-mode="landscape">Landscape</button>
@@ -525,15 +512,10 @@ export class VisualEditorManager {
 
     bindEvents(entry, panelSelector) {
         const backBtn = document.getElementById('backToDirectoryBtn');
-        const typeSelect = document.getElementById('visual-asset-type');
         const nameInput = document.getElementById('visual-asset-name');
         const overlayInput = document.getElementById('visual-overlay-name');
-        const maskInput = document.getElementById('visual-mask-name');
         const browseBtn = document.getElementById('visual-asset-browse');
         const overlayBrowseBtn = document.getElementById('visual-overlay-browse');
-        const maskBrowseBtn = document.getElementById('visual-mask-browse');
-        const maskBgInput = document.getElementById('visual-mask-bg');
-        const maskBgText = document.getElementById('visual-mask-bg-text');
         const saveBtn = document.getElementById('saveVisualMediaBtn');
         const deleteBtn = document.getElementById('deleteFloatingPanelBtn');
 
@@ -569,20 +551,6 @@ export class VisualEditorManager {
         if (nameInput) {
             nameInput.oninput = () => this.syncPreview(panelSelector);
         }
-        if (typeSelect) {
-            typeSelect.onchange = () => this.syncPreview(panelSelector);
-        }
-
-        if (maskBgInput && maskBgText) {
-            maskBgInput.oninput = () => {
-                maskBgText.value = maskBgInput.value;
-                this.syncPreview(panelSelector);
-            };
-            maskBgText.oninput = () => {
-                maskBgInput.value = maskBgText.value;
-                this.syncPreview(panelSelector);
-            };
-        }
 
         // --- Real-time Sync for Sliders ---
         const sliders = [
@@ -595,7 +563,7 @@ export class VisualEditorManager {
             if (el) el.oninput = () => this.syncPreview(panelSelector);
         });
 
-        const selects = ['visual-style-object-position', 'visual-portrait-style-object-position', 'visual-asset-type'];
+        const selects = ['visual-style-object-position', 'visual-portrait-style-object-position'];
         selects.forEach(id => {
             const el = document.getElementById(id);
             if (el) el.onchange = (e) => {
@@ -610,9 +578,15 @@ export class VisualEditorManager {
         });
 
         browseBtn.onclick = () => {
-            const type = typeSelect ? typeSelect.value : 'image';
-            openFileBrowser(type, this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, (fileName) => {
+            openFileBrowser('image', this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, (fileName) => {
                 nameInput.value = fileName;
+                this.syncPreview(panelSelector);
+            }, 'page', this.activeSeriesId, this.getActiveAssets());
+        };
+
+        overlayBrowseBtn.onclick = () => {
+            openFileBrowser('image', this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, (fileName) => {
+                overlayInput.value = fileName;
                 this.syncPreview(panelSelector);
             }, 'page', this.activeSeriesId, this.getActiveAssets());
         };
@@ -638,98 +612,6 @@ export class VisualEditorManager {
 
         saveBtn.onclick = () => this.handleSave(panelSelector);
         if (deleteBtn) deleteBtn.onclick = () => this.handleDeletePanel(panelSelector);
-
-        this.bindColorTools(panelSelector);
-    }
-
-    bindColorTools(panelSelector) {
-        const eyeBtn = document.getElementById('visual-mask-eyedropper');
-        const palBtn = document.getElementById('visual-mask-gen-palette');
-        const colorInput = document.getElementById('visual-mask-bg');
-        const colorText = document.getElementById('visual-mask-bg-text');
-        const swatchesCont = document.getElementById('visual-palette-swatches');
-
-        if (eyeBtn) {
-            eyeBtn.onclick = async () => {
-                if (!window.EyeDropper) return alert("EyeDropper API is not supported in this browser.");
-                const dropper = new EyeDropper();
-                try {
-                    const result = await dropper.open();
-                    colorInput.value = result.sRGBHex;
-                    colorText.value = result.sRGBHex;
-                    this.syncPreview(panelSelector);
-                } catch (e) {}
-            };
-        }
-
-        if (palBtn) {
-            palBtn.onclick = async () => {
-                const nameInput = document.getElementById('visual-asset-name');
-                if (!nameInput || !nameInput.value) return alert("No image assigned to this panel.");
-
-                swatchesCont.innerHTML = '<span class="text-muted font-size-07">Extracting...</span>';
-                swatchesCont.classList.remove('hidden');
-
-                const series = this.activeSeriesFolder || this.activeSeriesId;
-                const { volume, chapter, pageId } = this.currentVisualContext;
-                const imgUrl = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${nameInput.value}`;
-
-                try {
-                    const colors = await this.extractPalette(imgUrl);
-                    swatchesCont.innerHTML = '';
-                    colors.forEach(hex => {
-                        const s = document.createElement('div');
-                        s.style.cssText = `width:24px; height:24px; background:${hex}; border-radius:4px; cursor:pointer; border:1px solid rgba(255,255,255,0.1);`;
-                        s.title = hex;
-                        s.onclick = () => {
-                            colorInput.value = hex;
-                            colorText.value = hex;
-                            this.syncPreview(panelSelector);
-                        };
-                        swatchesCont.appendChild(s);
-                    });
-                } catch (err) {
-                    swatchesCont.innerHTML = '<span class="text-danger font-size-07">Failed to extract palette.</span>';
-                }
-            };
-        }
-    }
-
-    async extractPalette(url) {
-        return new Promise((resolve, reject) => {
-            const img = new Image();
-            img.crossOrigin = "Anonymous";
-            img.onload = () => {
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = 100; // Small for performance
-                canvas.height = 100;
-                ctx.drawImage(img, 0, 0, 100, 100);
-
-                const data = ctx.getImageData(0, 0, 100, 100).data;
-                const counts = {};
-                
-                // Sample pixels every 4 steps
-                for (let i = 0; i < data.length; i += 16) {
-                    const r = data[i];
-                    const g = data[i+1];
-                    const b = data[i+2];
-                    // Quantize to reduce noise
-                    const qr = Math.round(r / 10) * 10;
-                    const qg = Math.round(g / 10) * 10;
-                    const qb = Math.round(b / 10) * 10;
-                    const hex = "#" + ((1 << 24) + (qr << 16) + (qg << 8) + qb).toString(16).slice(1);
-                    counts[hex] = (counts[hex] || 0) + 1;
-                }
-
-                // Sort and pick top 5
-                const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-                const top5 = sorted.slice(0, 5).map(c => c[0]);
-                resolve(top5);
-            };
-            img.onerror = reject;
-            img.src = url;
-        });
     }
 
     syncPreview(panelSelector) {
@@ -787,7 +669,7 @@ export class VisualEditorManager {
             styles.zIndex = document.getElementById('float-z').value;
         }
 
-        iframe.contentWindow.postMessage({ type: 'styleUpdate', panel: panelSelector, styles }, '*');
+        iframe.contentWindow.postMessage({ type: 'styleUpdate', panel: panelSelector, styles, fileName, assetType }, '*');
     }
 
     async handleDeletePanel(panelSelector) {
@@ -826,8 +708,7 @@ export class VisualEditorManager {
             description: document.getElementById('visual-asset-description')?.value || '',
             alt: document.getElementById('visual-asset-description')?.value || '',
             overlayImage: document.getElementById('visual-overlay-name')?.value || '',
-            overlayOpacity: parseFloat(document.getElementById('visual-overlay-opacity')?.value) || 1.0,
-            maskBg: document.getElementById('visual-mask-bg-text')?.value || '#000000'
+            overlayOpacity: parseFloat(document.getElementById('visual-overlay-opacity')?.value) || 1.0
         };
 
         let existingStyle = existingEntry.style ? { ...existingEntry.style } : {};
