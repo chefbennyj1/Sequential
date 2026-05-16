@@ -1,5 +1,3 @@
-import { applyPersistentMask } from "/libs/Utility.js";
-
 export async function init(container, params) {
     const { volume, chapter, pageId } = params;
     const fileInput = document.getElementById('globalPanelUpload');
@@ -164,14 +162,6 @@ export async function init(container, params) {
                         
                         panel.innerHTML = '';
                         panel.appendChild(el);
-
-                        // Apply persistent mask if defined
-                        if (item.maskGif) {
-                            const maskUrl = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${item.maskGif}`;
-                            setTimeout(() => {
-                                applyPersistentMask(panel, maskUrl, item.maskBg);
-                            }, 50);
-                        }
                     } else if (item.isFloating) {
                         // If it's a floating panel with no image yet, still apply styles so it shows up as a box
                         if (item.style) {
@@ -317,36 +307,24 @@ export async function init(container, params) {
                 
                 // 1. SURGICAL ASSET SWAP
                 if (targetFileName) {
-                    let mediaEl = panel.querySelector('img') || panel.querySelector('video');
+                    let img = panel.querySelector('img');
                     const series = params.series;
                     const { volume, chapter, pageId } = params;
-                    // Add cache buster to newSrc to force refresh
                     const newSrc = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${targetFileName}?t=${Date.now()}`;
 
-                    const isVideo = targetFileName.match(/\.(mp4|webm|mov)$/i);
-                    const currentIsVideo = mediaEl && mediaEl.tagName === 'VIDEO';
-
-                    if (!mediaEl || (isVideo && !currentIsVideo) || (!isVideo && currentIsVideo)) {
-                        if (mediaEl) mediaEl.remove();
-                        mediaEl = document.createElement(isVideo ? 'video' : 'img');
-                        mediaEl.style.width = '100%';
-                        mediaEl.style.height = '100%';
-                        mediaEl.style.objectFit = 'cover';
-                        if (isVideo) {
-                            mediaEl.autoplay = true;
-                            mediaEl.loop = true;
-                            mediaEl.muted = true;
-                        }
-                        panel.prepend(mediaEl);
+                    if (!img) {
+                        img = document.createElement('img');
+                        img.style.width = '100%';
+                        img.style.height = '100%';
+                        img.style.objectFit = 'cover';
+                        panel.prepend(img);
                     }
-
-                    // Force update if filename is different or we just need to refresh
-                    mediaEl.src = newSrc;
+                    img.src = newSrc;
                 }
 
                 // 2. STYLE UPDATES
                 const targetStyles = styles || entry?.style || {};
-                const img = panel.querySelector('img') || panel.querySelector('video');
+                const img = panel.querySelector('img');
                 const visualProps = ['objectFit', 'objectPosition', 'transform', 'transformOrigin', 'filter', 'opacity'];
                 
                 for (const prop in targetStyles) {

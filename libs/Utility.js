@@ -26,48 +26,15 @@ export function imageMaskReveal(panels, gifUrl, duration = 5000, mediaData = nul
         });
 
         setTimeout(() => {
-            if (mediaData && pageInfo) {
-                mediaData.forEach(media => {
-                    if (media.maskGif) {
-                        const panelEl = Array.from(panels).find(p => {
-                            return p.classList.contains(media.panel.replace('.', '')) || p.matches?.(media.panel);
-                        });
-                        if (panelEl) {
-                            applyPersistentMask(panelEl, resolveMediaUrl(media.maskGif, 'image', pageInfo), media.maskBg);
-                        }
-                    } else {
-                        const panelEl = Array.from(panels).find(p => {
-                            return p.classList.contains(media.panel.replace('.', '')) || p.matches?.(media.panel);
-                        });
-                        if (panelEl) {
-                            const mediaElements = panelEl.querySelectorAll('img');
-                            mediaElements.forEach(el => {
-                                el.style.maskImage = '';
-                                el.style.webkitMaskImage = '';
-                            });
-                        }
-                    }
+            panels.forEach(panel => {
+                const mediaElements = panel.querySelectorAll('img');
+                mediaElements.forEach(el => {
+                    el.style.maskImage = '';
+                    el.style.webkitMaskImage = '';
                 });
-            }
+            });
             resolve();
         }, duration);
-    });
-}
-
-export function applyPersistentMask(panel, maskUrl, maskBg = null) {
-    if (!panel) return;
-    if (maskBg) panel.style.backgroundColor = maskBg;
-    if (!maskUrl) return;
-    const mediaElements = panel.querySelectorAll('img');
-    mediaElements.forEach(el => {
-        el.style.maskImage = `url(${maskUrl})`;
-        el.style.maskSize = '100% 100%';
-        el.style.maskRepeat = 'repeat';
-        el.style.maskPosition = 'center';
-        el.style.webkitMaskImage = `url(${maskUrl})`;
-        el.style.webkitMaskSize = '100% 100%';
-        el.style.webkitMaskRepeat = 'repeat';
-        el.style.webkitMaskPosition = 'center';
     });
 }
 
@@ -99,7 +66,7 @@ export async function fetchScene(volume, chapter, pageId, series) {
 
 export async function fetchMedia(volume, chapter, pageId, series) {
     if (!series) throw new Error("series is required for fetchMedia");
-    if (pageId === 'login') return { media: [], sequentialVideoPlayback: false, ambientAudio: null };
+    if (pageId === 'login') return { media: [], ambientAudio: null };
     try {
         const response = await fetch(appendSecret(`/api/media/${series}/${volume}/${chapter}/${pageId}`));
         const data = await response.json();
@@ -107,12 +74,11 @@ export async function fetchMedia(volume, chapter, pageId, series) {
         let mediaArray = Array.isArray(mediaContent) ? mediaContent : (mediaContent.media || []);
         return {
             media: mediaArray,
-            sequentialVideoPlayback: !!mediaContent.sequentialVideoPlayback,
             ambientAudio: mediaContent.ambientAudio || null
         };
     } catch (error) {
         console.error(error);
-        return { media: [], sequentialVideoPlayback: false, ambientAudio: null };
+        return { media: [], ambientAudio: null };
     }
 }
 

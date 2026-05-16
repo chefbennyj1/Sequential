@@ -57,22 +57,6 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
 
         window.isRevealing = false;
         
-        // Immediately apply persistent masks if they exist, skipping the initial reveal GIF
-        if (mediaResponse.media && pageInfo) {
-            mediaResponse.media.forEach(media => {
-                if (media.maskGif) {
-                    const panelEl = Array.from(allPanels).find(p => {
-                        return p.classList.contains(media.panel.replace('.', '')) || p.matches?.(media.panel);
-                    });
-                    if (panelEl) {
-                        import('/libs/Utility.js').then(u => {
-                            u.applyPersistentMask(panelEl, u.resolveMediaUrl(media.maskGif, 'image', pageInfo), media.maskBg);
-                        });
-                    }
-                }
-            });
-        }
-
         if (sceneController?.restart) sceneController.restart();
     });
 
@@ -160,7 +144,7 @@ function initMedia(container, pageInfo, mediaDataArray) {
                 img.style.objectFit = 'cover';
                 img.style.objectPosition = 'center';
 
-                // Apply visual styles from media.json (this will overwrite defaults like objectPosition)
+                // Apply styles from media.json
                 const visualProps = ['objectFit', 'objectPosition', 'transform', 'transformOrigin', 'filter', 'opacity'];
                 
                 if (media.style) {
@@ -172,13 +156,11 @@ function initMedia(container, pageInfo, mediaDataArray) {
                 }
                 
                 if (media.imageStyle) {
-                    // Specific image styles if floating
                     for (const prop in media.imageStyle) {
                         img.style[prop] = media.imageStyle[prop];
                     }
                 }
                 
-                // Apply portrait-specific overrides if active
                 if (window.GEMINI_PORTRAIT_MODE && media.portraitStyle) {
                     for (const prop in media.portraitStyle) {
                         const target = (media.isFloating && !visualProps.includes(prop)) ? panel : img;
@@ -186,60 +168,21 @@ function initMedia(container, pageInfo, mediaDataArray) {
                     }
                 }
 
-                // --- Privacy Blinder ---
-                if (media.privacy) {
-                    const blinder = document.createElement('div');
-                    blinder.className = 'panel-privacy-blinder';
-                    blinder.innerHTML = '<span>Click to reveal</span>';
-                    
-                    panel.style.position = 'relative'; // Ensure blinder covers panel
-                    panel.appendChild(img);
-                    
-                    // Add Overlay if exists (under blinder)
-                    if (media.overlayImage) {
-                        const overlayImg = document.createElement('img');
-                        overlayImg.src = resolveMediaUrl(media.overlayImage, 'image', pageInfo);
-                        overlayImg.style.position = 'absolute';
-                        overlayImg.style.inset = '0';
-                        overlayImg.style.width = '100%';
-                        overlayImg.style.height = '100%';
-                        overlayImg.style.objectFit = 'cover';
-                        overlayImg.style.pointerEvents = 'none';
-                        overlayImg.style.zIndex = '5';
-                        overlayImg.style.opacity = media.overlayOpacity !== undefined ? media.overlayOpacity : '1';
-                        panel.appendChild(overlayImg);
-                    }
+                panel.appendChild(img);
 
-                    panel.appendChild(blinder);
-
-                    blinder.onclick = (e) => {
-                        e.stopPropagation();
-                        blinder.style.transition = 'opacity 0.6s ease, filter 0.6s ease';
-                        blinder.style.opacity = '0';
-                        img.style.transition = 'filter 0.6s ease';
-                        img.style.filter = 'none';
-                        setTimeout(() => blinder.remove(), 600);
-                    };
-                    
-                    // Initial blur
-                    img.style.filter = 'blur(30px)';
-                } else {
-                    panel.appendChild(img);
-
-                    // Add Overlay if exists
-                    if (media.overlayImage) {
-                        const overlayImg = document.createElement('img');
-                        overlayImg.src = resolveMediaUrl(media.overlayImage, 'image', pageInfo);
-                        overlayImg.style.position = 'absolute';
-                        overlayImg.style.inset = '0';
-                        overlayImg.style.width = '100%';
-                        overlayImg.style.height = '100%';
-                        overlayImg.style.objectFit = 'cover';
-                        overlayImg.style.pointerEvents = 'none';
-                        overlayImg.style.zIndex = '5';
-                        overlayImg.style.opacity = media.overlayOpacity !== undefined ? media.overlayOpacity : '1';
-                        panel.appendChild(overlayImg);
-                    }
+                // Add Overlay if exists
+                if (media.overlayImage) {
+                    const overlayImg = document.createElement('img');
+                    overlayImg.src = resolveMediaUrl(media.overlayImage, 'image', pageInfo);
+                    overlayImg.style.position = 'absolute';
+                    overlayImg.style.inset = '0';
+                    overlayImg.style.width = '100%';
+                    overlayImg.style.height = '100%';
+                    overlayImg.style.objectFit = 'cover';
+                    overlayImg.style.pointerEvents = 'none';
+                    overlayImg.style.zIndex = '5';
+                    overlayImg.style.opacity = media.overlayOpacity !== undefined ? media.overlayOpacity : '1';
+                    panel.appendChild(overlayImg);
                 }
 
                 // Apply Panel Effect if specified in media.json

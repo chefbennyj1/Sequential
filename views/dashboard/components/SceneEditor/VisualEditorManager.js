@@ -390,13 +390,8 @@ export class VisualEditorManager {
                 </div>
                 ` : ''}
 
-                <div class="form-group margin-b-15">
-                    <label>Asset Type</label>
-                    <select id="visual-asset-type" class="gov-select width-100">
-                        <option value="image" ${entry.type === 'image' ? 'selected' : ''}>Image</option>
-                        <option value="playlist" ${entry.type === 'playlist' ? 'selected' : ''}>Playlist</option>
-                    </select>
-                </div>
+                <input type="hidden" id="visual-asset-type" value="image">
+
                 <div class="form-group margin-b-15">
                     <label>File Name ${entry.isFloating ? '(Panel Overlay)' : ''}</label>
                     <div class="flex-row gap-5">
@@ -421,22 +416,7 @@ export class VisualEditorManager {
                         <input type="number" id="visual-overlay-opacity" class="gov-input width-100" step="0.1" min="0" max="1" value="${entry.overlayOpacity !== undefined ? entry.overlayOpacity : 1.0}">
                     </div>
                 </div>
-                <div class="form-group margin-b-15 flex-row gap-10">
-                    <div class="flex-1">
-                        <label>Privacy Blinder</label>
-                        <div class="flex-row gap-5 align-center">
-                            <input type="checkbox" id="visual-privacy-enabled" ${entry.privacy ? 'checked' : ''}>
-                            <span>Click to reveal</span>
-                        </div>
-                    </div>
-                    <div class="flex-1">
-                        <label>Panel Mask (Repeatable GIF)</label>
-                        <div class="flex-row gap-5">
-                            <input type="text" id="visual-mask-name" class="gov-select flex-1" value="${entry.maskGif || ''}" placeholder="e.g. memory_mask.gif">
-                            <button id="visual-mask-browse" class="small btn-browse">...</button>
-                        </div>
-                    </div>
-                </div>
+                
                 <div class="form-group margin-b-15">
                     <label>Mask Background Color</label>
                     <div class="flex-row gap-5 align-center">
@@ -761,7 +741,7 @@ export class VisualEditorManager {
         const mode = this.activeMode; // Current tab
 
         const fileName = document.getElementById('visual-asset-name')?.value;
-        const assetType = document.getElementById('visual-asset-type')?.value || 'image';
+        const assetType = 'image';
 
         if (mode === 'landscape') {
             const align = document.getElementById('visual-style-object-position')?.value || 'center';
@@ -832,9 +812,7 @@ export class VisualEditorManager {
     }
 
     async handleSave(panelSelector) {
-        const typeSelect = document.getElementById('visual-asset-type');
         const nameInput = document.getElementById('visual-asset-name');
-        const maskInput = document.getElementById('visual-mask-name');
         const saveBtn = document.getElementById('saveVisualMediaBtn');
 
         const idx = this.currentVisualMediaData.findIndex(m => m.panel === panelSelector);
@@ -843,15 +821,13 @@ export class VisualEditorManager {
         const updatedEntry = {
             ...existingEntry,
             panel: panelSelector,
-            type: typeSelect ? typeSelect.value : 'image',
+            type: 'image',
             fileName: nameInput.value,
             description: document.getElementById('visual-asset-description')?.value || '',
             alt: document.getElementById('visual-asset-description')?.value || '',
             overlayImage: document.getElementById('visual-overlay-name')?.value || '',
             overlayOpacity: parseFloat(document.getElementById('visual-overlay-opacity')?.value) || 1.0,
-            maskGif: maskInput.value,
-            maskBg: document.getElementById('visual-mask-bg-text')?.value || '#000000',
-            privacy: document.getElementById('visual-privacy-enabled')?.checked || false
+            maskBg: document.getElementById('visual-mask-bg-text')?.value || '#000000'
         };
 
         let existingStyle = existingEntry.style ? { ...existingEntry.style } : {};
