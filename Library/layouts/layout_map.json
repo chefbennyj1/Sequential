@@ -48,5 +48,8 @@
   "Standard_Page": [
     "Spread_Split_Vertical",
     "Standard_Page"
+  ],
+  "Two_Col_Split": [
+    "Two_Col_Split"
   ]
 }

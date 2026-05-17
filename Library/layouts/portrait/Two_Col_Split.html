@@ -1,0 +1,28 @@
+<style>
+@import url('/layouts/styles/base-comic-layout-portrait.css');
+
+/* 
+    Layout: Two Column Split (Portrait)
+    Two equal columns side-by-side.
+*/
+.page-layout.layout-two-col-split {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr;
+    gap: 10px;
+}
+
+.layout-two-col-split .panel-A {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+
+.layout-two-col-split .panel-B {
+    grid-column: 2 / 3;
+    grid-row: 1 / 2;
+}
+</style>
+<div class="section-container portrait-page page-layout layout-two-col-split">
+    <div class="panel panel-A"></div>
+    <div class="panel panel-B"></div>
+</div>

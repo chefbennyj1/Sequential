@@ -33,14 +33,25 @@ class GeminiVisionService {
 
     async generateImageHash(imagePath) {
         try {
+            if (!fs.existsSync(imagePath)) return null;
+            const stats = fs.statSync(imagePath);
+            if (stats.size === 0) {
+                console.warn(`[GeminiVision] Skipping 0-byte file: ${imagePath}`);
+                return null;
+            }
+
+            // Logging for native crash diagnosis
+            console.log(`[GeminiVision] [Hash] Starting Sharp process for: ${path.basename(imagePath)}`);
+            
             const buffer = await sharp(imagePath)
                 .resize(256, 256, { fit: 'inside' })
                 .grayscale()
                 .toBuffer();
             
+            console.log(`[GeminiVision] [Hash] Sharp finished for: ${path.basename(imagePath)}`);
             return crypto.createHash('md5').update(buffer).digest('hex');
         } catch (err) {
-            console.error(`[GeminiVision] Hash Generation Error:`, err.message);
+            console.error(`[GeminiVision] Hash Generation Error for ${imagePath}:`, err.message);
             return null;
         }
     }

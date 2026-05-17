@@ -77,16 +77,25 @@ class VisionController {
                 // --- FETCH CHARACTER CONTEXT FOR THIS SERIES ---
                 let characterContext = "";
                 try {
-                    const chars = await Character.find({ series: volume.series._id }).lean();
-                    if (chars.length > 0) {
-                        characterContext = "CONTEXT: The following characters may appear in these panels. Identify them if their physical traits match:\n" + 
-                            chars.map(c => `- ${c.name}: ${c.description}`).join('\n');
+                    const seriesId = volume.series?._id || volume.series;
+                    if (seriesId) {
+                        const chars = await Character.find({ series: seriesId }).lean();
+                        if (chars.length > 0) {
+                            characterContext = "CONTEXT: The following characters may appear in these panels. Identify them if their physical traits match:\n" + 
+                                chars.map(c => `- ${c.name}: ${c.description || 'No description available'}`).join('\n');
+                        }
                     }
                 } catch (e) {
                     console.error("[Vision] Failed to load character context:", e.message);
                 }
 
-                const seriesPath = await resolveSeriesPath(volume.series.folderName);
+                const seriesFolderName = volume.series?.folderName || volume.series;
+                if (!seriesFolderName) {
+                    console.error("[Vision] Volume missing series reference:", volume._id);
+                    continue;
+                }
+
+                const seriesPath = await resolveSeriesPath(seriesFolderName);
                 const ignorePath = path.join(seriesPath, '.gemmaignore');
                 if (fs.existsSync(ignorePath)) continue;
 
@@ -131,6 +140,7 @@ class VisionController {
                                     if (quickScan) {
                                         // QUICK MODE: Only update hash if missing or changed
                                         if (hashChanged || !mediaItem.imageHash) {
+                                            console.log(`[Vision] [Quick] Updating hash for: ${pageFolder}/${mediaItem.panel}`);
                                             mediaItem.imageHash = currentHash;
                                             pageChangedInLoop = true;
                                             totalProcessed++;
@@ -163,7 +173,7 @@ class VisionController {
                                                 io.emit('scanner_progress', { message: `  > Success: ${mediaItem.panel} updated.` });
                                                 // Real-time UI update event
                                                 io.emit('panel_ai_updated', {
-                                                    series: volume.series.folderName,
+                                                    series: seriesFolderName,
                                                     volume: volumeFolder,
                                                     chapter: chapterFolder,
                                                     pageId: pageFolder,
@@ -184,14 +194,23 @@ class VisionController {
 
                         if (pageChangedInLoop) {
                             fs.writeFileSync(pageJsonPath, JSON.stringify(pageData, null, 2));
-                            volumeChanged = true;
+                            
+                            // If it's a scoped scan, sync DB for THIS PAGE ONLY
+                            if (scope) {
+                                console.log(`[Vision] [Scoped] Syncing DB for ${pageFolder}...`);
+                                const VolumeService = require('../services/VolumeService');
+                                await VolumeService.syncSinglePage(volume._id, chapterFolder, pageFolder, seriesFolderName);
+                            } else {
+                                volumeChanged = true;
+                            }
                         }
                     }
                 }
                 
-                if (volumeChanged) {
+                if (volumeChanged && !scope) {
                     const realVolume = await Volume.findById(volume._id);
                     if (realVolume) {
+                        console.log(`[Vision] [Full] Syncing Volume ${volume.index} to DB...`);
                         const VolumeService = require('../services/VolumeService');
                         await VolumeService.updateChaptersFromFS(realVolume, volumeAbsPath);
                     }
