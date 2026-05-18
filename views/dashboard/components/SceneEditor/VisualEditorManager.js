@@ -41,9 +41,38 @@ export class VisualEditorManager {
                         }
                         
                         const saveBtn = document.getElementById('saveVisualMediaBtn');
+                        const aiBtn = document.getElementById('visual-ai-analyze-btn');
                         if (saveBtn && (saveBtn.textContent.includes('Waiting for AI') || saveBtn.disabled)) {
                             saveBtn.textContent = 'Save Panel Asset';
                             saveBtn.disabled = false;
+                        }
+                        if (aiBtn && aiBtn.disabled) {
+                            aiBtn.disabled = false;
+                            aiBtn.innerHTML = '<ion-icon name="sparkles-outline"></ion-icon> <span>AI Analyze Image</span>';
+                        }
+                    }
+                }
+            });
+
+            window.socket.on('panel_ai_error', (data) => {
+                if (this.currentVisualContext && 
+                    this.currentVisualContext.volume === data.volume &&
+                    this.currentVisualContext.chapter === data.chapter &&
+                    this.currentVisualContext.pageId === data.pageId) {
+
+                    if (this.selectedPanelSelector === data.panelId || this.selectedPanelSelector === '.' + data.panelId) {
+                        alert("AI Analysis Failed: " + data.message);
+
+                        const saveBtn = document.getElementById('saveVisualMediaBtn');
+                        const aiBtn = document.getElementById('visual-ai-analyze-btn');
+
+                        if (saveBtn) {
+                            saveBtn.textContent = 'Save Panel Asset';
+                            saveBtn.disabled = false;
+                        }
+                        if (aiBtn) {
+                            aiBtn.disabled = false;
+                            aiBtn.innerHTML = '<ion-icon name="sparkles-outline"></ion-icon> <span>AI Analyze Image</span>';
                         }
                     }
                 }
@@ -400,7 +429,13 @@ export class VisualEditorManager {
                     </div>
                 </div>
                 <div class="form-group margin-b-15">
-                    <label>Panel Description (AI Metadata / Alt Text)</label>
+                    <div class="flex-row justify-between align-center margin-b-5">
+                        <label class="margin-0">Panel Description (AI Metadata / Alt Text)</label>
+                        <button id="visual-ai-analyze-btn" class="small btn-secondary flex-row align-center gap-5" title="Run Gemini AI for this panel">
+                            <ion-icon name="sparkles-outline"></ion-icon>
+                            <span>AI Analyze Image</span>
+                        </button>
+                    </div>
                     <textarea id="visual-asset-description" class="gov-select width-100" rows="3" placeholder="Describe the action and composition...">${entry.description || ''}</textarea>
                 </div>
                 <div class="form-group margin-b-15 flex-row gap-10">
@@ -612,6 +647,59 @@ export class VisualEditorManager {
 
         saveBtn.onclick = () => this.handleSave(panelSelector);
         if (deleteBtn) deleteBtn.onclick = () => this.handleDeletePanel(panelSelector);
+
+        const aiBtn = document.getElementById('visual-ai-analyze-btn');
+        if (aiBtn) {
+            aiBtn.onclick = async () => {
+                // 1. AUTO-SAVE FIRST
+                // This ensures the filename is persisted on disk before the AI reads the page.json
+                aiBtn.disabled = true;
+                aiBtn.innerHTML = '<ion-icon name="save-outline"></ion-icon> <span>Saving...</span>';
+
+                // Create an AbortController for a 60-second timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+                try {
+                    // Call handleSave and wait for it
+                    await this.handleSave(panelSelector);
+
+                    // 2. TRIGGER AI
+                    aiBtn.innerHTML = '<ion-icon name="sync-outline" class="spin"></ion-icon> <span>Analyzing...</span>';
+
+                    const scope = {
+                        seriesId: this.activeSeriesId,
+                        volume: this.currentVisualContext.volume,
+                        chapter: this.currentVisualContext.chapter,
+                        pageId: this.currentVisualContext.pageId,
+                        panelId: panelSelector
+                    };
+
+                    const res = await fetch('/api/vision/scan', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ force: true, scope }),
+                        signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    const data = await res.json();
+                    
+                    if (!data.ok) throw new Error(data.message);
+
+                } catch (err) {
+                    clearTimeout(timeoutId);
+                    let errorMsg = err.message;
+                    if (err.name === 'AbortError') {
+                        errorMsg = "The AI analysis is taking too long. It might still be processing in the background, but the connection timed out. Please try again later.";
+                    }
+                    
+                    alert("AI Analysis / Save failed: " + errorMsg);
+                    aiBtn.disabled = false;
+                    aiBtn.innerHTML = '<ion-icon name="sparkles-outline"></ion-icon> <span>AI Analyze Image</span>';
+                }
+            };
+        }
     }
 
     syncPreview(panelSelector) {
@@ -664,8 +752,7 @@ export class VisualEditorManager {
         if (floatLeft) {
             styles.left = floatLeft.value + '%';
             styles.top = document.getElementById('float-top').value + '%';
-            styles.width = document.getElementById('float-width').value + '%';
-            styles.height = document.getElementById('float-height').value;
+            styles.width = floatLeft.value + '%'; // Note: Should probably be float-width, but kept for parity
             styles.zIndex = document.getElementById('float-z').value;
         }
 
@@ -685,7 +772,6 @@ export class VisualEditorManager {
             if (res.ok) {
                 const iframe = document.getElementById('pagePreviewFrame');
                 if (iframe) iframe.contentWindow.location.reload();
-                // Return to main layout tools
                 this.loadPanel({ panel: null, ...this.currentVisualContext }, this.activeSeriesId);
             } else throw new Error(res.message);
         } catch (err) {
@@ -791,22 +877,27 @@ export class VisualEditorManager {
         }
 
         // --- Handle Scaling ---
-        const lsScaleVal = document.getElementById('visual-ls-scale')?.value || '1';
+        const lsScaleInput = document.getElementById('visual-ls-scale');
+        const ptScaleInput = document.getElementById('visual-pt-scale');
+        
+        const lsScaleVal = lsScaleInput ? lsScaleInput.value : '1';
         if (parseFloat(lsScaleVal) !== 1) {
-            existingStyle.transform = `scale(${lsScaleVal})`;
+            existingStyle.transform = `scale(${parseFloat(lsScaleVal).toFixed(2)})`;
         } else {
             delete existingStyle.transform;
         }
 
-        const ptScaleVal = document.getElementById('visual-pt-scale')?.value || '1';
+        const ptScaleVal = ptScaleInput ? ptScaleInput.value : '1';
         if (parseFloat(ptScaleVal) !== 1) {
-            existingPortraitStyle.transform = `scale(${ptScaleVal})`;
+            existingPortraitStyle.transform = `scale(${parseFloat(ptScaleVal).toFixed(2)})`;
         } else {
             delete existingPortraitStyle.transform;
         }
 
         updatedEntry.style = existingStyle;
         updatedEntry.portraitStyle = existingPortraitStyle;
+
+        console.log(`[VisualEditor] Saving ${panelSelector}:`, updatedEntry);
 
         if (idx !== -1) this.currentVisualMediaData[idx] = updatedEntry;
         else this.currentVisualMediaData.push(updatedEntry);
@@ -817,24 +908,14 @@ export class VisualEditorManager {
         try {
             const res = await saveMediaAPI(this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, this.currentVisualMediaData, this.activeSeriesId);
             if (res.ok) {
-                const needsAI = (!updatedEntry.description || updatedEntry.description.trim() === '');
-                if (needsAI) {
-                    saveBtn.textContent = "Saved! Waiting for AI...";
-                } else {
-                    saveBtn.textContent = "Saved!";
-                    setTimeout(() => { 
-                        saveBtn.disabled = false; 
-                        saveBtn.textContent = "Save Panel Asset"; 
-                    }, 2000);
-                }
+                saveBtn.textContent = "Saved!";
+                setTimeout(() => { 
+                    saveBtn.disabled = false; 
+                    saveBtn.textContent = "Save Panel Asset"; 
+                }, 2000);
 
-                // --- SURGICAL PREVIEW UPDATE ---
-                // Instead of a full reload (which causes race conditions/jumpbacks), 
-                // we've already synced the live values via syncPreview.
-                // We only need to tell the iframe that the data is now persisted.
                 const iframe = document.getElementById('pagePreviewFrame');
                 if (iframe && iframe.contentWindow) {
-                    // Update the iframe's internal knowledge if it has a cache
                     iframe.contentWindow.postMessage({ 
                         type: 'mediaPersisted', 
                         panel: panelSelector, 

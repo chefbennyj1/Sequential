@@ -1,3 +1,5 @@
+import { populateSeriesSelect, populateVolumeSelect, populateChapterSelect } from '../../studio/js/LibraryManager.js';
+
 export default class ScheduledTaskView {
     constructor() {
         this.container = document.querySelector('.scheduled-tasks');
@@ -10,10 +12,14 @@ export default class ScheduledTaskView {
         this.syncQuickBtn = this.container.querySelector('#run-sync-quick-btn');
         this.syncFullBtn = this.container.querySelector('#run-sync-full-btn');
 
-        // Vision AI Buttons
+        // Vision AI Controls
         this.visionScanBtn = this.container.querySelector('#run-vision-scan-btn');
         this.visionForceBtn = this.container.querySelector('#run-vision-force-btn');
         this.visionStopBtn = this.container.querySelector('#stop-vision-btn');
+
+        this.visionSeriesSelect = this.container.querySelector('#visionSeriesSelect');
+        this.visionVolumeSelect = this.container.querySelector('#visionVolumeSelect');
+        this.visionChapterSelect = this.container.querySelector('#visionChapterSelect');
         
         this.progressContainer = this.container.querySelector('.scanner-progress-container');
         this.progressBar = this.container.querySelector('#scanner-progress-bar');
@@ -25,6 +31,7 @@ export default class ScheduledTaskView {
         this.bindEvents();
         await this.loadRoots();
         this.setupSockets();
+        populateSeriesSelect('visionSeriesSelect');
     }
 
     setupSockets() {
@@ -143,10 +150,21 @@ export default class ScheduledTaskView {
         this.syncQuickBtn.addEventListener('click', () => this.runLibrarySync(true));
         this.syncFullBtn.addEventListener('click', () => this.runLibrarySync(false));
 
-        // Vision AI
+        // Vision AI Scoping Logic
+        this.visionSeriesSelect.addEventListener('change', () => {
+            populateVolumeSelect('visionVolumeSelect', this.visionSeriesSelect.value);
+            this.visionChapterSelect.innerHTML = '<option value="">All Chapters</option>';
+            this.visionChapterSelect.disabled = true;
+        });
+
+        this.visionVolumeSelect.addEventListener('change', () => {
+            populateChapterSelect(this.visionVolumeSelect.value, 'visionChapterSelect', false, this.visionSeriesSelect.value);
+        });
+
+        // Vision AI Actions
         this.visionScanBtn.addEventListener('click', () => this.runVisionAI(false));
         this.visionForceBtn.addEventListener('click', () => {
-            if (confirm("FORCE RESCAN: This will re-analyze every image in your library and OVERWRITE all existing descriptions. This can be time consuming and expensive (AI credits). Continue?")) {
+            if (confirm("FORCE RESCAN: This will re-analyze images in the selected scope and OVERWRITE all existing descriptions. Continue?")) {
                 this.runVisionAI(true);
             }
         });
@@ -206,18 +224,36 @@ export default class ScheduledTaskView {
         this.visionForceBtn.disabled = true;
         
         const label = isForce ? "FORCE RESCANNING..." : "AI SCANNING...";
+        const originalForceText = "Force Rescan All";
         this.visionForceBtn.textContent = label;
+
+        // Build Scope
+        const scope = {};
+        if (this.visionVolumeSelect.value) scope.volumeId = this.visionVolumeSelect.value;
+        if (this.visionChapterSelect.value) {
+            const selectedText = this.visionChapterSelect.options[this.visionChapterSelect.selectedIndex].text;
+            const match = selectedText.match(/Chapter (\d+):/);
+            if (match) scope.chapter = `chapter-${match[1]}`;
+        }
 
         this.progressContainer.style.display = 'block';
         this.progressBar.style.width = '0%';
         this.logContainer.innerHTML = '';
-        this.log(`> Initializing Vision AI ${isForce ? '(FORCE OVERWRITE)' : '(Queue Processor)'}...`);
+        
+        let logMsg = `> Initializing Vision AI ${isForce ? '(FORCE OVERWRITE)' : '(Queue Processor)'}...`;
+        if (scope.chapter) logMsg += ` Scope: ${scope.chapter}`;
+        else if (scope.volumeId) logMsg += ` Scope: Volume`;
+        
+        this.log(logMsg);
 
         try {
             const res = await fetch('/api/vision/scan', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ force: isForce })
+                body: JSON.stringify({ 
+                    force: isForce,
+                    scope: Object.keys(scope).length > 0 ? scope : null
+                })
             });
             const data = await res.json();
 
@@ -232,7 +268,7 @@ export default class ScheduledTaskView {
         } finally {
             this.visionScanBtn.disabled = false;
             this.visionForceBtn.disabled = false;
-            this.visionForceBtn.textContent = "Force Rescan All";
+            this.visionForceBtn.textContent = originalForceText;
             setTimeout(() => { this.progressContainer.style.display = 'none'; }, 2000);
         }
     }

@@ -22,9 +22,10 @@ class VisionController {
         try {
             const isQuick = req.body.quick === true;
             const isForce = req.body.force === true;
-            // No scope provided for manual full scans
-            const results = await this.runVisionScan(req.app.locals.io, isQuick, isForce);
-            res.json({ ok: true, message: `Vision ${isQuick ? 'Quick Scan' : (isForce ? 'Force Rescan' : 'Full Scan')} complete.`, results });
+            const scope = req.body.scope || null;
+            
+            const results = await this.runVisionScan(req.app.locals.io, isQuick, isForce, scope);
+            res.json({ ok: true, message: `Vision scan complete.`, results });
         } catch (err) {
             console.error("[Vision] Scan error:", err);
             res.status(500).json({ ok: false, message: err.message });
@@ -58,8 +59,23 @@ class VisionController {
 
         // 1. Determine volumes to scan
         let volumes;
-        if (scope && scope.volumeId) {
-            volumes = await Volume.find({ _id: scope.volumeId }).populate('series').lean();
+        if (scope && (scope.volumeId || scope.seriesId)) {
+            const query = {};
+            if (scope.volumeId) {
+                // Backward compatibility: check if volumeId is actually a series ID
+                const isValidId = mongoose.Types.ObjectId.isValid(scope.volumeId);
+                if (isValidId) {
+                    query.$or = [
+                        { _id: scope.volumeId },
+                        { series: scope.volumeId }
+                    ];
+                } else {
+                    query._id = null; // Invalid ID
+                }
+            }
+            if (scope.seriesId) query.series = scope.seriesId;
+            
+            volumes = await Volume.find(query).populate('series').lean();
         } else {
             volumes = await Volume.find({}).populate('series').lean();
         }
@@ -130,6 +146,9 @@ class VisionController {
                         for (const mediaItem of (pageData.media || [])) {
                             if (!this.isVisionScanRunning) break;
 
+                            // Scoped Panel Check: Skip if we are targeting a specific panel and this isn't it
+                            if (scope && scope.panelId && mediaItem.panel !== scope.panelId) continue;
+
                             if (mediaItem.type === 'image' && mediaItem.fileName) {
                                 const imagePath = path.join(pageAbsPath, 'assets', 'image', mediaItem.fileName);
                                 
@@ -185,7 +204,17 @@ class VisionController {
                                             }
                                         } catch (err) {
                                             console.error(`[Vision] Failed to analyze ${imagePath}:`, err.message);
-                                            if (io) io.emit('scanner_progress', { message: `  > Error analyzing ${mediaItem.panel}: ${err.message}` });
+                                            if (io) {
+                                                io.emit('scanner_progress', { message: `  > Error analyzing ${mediaItem.panel}: ${err.message}` });
+                                                io.emit('panel_ai_error', {
+                                                    series: seriesFolderName,
+                                                    volume: volumeFolder,
+                                                    chapter: chapterFolder,
+                                                    pageId: pageFolder,
+                                                    panelId: mediaItem.panel,
+                                                    message: err.message
+                                                });
+                                            }
                                         }
                                     }
                                 }
@@ -193,6 +222,7 @@ class VisionController {
                         }
 
                         if (pageChangedInLoop) {
+                            console.log(`[Vision] Writing updated page.json to: ${pageJsonPath}`);
                             fs.writeFileSync(pageJsonPath, JSON.stringify(pageData, null, 2));
                             
                             // If it's a scoped scan, sync DB for THIS PAGE ONLY
@@ -203,6 +233,8 @@ class VisionController {
                             } else {
                                 volumeChanged = true;
                             }
+                        } else if (scope && scope.pageId) {
+                            console.log(`[Vision] No changes detected for ${pageFolder} in ${chapterFolder}.`);
                         }
                     }
                 }

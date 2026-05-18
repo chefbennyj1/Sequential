@@ -11,7 +11,7 @@ export let currentDesignMode = 'landscape';
 /**
  * Checks for orphaned dialogue items and displays a warning banner.
  */
-async function checkOrphans(vol, chap, page, seriesId) {
+async function checkOrphanDialogue(vol, chap, page, seriesId) {
     const alertsContainer = document.getElementById('pageBuilderAlerts');
     if (!alertsContainer) return;
 
@@ -78,7 +78,7 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
     });
 
     // Run orphan check
-    if (seriesId) checkOrphans(vol, chap, page, seriesId);
+    if (seriesId) checkOrphanDialogue(vol, chap, page, seriesId);
 
     // --- Mode Toggle Setup ---
     const landscapeBtn = document.getElementById('designModeLandscape');
@@ -101,9 +101,9 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
             landscapeId = pageEntry?.layoutId || "";
         }
         await renderLayoutBrowser('activePageLayoutBrowser', 'activePageLayoutValue', lid, currentDesignMode, landscapeId);
-        
+
         // Re-run orphan check when mode changes
-        if (seriesId) checkOrphans(vol, chap, page, seriesId);
+        if (seriesId) checkOrphanDialogue(vol, chap, page, seriesId);
     };
 
     if (landscapeBtn && portraitBtn) {
@@ -132,7 +132,7 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
         const volumeObj = await fetchSingleVolumeWithChapters(vol, seriesId);
         const chapter = volumeObj?.chapters?.find(c => `chapter-${c.chapterNumber}` === chap);
         const pageEntry = chapter?.pages?.find(p => `page${p.index}` === page || p.path.includes(page));
-        
+
         await refreshLayoutDisplay(pageEntry);
 
         if (applyLayoutBtn) {
@@ -148,10 +148,10 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
                     const res = await fetch('/api/editor/change-layout', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ 
-                            volumeId: volumeObj._id, 
-                            chapterId: chap, 
-                            pageId: page, 
+                        body: JSON.stringify({
+                            volumeId: volumeObj._id,
+                            chapterId: chap,
+                            pageId: page,
                             layout: newLayoutFile,
                             mode: currentDesignMode
                         })

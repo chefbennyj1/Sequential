@@ -46,10 +46,10 @@
     "5_Panel_Top_Bottom_Banner_Right_Tall"
   ],
   "Standard_Page": [
-    "Spread_Split_Vertical",
     "Standard_Page"
   ],
-  "Two_Col_Split": [
-    "Two_Col_Split"
+  "2_Panel_Grid_Vertical": [
+    "2_Panel_Grid_Vertical",
+    "Spread_Split_Vertical"
   ]
 }

@@ -532,6 +532,17 @@
                             <button id="run-vision-force-btn" class="update__btn btn-danger-outline">Force Rescan All</button>
                         </div>
                     </div>
+
+                    <!-- Targeted Scan Options -->
+                    <div class="targeted-scan-options margin-t-15 border-dim padding-10 border-radius-4 bg-black-10">
+                        <label class="font-size-07 text-muted margin-b-5 block">Targeted Scan (Optional Scope):</label>
+                        <div class="flex-row gap-5">
+                            <select id="visionSeriesSelect" class="gov-select flex-1 font-size-07"><option value="">All Series</option></select>
+                            <select id="visionVolumeSelect" class="gov-select flex-1 font-size-07" disabled><option value="">All Volumes</option></select>
+                            <select id="visionChapterSelect" class="gov-select flex-1 font-size-07" disabled><option value="">All Chapters</option></select>
+                        </div>
+                    </div>
+
                     <p class="font-size-07 text-muted margin-t-10">
                         Generate descriptions for panels via Google Gemini.<br>
                         <strong>AI Scan:</strong> Processes missing or changed panels.<br>

@@ -259,6 +259,23 @@ async function syncSinglePage(volumeId, chapterId, pageId, seriesFolderName = nu
     }
 }
 
+async function tryRename(oldP, newP, retries = 5) {
+    for (let i = 0; i < retries; i++) {
+        try {
+            await fs.promises.rename(oldP, newP);
+            return;
+        } catch (e) {
+            if ((e.code === 'EPERM' || e.code === 'EBUSY' || e.code === 'EACCES') && i < retries - 1) {
+                const delay = Math.pow(2, i) * 100; // Exponential backoff: 100ms, 200ms, 400ms, 800ms
+                await new Promise(r => setTimeout(r, delay));
+            } else {
+                e.message = `[Rename Error] Could not move "${path.basename(oldP)}". It may be open in another program (VS Code, File Explorer, etc). Details: ${e.message}`;
+                throw e;
+            }
+        }
+    }
+}
+
 async function insertPage({ series, volume: volumeFolderName, chapter: chapterFolderName, insertPoint }) {
     const { resolveSeriesPath } = require('./MediaService');
     const Series = require('../models/Series');
@@ -290,7 +307,9 @@ async function insertPage({ series, volume: volumeFolderName, chapter: chapterFo
     const targetChapIdx = chapterDirs.indexOf(chapterFolderName);
     if (targetChapIdx === -1) throw new Error("Target chapter not found in volume");
 
-    for (let i = chapterDirs.length - 1; i >= targetChapIdx; i--) {
+    // --- PHASE 0: PRE-FLIGHT LOCK CHECK ---
+    const foldersToMove = [];
+    for (let i = targetChapIdx; i < chapterDirs.length; i++) {
         const currentChapName = chapterDirs[i];
         const currentChapPath = path.join(volumePath, currentChapName);
         const isTargetChapter = (i === targetChapIdx);
@@ -304,53 +323,85 @@ async function insertPage({ series, volume: volumeFolderName, chapter: chapterFo
             .sort((a, b) => b.num - a.num);
 
         for (const page of pageDirs) {
-            const oldPath = path.join(currentChapPath, page.name);
-            const newPath = path.join(currentChapPath, `page${page.num + 1}`);
-            await tryRename(oldPath, newPath);
-            await updateInternalFiles(newPath, page.name, `page${page.num + 1}`);
+            foldersToMove.push({
+                chapName: currentChapName,
+                oldName: page.name,
+                newName: `page${page.num + 1}`,
+                oldPath: path.join(currentChapPath, page.name),
+                newPath: path.join(currentChapPath, `page${page.num + 1}`),
+                tempPath: path.join(currentChapPath, `${page.name}_TEMP_SHIFT`)
+            });
         }
     }
 
+    // Verify all folders can be touched (Pre-flight)
+    for (const item of foldersToMove) {
+        try {
+            // Attempt a non-destructive rename test to see if file is locked
+            const testPath = item.oldPath + "_LOCK_TEST";
+            await fs.promises.rename(item.oldPath, testPath);
+            await fs.promises.rename(testPath, item.oldPath);
+        } catch (e) {
+            throw new Error(`PRE-FLIGHT ERROR: The folder "${item.chapName}/${item.oldName}" is currently locked by another process. Please close all applications (VS Code, File Explorer, etc.) that might be using this folder and try again.`);
+        }
+    }
+
+    // --- PHASE 1: TEMP RENAME (Avoid collisions) ---
+    for (const item of foldersToMove) {
+        await tryRename(item.oldPath, item.tempPath);
+    }
+
+    // --- PHASE 2: FINAL RENAME & INTERNAL UPDATES ---
+    for (const item of foldersToMove) {
+        await tryRename(item.tempPath, item.newPath);
+        await updateInternalFiles(item.newPath, item.oldName, item.newName);
+    }
+
+    // --- PHASE 3: SCAFFOLD NEW PAGE ---
     const targetChapterPath = path.join(volumePath, chapterFolderName);
-      const newPageName = `page${insertIdx}`;
-      const newPagePath = path.join(targetChapterPath, newPageName);
+    const newPageName = `page${insertIdx}`;
+    const newPagePath = path.join(targetChapterPath, newPageName);
 
-      let cloneSourcePath = path.join(targetChapterPath, `page${insertIdx + 1}`);
-      let sourceName = `page${insertIdx + 1}`;
-      if (!fs.existsSync(cloneSourcePath)) {
-          cloneSourcePath = path.join(targetChapterPath, `page${insertIdx - 1}`);
-          sourceName = `page${insertIdx - 1}`;
-      }
+    let cloneSourcePath = path.join(targetChapterPath, `page${insertIdx + 1}`);
+    let sourceName = `page${insertIdx + 1}`;
+    if (!fs.existsSync(cloneSourcePath)) {
+        cloneSourcePath = path.join(targetChapterPath, `page${insertIdx - 1}`);
+        sourceName = `page${insertIdx - 1}`;
+    }
 
-      if (fs.existsSync(cloneSourcePath)) {
-          await fs.promises.cp(cloneSourcePath, newPagePath, { recursive: true });
-          await updateInternalFiles(newPagePath, sourceName, newPageName);
-          const jsonPath = path.join(newPagePath, 'page.json');
-          if (fs.existsSync(jsonPath)) {
-              const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-              data.media = []; data.scene = [];
-              if (data.header) { data.header.pageId = newPageName; data.header.chapter = chapterFolderName; data.header.volume = volumeFolderName; }
-              fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2));
-          }
-      } else {
-          fs.mkdirSync(newPagePath, { recursive: true });
-          const jsonPath = path.join(newPagePath, 'page.json');
-          const defaultData = {
-              header: { version: "2.0", pageId: newPageName, chapter: chapterFolderName, volume: volumeFolderName, layout: { id: "Standard_Page", html: "Standard_Page.html", css: "" }, layouts: {} },
-              media: [],
-              scene: []
-          };
-          fs.writeFileSync(jsonPath, JSON.stringify(defaultData, null, 2));
-          fs.writeFileSync(path.join(newPagePath, 'page.js'), DEFAULT_JS);
-          fs.writeFileSync(path.join(newPagePath, 'page.css'), DEFAULT_CSS(newPageName));
-      }
+    if (fs.existsSync(cloneSourcePath)) {
+        await fs.promises.cp(cloneSourcePath, newPagePath, { recursive: true });
+        await updateInternalFiles(newPagePath, sourceName, newPageName);
+        const jsonPath = path.join(newPagePath, 'page.json');
+        if (fs.existsSync(jsonPath)) {
+            const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+            data.media = []; data.scene = [];
+            if (data.header) { 
+                data.header.pageId = newPageName; 
+                data.header.chapter = chapterFolderName; 
+                data.header.volume = volumeFolderName; 
+            }
+            fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2));
+        }
+    } else {
+        fs.mkdirSync(newPagePath, { recursive: true });
+        const jsonPath = path.join(newPagePath, 'page.json');
+        const defaultData = {
+            header: { version: "2.0", pageId: newPageName, chapter: chapterFolderName, volume: volumeFolderName, layout: { id: "Standard_Page", html: "Standard_Page.html", css: "" }, layouts: {} },
+            media: [],
+            scene: []
+        };
+        fs.writeFileSync(jsonPath, JSON.stringify(defaultData, null, 2));
+        fs.writeFileSync(path.join(newPagePath, 'page.js'), DEFAULT_JS);
+        fs.writeFileSync(path.join(newPagePath, 'page.css'), DEFAULT_CSS(newPageName));
+    }
 
     const seriesDoc = await Series.findOne({ folderName: seriesFolderName });
     const volPathRegex = new RegExp(`${volumeFolderName}[\\\\/]?$`, 'i');
     const volume = await VolumeModel.findOne({ volumePath: volPathRegex, series: seriesDoc ? seriesDoc._id : { $exists: false } });
     if (volume) await updateChaptersFromFS(volume);
 
-    return { ok: true, message: `Global Page Insertion complete at ${insertIdx}` };
+    return { ok: true, message: `Global Page Insertion complete at ${insertIdx}. Successfully shifted ${foldersToMove.length} pages.` };
 }
 
 async function createChapter({ seriesFolderName, volumeFolderName, title, chapterIndex }) {
@@ -426,19 +477,6 @@ async function updateInternalFiles(dir, oldName, newName) {
                 fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2));
             }
         } catch(e) {}
-    }
-}
-
-async function tryRename(oldP, newP, retries = 3) {
-    for (let i = 0; i < retries; i++) {
-        try {
-            await fs.promises.rename(oldP, newP);
-            return;
-        } catch (e) {
-            if (e.code === 'EPERM' && i < retries - 1) {
-                await new Promise(r => setTimeout(r, 500));
-            } else throw e;
-        }
     }
 }
 

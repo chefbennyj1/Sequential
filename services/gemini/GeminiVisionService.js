@@ -97,20 +97,27 @@ class GeminiVisionService {
             ];
 
             console.log(`[GeminiVision] Sending ${path.basename(imagePath)} to ${targetModel}...`);
-            const result = await model.generateContent([finalPrompt, ...imageParts]);
+            // Add a 60-second timeout to the AI request to prevent hanging
+            const result = await model.generateContent([finalPrompt, ...imageParts], { timeout: 60000 });
             const response = await result.response;
             const text = response.text();
             
+            console.log(`[GeminiVision] Raw AI Response for ${path.basename(imagePath)}:`, text);
+
             try {
                 // Try to find JSON block in the response
                 const jsonMatch = text.match(/\{[\s\S]*\}/);
                 const jsonStr = jsonMatch ? jsonMatch[0] : text;
-                return JSON.parse(jsonStr);
+                const parsed = JSON.parse(jsonStr);
+                
+                console.log(`[GeminiVision] Successfully parsed JSON for ${path.basename(imagePath)}:`, JSON.stringify(parsed, null, 2));
+                return parsed;
             } catch (e) {
-                console.error("[GeminiVision] Failed to parse JSON response:", text);
+                console.error(`[GeminiVision] Failed to parse JSON response for ${path.basename(imagePath)}:`, e.message);
+                console.error("[GeminiVision] Problematic response text:", text);
                 return {
-                    description: text,
-                    alt: text,
+                    description: text.substring(0, 1000),
+                    alt: text.substring(0, 200),
                     hashtags: ["#NoOverflow"]
                 };
             }

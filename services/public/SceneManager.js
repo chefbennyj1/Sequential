@@ -23,20 +23,30 @@ export async function initScene(container, pageInfo, sceneData, mediaData = []) 
 
         const result = { ...placement };
 
-        const translateCoord = (val, size, panelSize, pageOffset, pageSize) => {
-            if (!val || val === 'auto') return 'auto';
+        const translateCoord = (val, size, panelSize, pageOffset, pageSize, forceGutter = false) => {
+            // ONLY translate if a value is provided, OR if we are forcing a 1% gutter
+            if (!val || val === 'auto' || val === '') {
+                if (!forceGutter) return 'auto';
+                // Apply 1% safety gutter relative to the PANEL size
+                const pixels = (1 / 100) * panelSize;
+                const globalPixels = (size - pageOffset) + pixels;
+                return ((globalPixels / pageSize) * 100).toFixed(2) + '%';
+            }
             const pixels = (parseFloat(val) / 100) * panelSize;
             const globalPixels = (size - pageOffset) + pixels;
             return ((globalPixels / pageSize) * 100).toFixed(2) + '%';
         };
 
-        // Resolve Left/Right
-        result.left = translateCoord(placement.left, panelRect.left, panelRect.width, pageRect.left, pageRect.width);
-        result.right = translateCoord(placement.right, panelRect.right, -panelRect.width, pageRect.right, -pageRect.width);
+        // Determine if we need to force gutters (only if BOTH are empty on a specific axis)
+        const forceHGutter = (!placement.left && !placement.right);
+        // We do NOT force a vertical gutter to avoid pinning top/bottom simultaneously
+        const forceVGutter = false; 
 
-        // Resolve Top/Bottom
-        result.top = translateCoord(placement.top, panelRect.top, panelRect.height, pageRect.top, pageRect.height);
-        result.bottom = translateCoord(placement.bottom, panelRect.bottom, -panelRect.height, pageRect.bottom, -pageRect.height);
+        // Resolve positions globally
+        result.left = translateCoord(placement.left, panelRect.left, panelRect.width, pageRect.left, pageRect.width, forceHGutter);
+        result.right = translateCoord(placement.right, panelRect.right, -panelRect.width, pageRect.right, -pageRect.width, forceHGutter);
+        result.top = translateCoord(placement.top, panelRect.top, panelRect.height, pageRect.top, pageRect.height, forceVGutter);
+        result.bottom = translateCoord(placement.bottom, panelRect.bottom, -panelRect.height, pageRect.bottom, -pageRect.height, forceVGutter);
 
         return result;
     };
@@ -54,8 +64,9 @@ export async function initScene(container, pageInfo, sceneData, mediaData = []) 
             continue; 
         }
 
-        const renderParent = (hasFloatingPanels || isFloatingTarget) ? page : panelEl;
-        const finalPlacement = (hasFloatingPanels || isFloatingTarget) ? getGlobalPos(item.placement, panelEl) : item.placement;
+        // ALWAYS render to the page layer to allow crossing panels
+        const renderParent = page;
+        const finalPlacement = getGlobalPos(item.placement, panelEl);
 
         if (item.displayType.type === 'SpeechBubble') {
             const bubbleOptions = { ...item, series, volume, chapter, pageId, pageIndex, dialogueIndex: index };

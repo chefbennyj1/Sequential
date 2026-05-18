@@ -327,18 +327,27 @@ export async function init(container, params) {
                 const img = panel.querySelector('img');
                 const visualProps = ['objectFit', 'objectPosition', 'transform', 'transformOrigin', 'filter', 'opacity'];
                 
-                for (const prop in targetStyles) {
-                    const isVisual = visualProps.includes(prop);
-                    const target = (panel.classList.contains('floating-panel') && !isVisual) ? panel : (img || panel);
-                    if (target) target.style[prop] = targetStyles[prop];
+                // Clear existing visual styles first to ensure a clean slate
+                const targetEl = (panel.classList.contains('floating-panel')) ? panel : img;
+                if (targetEl) {
+                    visualProps.forEach(prop => {
+                        targetEl.style[prop] = '';
+                    });
+                    
+                    // Apply new styles
+                    for (const prop in targetStyles) {
+                        const isVisual = visualProps.includes(prop);
+                        const applyTarget = (panel.classList.contains('floating-panel') && !isVisual) ? panel : img;
+                        if (applyTarget) applyTarget.style[prop] = targetStyles[prop];
+                    }
                 }
 
                 // Special case for Portrait Overrides
                 if (params.mode === 'portrait' && entry?.portraitStyle) {
                     for (const prop in entry.portraitStyle) {
                         const isVisual = visualProps.includes(prop);
-                        const target = (panel.classList.contains('floating-panel') && !isVisual) ? panel : (img || panel);
-                        if (target) target.style[prop] = entry.portraitStyle[prop];
+                        const applyTarget = (panel.classList.contains('floating-panel') && !isVisual) ? panel : img;
+                        if (applyTarget) applyTarget.style[prop] = entry.portraitStyle[prop];
                     }
                 }
             }

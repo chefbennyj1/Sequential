@@ -54,13 +54,6 @@ exports.saveMedia = async (req, res) => {
     
     // Overwrite media and check for changes
     pageData.media = media.map(newItem => {
-        const existing = oldMedia.find(m => m.panel === newItem.panel);
-        // If fileName changed or is new, mark for AI update
-        if (!existing || existing.fileName !== newItem.fileName) {
-            if (newItem.fileName && newItem.type === 'image') {
-                newItem.DescriptionUpdateRequired = true;
-            }
-        }
         return newItem;
     });
 
@@ -74,23 +67,16 @@ exports.saveMedia = async (req, res) => {
       await VolumeService.syncSinglePage(volumeId, chapter, pageId, seriesFolderName);
     }
 
-    // Trigger Scoped Background AI Scan if auto-scan is enabled
-    const GlobalSettings = require('../models/GlobalSettings');
-    const settings = await GlobalSettings.findOne({ key: "main" });
-    if (settings?.vision?.enabled && settings?.vision?.autoScanOnSave) {
-        const VisionController = require('./VisionController');
-        const io = req.app.locals.io;
-        // Run in background, don't await. Use SCOPE for performance.
-        VisionController.runVisionScan(io, false, false, { volumeId, chapter, pageId })
-            .catch(err => console.error("[Vision] Scoped background scan failed:", err.message));
-    }
+    // --- AUTO-SCAN DISABLED ---
+    // AI descriptions should only be triggered manually via the 'Analyze' button
+    // to prevent server overload during active editing sessions.
 
-    res.json({ ok: true, message: "Media merged successfully." });
-  } catch (err) {
-    console.error("Save Media Error:", err);
-    res.status(500).json({ ok: false, message: "Failed to save media" });
-  }
-};
+    res.json({ ok: true, message: 'Media saved' });
+    } catch (e) {
+    console.error("saveMedia Error:", e);
+    res.status(500).json({ ok: false, message: e.message });
+    }
+    };
 
 exports.getMedia = async (req, res) => {
   const { series, volume, chapter, pageId } = req.params;

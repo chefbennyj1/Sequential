@@ -64,7 +64,7 @@
   font-family: "Comic Book", cursive;
   font-weight: 500;
   font-style: normal;
-  background: rgba(0, 0, 0, 0.6);
+  background: #000;
   color: white;
   border-radius: var(--text-block-border-radius);
   border: var(--text-block-border-width) solid white;
@@ -84,7 +84,7 @@
   font-weight: 500;
   font-style: italic;
   background-image: radial-gradient(yellow 33%, transparent 34%), radial-gradient(yellow 33%, transparent 34%) !important;
-  background: rgba(255, 255, 255, 0.79);
+  background: #fff;
   background-size: 0.3rem 0.3rem;
   background-position: 0 0, 0.15rem 0.15rem;
   color: black;
