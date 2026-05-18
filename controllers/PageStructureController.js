@@ -55,9 +55,6 @@ exports.createPage = async (req, res) => {
     const pageJson = {
       header: {
         version: "2.0",
-        pageId: pageId,
-        chapter: chapter,
-        volume: volume,
         layouts: {
           landscape: { id: layoutId, html: `${layoutId}.html`, css: "" },
           portrait: { id: layoutId, html: `${layoutId}.html`, css: "" }

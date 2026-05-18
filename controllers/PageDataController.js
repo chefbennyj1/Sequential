@@ -144,9 +144,6 @@ exports.saveScene = async (req, res) => {
     pageData.scene = sceneData;
     if (!pageData.header) pageData.header = {};
     pageData.header.lastUpdated = new Date();
-    pageData.header.pageId = pageId;
-    pageData.header.chapter = chapter;
-    pageData.header.volume = volume;
 
     fs.writeFileSync(pageJsonPath, JSON.stringify(pageData, null, 2));
 

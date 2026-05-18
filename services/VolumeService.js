@@ -118,9 +118,6 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
             const defJson = {
                 header: { 
                     version: "2.0", 
-                    pageId: pageFolder, 
-                    chapter: chapFolder, 
-                    volume: path.basename(volume.volumePath),
                     layouts: {
                         landscape: { id: "Standard_Page", html: "Standard_Page.html", css: "" },
                         portrait: { id: "Standard_Page", html: "Standard_Page.html", css: "" }
@@ -376,18 +373,16 @@ async function insertPage({ series, volume: volumeFolderName, chapter: chapterFo
         if (fs.existsSync(jsonPath)) {
             const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
             data.media = []; data.scene = [];
-            if (data.header) { 
-                data.header.pageId = newPageName; 
-                data.header.chapter = chapterFolderName; 
-                data.header.volume = volumeFolderName; 
-            }
             fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2));
         }
     } else {
         fs.mkdirSync(newPagePath, { recursive: true });
         const jsonPath = path.join(newPagePath, 'page.json');
         const defaultData = {
-            header: { version: "2.0", pageId: newPageName, chapter: chapterFolderName, volume: volumeFolderName, layout: { id: "Standard_Page", html: "Standard_Page.html", css: "" }, layouts: {} },
+            header: { version: "2.0", layouts: {
+                landscape: { id: "Standard_Page", html: "Standard_Page.html", css: "" },
+                portrait: { id: "Standard_Page", html: "Standard_Page.html", css: "" }
+            } },
             media: [],
             scene: []
         };
@@ -472,8 +467,11 @@ async function updateInternalFiles(dir, oldName, newName) {
     if (fs.existsSync(jsonPath)) {
         try {
             const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
-            if (data.header && data.header.pageId === oldName) {
-                data.header.pageId = newName;
+            // Remove redundant fields if they exist
+            if (data.header) {
+                delete data.header.pageId;
+                delete data.header.chapter;
+                delete data.header.volume;
                 fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2));
             }
         } catch(e) {}
