@@ -162,11 +162,12 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
                         setTimeout(() => { applyLayoutBtn.textContent = oldText; applyLayoutBtn.disabled = false; }, 2000);
                     } else {
                         alert("Error: " + result.message);
-                        applyLayoutBtn.textContent = "Error";
+                        applyLayoutBtn.textContent = oldText;
                         applyLayoutBtn.disabled = false;
                     }
                 } catch (e) {
                     console.error(e);
+                    applyLayoutBtn.textContent = oldText;
                     applyLayoutBtn.disabled = false;
                 }
             };
