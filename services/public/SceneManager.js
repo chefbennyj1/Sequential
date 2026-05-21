@@ -58,18 +58,17 @@ export async function initScene(container, pageInfo, sceneData, mediaData = []) 
 
         // --- Orphan Detection ---
         const isFloatingTarget = targetPanel && floatingPanelSelectors.has(targetPanel);
-        if ((item.displayType.type === 'SpeechBubble' || item.displayType.type === 'TextBlock') && targetPanel && targetPanel.trim() !== '' && !panelEl && !isFloatingTarget) {
+        if ((item.displayType.type === 'SpeechBubble' || item.displayType.type === 'TextBlock' || item.displayType.type === 'ActionText') && targetPanel && targetPanel.trim() !== '' && !panelEl && !isFloatingTarget) {
             console.warn(`Orphaned item detected: ${item.id} targeting ${targetPanel}`);
             item.isOrphaned = true;
             continue; 
         }
 
-        // Determine parent: use panel if it exists and is valid, fallback to page
-        const renderParent = panelEl || page;
+        // ALWAYS render to the page layer to allow crossing panels and staying on top of floating elements
+        const renderParent = page;
         
-        // If we are rendering to a panel, use local coordinates.
-        // If we are rendering to the page but it was meant for a panel (fallback), translate to global.
-        const finalPlacement = (renderParent === page && panelEl) ? getGlobalPos(item.placement, panelEl) : item.placement;
+        // Resolve positions globally relative to the page
+        const finalPlacement = (panelEl && panelEl !== page) ? getGlobalPos(item.placement, panelEl) : item.placement;
 
         if (item.displayType.type === 'SpeechBubble') {
             const bubbleOptions = { ...item, series, volume, chapter, pageId, pageIndex, dialogueIndex: index };

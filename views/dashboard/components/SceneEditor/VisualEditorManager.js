@@ -752,7 +752,14 @@ export class VisualEditorManager {
         if (floatLeft) {
             styles.left = floatLeft.value + '%';
             styles.top = document.getElementById('float-top').value + '%';
-            styles.width = floatLeft.value + '%'; // Note: Should probably be float-width, but kept for parity
+            styles.width = document.getElementById('float-width').value + '%';
+            
+            const hVal = document.getElementById('float-height').value;
+            styles.height = (hVal === 'auto' || hVal.includes('%')) ? hVal : (hVal + '%');
+            
+            const aspect = document.getElementById('float-aspect').value;
+            if (aspect && aspect !== 'none') styles.aspectRatio = aspect;
+            
             styles.zIndex = document.getElementById('float-z').value;
         }
 

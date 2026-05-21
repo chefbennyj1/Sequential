@@ -1,0 +1,26 @@
+<style>
+@import url('/layouts/styles/base-comic-layout.css');
+
+/* 
+    Layout: 3-Panel Stacked 16:9 (Landscape)
+    Three cinematic widescreen panels stacked vertically.
+*/
+.page-layout.layout-3-panel-stacked-16-9 {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(3, 1fr);
+    gap: 15px;
+    padding: 20px;
+}
+
+.layout-3-panel-stacked-16-9 .panel {
+    aspect-ratio: 16 / 9;
+    width: 100%;
+    margin: 0 auto;
+}
+</style>
+<div class="section-container page-layout layout-3-panel-stacked-16-9">
+    <div class="panel panel-A"></div>
+    <div class="panel panel-B"></div>
+    <div class="panel panel-C"></div>
+</div>

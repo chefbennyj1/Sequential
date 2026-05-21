@@ -1,7 +1,7 @@
 .action-text-container {
     position: absolute;
     pointer-events: none;
-    z-index: 150;
+    z-index: 20000;
     display: flex;
     justify-content: center;
     align-items: center;

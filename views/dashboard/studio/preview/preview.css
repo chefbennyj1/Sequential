@@ -28,7 +28,6 @@ body {
 
 .panel { 
     border: 2px dashed #ccc; 
-    transition: all 0.2s; 
     position: relative; 
     cursor: pointer;
     background: #f9f9f9;
@@ -53,7 +52,7 @@ body {
     color: #666;
     font-weight: bold; 
     pointer-events: none;
-    transition: all 0.2s;
+    transition: opacity 0.2s, background 0.2s;
     font-size: 1.2rem;
     text-transform: uppercase;
     border: 1px solid transparent;

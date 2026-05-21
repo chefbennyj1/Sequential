@@ -338,7 +338,11 @@ export async function init(container, params) {
                     for (const prop in targetStyles) {
                         const isVisual = visualProps.includes(prop);
                         const applyTarget = (panel.classList.contains('floating-panel') && !isVisual) ? panel : img;
-                        if (applyTarget) applyTarget.style[prop] = targetStyles[prop];
+                        
+                        // Map kebab-case from JSON to camelCase for JS style object
+                        const jsProp = prop === 'aspect-ratio' ? 'aspectRatio' : (prop === 'z-index' ? 'zIndex' : prop);
+                        
+                        if (applyTarget) applyTarget.style[jsProp] = targetStyles[prop];
                     }
                 }
 

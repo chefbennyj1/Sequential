@@ -4,7 +4,7 @@ const express = require('express'); //server
 const bcrypt = require('bcryptjs'); //password encryption
 const path = require('path'); //files paths
 const session = require('express-session'); //current session data
-const MongoDbSession = require('connect-mongodb-session')(session); //DB
+const { MongoStore } = require('connect-mongo'); // New robust DB session store (v6 named export)
 const mongoose = require('mongoose'); //DB interface
 const fs = require('fs'); //file system
 const mime = require('mime-types'); //ensure proper mime types
@@ -42,7 +42,10 @@ const { isAuth } = require('./middleware/auth.js');
 
 mongoose.connect(mongoDbURI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
+  serverSelectionTimeoutMS: 10000,
+  heartbeatFrequencyMS: 10000,
+  socketTimeoutMS: 45000,
 }).then(async (res) => {
   console.log('mongoDb Connected');
   
@@ -62,12 +65,48 @@ mongoose.connect(mongoDbURI, {
   } catch (err) {
     console.error("[Migration] Error updating roles:", err);
   }
-})
+}).catch(err => {
+  console.error("MongoDB Connection Error:", err);
+});
 
-const store = new MongoDbSession({
-  uri: mongoDbURI,
-  collection: 'VeilSessions'
-})
+// --- CONNECTION EVENT LISTENERS ---
+mongoose.connection.on('error', err => {
+  console.error('[MongoDB] connection error:', err);
+});
+
+mongoose.connection.on('disconnected', () => {
+  console.warn('[MongoDB] disconnected. Attempting to reconnect...');
+});
+
+mongoose.connection.on('reconnected', () => {
+  console.log('[MongoDB] reconnected');
+});
+
+// Handle graceful shutdown
+const gracefulShutdown = async (signal) => {
+  console.log(`[${signal}] Shutting down gracefully...`);
+  try {
+    await mongoose.connection.close();
+    console.log('MongoDB connection closed.');
+    process.exit(0);
+  } catch (err) {
+    console.error('Error during shutdown:', err);
+    process.exit(1);
+  }
+};
+
+process.on('SIGINT', () => gracefulShutdown('SIGINT'));
+process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
+
+const store = MongoStore.create({
+  mongoUrl: mongoDbURI,
+  collectionName: 'VeilSessions',
+  ttl: 24 * 60 * 60, // 24 hours
+  autoRemove: 'native',
+  crypto: {
+    secret: process.env.SESSION_SECRET
+  }
+});
 
 // --- MIDDLEWARE ---
 
