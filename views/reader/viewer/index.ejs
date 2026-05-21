@@ -70,6 +70,29 @@
             if (window.GEMINI_SPREAD_MODE) window.GEMINI_PORTRAIT_MODE = true; 
 
             const modeBtn = document.getElementById('toggle-mode-btn');
+            const modeText = document.getElementById('mode-text');
+
+            if (window.GEMINI_PORTRAIT_MODE) {
+                modeBtn.classList.add('portrait-active');
+                if (modeText) modeText.textContent = 'Landscape';
+            }
+
+            if (modeBtn) {
+                modeBtn.addEventListener('click', () => {
+                    const newUrl = new URL(window.location.href);
+                    const currentMode = newUrl.searchParams.get('mode');
+                    
+                    if (currentMode === 'portrait') {
+                        newUrl.searchParams.delete('mode');
+                        // If we are in spread mode, we should also toggle that off if switching to landscape
+                        newUrl.searchParams.delete('spread');
+                    } else {
+                        newUrl.searchParams.set('mode', 'portrait');
+                    }
+                    
+                    window.location.href = newUrl.href;
+                });
+            }
 
             (async () => {
                 const scrollWrapper = document.querySelector(".scroll-wrapper");
