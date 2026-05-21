@@ -347,6 +347,11 @@ class ExportController {
                             .portrait-page .super-bubble, .portrait-page .speech-text {
                                 font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important;
                             }
+                            /* Fix for missing images in Puppeteer: Force a compositing layer */
+                            .panel img {
+                                transform: translateZ(0);
+                                backface-visibility: hidden;
+                            }
                         `;
                         document.head.appendChild(overrideStyle);
 

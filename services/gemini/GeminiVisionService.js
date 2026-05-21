@@ -40,18 +40,30 @@ class GeminiVisionService {
                 return null;
             }
 
+            // Pre-flight check: Try to read the file into memory first.
+            // This ensures the file is accessible and not currently locked/partially written.
+            // If this fails, it's a standard JS error we can catch.
+            let imageBuffer;
+            try {
+                imageBuffer = await fs.promises.readFile(imagePath);
+                if (!imageBuffer || imageBuffer.length === 0) throw new Error("Empty buffer");
+            } catch (readErr) {
+                console.error(`[GeminiVision] [Hash] Pre-flight Read failed for ${path.basename(imagePath)}:`, readErr.message);
+                return null;
+            }
+
             // Logging for native crash diagnosis
-            console.log(`[GeminiVision] [Hash] Starting Sharp process for: ${path.basename(imagePath)}`);
+            console.log(`[GeminiVision] [Hash] Starting Sharp process for: ${path.basename(imagePath)} (${(imageBuffer.length / 1024).toFixed(2)} KB)`);
             
-            const buffer = await sharp(imagePath)
-                .resize(256, 256, { fit: 'inside' })
+            const processedBuffer = await sharp(imageBuffer, { failOn: 'none' })
+                .resize(256, 256, { fit: 'inside', withoutEnlargement: true })
                 .grayscale()
                 .toBuffer();
             
             console.log(`[GeminiVision] [Hash] Sharp finished for: ${path.basename(imagePath)}`);
-            return crypto.createHash('md5').update(buffer).digest('hex');
+            return crypto.createHash('md5').update(processedBuffer).digest('hex');
         } catch (err) {
-            console.error(`[GeminiVision] Hash Generation Error for ${imagePath}:`, err.message);
+            console.error(`[GeminiVision] Hash Generation Error for ${path.basename(imagePath)}:`, err.message);
             return null;
         }
     }
@@ -86,7 +98,7 @@ class GeminiVisionService {
             const ext = path.extname(imagePath).toLowerCase().replace('.', '');
             const mimeType = ext === 'jpg' ? 'image/jpeg' : `image/${ext}`;
 
-            const imageBuffer = fs.readFileSync(imagePath);
+            const imageBuffer = await fs.promises.readFile(imagePath);
             const imageParts = [
                 {
                     inlineData: {

@@ -153,6 +153,9 @@ class VisionController {
                                 const imagePath = path.join(pageAbsPath, 'assets', 'image', mediaItem.fileName);
                                 
                                 if (fs.existsSync(imagePath)) {
+                                    // Small delay to prevent IO slamming
+                                    await new Promise(r => setTimeout(r, 100));
+
                                     const currentHash = await GeminiVisionService.generateImageHash(imagePath);
                                     const hashChanged = currentHash && (mediaItem.imageHash !== currentHash);
 
