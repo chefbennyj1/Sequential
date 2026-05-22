@@ -1,0 +1,102 @@
+/* Main Layout Structures */
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  display: flex;
+  height: 100dvh;
+}
+
+.dashboard {
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+/* Sidebar */
+.sidebar {
+  width: var(--side-bar-width);
+  height: 100dvh;
+  background: linear-gradient(135deg, #1a1a1a 0%, var(--bg) 100%);
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px 0 20px 20px;
+  box-shadow: 5px 0 15px rgba(0, 0, 0, 0.7);
+  transform: translateX(-160px);
+  transition: all 0.5s ease-in-out;
+  z-index: 1000;
+}
+
+.sidebar.open {
+  width: var(--side-bar-width);
+  transform: translateX(0px);
+}
+
+.main-content {
+  flex: 1;
+  width: auto;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: stretch;
+  padding: 80px 20px 20px 20px;
+  box-sizing: border-box;
+  overflow-y: auto;
+  margin-left: 60px;
+}
+
+.dashboard-section {
+  width: 100%;
+  margin-top: 20px;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+header {
+  background-image: radial-gradient(rgba(0, 170, 255, 0.2) 33%, transparent 34%), radial-gradient(rgba(0, 170, 255, 0.2) 33%, transparent 34%) !important;
+  background-color: #111 !important;
+  border-bottom: 2px solid var(--accent) !important;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.8) !important;
+}
+
+/* Editor Specific Layout */
+.editor-container-flex {
+  display: flex;
+  gap: 20px;
+  height: 80vh;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.preview-pane-flex {
+  flex: 3;
+  border: 2px solid #333;
+  position: relative;
+  background: #1a1a1a;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+  min-width: 0;
+}
+
+.tools-pane-flex {
+  flex: 1;
+  padding: 15px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  position: relative;
+  min-width: 320px;
+}

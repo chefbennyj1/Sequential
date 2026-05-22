@@ -1,0 +1,29 @@
+:root {
+  --bg: #303030;
+  --panel: #111;
+  --border: #222;
+  --text: #eee;
+  --muted: #777;
+  --accent: #00aaff;
+  --side-bar-width: 220px;
+  --cyber-primary: #00ff41;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--bg);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #444;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--accent);
+}
