@@ -110,7 +110,8 @@ export async function initScene(container, pageInfo, sceneData, mediaData = []) 
         if (visualItem) {
             visualItem.sceneIndex = index;
             visualItem.sceneItemId = item.id; // Store unique ID for robust tracking
-            visualItem.targetParentEl = renderParent; // Store for relative coordinate calculation
+            visualItem.targetParentEl = renderParent; // The physical parent (Page)
+            visualItem.intendedPanelEl = panelEl; // The logical anchor (Panel)
             visualItemsToRender.push(visualItem);
         }
     }

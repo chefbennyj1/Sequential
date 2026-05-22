@@ -207,7 +207,8 @@ export function initSceneEditor() {
         document.querySelector('.layout-editor'),
         getActiveAssets,
         activeSeriesId,
-        activeSeriesFolder
+        activeSeriesFolder,
+        () => currentSceneData // getActiveSceneData callback
     );
 
     // 2. Global Button Handlers

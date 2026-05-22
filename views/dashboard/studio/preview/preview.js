@@ -179,15 +179,19 @@ export async function init(container, params) {
                 });
 
                 initPanels(); 
-                await loadExistingScene(data.media ? (Array.isArray(data.media) ? data.media : (data.media.media || [])) : []);
+
+                // Fetch initial scene from server, then we'll rely on pushed updates
+                const sceneData = await fetchScene(volume, chapter, pageId, series);
+                renderScene(sceneData, mediaArray);
             }
         } catch (e) { console.error("Failed to load media:", e); }
     }
 
-    async function loadExistingScene(mediaData) {
+    /**
+     * Core renderer for the dialogue scene.
+     */
+    async function renderScene(sceneData, mediaData) {
         try {
-            const series = params.series;
-
             // --- 1. Load Dialogue Component Styles ---
             await Promise.all([
                 loadCSS('/libs/SpeechBubble/SpeechBubble.css'),
@@ -195,18 +199,15 @@ export async function init(container, params) {
                 loadCSS('/libs/ActionText/ActionText.css')
             ]);
 
-            const sceneData = await fetchScene(volume, chapter, pageId, series);
-            
             if (sceneController && sceneController.cleanup) sceneController.cleanup();
 
-            const pageInfo = { ...params, pageIndex: 0 }; // pageIndex not critical for preview
+            const pageInfo = { ...params, pageIndex: 0 }; 
             sceneController = await initScene(container, pageInfo, sceneData, mediaData);
 
             if (sceneController && sceneController.visualItems) {
                 renderedDialogueItems = sceneController.visualItems;
                 renderedDialogueItems.forEach(item => {
                     if (item.container) {
-                        // For the editor preview, we want bubbles to be visible and interactive
                         item.container.classList.add('visible'); 
                         item.container.style.cursor = 'move';
                         item.container.style.pointerEvents = 'all'; 
@@ -215,7 +216,7 @@ export async function init(container, params) {
                 });
             }
         } catch (e) {
-            console.error("Failed to load scene into preview:", e);
+            console.error("Failed to render scene:", e);
         }
     }
 
@@ -332,10 +333,11 @@ export async function init(container, params) {
     function makeDialogueDraggable(item) {
         const el = item.container;
         const id = item.sceneItemId; // Use unique ID for robust tracking
-        const targetParent = item.targetParentEl; // The panel or page it's relative to
+        const targetParent = item.targetParentEl; // The physical parent (always Page)
+        const logicalAnchor = item.intendedPanelEl || targetParent; // The panel or page it's locked to
 
         let isDragging = false;
-        let startX, startY, initialLeft, initialTop, initialRight, initialBottom;
+        let startX, startY, initialLeft, initialTop;
 
         el.addEventListener('mousedown', (e) => {
             if (e.button !== 0) return;
@@ -345,16 +347,22 @@ export async function init(container, params) {
             el.classList.add('is-dragging');
             
             const parentRect = targetParent.getBoundingClientRect();
+            const anchorRect = logicalAnchor.getBoundingClientRect();
+            const elRect = el.getBoundingClientRect();
             
             startX = e.clientX;
             startY = e.clientY;
             
-            // We need to know which values are currently set to maintain anchoring logic (left vs right)
-            const style = el.style;
-            initialLeft = parseFloat(style.left);
-            initialTop = parseFloat(style.top);
-            initialRight = parseFloat(style.right);
-            initialBottom = parseFloat(style.bottom);
+            // --- ROBUST PANEL-LOCKED COORDINATE CALCULATION ---
+            // Defensive Check: Ensure anchor has dimensions to avoid division by zero (NaN)
+            const aWidth = anchorRect.width || 1;
+            const aHeight = anchorRect.height || 1;
+
+            initialLeft = ((elRect.left - anchorRect.left) / aWidth) * 100;
+            initialTop = ((elRect.top - anchorRect.top) / aHeight) * 100;
+
+            if (isNaN(initialLeft)) initialLeft = 0;
+            if (isNaN(initialTop)) initialTop = 0;
 
             const onMouseMove = (e) => {
                 if (!isDragging) return;
@@ -367,16 +375,26 @@ export async function init(container, params) {
                     el.dataset.wasDragged = 'true';
                 }
 
-                const pctX = (dx / parentRect.width) * 100;
-                const pctY = (dy / parentRect.height) * 100;
+                // Delta is relative to the logical anchor's scale
+                const pctX = (dx / aWidth) * 100;
+                const pctY = (dy / aHeight) * 100;
 
                 // --- PROFESSIONAL TRANSITION: Always use Top/Left for drag results ---
-                // This simplifies the system and makes it predictable.
-                const newLeft = initialLeft + pctX;
-                const newTop = initialTop + pctY;
+                let newLeft = initialLeft + pctX;
+                let newTop = initialTop + pctY;
 
-                el.style.left = `${newLeft.toFixed(2)}%`;
-                el.style.top = `${newTop.toFixed(2)}%`;
+                if (isNaN(newLeft)) newLeft = initialLeft;
+                if (isNaN(newTop)) newTop = initialTop;
+
+                // For the LIVE PREVIEW in the editor, we still move it on the PAGE layer.
+                const pWidth = parentRect.width || 1;
+                const pHeight = parentRect.height || 1;
+                
+                const globalXInPixels = anchorRect.left - parentRect.left + (newLeft / 100 * aWidth);
+                const globalYInPixels = anchorRect.top - parentRect.top + (newTop / 100 * aHeight);
+
+                el.style.left = `${(globalXInPixels / pWidth * 100).toFixed(2)}%`;
+                el.style.top = `${(globalYInPixels / pHeight * 100).toFixed(2)}%`;
                 el.style.right = 'auto';
                 el.style.bottom = 'auto';
 
@@ -508,6 +526,11 @@ export async function init(container, params) {
 
         if (e.data.type === 'refreshScene') {
             loadExistingMedia();
+        }
+
+        if (e.data.type === 'updateScene') {
+            const { scene, media } = e.data;
+            renderScene(scene, media);
         }
     });
 
