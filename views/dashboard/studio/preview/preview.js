@@ -1,7 +1,12 @@
+import { initScene } from "/services/public/SceneManager.js";
+import { fetchScene, loadCSS } from "/libs/Utility.js";
+
 export async function init(container, params) {
     const { volume, chapter, pageId } = params;
     const fileInput = document.getElementById('globalPanelUpload');
     let activeUploadTarget = null;
+    let sceneController = null;
+    let renderedDialogueItems = [];
 
     // --- 1. Resizer ---
     function fitContainer() {
@@ -11,22 +16,23 @@ export async function init(container, params) {
         // Add the pageId class so page.css selectors match
         sectionContainer.classList.add(pageId);
         
-        // Reset transform to get natural size
+        // Reset transform to get natural size for measurement
         sectionContainer.style.transform = 'none';
         
-        const padding = 40;
+        const padding = 20;
         const availableWidth = window.innerWidth - padding;
         const availableHeight = window.innerHeight - padding;
         
-        // Use offsetWidth/Height for natural unscaled dimensions
-        const naturalWidth = sectionContainer.offsetWidth;
-        const naturalHeight = sectionContainer.offsetHeight;
+        // Use getBoundingClientRect for absolute precision
+        const rect = sectionContainer.getBoundingClientRect();
+        const naturalWidth = rect.width;
+        const naturalHeight = rect.height;
 
         if (naturalWidth === 0 || naturalHeight === 0) return;
         
         const scaleX = availableWidth / naturalWidth;
         const scaleY = availableHeight / naturalHeight;
-        const scale = Math.min(scaleX, scaleY, 1);
+        const scale = Math.min(scaleX, scaleY);
         
         sectionContainer.style.transform = `scale(${scale})`;
     }
@@ -171,10 +177,46 @@ export async function init(container, params) {
                         }
                     }
                 });
+
+                initPanels(); 
+                await loadExistingScene(data.media ? (Array.isArray(data.media) ? data.media : (data.media.media || [])) : []);
             }
         } catch (e) { console.error("Failed to load media:", e); }
+    }
 
-        initPanels(); 
+    async function loadExistingScene(mediaData) {
+        try {
+            const series = params.series;
+
+            // --- 1. Load Dialogue Component Styles ---
+            await Promise.all([
+                loadCSS('/libs/SpeechBubble/SpeechBubble.css'),
+                loadCSS('/libs/TextBlock/TextBlock.css'),
+                loadCSS('/libs/ActionText/ActionText.css')
+            ]);
+
+            const sceneData = await fetchScene(volume, chapter, pageId, series);
+            
+            if (sceneController && sceneController.cleanup) sceneController.cleanup();
+
+            const pageInfo = { ...params, pageIndex: 0 }; // pageIndex not critical for preview
+            sceneController = await initScene(container, pageInfo, sceneData, mediaData);
+
+            if (sceneController && sceneController.visualItems) {
+                renderedDialogueItems = sceneController.visualItems;
+                renderedDialogueItems.forEach(item => {
+                    if (item.container) {
+                        // For the editor preview, we want bubbles to be visible and interactive
+                        item.container.classList.add('visible'); 
+                        item.container.style.cursor = 'move';
+                        item.container.style.pointerEvents = 'all'; 
+                        makeDialogueDraggable(item);
+                    }
+                });
+            }
+        } catch (e) {
+            console.error("Failed to load scene into preview:", e);
+        }
     }
 
     function initPanels() {
@@ -287,6 +329,85 @@ export async function init(container, params) {
         });
     }
 
+    function makeDialogueDraggable(item) {
+        const el = item.container;
+        const index = item.sceneIndex;
+        const targetParent = item.targetParentEl; // The panel or page it's relative to
+
+        let isDragging = false;
+        let startX, startY, initialLeft, initialTop, initialRight, initialBottom;
+
+        el.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            e.stopPropagation(); // Don't trigger panel selection
+            
+            isDragging = true;
+            el.classList.add('is-dragging');
+            
+            const parentRect = targetParent.getBoundingClientRect();
+            
+            startX = e.clientX;
+            startY = e.clientY;
+            
+            // We need to know which values are currently set to maintain anchoring logic (left vs right)
+            const style = el.style;
+            initialLeft = parseFloat(style.left);
+            initialTop = parseFloat(style.top);
+            initialRight = parseFloat(style.right);
+            initialBottom = parseFloat(style.bottom);
+
+            const onMouseMove = (e) => {
+                if (!isDragging) return;
+                
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+
+                const pctX = (dx / parentRect.width) * 100;
+                const pctY = (dy / parentRect.height) * 100;
+
+                const placement = {};
+
+                if (!isNaN(initialLeft)) {
+                    const newLeft = initialLeft + pctX;
+                    el.style.left = `${newLeft.toFixed(2)}%`;
+                    placement.left = `${newLeft.toFixed(2)}%`;
+                }
+                if (!isNaN(initialRight)) {
+                    const newRight = initialRight - pctX;
+                    el.style.right = `${newRight.toFixed(2)}%`;
+                    placement.right = `${newRight.toFixed(2)}%`;
+                }
+                if (!isNaN(initialTop)) {
+                    const newTop = initialTop + pctY;
+                    el.style.top = `${newTop.toFixed(2)}%`;
+                    placement.top = `${newTop.toFixed(2)}%`;
+                }
+                if (!isNaN(initialBottom)) {
+                    const newBottom = initialBottom - pctY;
+                    el.style.bottom = `${newBottom.toFixed(2)}%`;
+                    placement.bottom = `${newBottom.toFixed(2)}%`;
+                }
+
+                window.parent.postMessage({
+                    type: 'dialogueDragged',
+                    index: index,
+                    placement: placement
+                }, '*');
+            };
+
+            const onMouseUp = () => {
+                isDragging = false;
+                el.classList.remove('is-dragging');
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            };
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            e.preventDefault();
+        });
+    }
+
     window.addEventListener('message', (e) => {
         if (e.data.type === 'triggerUpload') {
             const pClass = e.data.panel.replace('.', '');
@@ -362,6 +483,10 @@ export async function init(container, params) {
             container.querySelectorAll('.panel').forEach(p => p.classList.remove('selected'));
             const p = container.querySelector(selector);
             if (p) p.classList.add('selected');
+        }
+
+        if (e.data.type === 'refreshScene') {
+            loadExistingMedia();
         }
     });
 

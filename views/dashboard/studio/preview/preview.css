@@ -19,11 +19,18 @@ body {
 .section-container, .page-layout { 
     transform-origin: center center; 
     /* transform set via JS */
-    margin: 0; 
-    box-shadow: 0 0 20px rgba(0,0,0,0.1); 
+    margin: 0 auto; 
+    box-shadow: 0 0 40px rgba(0,0,0,0.3); 
     opacity: 1 !important; /* Override base layout hidden state */
-    background: #fff;
     flex-shrink: 0;
+
+    /* --- EDITOR STABILITY: Flexible but Stable Baseline --- */
+    height: 100% !important; 
+    aspect-ratio: 6.625 / 10.25 !important;
+    width: auto !important;
+    max-width: none !important;
+    background: #fff;
+    /* ------------------------------------------- */
 }
 
 .panel { 

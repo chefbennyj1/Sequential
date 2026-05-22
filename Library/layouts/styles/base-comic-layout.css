@@ -9,13 +9,13 @@
   background: #fdfdfd;
   margin: 0 auto;
 
-  /* --- NEW ASPECT RATIO BOX --- */
+  /* --- US COMIC BOOK ASPECT RATIO BOX --- */
   height: 96vh;
   /* Slightly shorter for clearance */
-  aspect-ratio: 1 / 1.41;
-  /* Classic Comic Page Ratio (Tall) */
+  aspect-ratio: 6.625 / 10.25;
+  /* Classic US Comic Page Ratio (Tall) */
   width: auto;
-  max-width: 98vw;
+  max-width: calc(96vh * (6.625 / 10.25));
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(0, 0, 0, 0.1);
   /* ---------------------------- */

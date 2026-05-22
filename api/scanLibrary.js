@@ -108,20 +108,26 @@ async function scanVolumesInSeries(seriesDoc, volumesPath, seriesFolderName, io 
 
     for (const volFolder of volumeFolders) {
         const absolutePath = path.join(volumesPath, volFolder);
+        const volIndex = parseInt(volFolder.replace('volume-', '')) || 0;
+        
         // Construct a virtual path compatible with the engine's /Library route
-        const relativeVolumePath = `/Library/${seriesFolderName}/Volumes/${volFolder}`;
+        const expectedVolumePath = `/Library/${seriesFolderName}/Volumes/${volFolder}`;
 
-        let volume = await Volume.findOne({ volumePath: relativeVolumePath, series: seriesDoc._id });
+        // FIRST: Find by series and index (Most stable during renames)
+        let volume = await Volume.findOne({ series: seriesDoc._id, index: volIndex });
+
+        if (!volume) {
+            // SECOND: Fallback to finding by path (Legacy or manual move)
+            volume = await Volume.findOne({ volumePath: expectedVolumePath, series: seriesDoc._id });
+        }
 
         if (!volume) {
             console.log(`New Volume detected: ${volFolder} for series ${seriesDoc.title}`);
-            const volIndex = parseInt(volFolder.replace('volume-', '')) || 0;
-            
             volume = new Volume({
                 series: seriesDoc._id,
                 index: volIndex,
                 title: `${seriesDoc.title} - Volume ${volIndex}`,
-                volumePath: relativeVolumePath,
+                volumePath: expectedVolumePath,
                 chapters: []
             });
             await volume.save();
@@ -131,10 +137,16 @@ async function scanVolumesInSeries(seriesDoc, volumesPath, seriesFolderName, io 
                 seriesDoc.volumes.push(volume._id);
                 await seriesDoc.save();
             }
+        } else {
+            // Path Reconciliation: If the folder name changed, update the path
+            if (volume.volumePath !== expectedVolumePath) {
+                console.log(`Path mismatch detected for ${volume.title}. Updating: ${volume.volumePath} -> ${expectedVolumePath}`);
+                volume.volumePath = expectedVolumePath;
+                // Note: updateChaptersFromFS will handle updating the page paths inside the chapters array
+            }
         }
 
         // Sync chapters and pages
-        // updateChaptersFromFS already saves the volume at the end.
         await VolumeService.updateChaptersFromFS(volume, absolutePath);
     }
 }

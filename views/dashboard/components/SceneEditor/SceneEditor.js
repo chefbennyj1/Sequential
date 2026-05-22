@@ -207,6 +207,12 @@ export function initSceneEditor() {
         };
         currentSceneData.push(newItem);
         selectSceneItem(currentSceneData.length - 1);
+
+        // Notify preview iframe to refresh scene
+        const iframe = document.getElementById('pagePreviewFrame');
+        if (iframe && iframe.contentWindow) {
+            iframe.contentWindow.postMessage({ type: 'refreshScene' }, '*');
+        }
     };
 
     document.getElementById('deleteItemBtn').onclick = () => {
@@ -227,6 +233,13 @@ export function initSceneEditor() {
             const result = await saveSceneData(currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, currentSceneData, activeSeriesId);
             if (result.ok) {
                 btn.textContent = "Saved!";
+
+                // Notify preview iframe to refresh scene
+                const iframe = document.getElementById('pagePreviewFrame');
+                if (iframe && iframe.contentWindow) {
+                    iframe.contentWindow.postMessage({ type: 'refreshScene' }, '*');
+                }
+
                 setTimeout(() => { btn.textContent = "Save Changes"; btn.disabled = false; }, 2000);
             } else {
                 alert("Error saving: " + result.message);
@@ -277,6 +290,17 @@ export function initSceneEditor() {
 
         if (e.data.type === 'panelDragged') {
             visual.updatePosition(e.data);
+        }
+
+        if (e.data.type === 'dialogueDragged') {
+            const { index, placement } = e.data;
+            if (currentSceneData[index]) {
+                Object.assign(currentSceneData[index].placement, placement);
+                // If the dragged item is currently selected, update the property inputs in real-time
+                if (selectedItemIndex === index) {
+                    properties.populate(currentSceneData[index]);
+                }
+            }
         }
     });
 }

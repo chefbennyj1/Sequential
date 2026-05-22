@@ -164,6 +164,7 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
         const pageIndex = parseInt(pageFolder.replace(/\D/g, '')) || 0;
         const urlPath = `${volume.volumePath}/${chapFolder}/${pageFolder}/page.json`.replace(/\\/g, '/');
 
+        // Note: We always recalculate urlPath here to ensure it matches the current volume.volumePath
         pages.push({ index: pageIndex, path: urlPath, layouts, mediaData, sceneData });
       }
       chapter.pages = pages;

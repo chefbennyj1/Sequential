@@ -105,6 +105,8 @@ export async function initScene(container, pageInfo, sceneData, mediaData = []) 
         }
 
         if (visualItem) {
+            visualItem.sceneIndex = index;
+            visualItem.targetParentEl = renderParent; // Store for relative coordinate calculation
             visualItemsToRender.push(visualItem);
         }
     }
@@ -122,6 +124,7 @@ export async function initScene(container, pageInfo, sceneData, mediaData = []) 
         });
 
         return { 
+            visualItems: visualItemsToRender,
             cleanup: () => {
                  visualItemsToRender.forEach(item => {
                     if (item.destroy) item.destroy();
@@ -131,5 +134,5 @@ export async function initScene(container, pageInfo, sceneData, mediaData = []) 
         };
     }
     
-    return { cleanup: () => {}, restart: () => {} };
+    return { visualItems: [], cleanup: () => {}, restart: () => {} };
 }
