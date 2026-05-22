@@ -114,3 +114,23 @@ body {
 .panel.floating-panel:hover {
     border-color: #00ffff;
 }
+
+/* --- Dialogue Selection Feedback --- */
+.speech-bubble-container, .text-block-container, .action-text-container {
+    transition: box-shadow 0.2s, transform 0.2s;
+}
+
+.speech-bubble-container.selected-dialogue, 
+.text-block-container.selected-dialogue, 
+.action-text-container.selected-dialogue {
+    box-shadow: 0 0 0 4px #ff9800, 0 0 20px rgba(255, 152, 0, 0.5) !important;
+    z-index: 20001 !important;
+    transform: scale(1.02);
+}
+
+.speech-bubble-container.is-dragging,
+.text-block-container.is-dragging,
+.action-text-container.is-dragging {
+    opacity: 0.8;
+    cursor: grabbing !important;
+}

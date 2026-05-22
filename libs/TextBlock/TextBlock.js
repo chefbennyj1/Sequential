@@ -15,6 +15,7 @@ class TextBlock {
       bottom: null,
       left: null,
       right: null,
+      width: null,
       ...options
     };
     this.container = null;
@@ -41,6 +42,7 @@ class TextBlock {
     if (this.options.bottom) textBlockContainer.style.bottom = this.options.bottom;
     if (this.options.left) textBlockContainer.style.left = this.options.left;
     if (this.options.right) textBlockContainer.style.right = this.options.right;
+    if (this.options.width) textBlockContainer.style.width = this.options.width;
 
     // Construct DOM elements programmatically
     const type = this.options.textBlockType || 'Narrator';
@@ -52,6 +54,7 @@ class TextBlock {
     textBlockContainer.appendChild(textBlock);
     this.parentElement.appendChild(textBlockContainer);
     this.container = textBlockContainer;
+    this.container.setAttribute('data-id', this.options.id || '');
 
     // Apply attributes and style from options
     if (this.options.attributes) {

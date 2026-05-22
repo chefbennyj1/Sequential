@@ -24,7 +24,7 @@ export class PropertyManager {
     }
 
     setupFontInputUI() {
-        const fontSelect = document.getElementById('prop-font-family');
+        const fontSelect = this.container.querySelector('#prop-font-family');
         if (!fontSelect) return;
 
         // Clear existing except default
@@ -81,10 +81,10 @@ export class PropertyManager {
             </div>
         `;
 
-        const select = document.getElementById('prop-character-select');
-        const input = document.getElementById('prop-character');
-        const avatar = document.getElementById('prop-character-avatar');
-        const toggle = document.getElementById('toggleCharInputMode');
+        const select = this.container.querySelector('#prop-character-select');
+        const input = this.container.querySelector('#prop-character');
+        const avatar = this.container.querySelector('#prop-character-avatar');
+        const toggle = this.container.querySelector('#toggleCharInputMode');
 
         if (this.availableCharacters.length > 0) {
             this.availableCharacters.forEach(char => {
@@ -132,17 +132,17 @@ export class PropertyManager {
     populate(item) {
         if (!item) return;
 
-        document.getElementById('prop-id').value = item.id || '';
+        this.container.querySelector('#prop-id').value = item.id || '';
 
         let type = item.displayType?.type || 'SpeechBubble';
         if (type === 'TextBlock' && item.displayType?.style) {
             type = item.displayType.style;
         }
-        document.getElementById('prop-type').value = type;
+        this.container.querySelector('#prop-type').value = type;
 
-        const select = document.getElementById('prop-character-select');
-        const input = document.getElementById('prop-character');
-        const avatar = document.getElementById('prop-character-avatar');
+        const select = this.container.querySelector('#prop-character-select');
+        const input = this.container.querySelector('#prop-character');
+        const avatar = this.container.querySelector('#prop-character-avatar');
 
         if (select && input) {
             if (item.characterId && this.availableCharacters.some(c => c._id === item.characterId)) {
@@ -165,28 +165,29 @@ export class PropertyManager {
             }
         }
 
-        document.getElementById('prop-text').value = item.text || '';
+        this.container.querySelector('#prop-text').value = item.text || '';
         const p = item.placement || {};
-        document.getElementById('prop-panel').value = p.panel || '';
-        document.getElementById('prop-top').value = p.top || '';
-        document.getElementById('prop-left').value = p.left || '';
-        document.getElementById('prop-right').value = p.right || '';
-        document.getElementById('prop-bottom').value = p.bottom || '';
-        document.getElementById('prop-tail').value = p.tailPosition || '';
-        document.getElementById('prop-tail-skew').value = (p.tailSkew || '').replace('deg', '');
-        document.getElementById('prop-tail-scale').value = p.tailScale || '';
-        document.getElementById('prop-curve').value = item.curve || '';
-        document.getElementById('prop-curve-w').value = item.curveWidth || '';
-        document.getElementById('prop-curve-h').value = item.curveHeight || '';
-        document.getElementById('prop-rotation').value = item.rotation || '';
-        document.getElementById('prop-font-size').value = item.fontSize || '';
-        document.getElementById('prop-action-color').value = item.color || '#000000';
-        document.getElementById('prop-outline-enabled').checked = !!item.outlineEnabled;
-        document.getElementById('prop-outline-color').value = item.outlineColor || '#000000';
-        document.getElementById('prop-outline-size').value = item.outlineSize || '1.0';
-        document.getElementById('prop-duration').value = item.duration || '';
-        document.getElementById('prop-panel-effect').value = item.panelEffect || '';
-        document.getElementById('prop-font-family').value = item.fontFamily || '';
+        this.container.querySelector('#prop-panel').value = p.panel || '';
+        this.container.querySelector('#prop-top').value = p.top || '';
+        this.container.querySelector('#prop-left').value = p.left || '';
+        this.container.querySelector('#prop-right').value = p.right || '';
+        this.container.querySelector('#prop-bottom').value = p.bottom || '';
+        this.container.querySelector('#prop-width').value = p.width || '';
+        this.container.querySelector('#prop-tail').value = p.tailPosition || '';
+        this.container.querySelector('#prop-tail-skew').value = (p.tailSkew || '').replace('deg', '');
+        this.container.querySelector('#prop-tail-scale').value = p.tailScale || '';
+        this.container.querySelector('#prop-curve').value = item.curve || '';
+        this.container.querySelector('#prop-curve-w').value = item.curveWidth || '';
+        this.container.querySelector('#prop-curve-h').value = item.curveHeight || '';
+        this.container.querySelector('#prop-rotation').value = item.rotation || '';
+        this.container.querySelector('#prop-font-size').value = item.fontSize || '';
+        this.container.querySelector('#prop-action-color').value = item.color || '#000000';
+        this.container.querySelector('#prop-outline-enabled').checked = !!item.outlineEnabled;
+        this.container.querySelector('#prop-outline-color').value = item.outlineColor || '#000000';
+        this.container.querySelector('#prop-outline-size').value = item.outlineSize || '1.0';
+        this.container.querySelector('#prop-duration').value = item.duration || '';
+        this.container.querySelector('#prop-panel-effect').value = item.panelEffect || '';
+        this.container.querySelector('#prop-font-family').value = item.fontFamily || '';
 
         this.toggleVisibility(item.displayType?.type);
         this.updateDatalist();
@@ -194,15 +195,15 @@ export class PropertyManager {
     }
 
     bindPaletteTool() {
-        const palBtn = document.getElementById('prop-gen-palette');
-        const swatchesCont = document.getElementById('prop-palette-swatches');
-        const textColorInput = document.getElementById('prop-action-color');
-        const outlineColorInput = document.getElementById('prop-outline-color');
+        const palBtn = this.container.querySelector('#prop-gen-palette');
+        const swatchesCont = this.container.querySelector('#prop-palette-swatches');
+        const textColorInput = this.container.querySelector('#prop-action-color');
+        const outlineColorInput = this.container.querySelector('#prop-outline-color');
 
         if (!palBtn || !swatchesCont) return;
 
         palBtn.onclick = async () => {
-            const panelSelector = document.getElementById('prop-panel').value;
+            const panelSelector = this.container.querySelector('#prop-panel').value;
             if (!panelSelector) return alert("Please select a panel first.");
 
             const imgUrl = this.getPanelImageUrl(panelSelector);
@@ -224,7 +225,7 @@ export class PropertyManager {
                             // Apply to BOTH
                             textColorInput.value = hex;
                             outlineColorInput.value = hex;
-                            document.getElementById('prop-outline-enabled').checked = true;
+                            this.container.querySelector('#prop-outline-enabled').checked = true;
                         } else {
                             // Just Text
                             textColorInput.value = hex;
@@ -236,7 +237,7 @@ export class PropertyManager {
                         e.preventDefault();
                         // Just Outline
                         outlineColorInput.value = hex;
-                        document.getElementById('prop-outline-enabled').checked = true;
+                        this.container.querySelector('#prop-outline-enabled').checked = true;
                         this.onUpdate();
                     };
 
@@ -250,7 +251,7 @@ export class PropertyManager {
     }
 
     updateDatalist() {
-        const mainPanelInput = document.getElementById('prop-panel');
+        const mainPanelInput = this.container.querySelector('#prop-panel');
         if (mainPanelInput) {
             mainPanelInput.setAttribute('list', 'availablePanelsList');
             let datalist = document.getElementById('availablePanelsList');
@@ -266,16 +267,16 @@ export class PropertyManager {
     updateItem(item) {
         if (!item) return;
 
-        item.id = document.getElementById('prop-id').value;
-        let type = document.getElementById('prop-type').value;
+        item.id = this.container.querySelector('#prop-id').value;
+        let type = this.container.querySelector('#prop-type').value;
         if (['Narrator', 'InternalMonologue', 'Dialogue'].includes(type)) {
             item.displayType = { type: 'TextBlock', style: type };
         } else {
             item.displayType = { type: type };
         }
 
-        const select = document.getElementById('prop-character-select');
-        const input = document.getElementById('prop-character');
+        const select = this.container.querySelector('#prop-character-select');
+        const input = this.container.querySelector('#prop-character');
         if (select && !select.classList.contains('hidden') && select.value) {
             item.characterId = select.value;
             item.character = select.options[select.selectedIndex].text;
@@ -284,31 +285,32 @@ export class PropertyManager {
             item.characterId = null;
         }
 
-        item.text = document.getElementById('prop-text').value;
-        item.panelEffect = document.getElementById('prop-panel-effect').value;
-        item.curve = document.getElementById('prop-curve').value;
-        item.curveWidth = document.getElementById('prop-curve-w').value;
-        item.curveHeight = document.getElementById('prop-curve-h').value;
-        item.rotation = document.getElementById('prop-rotation').value;
-        item.fontSize = document.getElementById('prop-font-size').value;
-        item.color = document.getElementById('prop-action-color').value;
-        item.fontFamily = document.getElementById('prop-font-family').value;
-        item.outlineEnabled = document.getElementById('prop-outline-enabled').checked;
-        item.outlineColor = document.getElementById('prop-outline-color').value;
-        item.outlineSize = document.getElementById('prop-outline-size').value;
+        item.text = this.container.querySelector('#prop-text').value;
+        item.panelEffect = this.container.querySelector('#prop-panel-effect').value;
+        item.curve = this.container.querySelector('#prop-curve').value;
+        item.curveWidth = this.container.querySelector('#prop-curve-w').value;
+        item.curveHeight = this.container.querySelector('#prop-curve-h').value;
+        item.rotation = this.container.querySelector('#prop-rotation').value;
+        item.fontSize = this.container.querySelector('#prop-font-size').value;
+        item.color = this.container.querySelector('#prop-action-color').value;
+        item.fontFamily = this.container.querySelector('#prop-font-family').value;
+        item.outlineEnabled = this.container.querySelector('#prop-outline-enabled').checked;
+        item.outlineColor = this.container.querySelector('#prop-outline-color').value;
+        item.outlineSize = this.container.querySelector('#prop-outline-size').value;
 
         item.placement = {
-            panel: document.getElementById('prop-panel').value,
-            top: document.getElementById('prop-top').value,
-            left: document.getElementById('prop-left').value,
-            right: document.getElementById('prop-right').value,
-            bottom: document.getElementById('prop-bottom').value,
-            tailPosition: document.getElementById('prop-tail').value,
-            tailSkew: document.getElementById('prop-tail-skew').value ? document.getElementById('prop-tail-skew').value + 'deg' : '',
-            tailScale: document.getElementById('prop-tail-scale').value
+            panel: this.container.querySelector('#prop-panel').value,
+            top: this.container.querySelector('#prop-top').value,
+            left: this.container.querySelector('#prop-left').value,
+            right: this.container.querySelector('#prop-right').value,
+            bottom: this.container.querySelector('#prop-bottom').value,
+            width: this.container.querySelector('#prop-width').value,
+            tailPosition: this.container.querySelector('#prop-tail').value,
+            tailSkew: this.container.querySelector('#prop-tail-skew').value ? this.container.querySelector('#prop-tail-skew').value + 'deg' : '',
+            tailScale: this.container.querySelector('#prop-tail-scale').value
         };
         if (item.displayType.type === 'Pause') {
-            item.duration = parseInt(document.getElementById('prop-duration').value) || 1000;
+            item.duration = parseInt(this.container.querySelector('#prop-duration').value) || 1000;
         }
     }
 

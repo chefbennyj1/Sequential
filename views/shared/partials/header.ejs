@@ -29,6 +29,17 @@
   document.addEventListener("DOMContentLoaded", async () => {
       try {
           const res = await fetch('/api/settings/global');
+          
+          // If the response is not OK (e.g. 401, 403), just hide the indicator or show as disabled
+          if (!res.ok) {
+              const svg = document.getElementById('ai-brain-svg');
+              if (svg) {
+                svg.style.fill = '#555';
+                svg.style.filter = 'none';
+              }
+              return;
+          }
+
           const data = await res.json();
           const indicator = document.getElementById('global-ai-indicator');
           const svg = document.getElementById('ai-brain-svg');
@@ -44,7 +55,8 @@
               indicator.classList.remove('ai-active');
           }
       } catch (err) {
-          console.error("Failed to check AI status for header indicator.", err);
+          // Silent fail for non-critical header indicator
+          console.warn("AI status indicator bypassed (likely due to permissions).");
       }
   });
 </script>

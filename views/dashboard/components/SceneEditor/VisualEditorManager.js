@@ -929,12 +929,94 @@ export class VisualEditorManager {
                         entry: updatedEntry 
                     }, '*');
                 }
+                } else throw new Error(res.message);
+                } catch (err) {
+                alert("Error: " + err.message);
+                saveBtn.disabled = false;
+                saveBtn.textContent = "Retry Save";
+                }
+                }
 
-            } else throw new Error(res.message);
-        } catch (err) {
-            alert("Error: " + err.message);
-            saveBtn.disabled = false;
-            saveBtn.textContent = "Retry Save";
-        }
-    }
-}
+                /**
+                * Renders dialogue properties directly into the Visual Editor sidebar.
+                * This allows simultaneous dragging in preview and property editing in sidebar.
+                */
+                showDialogueProperties(item, propertiesManager, onSaveCallback) {
+                    const toolsPane = document.querySelector('.layout-editor .tools-pane');
+                    toolsPane.innerHTML = '';
+                    toolsPane.style.overflowY = 'auto';
+                    toolsPane.style.boxSizing = 'border-box';
+                    this.selectedPanelSelector = null; // Clear panel selection highlight in sidebar
+                const headerRow = document.createElement('div');
+                headerRow.className = 'flex-row justify-between align-center margin-b-15';
+
+                const title = document.createElement('h4');
+                title.style.margin = '0';
+                title.textContent = 'Dialogue Properties';
+                headerRow.appendChild(title);
+
+                const backBtn = document.createElement('button');
+                backBtn.className = 'small';
+                backBtn.innerHTML = '&larr; Layout Tools';
+                backBtn.onclick = () => this.loadPanel({ panel: null }, this.activeSeriesId);
+                headerRow.appendChild(backBtn);
+
+                toolsPane.appendChild(headerRow);
+
+                // Clone the property form from the scene editor
+                const originalForm = document.getElementById('sceneItemEditor');
+                if (originalForm) {
+                const editorClone = originalForm.cloneNode(true);
+                editorClone.id = 'visual-dialogue-editor';
+                editorClone.classList.remove('hidden');
+
+                toolsPane.appendChild(editorClone);
+
+                // Re-map the manager to this new form
+                propertiesManager.container = toolsPane;
+                propertiesManager.form = editorClone.querySelector('#sceneItemForm');
+
+                // CRITICAL: Rebind the onUpdate logic so it works within THIS sidebar context
+                const originalOnUpdate = propertiesManager.onUpdate;
+                propertiesManager.onUpdate = () => {
+                    propertiesManager.updateItem(item);
+                    // Trigger a preview refresh
+                    const iframe = document.getElementById('pagePreviewFrame');
+                    if (iframe && iframe.contentWindow) {
+                        iframe.contentWindow.postMessage({ type: 'refreshScene' }, '*');
+                    }
+                };
+
+                propertiesManager.populate(item);
+
+                // Bind real-time update logic for manual typing
+                editorClone.querySelectorAll('input, select, textarea').forEach(input => {
+                    input.addEventListener('input', () => {
+                        propertiesManager.onUpdate();
+                    });
+                });
+
+                // Restore original onUpdate when leaving this view
+                const originalLoadPanel = this.loadPanel.bind(this);
+                this.loadPanel = async (data, seriesId) => {
+                    propertiesManager.onUpdate = originalOnUpdate;
+                    return originalLoadPanel(data, seriesId);
+                };
+                // Add a dedicated save button for dialogue within the visual editor
+                const footer = document.createElement('div');
+                footer.className = 'tools-footer-sticky margin-t-20';
+                const saveBtn = document.createElement('button');
+                saveBtn.className = 'update__btn w-full';
+                saveBtn.textContent = 'Save Dialogue Changes';
+                saveBtn.onclick = async () => {
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Saving...';
+                await onSaveCallback();
+                saveBtn.textContent = 'Saved!';
+                setTimeout(() => { saveBtn.textContent = 'Save Dialogue Changes'; saveBtn.disabled = false; }, 2000);
+                };
+                footer.appendChild(saveBtn);
+                toolsPane.appendChild(footer);
+                }
+                }
+                }

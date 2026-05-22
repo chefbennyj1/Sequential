@@ -94,10 +94,11 @@ export async function openSceneEditor(volume, chapter, pageId, mode = 'landscape
 /**
  * Main entry point to open the Visual/Layout editor.
  */
-export function openVisualEditor(volume, chapter, pageId, mode = 'landscape', seriesId = null, seriesFolder = null) {
+export async function openVisualEditor(volume, chapter, pageId, mode = 'landscape', seriesId = null, seriesFolder = null) {
     if (seriesId) activeSeriesId = seriesId;
     if (seriesFolder) activeSeriesFolder = seriesFolder;
 
+    const previousPageId = currentSceneInfo.pageId;
     currentSceneInfo = { volume, chapter, pageId };
 
     // Sync visual manager context
@@ -117,6 +118,31 @@ export function openVisualEditor(volume, chapter, pageId, mode = 'landscape', se
 
     const iframe = document.getElementById('pagePreviewFrame');
     if (!iframe) return;
+
+    // --- NEW: Load Data for the Visual Editor if it's not already cached or if the page changed ---
+    if (currentSceneData.length === 0 || previousPageId !== pageId) {
+        console.log(`[VisualEditor] Fetching fresh data for ${pageId}...`);
+        try {
+            const [panelData, scene, characters, mediaRes] = await Promise.all([
+                fetchPagePanels(volume, chapter, pageId, mode, activeSeriesId),
+                fetchSceneData(volume, chapter, pageId, activeSeriesId),
+                activeSeriesId ? fetchCharactersAPI(activeSeriesId) : Promise.resolve([]),
+                fetchMedia(volume, chapter, pageId, activeSeriesId)
+            ]);
+
+            currentSceneData = scene || [];
+            if (visual) visual.currentVisualMediaData = Array.isArray(mediaRes) ? mediaRes : (mediaRes.media || []);
+            
+            // Sync Property Manager
+            if (properties) properties.setAvailableData(characters || [], panelData.panels || []);
+            
+            // Sync Timeline (even though hidden, it's the data source)
+            if (timeline) timeline.setData(currentSceneData, characters || []);
+
+        } catch (err) {
+            console.error("[VisualEditor] Failed to load data context", err);
+        }
+    }
 
     const targetSrc = `/api/editor/preview/${activeSeriesFolder}/${volume}/${chapter}/${pageId}?mode=${mode}`;
     iframe.src = targetSrc;
@@ -292,9 +318,31 @@ export function initSceneEditor() {
             visual.updatePosition(e.data);
         }
 
+        if (e.data.type === 'dialogueSelected') {
+            const id = e.data.id;
+            const index = currentSceneData.findIndex(item => item.id === id);
+            if (index === -1) return;
+
+            const item = currentSceneData[index];
+            selectedItemIndex = index; // CRITICAL: Update the selection state
+
+            // If we are currently in the Visual/Layout editor, show properties IN the visual sidebar
+            const layoutEditor = document.querySelector('.layout-editor');
+            if (layoutEditor && !layoutEditor.classList.contains('hidden')) {
+                visual.showDialogueProperties(item, properties, async () => {
+                    // Logic to save the scene data from within the visual editor context
+                    await saveSceneData(currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, currentSceneData, activeSeriesId);
+                });
+            } else {
+                // Otherwise, perform the standard scene editor selection
+                selectSceneItem(index);
+            }
+        }
+
         if (e.data.type === 'dialogueDragged') {
-            const { index, placement } = e.data;
-            if (currentSceneData[index]) {
+            const { id, placement } = e.data;
+            const index = currentSceneData.findIndex(item => item.id === id);
+            if (index !== -1) {
                 Object.assign(currentSceneData[index].placement, placement);
                 // If the dragged item is currently selected, update the property inputs in real-time
                 if (selectedItemIndex === index) {

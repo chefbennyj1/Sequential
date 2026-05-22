@@ -109,6 +109,7 @@ class ActionText {
 
         this.parentElement.appendChild(container);
         this.container = container;
+        this.container.setAttribute('data-id', this.options.id || '');
         
         // Apply attributes and style from options
         if (this.options.attributes) {

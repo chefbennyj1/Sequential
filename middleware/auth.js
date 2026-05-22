@@ -18,7 +18,7 @@ exports.isAuth = (req, res, next) => {
   }
 
   // Detect API/AJAX requests
-  if (req.xhr || req.path.startsWith('/api')) {
+  if (req.xhr || req.originalUrl.startsWith('/api')) {
     return res.status(401).json({ ok: false, message: "Unauthorized" });
   }
 
@@ -50,7 +50,7 @@ exports.isModerator = async (req, res, next) => {
     }
 
     if (!req.session.isAuth) {
-        if (req.xhr || req.path.startsWith('/api')) {
+        if (req.xhr || req.originalUrl.startsWith('/api')) {
             return res.status(401).json({ ok: false, message: "Unauthorized" });
         }
         return res.redirect('/login');
@@ -62,7 +62,7 @@ exports.isModerator = async (req, res, next) => {
         if (user && (user.role === 'moderator' || user.role === 'admin')) {
             next();
         } else {
-            if (req.xhr || req.path.startsWith('/api')) {
+            if (req.xhr || req.originalUrl.startsWith('/api')) {
                 return res.status(403).json({ ok: false, message: "Forbidden: Moderator access required" });
             }
             res.redirect('/library'); // Basic users go to library
@@ -81,7 +81,7 @@ exports.isAdmin = async (req, res, next) => {
     }
 
     if (!req.session.isAuth) {
-        if (req.xhr || req.path.startsWith('/api')) {
+        if (req.xhr || req.originalUrl.startsWith('/api')) {
             return res.status(401).json({ ok: false, message: "Unauthorized" });
         }
         return res.redirect('/login');
@@ -93,7 +93,7 @@ exports.isAdmin = async (req, res, next) => {
         if (user && user.role === 'admin') {
             next();
         } else {
-            if (req.xhr || req.path.startsWith('/api')) {
+            if (req.xhr || req.originalUrl.startsWith('/api')) {
                 return res.status(403).json({ ok: false, message: "Forbidden: Admin access required" });
             }
             res.redirect('/dashboard'); // Moderators go back to dashboard

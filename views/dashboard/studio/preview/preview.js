@@ -331,7 +331,7 @@ export async function init(container, params) {
 
     function makeDialogueDraggable(item) {
         const el = item.container;
-        const index = item.sceneIndex;
+        const id = item.sceneItemId; // Use unique ID for robust tracking
         const targetParent = item.targetParentEl; // The panel or page it's relative to
 
         let isDragging = false;
@@ -362,35 +362,34 @@ export async function init(container, params) {
                 const dx = e.clientX - startX;
                 const dy = e.clientY - startY;
 
+                // Mark as dragged to avoid triggering 'click' on release
+                if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
+                    el.dataset.wasDragged = 'true';
+                }
+
                 const pctX = (dx / parentRect.width) * 100;
                 const pctY = (dy / parentRect.height) * 100;
 
-                const placement = {};
+                // --- PROFESSIONAL TRANSITION: Always use Top/Left for drag results ---
+                // This simplifies the system and makes it predictable.
+                const newLeft = initialLeft + pctX;
+                const newTop = initialTop + pctY;
 
-                if (!isNaN(initialLeft)) {
-                    const newLeft = initialLeft + pctX;
-                    el.style.left = `${newLeft.toFixed(2)}%`;
-                    placement.left = `${newLeft.toFixed(2)}%`;
-                }
-                if (!isNaN(initialRight)) {
-                    const newRight = initialRight - pctX;
-                    el.style.right = `${newRight.toFixed(2)}%`;
-                    placement.right = `${newRight.toFixed(2)}%`;
-                }
-                if (!isNaN(initialTop)) {
-                    const newTop = initialTop + pctY;
-                    el.style.top = `${newTop.toFixed(2)}%`;
-                    placement.top = `${newTop.toFixed(2)}%`;
-                }
-                if (!isNaN(initialBottom)) {
-                    const newBottom = initialBottom - pctY;
-                    el.style.bottom = `${newBottom.toFixed(2)}%`;
-                    placement.bottom = `${newBottom.toFixed(2)}%`;
-                }
+                el.style.left = `${newLeft.toFixed(2)}%`;
+                el.style.top = `${newTop.toFixed(2)}%`;
+                el.style.right = 'auto';
+                el.style.bottom = 'auto';
+
+                const placement = {
+                    left: `${newLeft.toFixed(2)}%`,
+                    top: `${newTop.toFixed(2)}%`,
+                    right: '',
+                    bottom: ''
+                };
 
                 window.parent.postMessage({
                     type: 'dialogueDragged',
-                    index: index,
+                    id: id,
                     placement: placement
                 }, '*');
             };
@@ -405,6 +404,28 @@ export async function init(container, params) {
             document.addEventListener('mousemove', onMouseMove);
             document.addEventListener('mouseup', onMouseUp);
             e.preventDefault();
+        });
+
+        // --- NEW: Visual Selection Integration ---
+        el.addEventListener('click', (e) => {
+            // Prevent if we just finished dragging (avoid accidental selection changes during movement)
+            if (el.dataset.wasDragged === 'true') {
+                el.dataset.wasDragged = 'false';
+                return;
+            }
+
+            e.stopPropagation();
+            
+            // Visual feedback in the preview
+            container.querySelectorAll('.speech-bubble-container, .text-block-container, .action-text-container')
+                .forEach(item => item.classList.remove('selected-dialogue'));
+            el.classList.add('selected-dialogue');
+
+            // Notify parent to select this item in the sidebar
+            window.parent.postMessage({
+                type: 'dialogueSelected',
+                id: id
+            }, '*');
         });
     }
 

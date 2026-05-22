@@ -19,6 +19,7 @@ class SpeechBubble {
       tailPosition: 'bottom-left',
       tailSkew: null,
       tailScale: null,
+      width: null,
       ...options
     };
     this.container = null;
@@ -158,12 +159,14 @@ class SpeechBubble {
     speechBubbleContainer.appendChild(superBubble);
     this.parentElement.appendChild(speechBubbleContainer);
     this.container = speechBubbleContainer;
+    this.container.setAttribute('data-id', this.options.id || '');
 
     // 2. Apply positioning
     if (this.options.top) speechBubbleContainer.style.top = this.options.top;
     if (this.options.bottom) speechBubbleContainer.style.bottom = this.options.bottom;
     if (this.options.left) speechBubbleContainer.style.left = this.options.left;
     if (this.options.right) speechBubbleContainer.style.right = this.options.right;
+    if (this.options.width) speechBubbleContainer.style.width = this.options.width;
     
     // 3. Apply CSS Variables
     if (this.options.tailSkew) speechBubbleContainer.style.setProperty('--tail-skew', this.options.tailSkew);

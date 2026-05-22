@@ -76,6 +76,7 @@ export async function initScene(container, pageInfo, sceneData, mediaData = []) 
             
             const bubble = new SpeechBubble(renderParent, bubbleOptions);
             await bubble.render();
+            if (bubble.container) bubble.container.setAttribute('data-id', item.id);
             visualItem = bubble;
 
         } else if (item.displayType.type === 'TextBlock') {
@@ -93,6 +94,7 @@ export async function initScene(container, pageInfo, sceneData, mediaData = []) 
             
             const textBlock = new TextBlock(renderParent, textBlockOptions);
             await textBlock.render();
+            if (textBlock.container) textBlock.container.setAttribute('data-id', item.id);
             visualItem = textBlock;
 
         } else if (item.displayType.type === 'ActionText') {
@@ -101,11 +103,13 @@ export async function initScene(container, pageInfo, sceneData, mediaData = []) 
             
             const actionText = new ActionText(renderParent, actionTextOptions);
             await actionText.render();
+            if (actionText.container) actionText.container.setAttribute('data-id', item.id);
             visualItem = actionText;
         }
 
         if (visualItem) {
             visualItem.sceneIndex = index;
+            visualItem.sceneItemId = item.id; // Store unique ID for robust tracking
             visualItem.targetParentEl = renderParent; // Store for relative coordinate calculation
             visualItemsToRender.push(visualItem);
         }
