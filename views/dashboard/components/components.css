@@ -7,12 +7,14 @@
     border-radius: 12px;
     padding: 40px;
     width: 250px;
+    height: 100%; /* Fill container height */
     cursor: pointer;
     transition: all 0.3s ease;
     display: flex;
     flex-direction: column;
     align-items: center;
     text-align: center;
+    box-sizing: border-box; /* Ensure padding doesn't break height */
 }
 
 .mode-card:hover {
