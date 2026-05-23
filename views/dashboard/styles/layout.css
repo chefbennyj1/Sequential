@@ -72,6 +72,15 @@ header {
 }
 
 /* Editor Specific Layout */
+.editor-header-flex {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
 .editor-container-flex {
   display: flex;
   gap: 20px;

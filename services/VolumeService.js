@@ -18,7 +18,7 @@ const DEFAULT_CSS = (pageId) => `@import url('/layouts/styles/base-comic-layout.
 
 }`;
 
-async function createVolume({ index, title, seriesId }) {
+async function createVolume({ index, title, seriesId, firstChapterTitle }) {
   const { resolveSeriesPath } = require('./MediaService');
   const Series = require('../models/Series');
   
@@ -41,6 +41,43 @@ async function createVolume({ index, title, seriesId }) {
       fs.mkdirSync(absoluteVolumePath, { recursive: true });
   }
 
+  // Create First Chapter (Chapter 1)
+  const firstChapterNum = 1;
+  const chapterFolderName = `chapter-${firstChapterNum}`;
+  const absoluteChapterPath = path.join(absoluteVolumePath, chapterFolderName);
+  if (!fs.existsSync(absoluteChapterPath)) {
+      fs.mkdirSync(absoluteChapterPath, { recursive: true });
+  }
+
+  // Create First Page (Page 1)
+  const firstPageNum = 1;
+  const pageFolderName = `page${firstPageNum}`;
+  const absolutePagePath = path.join(absoluteChapterPath, pageFolderName);
+  if (!fs.existsSync(absolutePagePath)) {
+      fs.mkdirSync(absolutePagePath, { recursive: true });
+      
+      // Create assets folders
+      fs.mkdirSync(path.join(absolutePagePath, 'assets', 'image'), { recursive: true });
+      fs.mkdirSync(path.join(absolutePagePath, 'assets', 'audio'), { recursive: true });
+
+      // Create default page.json
+      const defJson = {
+          header: { 
+              version: "2.0", 
+              layouts: {
+                  landscape: { id: "Standard_Page", html: "Standard_Page.html", css: "" },
+                  portrait: { id: "Standard_Page", html: "Standard_Page.html", css: "" }
+              }
+          },
+          media: [], scene: []
+      };
+      fs.writeFileSync(path.join(absolutePagePath, 'page.json'), JSON.stringify(defJson, null, 2));
+      
+      // Create default page.js and page.css
+      fs.writeFileSync(path.join(absolutePagePath, 'page.js'), DEFAULT_JS);
+      fs.writeFileSync(path.join(absolutePagePath, 'page.css'), DEFAULT_CSS(pageFolderName));
+  }
+
   // Store volumePath in the internal format used by the scanner (/Library/Series/Volumes/volume-N)
   const volumePath = `/Library/${seriesFolderName}/Volumes/${volumeFolderName}`;
 
@@ -49,7 +86,13 @@ async function createVolume({ index, title, seriesId }) {
       index, 
       title, 
       volumePath, 
-      chapters: [] 
+      chapters: [
+          {
+              title: firstChapterTitle || "Chapter 1",
+              chapterNumber: firstChapterNum,
+              pages: []
+          }
+      ] 
   });
 
   await newVolume.save();

@@ -1,12 +1,14 @@
 /* Global Form Elements */
 
-.input-field {
+.input-field,
+.form-group {
   display: flex;
   flex-direction: column;
   margin-bottom: 20px;
 }
 
-.input-field label {
+.input-field label,
+.form-group label {
   color: var(--muted);
   font-size: 0.9rem;
   margin-bottom: 6px;
@@ -14,6 +16,8 @@
 
 .input-field input,
 .input-field textarea,
+.input-field select,
+.form-group select,
 .gov-input,
 .gov-select {
   background: var(--bg);
@@ -24,15 +28,26 @@
   font-size: 0.95rem;
   transition: border-color 0.2s, background 0.2s;
   font-family: inherit;
+  width: 100%;
 }
 
 .input-field input:focus,
 .input-field textarea:focus,
+.input-field select:focus,
+.form-group select:focus,
 .gov-input:focus,
 .gov-select:focus {
   outline: none;
   border-color: var(--accent);
   background: #111;
+}
+
+.builder-status {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  min-height: 20px;
 }
 
 button {

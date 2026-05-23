@@ -6,15 +6,15 @@ const fs = require('fs');
 const { resolveSeriesPath } = require('../services/MediaService');
 
 exports.createVolume = async (req, res) => {
-  const { index, title, seriesId, pages } = req.body;
+  const { index, title, seriesId, pages, firstChapterTitle } = req.body;
 
   try {
     // Create new volume with automated path handling
-    await VolumeManager.createVolume({ index, title, seriesId, pages });
-    res.redirect('/dashboard'); 
+    await VolumeManager.createVolume({ index, title, seriesId, pages, firstChapterTitle });
+    res.json({ ok: true, message: "Volume created successfully." });
   } catch (err) {
     console.error("Error creating volume:", err);
-    res.status(500).redirect('/dashboard'); 
+    res.status(500).json({ ok: false, message: err.message || "Server error" });
   }
 };
 

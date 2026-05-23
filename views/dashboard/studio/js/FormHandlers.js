@@ -177,6 +177,60 @@ export function initFormHandlers(container) {
         };
     }
 
+    // Create Volume Form Submission
+    const createVolumeForm = document.getElementById('volume-info');
+    if (createVolumeForm) {
+        createVolumeForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const btn = document.getElementById('createVolumeBtn');
+            const status = document.getElementById('volumeStatus');
+            const overlay = document.getElementById('savingOverlay');
+
+            const seriesId = document.getElementById('createVolumeSeriesSelect').value;
+            const index = document.getElementById('index').value;
+            const title = document.getElementById('title').value;
+            const firstChapterTitle = document.getElementById('firstChapterTitle').value;
+
+            if (!seriesId || !index || !title || !firstChapterTitle) {
+                status.textContent = "Please fill all fields.";
+                status.className = "builder-status text-accent";
+                return;
+            }
+
+            btn.disabled = true;
+            btn.textContent = "Creating...";
+            if (overlay) overlay.classList.add('active');
+
+            try {
+                const res = await fetch('/api/volume/create', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ seriesId, index, title, firstChapterTitle })
+                });
+                const data = await res.json();
+
+                if (data.ok) {
+                    status.textContent = "Success! Volume created. Redirecting...";
+                    status.className = "builder-status text-accent font-bold";
+                    setTimeout(() => {
+                        window.location.reload(); // Reload to refresh the library
+                    }, 1500);
+                } else {
+                    status.textContent = "Error: " + data.message;
+                    status.className = "builder-status text-accent";
+                    if (overlay) overlay.classList.remove('active');
+                }
+            } catch (err) {
+                status.textContent = "Request Failed.";
+                status.className = "builder-status text-accent";
+                if (overlay) overlay.classList.remove('active');
+            } finally {
+                btn.disabled = false;
+                btn.textContent = "Create Volume Structure";
+            }
+        };
+    }
+
     // Create Chapter Form Submission
     const createChapterForm = document.getElementById('chapter-info');        
     if (createChapterForm) {

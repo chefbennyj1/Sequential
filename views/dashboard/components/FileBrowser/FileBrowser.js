@@ -152,7 +152,8 @@ export function closeFileBrowser() {
 }
 
 export function initFileBrowser() {
-    document.getElementById('closeFileBrowserBtn').onclick = closeFileBrowser;
+    const closeBtn = document.getElementById('closeFileBrowserBtn');
+    if (closeBtn) closeBtn.onclick = closeFileBrowser;
     
     const scopeSelect = document.getElementById('fbScopeSelect');
     const searchInput = document.getElementById('fbSearchInput');
@@ -169,10 +170,9 @@ export function initFileBrowser() {
             if (!file) return; 
             
             const status = document.getElementById('fileBrowserStatus'); 
-            status.textContent = "Uploading...";
+            if (status) status.textContent = "Uploading...";
             
             // Get latest scope dynamically
-            const scopeSelect = document.getElementById('fbScopeSelect');
             const currentScope = scopeSelect ? scopeSelect.value : 'page'; 
 
             const fd = new FormData(); 
@@ -188,11 +188,11 @@ export function initFileBrowser() {
                 const data = await uploadAsset(fd);
                 if (data.ok) {
                     await refreshFileBrowser();
-                } else {
+                } else if (status) {
                     status.textContent = "Error: " + data.message;
                 }
             } catch (err) {
-                status.textContent = "Upload failed.";
+                if (status) status.textContent = "Upload failed.";
             } finally {
                 e.target.value = '';
             }

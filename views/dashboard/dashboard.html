@@ -158,32 +158,26 @@
 
             <h3>Create New Volume</h3>
 
-            <form id="volume-info" action="/api/volume/create" method="POST">
-
+            <form id="volume-info">
                 <div class="form-group">
                     <label>Select Series</label>
                     <select id="createVolumeSeriesSelect" name="seriesId" required></select>
                 </div>
-
                 <div class="input-field">
-
                     <label for="index">Volume Index (Number)</label>
-
                     <input type="number" id="index" name="index" placeholder="e.g. 1" required />
-
                 </div>
-
                 <div class="input-field">
-
                     <label for="title">Volume Title</label>
-
                     <input type="text" id="title" name="title" placeholder="e.g. The Beginning" required />
-
                 </div>
-
-                <button class="update__btn w-full" type="submit">Create Volume Structure</button>
-
+                <div class="input-field">
+                    <label for="firstChapterTitle">First Chapter Title</label>
+                    <input type="text" id="firstChapterTitle" name="firstChapterTitle" placeholder="e.g. Arrival" required />
+                </div>
+                <button class="update__btn w-full" type="submit" id="createVolumeBtn">Create Volume Structure</button>
             </form>
+            <div id="volumeStatus" class="builder-status"></div>
 
         </div>
 
@@ -667,8 +661,8 @@
                 <h3 class="margin-b-20">Export Script</h3>
                 <p class="text-muted margin-b-20">This will generate a concatenated .txt file containing all dialogue from the selected volume.</p>
                 
-                <div class="form-group"><label>Select Series</label><select id="scriptSeriesSelect"></select></div>
-                <div class="form-group"><label>Select Volume</label><select id="scriptVolumeSelect" disabled><option value="">Select a Series first</option></select></div>
+                <div class="form-group"><label>Select Series</label><select id="scriptSeriesSelect" class="gov-select"></select></div>
+                <div class="form-group"><label>Select Volume</label><select id="scriptVolumeSelect" class="gov-select" disabled><option value="">Select a Series first</option></select></div>
                 
                 <button class="update__btn w-full margin-t-20" id="generateScriptBtn">Generate Script File</button>
                 <div id="scriptStatus" class="builder-status"></div>
@@ -736,7 +730,7 @@
     <div class="layout-editor dashboard-section hidden h-full">
         <div class="editor-header editor-header-flex">
             <h3>Visual Editor: <span id="editorPageTitle"></span></h3>
-            <button id="closeEditorBtn">Close</button>
+            <button id="closeEditorBtn">Close &rarr;</button>
         </div>
         <div class="editor-container editor-container-flex">
             <div class="preview-pane preview-pane-flex">
@@ -758,25 +752,16 @@
     </div>
 
     <div class="scene-editor dashboard-section hidden h-full">
-        <div class="editor-header editor-header-flex">
-            <h3>Scene Editor: <span id="sceneEditorPageTitle"></span></h3>
-            <div>
-                <button class=" update__btn" id="saveSceneBtn">Save Scene</button>
-                <button id="closeSceneEditorBtn" style="margin-left: 10px;">Close</button>
+        <div class="scene-tree-pane timeline-pane-flex">
+            <h4 class="timeline-header">Timeline</h4>
+            <div class="scene-toolbar timeline-toolbar">
+                <button class="small" id="addItemBtn">+ Add Item</button>
             </div>
+            <ul id="sceneTreeList" class="scene-list timeline-list"></ul>
         </div>
-        <div class="editor-container editor-container-flex">
-            <div class="scene-tree-pane timeline-pane-flex">
-                <h4 class="timeline-header">Timeline</h4>
-                <div class="scene-toolbar timeline-toolbar">
-                    <button class="small" id="addItemBtn">+ Add Item</button>
-                </div>
-                <ul id="sceneTreeList" class="scene-list timeline-list"></ul>
-            </div>
-            <div class="scene-props-pane props-pane-flex">
-                <h4 class="props-header">Properties</h4>
-                <div id="sceneItemEditor" class="hidden">
-                    <form id="sceneItemForm">
+        <div class="scene-props-pane props-pane-flex">
+            <div id="sceneItemEditor" class="hidden">
+                <form id="sceneItemForm">
                         <div class="input-field"><label>ID</label><input type="text" id="prop-id" readonly></div>
                         <div class="input-field">
                             <label>Display Type</label>
@@ -943,12 +928,12 @@
                   
                   <div class="form-group" style="margin-top:20px;">
                       <label for="exportSeriesSelect">Select Series:</label>
-                      <select id="exportSeriesSelect"></select>
+                      <select id="exportSeriesSelect" class="gov-select"></select>
                   </div>
 
                   <div class="form-group" style="margin-top:20px;">
                       <label for="exportVolumeSelect">Select Volume to Export:</label>
-                      <select id="exportVolumeSelect" disabled><option value="">Select a Series first</option></select>
+                      <select id="exportVolumeSelect" class="gov-select" disabled><option value="">Select a Series first</option></select>
                   </div>
 
                   <div class="form-group" style="margin-top:20px;">

@@ -23,8 +23,8 @@ const { isAuthApi: isAuth, isModerator, isAdmin } = require('../middleware/auth.
 // --- SYSTEM SETTINGS ---
 router.get('/settings/global', isAdmin, SystemSettingsController.getGlobalSettings);
 router.put('/settings/global', isAdmin, SystemSettingsController.updateGlobalSettings);
-router.post('/vision/scan', isAdmin, (req, res) => VisionController.processPendingDescriptions(req, res));
-router.post('/vision/stop', isAdmin, (req, res) => VisionController.stopVisionScan(req, res));
+router.post('/vision/scan', isModerator, (req, res) => VisionController.processPendingDescriptions(req, res));
+router.post('/vision/stop', isModerator, (req, res) => VisionController.stopVisionScan(req, res));
 
 // --- EDITOR ROUTES ---
 

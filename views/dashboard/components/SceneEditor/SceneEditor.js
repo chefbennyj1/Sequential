@@ -28,34 +28,61 @@ let activeSeriesFolder = null;
 let selectedItemIndex = -1;
 
 /**
- * Main entry point to open the Scene/Dialogue editor.
+ * Centralized Save Logic for Page Scenes.
  */
-export async function openSceneEditor(volume, chapter, pageId, mode = 'landscape', seriesId = null) {
-    updateUrlState({ tab: 'scene-editor', vol: volume, chap: chapter, page: pageId });
-    document.querySelector('.sidebar')?.classList.remove('open');
-    document.querySelectorAll('main.main-content .dashboard-section').forEach(s => s.classList.add('hidden'));
+async function handleSceneSave(btn, volume, chapter, pageId, seriesId) {
+    if (!btn) return;
+    btn.disabled = true;
+    const originalText = btn.textContent;
+    btn.textContent = 'Saving...';
+    try {
+        const res = await saveSceneData(volume, chapter, pageId, currentSceneData, seriesId);
+        if (res.ok) {
+            btn.textContent = 'Saved!';
+            
+            // Notify preview iframe to refresh scene if it's visible
+            const iframe = document.getElementById('pagePreviewFrame');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({ type: 'refreshScene' }, '*');
+            }
 
-    const sceneEditor = document.querySelector('.scene-editor');
-    if (sceneEditor) sceneEditor.classList.remove('hidden');
+            setTimeout(() => {
+                btn.disabled = false;
+                btn.textContent = originalText === 'Saving...' ? 'Save Page Scene' : originalText;
+            }, 2000);
+        } else {
+            throw new Error(res.message);
+        }
+    } catch (err) {
+        alert("Failed to save: " + err.message);
+        btn.disabled = false;
+        btn.textContent = 'Retry Save';
+    }
+}
 
+/**
+ * Internal helper to load scene data and sync UI.
+ */
+async function loadScene(volume, chapter, pageId, seriesId, mode = 'landscape') {
     currentSceneInfo = { volume, chapter, pageId };
     const titleEl = document.getElementById('sceneEditorPageTitle');
     if (titleEl) titleEl.textContent = `${volume} / ${chapter} / ${pageId} (${mode.toUpperCase()})`;
 
-    // Resolve Series Context
-    try {
-        const seriesList = await fetchSeriesAPI();
-        let series;
-        if (seriesId) {
-            series = seriesList.find(s => s._id === seriesId);
-        } else {
-            series = seriesList[0];
-        }
-        if (series) {
-            activeSeriesId = series._id;
-            activeSeriesFolder = series.folderName || "No_Overflow";
-        }
-    } catch (e) { console.error("Could not resolve series", e); }
+    // Resolve Series Context if needed
+    if (!activeSeriesId || activeSeriesId !== seriesId) {
+        try {
+            const seriesList = await fetchSeriesAPI();
+            let series = seriesId ? seriesList.find(s => s._id === seriesId) : seriesList[0];
+            if (series) {
+                activeSeriesId = series._id;
+                activeSeriesFolder = series.folderName || "No_Overflow";
+                if (visual) {
+                    visual.activeSeriesId = activeSeriesId;
+                    visual.activeSeriesFolder = activeSeriesFolder;
+                }
+            }
+        } catch (e) { console.error("Could not resolve series", e); }
+    }
 
     // Fetch Data
     const [panelData, scene, characters, mediaRes] = await Promise.all([
@@ -89,6 +116,52 @@ export async function openSceneEditor(volume, chapter, pageId, mode = 'landscape
     selectedItemIndex = -1;
     document.getElementById('sceneItemEditor').classList.add('hidden');
     document.getElementById('sceneItemPlaceholder').classList.remove('hidden');
+}
+
+/**
+ * Main entry point to open the Scene/Dialogue editor.
+ */
+export async function openSceneEditor(volume, chapter, pageId, mode = 'landscape', seriesId = null) {
+    updateUrlState({ tab: 'scene-editor', vol: volume, chap: chapter, page: pageId });
+    document.querySelector('.sidebar')?.classList.remove('open');
+    document.querySelectorAll('main.main-content .dashboard-section').forEach(s => s.classList.add('hidden'));
+
+    const sceneEditor = document.querySelector('.scene-editor');
+    if (sceneEditor) {
+        sceneEditor.classList.remove('hidden');
+
+        // Setup Header with Save/Close buttons if not present
+        const propsPane = sceneEditor.querySelector('.scene-props-pane');
+        if (propsPane) {
+            let header = propsPane.querySelector('.scene-editor-header');
+            if (!header) {
+                header = document.createElement('div');
+                header.className = 'scene-editor-header';
+                propsPane.prepend(header);
+            }
+            header.innerHTML = `
+                <div class="flex-row align-center gap-10">
+                    <h4 class="margin-0">Dialogue & Timing</h4>
+                    <span class="text-muted font-size-08 uppercase border-dim padding-x-5 border-radius-4">${pageId}</span>
+                </div>
+                <div class="flex-row gap-10">
+                    <button id="saveSceneBtn" class="update__btn small">Save Page Scene</button>
+                    <button id="closeSceneEditorBtn" class="small">Close &rarr;</button>
+                </div>
+            `;
+
+            document.getElementById('closeSceneEditorBtn').onclick = () => {
+                sceneEditor.classList.add('hidden');
+                document.querySelector('.studio')?.classList.remove('hidden');
+                document.querySelector('.page-builder')?.classList.remove('hidden');
+            };
+
+            const saveBtn = document.getElementById('saveSceneBtn');
+            saveBtn.onclick = () => handleSceneSave(saveBtn, volume, chapter, pageId, activeSeriesId || seriesId);
+        }
+    }
+
+    await loadScene(volume, chapter, pageId, seriesId, mode);
 }
 
 /**
@@ -212,89 +285,90 @@ export function initSceneEditor() {
     );
 
     // 2. Global Button Handlers
-    document.getElementById('closeSceneEditorBtn').onclick = () => {
-        container.classList.add('hidden');
-        document.querySelector('.page-builder').classList.remove('hidden');
-    };
-
-    document.getElementById('closeEditorBtn').onclick = () => {
-        document.querySelector('.layout-editor').classList.add('hidden');
-        document.querySelector('.page-builder').classList.remove('hidden');
-    };
-
-    document.getElementById('addItemBtn').onclick = () => {
-        const newItem = {
-            id: crypto.randomUUID(),
-            displayOrder: currentSceneData.length,
-            displayType: { type: 'SpeechBubble' },
-            character: 'New',
-            text: 'Text',
-            placement: { panel: '.panel-A', bottom: '2%', left: '2%', right: '2%' },
-            mediaAction: []
+    const closeSceneBtn = document.getElementById('closeSceneEditorBtn');
+    if (closeSceneBtn) {
+        closeSceneBtn.onclick = () => {
+            container.classList.add('hidden');
+            document.querySelector('.page-builder')?.classList.remove('hidden');
         };
-        currentSceneData.push(newItem);
-        selectSceneItem(currentSceneData.length - 1);
+    }
 
-        // Notify preview iframe to refresh scene
-        const iframe = document.getElementById('pagePreviewFrame');
-        if (iframe && iframe.contentWindow) {
-            iframe.contentWindow.postMessage({ type: 'refreshScene' }, '*');
-        }
-    };
+    const closeEditorBtn = document.getElementById('closeEditorBtn');
+    if (closeEditorBtn) {
+        closeEditorBtn.onclick = () => {
+            document.querySelector('.layout-editor').classList.add('hidden');
+            document.querySelector('.page-builder')?.classList.remove('hidden');
+        };
+    }
 
-    document.getElementById('deleteItemBtn').onclick = () => {
-        if (selectedItemIndex !== -1 && confirm("Are you sure?")) {
-            currentSceneData.splice(selectedItemIndex, 1);
-            selectedItemIndex = -1;
-            document.getElementById('sceneItemEditor').classList.add('hidden');
-            document.getElementById('sceneItemPlaceholder').classList.remove('hidden');
+    const addItemBtn = document.getElementById('addItemBtn');
+    if (addItemBtn) {
+        addItemBtn.onclick = () => {
+            const generateId = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id-' + Math.random().toString(36).substr(2, 9);
+            const newItem = {
+                id: generateId(),
+                displayOrder: currentSceneData.length,
+                displayType: { type: 'SpeechBubble' },
+                character: 'New',
+                text: 'Text',
+                placement: { panel: '.panel-A', bottom: '2%', left: '2%', right: '2%' },
+                mediaAction: []
+            };
+            currentSceneData.push(newItem);
+            
+            // Update UI list before selecting
             timeline.setData(currentSceneData, properties.availableCharacters);
-        }
-    };
+            selectSceneItem(currentSceneData.length - 1);
 
-    document.getElementById('saveSceneBtn').onclick = async (e) => {
-        const btn = e.target;
-        btn.disabled = true;
-        btn.textContent = "Saving...";
-        try {
-            const result = await saveSceneData(currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, currentSceneData, activeSeriesId);
-            if (result.ok) {
-                btn.textContent = "Saved!";
-
-                // Notify preview iframe to refresh scene
-                const iframe = document.getElementById('pagePreviewFrame');
-                if (iframe && iframe.contentWindow) {
-                    iframe.contentWindow.postMessage({ type: 'refreshScene' }, '*');
-                }
-
-                setTimeout(() => { btn.textContent = "Save Changes"; btn.disabled = false; }, 2000);
-            } else {
-                alert("Error saving: " + result.message);
-                btn.disabled = false;
+            // Notify preview iframe to refresh scene
+            const iframe = document.getElementById('pagePreviewFrame');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({ type: 'refreshScene' }, '*');
             }
-        } catch (err) {
-            alert("Save failed.");
-            btn.disabled = false;
-        }
-    };
+        };
+    }
+
+    const deleteItemBtn = document.getElementById('deleteItemBtn');
+    if (deleteItemBtn) {
+        deleteItemBtn.onclick = () => {
+            if (selectedItemIndex !== -1 && confirm("Are you sure?")) {
+                currentSceneData.splice(selectedItemIndex, 1);
+                selectedItemIndex = -1;
+                document.getElementById('sceneItemEditor').classList.add('hidden');
+                document.getElementById('sceneItemPlaceholder').classList.remove('hidden');
+                timeline.setData(currentSceneData, properties.availableCharacters);
+            }
+        };
+    }
+
+    const saveSceneBtn = document.getElementById('saveSceneBtn');
+    if (saveSceneBtn) {
+        saveSceneBtn.onclick = (e) => handleSceneSave(e.target, currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, activeSeriesId);
+    }
 
     // 3. Form Input Listening
-    document.getElementById('sceneItemForm').addEventListener('input', (e) => {
-        if (e.target.id?.startsWith('prop-')) {
+    const sceneItemForm = document.getElementById('sceneItemForm');
+    if (sceneItemForm) {
+        sceneItemForm.addEventListener('input', (e) => {
+            if (e.target.id?.startsWith('prop-')) {
+                if (selectedItemIndex !== -1) {
+                    properties.updateItem(currentSceneData[selectedItemIndex]);
+                    timeline.render();
+                }
+            }
+        });
+    }
+
+    const propType = document.getElementById('prop-type');
+    if (propType) {
+        propType.addEventListener('change', (e) => {
             if (selectedItemIndex !== -1) {
+                properties.toggleVisibility(e.target.value);
                 properties.updateItem(currentSceneData[selectedItemIndex]);
                 timeline.render();
             }
-        }
-    });
-
-    document.getElementById('prop-type').addEventListener('change', (e) => {
-        if (selectedItemIndex !== -1) {
-            properties.toggleVisibility(e.target.value);
-            properties.updateItem(currentSceneData[selectedItemIndex]);
-            timeline.render();
-        }
-    });
+        });
+    }
 
     // 4. Iframe / Cross-Window Messaging
     window.addEventListener('message', (e) => {
@@ -321,21 +395,19 @@ export function initSceneEditor() {
 
         if (e.data.type === 'dialogueSelected') {
             const id = e.data.id;
-            const index = currentSceneData.findIndex(item => item.id === id);
+            // Use loose equality to handle string/number ID differences
+            const index = currentSceneData.findIndex(item => item.id == id);
             if (index === -1) return;
 
             const item = currentSceneData[index];
-            selectedItemIndex = index; // CRITICAL: Update the selection state
+            selectedItemIndex = index;
 
-            // If we are currently in the Visual/Layout editor, show properties IN the visual sidebar
             const layoutEditor = document.querySelector('.layout-editor');
             if (layoutEditor && !layoutEditor.classList.contains('hidden')) {
                 visual.showDialogueProperties(item, properties, async () => {
-                    // Logic to save the scene data from within the visual editor context
                     await saveSceneData(currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, currentSceneData, activeSeriesId);
                 });
             } else {
-                // Otherwise, perform the standard scene editor selection
                 selectSceneItem(index);
             }
         }

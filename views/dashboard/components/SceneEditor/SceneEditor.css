@@ -1,9 +1,54 @@
 /* Scene Editor Specific Styles */
 
 /* Container */
+.scene-editor {
+    display: flex;
+    flex-direction: row;
+    height: 100%;
+    width: 100%;
+    background: var(--bg);
+    overflow: hidden;
+}
+
+.scene-tree-pane {
+    flex: 0 0 350px;
+    background: #1e1e1e !important;
+    border-right: 1px solid #333;
+    padding: 20px !important;
+    overflow-y: auto;
+    height: 100%;
+    box-sizing: border-box;
+}
+
 .scene-props-pane {
-    background: #2c2c2c; /* Slightly lighter than main dashboard bg */
+    flex: 1;
+    background: #2c2c2c;
     border: 1px solid #444;
+    padding: 0 !important;
+    overflow: hidden !important;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    box-sizing: border-box;
+}
+
+.scene-editor-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 20px 20px 15px 20px;
+    border-bottom: 1px solid #444;
+    background: #252525;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+#sceneItemEditor, 
+#sceneItemPlaceholder {
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 /* Inputs & Textareas */
@@ -369,3 +414,23 @@
 .btn-nudge { background: #333; color: white; border: 1px solid #555; border-radius: 4px; padding: 2px 8px; cursor: pointer; font-weight: bold; } 
 .btn-nudge:hover { background: #555; } 
 input[type='range'].flex-1 { min-width: 50px; cursor: ew-resize; }
+
+/* Mode Tabs */
+.mode-tab-btn {
+    background: #1a1a1a;
+    border: 1px solid #444;
+    color: var(--muted);
+    transition: all 0.2s ease;
+}
+
+.mode-tab-btn:hover {
+    background: #252525;
+    color: white;
+}
+
+.mode-tab-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #000;
+    font-weight: bold;
+}

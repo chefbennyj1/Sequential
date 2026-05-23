@@ -37,6 +37,8 @@ export function syncPreviewLive(iframe, panelSelector, activeMode, currentMediaD
 
     const styles = {};
     const fileName = document.getElementById('visual-asset-name')?.value;
+    const overlayImage = document.getElementById('visual-overlay-name')?.value;
+    const overlayOpacity = document.getElementById('visual-overlay-opacity')?.value || 1.0;
     const assetType = 'image';
 
     if (activeMode === 'landscape') {
@@ -89,5 +91,5 @@ export function syncPreviewLive(iframe, panelSelector, activeMode, currentMediaD
         styles.zIndex = document.getElementById('float-z').value;
     }
 
-    iframe.contentWindow.postMessage({ type: 'styleUpdate', panel: panelSelector, styles, fileName, assetType }, '*');
+    iframe.contentWindow.postMessage({ type: 'styleUpdate', panel: panelSelector, styles, fileName, overlayImage, overlayOpacity, assetType }, '*');
 }

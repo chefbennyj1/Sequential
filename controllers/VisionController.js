@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const mongoose = require('mongoose');
 const GeminiVisionService = require('../services/gemini/GeminiVisionService');
 const GlobalSettings = require('../models/GlobalSettings');
 const Volume = require('../models/Volume');
@@ -10,6 +11,10 @@ const { resolveSeriesPath } = require('../services/MediaService');
 class VisionController {
     constructor() {
         this.isVisionScanRunning = false;
+        // Bind methods to ensure 'this' context is preserved when used as callbacks
+        this.processPendingDescriptions = this.processPendingDescriptions.bind(this);
+        this.stopVisionScan = this.stopVisionScan.bind(this);
+        this.runVisionScan = this.runVisionScan.bind(this);
     }
 
     async stopVisionScan(req, res) {

@@ -183,8 +183,14 @@ export async function init(container, params) {
                 // Fetch initial scene from server, then we'll rely on pushed updates
                 const sceneData = await fetchScene(volume, chapter, pageId, series);
                 renderScene(sceneData, mediaArray);
+            } else {
+                // Still need to init panels even if no media yet
+                initPanels();
             }
-        } catch (e) { console.error("Failed to load media:", e); }
+        } catch (e) { 
+            console.error("Failed to load media:", e); 
+            initPanels();
+        }
     }
 
     /**
@@ -227,10 +233,15 @@ export async function init(container, params) {
             const panelClass = classes.find(c => c.startsWith('panel-') && c !== 'panel');
             if (panelClass) panels.push('.' + panelClass);
             
-            const label = document.createElement('div');
-            label.className = 'panel-label';
-            label.innerHTML = `${panelClass || 'Unknown'}<br><span>Click or Drop to Upload</span>`;
-            panel.appendChild(label);
+            // Only add label if it doesn't exist
+            if (!panel.querySelector('.panel-label')) {
+                const label = document.createElement('div');
+                label.className = 'panel-label';
+                label.innerHTML = `${panelClass || 'Unknown'}<br><span>Click or Drop to Upload</span>`;
+                panel.appendChild(label);
+            }
+
+            const label = panel.querySelector('.panel-label');
 
             // --- Floating Panel Specific Logic ---
             if (panel.classList.contains('floating-panel')) {
@@ -459,32 +470,54 @@ export async function init(container, params) {
         }
 
         if (e.data.type === 'styleUpdate' || e.data.type === 'mediaPersisted') {
-            const { panel: selector, styles, fileName, assetType, entry } = e.data;
+            const { panel: selector, styles, fileName, overlayImage, overlayOpacity, assetType, entry } = e.data;
             const panel = container.querySelector(selector);
             
             if (panel) {
                 const targetFileName = fileName || entry?.fileName;
+                const targetOverlay = overlayImage || entry?.overlayImage;
+                const targetOpacity = overlayOpacity !== undefined ? overlayOpacity : entry?.overlayOpacity;
                 
+                const series = params.series;
+                const { volume, chapter, pageId } = params;
+
                 // 1. SURGICAL ASSET SWAP
                 if (targetFileName) {
-                    let img = panel.querySelector('img');
-                    const series = params.series;
-                    const { volume, chapter, pageId } = params;
-                    const newSrc = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${targetFileName}?t=${Date.now()}`;
+                    let img = panel.querySelector('img.main-asset');
+                    if (!img) {
+                        // Compatibility: if old layout uses img without class, try finding any img not an overlay
+                        img = Array.from(panel.querySelectorAll('img')).find(i => !i.classList.contains('panel-overlay-img'));
+                    }
 
                     if (!img) {
                         img = document.createElement('img');
+                        img.className = 'main-asset';
                         img.style.width = '100%';
                         img.style.height = '100%';
                         img.style.objectFit = 'cover';
                         panel.prepend(img);
                     }
-                    img.src = newSrc;
+                    img.src = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${targetFileName}?t=${Date.now()}`;
                 }
 
-                // 2. STYLE UPDATES
+                // 2. OVERLAY UPDATE
+                if (targetOverlay) {
+                    let over = panel.querySelector('img.panel-overlay-img');
+                    if (!over) {
+                        over = document.createElement('img');
+                        over.className = 'panel-overlay-img';
+                        Object.assign(over.style, { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' });
+                        panel.appendChild(over);
+                    }
+                    over.src = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${targetOverlay}?t=${Date.now()}`;
+                    over.style.opacity = targetOpacity || 1.0;
+                } else {
+                    panel.querySelector('img.panel-overlay-img')?.remove();
+                }
+
+                // 3. STYLE UPDATES
                 const targetStyles = styles || entry?.style || {};
-                const img = panel.querySelector('img');
+                const img = panel.querySelector('img.main-asset') || panel.querySelector('img');
                 const visualProps = ['objectFit', 'objectPosition', 'transform', 'transformOrigin', 'filter', 'opacity'];
                 
                 // Clear existing visual styles first to ensure a clean slate
@@ -500,8 +533,11 @@ export async function init(container, params) {
                         const applyTarget = (panel.classList.contains('floating-panel') && !isVisual) ? panel : img;
                         
                         // Map kebab-case from JSON to camelCase for JS style object
-                        const jsProp = prop === 'aspect-ratio' ? 'aspectRatio' : (prop === 'z-index' ? 'zIndex' : prop);
-                        
+                        let jsProp = prop;
+                        if (prop.includes('-')) {
+                            jsProp = prop.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+                        }
+
                         if (applyTarget) applyTarget.style[jsProp] = targetStyles[prop];
                     }
                 }
@@ -511,7 +547,11 @@ export async function init(container, params) {
                     for (const prop in entry.portraitStyle) {
                         const isVisual = visualProps.includes(prop);
                         const applyTarget = (panel.classList.contains('floating-panel') && !isVisual) ? panel : img;
-                        if (applyTarget) applyTarget.style[prop] = entry.portraitStyle[prop];
+                        let jsProp = prop;
+                        if (prop.includes('-')) {
+                            jsProp = prop.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
+                        }
+                        if (applyTarget) applyTarget.style[jsProp] = entry.portraitStyle[prop];
                     }
                 }
             }

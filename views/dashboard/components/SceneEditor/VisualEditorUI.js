@@ -6,9 +6,9 @@
 export function renderPanelSettings(panelSelector, entry, isLsCustom, isPtCustom, lsPos, ptPos, lsScale, ptScale, getNum) {
     return `
         <div class="panel-editor-ui">
-            <div class="flex-between align-center margin-b-15">
-                <button id="backToDirectoryBtn" class="small">&larr; Geometry Directory</button>
+            <div class="flex-between align-center tools-header-sticky">
                 <h4 class="text-accent margin-0" style="text-transform: uppercase;">${panelSelector.replace('.', '')}</h4>
+                <button id="backToDirectoryBtn" class="small">Close &rarr;</button>
             </div>
 
             ${entry.isFloating ? `
@@ -82,7 +82,7 @@ export function renderPanelSettings(panelSelector, entry, isLsCustom, isPtCustom
             </div>
             
             <div class="flex-row gap-10 margin-b-15 border-dim-bottom padding-b-10">
-                <button class="mode-tab-btn flex-1 small" data-mode="landscape" id="ls-tab-btn">Landscape</button>
+                <button class="mode-tab-btn active flex-1 small" data-mode="landscape" id="ls-tab-btn">Landscape</button>
                 <button class="mode-tab-btn flex-1 small" data-mode="portrait" id="pt-tab-btn">Portrait</button>
             </div>
 
