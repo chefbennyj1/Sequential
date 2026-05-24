@@ -153,16 +153,23 @@ async function handleSceneDelete(item, volume, chapter, pageId, seriesId) {
  * Shared helper to return from any editor view back to the active page tools.
  */
 function returnToPageEdit() {
-    const builder = document.querySelector('.page-builder');
+    console.log("[Navigation] Returning to Page Edit...");
     const sections = document.querySelectorAll('main.main-content .dashboard-section');
+    const builder = document.querySelector('main.main-content .page-builder');
     
+    // Hide all major dashboard sections
     sections.forEach(s => s.classList.add('hidden'));
     
     if (builder) {
+        console.log("[Navigation] Page Builder section identified. Restoring view.");
         builder.classList.remove('hidden');
+        
+        // Show specific sub-containers for the "Edit" context
         document.getElementById('editPageContainer')?.classList.remove('hidden');
-        document.getElementById('pageBuilderModeSelection')?.classList.add('hidden');
         document.getElementById('activePageToolbar')?.classList.remove('hidden');
+        
+        // Hide the top-level mode selection if it's visible
+        document.getElementById('pageBuilderModeSelection')?.classList.add('hidden');
         
         // Restore URL state
         if (currentSceneInfo.volume) {
@@ -176,7 +183,8 @@ function returnToPageEdit() {
             });
         }
     } else {
-        // Fallback to Studio if builder not found
+        console.error("[Navigation] CRITICAL: .page-builder section not found in main-content!");
+        // Only show studio if we have absolutely nothing else to show
         document.querySelector('.studio')?.classList.remove('hidden');
     }
 }
