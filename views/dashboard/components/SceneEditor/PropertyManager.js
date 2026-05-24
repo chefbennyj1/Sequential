@@ -132,13 +132,16 @@ export class PropertyManager {
     populate(item) {
         if (!item) return;
 
-        this.container.querySelector('#prop-id').value = item.id || '';
+        const setVal = (id, val) => { const el = this.container.querySelector(id); if (el) el.value = val; };
+        const setCheck = (id, val) => { const el = this.container.querySelector(id); if (el) el.checked = !!val; };
+
+        setVal('#prop-id', item.id || '');
 
         let type = item.displayType?.type || 'SpeechBubble';
         if (type === 'TextBlock' && item.displayType?.style) {
             type = item.displayType.style;
         }
-        this.container.querySelector('#prop-type').value = type;
+        setVal('#prop-type', type);
 
         const select = this.container.querySelector('#prop-character-select');
         const input = this.container.querySelector('#prop-character');
@@ -151,43 +154,42 @@ export class PropertyManager {
                 input.classList.add('hidden');
                 const char = this.availableCharacters.find(c => c._id === item.characterId);
                 if (char && char.image) {
-                    avatar.src = char.image;
-                    avatar.classList.remove('hidden');
+                    if (avatar) { avatar.src = char.image; avatar.classList.remove('hidden'); }
                 } else {
-                    avatar.classList.add('hidden');
+                    if (avatar) avatar.classList.add('hidden');
                 }
             } else {
                 input.value = item.character || '';
                 select.value = "";
                 input.classList.remove('hidden');
                 select.classList.add('hidden');
-                avatar.classList.add('hidden');
+                if (avatar) avatar.classList.add('hidden');
             }
         }
 
-        this.container.querySelector('#prop-text').value = item.text || '';
+        setVal('#prop-text', item.text || '');
         const p = item.placement || {};
-        this.container.querySelector('#prop-panel').value = p.panel || '';
-        this.container.querySelector('#prop-top').value = p.top || '';
-        this.container.querySelector('#prop-left').value = p.left || '';
-        this.container.querySelector('#prop-right').value = p.right || '';
-        this.container.querySelector('#prop-bottom').value = p.bottom || '';
-        this.container.querySelector('#prop-width').value = p.width || '';
-        this.container.querySelector('#prop-tail').value = p.tailPosition || '';
-        this.container.querySelector('#prop-tail-skew').value = (p.tailSkew || '').replace('deg', '');
-        this.container.querySelector('#prop-tail-scale').value = p.tailScale || '';
-        this.container.querySelector('#prop-curve').value = item.curve || '';
-        this.container.querySelector('#prop-curve-w').value = item.curveWidth || '';
-        this.container.querySelector('#prop-curve-h').value = item.curveHeight || '';
-        this.container.querySelector('#prop-rotation').value = item.rotation || '';
-        this.container.querySelector('#prop-font-size').value = item.fontSize || '';
-        this.container.querySelector('#prop-action-color').value = item.color || '#000000';
-        this.container.querySelector('#prop-outline-enabled').checked = !!item.outlineEnabled;
-        this.container.querySelector('#prop-outline-color').value = item.outlineColor || '#000000';
-        this.container.querySelector('#prop-outline-size').value = item.outlineSize || '1.0';
-        this.container.querySelector('#prop-duration').value = item.duration || '';
-        this.container.querySelector('#prop-panel-effect').value = item.panelEffect || '';
-        this.container.querySelector('#prop-font-family').value = item.fontFamily || '';
+        setVal('#prop-panel', p.panel || '');
+        setVal('#prop-top', p.top || '');
+        setVal('#prop-left', p.left || '');
+        setVal('#prop-right', p.right || '');
+        setVal('#prop-bottom', p.bottom || '');
+        setVal('#prop-width', p.width || '');
+        setVal('#prop-tail', p.tailPosition || '');
+        setVal('#prop-tail-skew', (p.tailSkew || '').replace('deg', ''));
+        setVal('#prop-tail-scale', p.tailScale || '');
+        setVal('#prop-curve', item.curve || '');
+        setVal('#prop-curve-w', item.curveWidth || '');
+        setVal('#prop-curve-h', item.curveHeight || '');
+        setVal('#prop-rotation', item.rotation || '');
+        setVal('#prop-font-size', item.fontSize || '');
+        setVal('#prop-action-color', item.color || '#000000');
+        setCheck('#prop-outline-enabled', item.outlineEnabled);
+        setVal('#prop-outline-color', item.outlineColor || '#000000');
+        setVal('#prop-outline-size', item.outlineSize || '1.0');
+        setVal('#prop-duration', item.duration || '');
+        setVal('#prop-panel-effect', item.panelEffect || '');
+        setVal('#prop-font-family', item.fontFamily || '');
 
         this.toggleVisibility(item.displayType?.type);
         this.updateDatalist();

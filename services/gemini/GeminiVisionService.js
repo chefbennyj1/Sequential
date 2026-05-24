@@ -40,34 +40,30 @@ class GeminiVisionService {
                 return null;
             }
 
-            // Pre-flight check: Try to read the file into memory first.
-            // This ensures the file is accessible and not currently locked/partially written.
-            // If this fails, it's a standard JS error we can catch.
-            let imageBuffer;
-            try {
-                imageBuffer = await fs.promises.readFile(imagePath);
-                if (!imageBuffer || imageBuffer.length === 0) throw new Error("Empty buffer");
-            } catch (readErr) {
-                console.error(`[GeminiVision] [Hash] Pre-flight Read failed for ${path.basename(imagePath)}:`, readErr.message);
-                return null;
-            }
-
             // Logging for native crash diagnosis
-            console.log(`[GeminiVision] [Hash] Starting Sharp process for: ${path.basename(imagePath)} (${(imageBuffer.length / 1024).toFixed(2)} KB)`);
-            
-            const processedBuffer = await sharp(imageBuffer, { failOn: 'none' })
+            console.log(`[GeminiVision] [Hash] Starting Sharp process for: ${path.basename(imagePath)} (${(stats.size / 1024).toFixed(2)} KB)`);
+
+            // Use direct path instead of buffer to reduce memory overhead
+            // Set concurrency to 1 and disable cache to avoid native thread/memory exhaustion crashes
+            const processedBuffer = await sharp(imagePath, { failOn: 'none' })
+                .concurrency(1)
                 .resize(256, 256, { fit: 'inside', withoutEnlargement: true })
                 .grayscale()
                 .toBuffer();
-            
+
             console.log(`[GeminiVision] [Hash] Sharp finished for: ${path.basename(imagePath)}`);
             return crypto.createHash('md5').update(processedBuffer).digest('hex');
         } catch (err) {
             console.error(`[GeminiVision] Hash Generation Error for ${path.basename(imagePath)}:`, err.message);
-            return null;
+            // Fallback to simple file-based hash if Sharp fails to prevent server crash
+            try {
+                const fileBuffer = await fs.promises.readFile(imagePath);
+                return crypto.createHash('md5').update(fileBuffer).digest('hex');
+            } catch (e) {
+                return null;
+            }
         }
     }
-
     async analyzeImage(imagePath, customPrompt = null, context = "") {
         try {
             const genAI = await this.getClient();

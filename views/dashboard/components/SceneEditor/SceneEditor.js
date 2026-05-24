@@ -119,6 +119,69 @@ async function loadScene(volume, chapter, pageId, seriesId, mode = 'landscape') 
 }
 
 /**
+ * Centralized Delete Logic for Page Scene Items.
+ */
+async function handleSceneDelete(item, volume, chapter, pageId, seriesId) {
+    const idx = currentSceneData.findIndex(i => i.id == item.id);
+    if (idx === -1) return;
+
+    currentSceneData.splice(idx, 1);
+    
+    try {
+        const res = await saveSceneData(volume, chapter, pageId, currentSceneData, seriesId);
+        if (res.ok) {
+            // Update Timeline UI
+            timeline.setData(currentSceneData, properties.availableCharacters);
+            selectedItemIndex = -1;
+            document.getElementById('sceneItemEditor')?.classList.add('hidden');
+            document.getElementById('sceneItemPlaceholder')?.classList.remove('hidden');
+
+            // Notify preview iframe
+            const iframe = document.getElementById('pagePreviewFrame');
+            if (iframe && iframe.contentWindow) {
+                iframe.contentWindow.postMessage({ type: 'refreshScene' }, '*');
+            }
+        } else {
+            throw new Error(res.message);
+        }
+    } catch (err) {
+        alert("Delete failed: " + err.message);
+    }
+}
+
+/**
+ * Shared helper to return from any editor view back to the active page tools.
+ */
+function returnToPageEdit() {
+    const builder = document.querySelector('.page-builder');
+    const sections = document.querySelectorAll('main.main-content .dashboard-section');
+    
+    sections.forEach(s => s.classList.add('hidden'));
+    
+    if (builder) {
+        builder.classList.remove('hidden');
+        document.getElementById('editPageContainer')?.classList.remove('hidden');
+        document.getElementById('pageBuilderModeSelection')?.classList.add('hidden');
+        document.getElementById('activePageToolbar')?.classList.remove('hidden');
+        
+        // Restore URL state
+        if (currentSceneInfo.volume) {
+            updateUrlState({ 
+                tab: 'page-builder', 
+                vol: currentSceneInfo.volume, 
+                chap: currentSceneInfo.chapter, 
+                page: currentSceneInfo.pageId,
+                series: activeSeriesId,
+                seriesFolder: activeSeriesFolder
+            });
+        }
+    } else {
+        // Fallback to Studio if builder not found
+        document.querySelector('.studio')?.classList.remove('hidden');
+    }
+}
+
+/**
  * Main entry point to open the Scene/Dialogue editor.
  */
 export async function openSceneEditor(volume, chapter, pageId, mode = 'landscape', seriesId = null) {
@@ -129,6 +192,13 @@ export async function openSceneEditor(volume, chapter, pageId, mode = 'landscape
     const sceneEditor = document.querySelector('.scene-editor');
     if (sceneEditor) {
         sceneEditor.classList.remove('hidden');
+
+        // CRITICAL FIX: Ensure properties manager is pointing to the correct DOM elements
+        // in case it was detached by the Visual Editor.
+        if (properties) {
+            properties.container = sceneEditor;
+            properties.form = sceneEditor.querySelector('#sceneItemForm');
+        }
 
         // Setup Header with Save/Close buttons if not present
         const propsPane = sceneEditor.querySelector('.scene-props-pane');
@@ -150,11 +220,7 @@ export async function openSceneEditor(volume, chapter, pageId, mode = 'landscape
                 </div>
             `;
 
-            document.getElementById('closeSceneEditorBtn').onclick = () => {
-                sceneEditor.classList.add('hidden');
-                document.querySelector('.studio')?.classList.remove('hidden');
-                document.querySelector('.page-builder')?.classList.remove('hidden');
-            };
+            document.getElementById('closeSceneEditorBtn').onclick = returnToPageEdit;
 
             const saveBtn = document.getElementById('saveSceneBtn');
             saveBtn.onclick = () => handleSceneSave(saveBtn, volume, chapter, pageId, activeSeriesId || seriesId);
@@ -287,17 +353,17 @@ export function initSceneEditor() {
     // 2. Global Button Handlers
     const closeSceneBtn = document.getElementById('closeSceneEditorBtn');
     if (closeSceneBtn) {
-        closeSceneBtn.onclick = () => {
-            container.classList.add('hidden');
-            document.querySelector('.page-builder')?.classList.remove('hidden');
-        };
+        closeSceneBtn.onclick = returnToPageEdit;
     }
 
     const closeEditorBtn = document.getElementById('closeEditorBtn');
     if (closeEditorBtn) {
         closeEditorBtn.onclick = () => {
-            document.querySelector('.layout-editor').classList.add('hidden');
-            document.querySelector('.page-builder')?.classList.remove('hidden');
+            returnToPageEdit();
+            
+            // Clean up the tools pane to destroy any cloned dialogue forms and prevent ID conflicts
+            const toolsPane = document.querySelector('.layout-editor .tools-pane');
+            if (toolsPane) toolsPane.innerHTML = '';
         };
     }
 
@@ -332,11 +398,7 @@ export function initSceneEditor() {
     if (deleteItemBtn) {
         deleteItemBtn.onclick = () => {
             if (selectedItemIndex !== -1 && confirm("Are you sure?")) {
-                currentSceneData.splice(selectedItemIndex, 1);
-                selectedItemIndex = -1;
-                document.getElementById('sceneItemEditor').classList.add('hidden');
-                document.getElementById('sceneItemPlaceholder').classList.remove('hidden');
-                timeline.setData(currentSceneData, properties.availableCharacters);
+                handleSceneDelete(currentSceneData[selectedItemIndex], currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, activeSeriesId);
             }
         };
     }
@@ -406,6 +468,8 @@ export function initSceneEditor() {
             if (layoutEditor && !layoutEditor.classList.contains('hidden')) {
                 visual.showDialogueProperties(item, properties, async () => {
                     await saveSceneData(currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, currentSceneData, activeSeriesId);
+                }, async (delItem) => {
+                    await handleSceneDelete(delItem, currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, activeSeriesId);
                 });
             } else {
                 selectSceneItem(index);
@@ -429,6 +493,15 @@ export function initSceneEditor() {
 function selectSceneItem(index) {
     selectedItemIndex = index;
     timeline.setSelectedIndex(index);
+
+    // CRITICAL FIX: Ensure properties manager points to the real Scene Editor form
+    // before populating, in case it was detached by the Visual Editor.
+    const sceneEditorContainer = document.querySelector('.scene-editor');
+    if (properties && sceneEditorContainer && !sceneEditorContainer.classList.contains('hidden')) {
+        properties.container = sceneEditorContainer;
+        properties.form = sceneEditorContainer.querySelector('#sceneItemForm');
+    }
+
     document.getElementById('sceneItemEditor').classList.remove('hidden');
     document.getElementById('sceneItemPlaceholder').classList.add('hidden');
     properties.populate(currentSceneData[index]);

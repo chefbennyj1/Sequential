@@ -51,6 +51,7 @@ async function serveImage(imagePath, resizeWidth, seriesFolderName) {
                 return { ok: true, path: cacheFile, type: type };
             } catch {
                 await sharp(filePath)
+                    .concurrency(1)
                     .resize({ width: resizeWidth })
                     .toFile(cacheFile);
 

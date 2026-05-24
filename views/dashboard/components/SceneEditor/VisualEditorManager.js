@@ -379,7 +379,7 @@ export class VisualEditorManager {
         } catch (err) { alert(err.message); }
     }
 
-    showDialogueProperties(item, propertiesManager, onSaveCallback) {
+    showDialogueProperties(item, propertiesManager, onSaveCallback, onDeleteCallback) {
         const toolsPane = document.querySelector('.layout-editor .tools-pane');
         toolsPane.innerHTML = '';
         Object.assign(toolsPane.style, { display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', boxSizing: 'border-box' });
@@ -390,20 +390,26 @@ export class VisualEditorManager {
         header.innerHTML = `<h4>Dialogue Properties</h4><button class="small">&larr; Layout Tools</button>`;
         
         const originalOnUpdate = propertiesManager.onUpdate;
+        const originalContainer = propertiesManager.container;
+        const originalForm = propertiesManager.form;
         
-        header.querySelector('button').onclick = () => {
-            propertiesManager.onUpdate = originalOnUpdate; // Restore original callback
+        const cleanupAndClose = () => {
+            propertiesManager.onUpdate = originalOnUpdate;
+            propertiesManager.container = originalContainer;
+            propertiesManager.form = originalForm;
             this.loadPanel({ panel: null }, this.activeSeriesId);
         };
+
+        header.querySelector('button').onclick = cleanupAndClose;
         toolsPane.appendChild(header);
 
         const scroll = document.createElement('div');
         Object.assign(scroll.style, { overflowY: 'auto', padding: '0 10px', flex: '1' });
         toolsPane.appendChild(scroll);
 
-        const originalForm = document.getElementById('sceneItemEditor');
-        if (originalForm) {
-            const clone = originalForm.cloneNode(true);
+        const originalFormEl = document.getElementById('sceneItemEditor');
+        if (originalFormEl) {
+            const clone = originalFormEl.cloneNode(true);
             clone.id = 'visual-dialogue-editor';
             clone.classList.remove('hidden');
             scroll.appendChild(clone);
@@ -422,6 +428,17 @@ export class VisualEditorManager {
 
             propertiesManager.populate(item);
             clone.querySelectorAll('input, select, textarea').forEach(i => i.addEventListener('input', () => propertiesManager.onUpdate()));
+
+            // Handle Delete Button in Clone
+            const deleteBtn = clone.querySelector('#deleteItemBtn');
+            if (deleteBtn) {
+                deleteBtn.onclick = async () => {
+                    if (confirm("Delete this dialogue item?")) {
+                        await onDeleteCallback(item);
+                        cleanupAndClose();
+                    }
+                };
+            }
 
             const footer = document.createElement('div');
             footer.className = 'tools-footer-sticky margin-t-20';
