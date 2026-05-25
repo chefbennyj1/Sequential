@@ -6,7 +6,7 @@ import {
 } from '../api/StudioClient.js';
 import { renderLayoutBrowser } from '../../components/LayoutBrowser/LayoutBrowser.js';
 
-export let currentDesignMode = 'landscape';
+export let currentDesignMode = 'portrait';
 
 /**
  * Checks for orphaned dialogue items and displays a warning banner.
@@ -18,7 +18,7 @@ async function checkOrphanDialogue(vol, chap, page, seriesId) {
     try {
         const [scene, panelData] = await Promise.all([
             fetchSceneData(vol, chap, page, seriesId),
-            fetchPagePanels(vol, chap, page, currentDesignMode, seriesId)
+            fetchPagePanels(vol, chap, page, 'portrait', seriesId)
         ]);
 
         const panels = panelData.panels || [];
@@ -36,7 +36,7 @@ async function checkOrphanDialogue(vol, chap, page, seriesId) {
                     <ion-icon name="warning-outline" class="text-danger font-size-2"></ion-icon>
                     <div class="flex-1">
                         <h5 class="text-danger margin-b-5">Orphaned Dialogue Detected</h5>
-                        <p class="text-muted font-size-08">There are ${orphans.length} items targeting panels that do not exist in the current <strong>${currentDesignMode}</strong> layout. These will not appear in the viewer until re-assigned.</p>
+                        <p class="text-muted font-size-08">There are ${orphans.length} items targeting panels that do not exist in the current layout. These will not appear in the viewer until re-assigned.</p>
                     </div>
                     <button class="small btn-danger-outline" onclick="document.getElementById('openSceneEditorBtn').click()">Fix in Scene Editor</button>
                 </div>
@@ -80,52 +80,18 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
     // Run orphan check
     if (seriesId) checkOrphanDialogue(vol, chap, page, seriesId);
 
-    // --- Mode Toggle Setup ---
-    const landscapeBtn = document.getElementById('designModeLandscape');
-    const portraitBtn = document.getElementById('designModePortrait');
-
     const refreshLayoutDisplay = async (pageEntry) => {
         let lid = "";
-        let landscapeId = "";
         if (pageEntry?.layouts) {
-            lid = currentDesignMode === 'portrait' ? pageEntry.layouts.portrait : pageEntry.layouts.landscape;
-            // Handle the case where the layout is stored as an object { id, html, css }
-            if (typeof lid === 'object' && lid !== null) {
-                lid = lid.id;
-            }
-            const lsObj = pageEntry.layouts.landscape;
-            landscapeId = (typeof lsObj === 'object' && lsObj !== null) ? lsObj.id : lsObj;
+            lid = pageEntry.layouts.portrait || pageEntry.layouts.landscape;
+            if (typeof lid === 'object' && lid !== null) lid = lid.id;
         } else {
-            // Legacy fallback
-            lid = currentDesignMode === 'portrait' ? (pageEntry?.portraitLayoutId || "") : (pageEntry?.layoutId || "");
-            landscapeId = pageEntry?.layoutId || "";
+            lid = pageEntry?.portraitLayoutId || pageEntry?.layoutId || "";
         }
-        await renderLayoutBrowser('activePageLayoutBrowser', 'activePageLayoutValue', lid, currentDesignMode, landscapeId);
+        await renderLayoutBrowser('activePageLayoutBrowser', 'activePageLayoutValue', lid, 'portrait');
 
-        // Re-run orphan check when mode changes
         if (seriesId) checkOrphanDialogue(vol, chap, page, seriesId);
     };
-
-    if (landscapeBtn && portraitBtn) {
-        landscapeBtn.onclick = async () => {
-            currentDesignMode = 'landscape';
-            landscapeBtn.classList.add('active');
-            portraitBtn.classList.remove('active');
-            const volumeObj = await fetchSingleVolumeWithChapters(vol, seriesId);
-            const chapter = volumeObj?.chapters?.find(c => `chapter-${c.chapterNumber}` === chap);
-            const pageEntry = chapter?.pages?.find(p => `page${p.index}` === page || p.path.includes(page));
-            await refreshLayoutDisplay(pageEntry);
-        };
-        portraitBtn.onclick = async () => {
-            currentDesignMode = 'portrait';
-            portraitBtn.classList.add('active');
-            landscapeBtn.classList.remove('active');
-            const volumeObj = await fetchSingleVolumeWithChapters(vol, seriesId);
-            const chapter = volumeObj?.chapters?.find(c => `chapter-${c.chapterNumber}` === chap);
-            const pageEntry = chapter?.pages?.find(p => `page${p.index}` === page || p.path.includes(page));
-            await refreshLayoutDisplay(pageEntry);
-        };
-    }
 
     // 1. --- LAYOUT CONFIG ---
     if (layoutBrowser) {
@@ -153,7 +119,7 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
                             chapterId: chap,
                             pageId: page,
                             layout: newLayoutFile,
-                            mode: currentDesignMode
+                            mode: 'portrait'
                         })
                     });
                     const result = await res.json();

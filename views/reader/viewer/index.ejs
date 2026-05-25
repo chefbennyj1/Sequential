@@ -61,35 +61,27 @@
             const params = new URLSearchParams(window.location.search);
             const exportSecret = params.get('exportSecret');
 
-            const defaultMode = "` + (volume.series && volume.series.settings ? volume.series.settings.defaultViewMode : 'landscape') + `";
-            const urlMode = params.get('mode');
-            
-            window.GEMINI_PORTRAIT_MODE = urlMode ? (urlMode === 'portrait') : (defaultMode === 'portrait');
-            window.GEMINI_SPREAD_MODE = params.get('spread') === 'true';
-
-            if (window.GEMINI_SPREAD_MODE) window.GEMINI_PORTRAIT_MODE = true; 
+            window.GEMINI_PORTRAIT_MODE = true; // Always true now as we use spreads for landscape
+            window.GEMINI_SPREAD_MODE = params.get('spread') === 'true' || window.innerWidth > 1024; // Auto-spread on desktop
 
             const modeBtn = document.getElementById('toggle-mode-btn');
             const modeText = document.getElementById('mode-text');
 
-            if (window.GEMINI_PORTRAIT_MODE) {
+            if (window.GEMINI_SPREAD_MODE) {
                 modeBtn.classList.add('portrait-active');
-                if (modeText) modeText.textContent = 'Landscape';
+                if (modeText) modeText.textContent = 'Single Page';
+            } else {
+                if (modeText) modeText.textContent = 'Spread View';
             }
 
             if (modeBtn) {
                 modeBtn.addEventListener('click', () => {
                     const newUrl = new URL(window.location.href);
-                    const currentMode = newUrl.searchParams.get('mode');
-                    
-                    if (currentMode === 'portrait') {
-                        newUrl.searchParams.delete('mode');
-                        // If we are in spread mode, we should also toggle that off if switching to landscape
-                        newUrl.searchParams.delete('spread');
+                    if (window.GEMINI_SPREAD_MODE) {
+                        newUrl.searchParams.set('spread', 'false');
                     } else {
-                        newUrl.searchParams.set('mode', 'portrait');
+                        newUrl.searchParams.set('spread', 'true');
                     }
-                    
                     window.location.href = newUrl.href;
                 });
             }
@@ -117,7 +109,11 @@
                 let pages;
                 if (window.GEMINI_SPREAD_MODE) {
                     const spreads = [];
-                    for (let i = 0; i < chapterView.pages.length; i += 2) {
+                    // Page 1 is the cover, always single (on the right)
+                    spreads.push([chapterView.pages[0]]);
+                    
+                    // Pair the rest (2+3, 4+5, etc)
+                    for (let i = 1; i < chapterView.pages.length; i += 2) {
                         spreads.push(chapterView.pages.slice(i, i + 2));
                     }
 
@@ -125,6 +121,7 @@
                         const section = document.createElement("section");
                         section.id = 'section-' + index;
                         section.className = 'section-' + index + " scroll-section page-container spread-mode";
+                        if (spread.length === 1 && index === 0) section.classList.add('cover-section');
                         
                         const spreadWrapper = document.createElement("div");
                         spreadWrapper.className = "spread-wrapper";

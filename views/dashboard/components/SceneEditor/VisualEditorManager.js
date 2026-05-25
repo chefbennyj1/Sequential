@@ -218,30 +218,19 @@ export class VisualEditorManager {
 
         getEl('backToDirectoryBtn').onclick = () => this.loadPanel({ ...this.currentVisualContext, panel: null }, this.activeSeriesId);
 
-        document.querySelectorAll('.mode-tab-btn').forEach(btn => {
-            btn.onclick = () => {
-                const mode = btn.dataset.mode;
-                this.activeMode = mode;
-                document.querySelectorAll('.mode-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.mode === mode));
-                getEl('landscape-controls').style.display = mode === 'landscape' ? 'block' : 'none';
-                getEl('portrait-controls').style.display = mode === 'portrait' ? 'block' : 'none';
-                sync(); // Live sync on tab switch
-            };
-        });
-
-        const sync = () => syncPreviewLive(iframe, panelSelector, this.activeMode, this.currentVisualMediaData);
+        const sync = () => syncPreviewLive(iframe, panelSelector, 'portrait', this.currentVisualMediaData);
         
-        ['visual-style-object-position', 'visual-portrait-style-object-position', 'visual-asset-name', 'visual-overlay-name'].forEach(id => {
+        ['visual-portrait-style-object-position', 'visual-asset-name', 'visual-overlay-name'].forEach(id => {
             const el = getEl(id);
             if (el) el.oninput = el.onchange = () => {
                 if (id.includes('position')) {
-                    getEl(id.includes('portrait') ? 'pt-pan-wrapper' : 'ls-pan-wrapper').style.display = el.value === 'custom' ? 'block' : 'none';
+                    getEl('pt-pan-wrapper').style.display = el.value === 'custom' ? 'block' : 'none';
                 }
                 sync();
             };
         });
 
-        ['visual-ls-scale', 'ls-x-slider', 'ls-y-slider', 'visual-pt-scale', 'pt-x-slider', 'pt-y-slider', 
+        ['visual-pt-scale', 'pt-x-slider', 'pt-y-slider', 
          'float-left', 'float-top', 'float-width', 'float-height', 'float-z', 'float-aspect', 'visual-overlay-opacity'].forEach(id => {
             if (getEl(id)) getEl(id).oninput = sync;
         });
@@ -321,7 +310,6 @@ export class VisualEditorManager {
         };
 
         const style = { ...entry.style, position: entry.isFloating ? 'absolute' : entry.style?.position };
-        const ptStyle = { ...entry.portraitStyle };
 
         if (entry.isFloating) {
             style.left = getVal('float-left') + '%';
@@ -334,24 +322,23 @@ export class VisualEditorManager {
             style['z-index'] = getVal('float-z');
         }
 
-        const applyAlign = (id, target) => {
-            const val = getVal(id);
-            if (val === 'custom') {
-                const pos = `${getVal(id.includes('portrait') ? 'pt-x-slider' : 'ls-x-slider')}% ${getVal(id.includes('portrait') ? 'pt-y-slider' : 'ls-y-slider')}%`;
-                target.objectPosition = pos; target.transformOrigin = pos; target.objectFit = 'cover';
-            } else {
-                target.objectFit = val === 'contain' ? 'contain' : 'cover';
-                if (val !== 'contain' && val !== 'cover') { target.objectPosition = val; target.transformOrigin = val; }
-                else { delete target.objectPosition; delete target.transformOrigin; }
-            }
-        };
-        applyAlign('visual-style-object-position', style);
-        applyAlign('visual-portrait-style-object-position', ptStyle);
+        const alignVal = getVal('visual-portrait-style-object-position');
+        if (alignVal === 'custom') {
+            const pos = `${getVal('pt-x-slider')}% ${getVal('pt-y-slider')}%`;
+            style.objectPosition = pos; style.transformOrigin = pos; style.objectFit = 'cover';
+        } else {
+            style.objectFit = alignVal === 'contain' ? 'contain' : 'cover';
+            if (alignVal !== 'contain' && alignVal !== 'cover') { style.objectPosition = alignVal; style.transformOrigin = alignVal; }
+            else { delete style.objectPosition; delete style.transformOrigin; }
+        }
 
-        const lsS = getVal('visual-ls-scale'); if (parseFloat(lsS) !== 1) style.transform = `scale(${parseFloat(lsS).toFixed(2)})`; else delete style.transform;
-        const ptS = getVal('visual-pt-scale'); if (parseFloat(ptS) !== 1) ptStyle.transform = `scale(${parseFloat(ptS).toFixed(2)})`; else delete ptStyle.transform;
+        const scale = getVal('visual-pt-scale'); 
+        if (parseFloat(scale) !== 1) style.transform = `scale(${parseFloat(scale).toFixed(2)})`; else delete style.transform;
 
-        updated.style = style; updated.portraitStyle = ptStyle;
+        // In the new single-design architecture, we mirror 'style' and 'portraitStyle'
+        updated.style = style; 
+        updated.portraitStyle = JSON.parse(JSON.stringify(style));
+
         if (idx !== -1) this.currentVisualMediaData[idx] = updated; else this.currentVisualMediaData.push(updated);
 
         const btn = document.getElementById('saveVisualMediaBtn');

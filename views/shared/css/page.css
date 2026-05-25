@@ -470,6 +470,47 @@ section.exiting {
   padding: 0;
 }
 
+.spread-mode .page-inner-container {
+  width: 50dvw;
+  height: 100dvh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  overflow: hidden;
+}
+
+/* Cover page (Page 1) is a single page on the right side of a spread */
+.cover-section .spread-wrapper {
+  justify-content: center;
+}
+
+.cover-section .page-inner-container {
+  width: 100dvw;
+  display: flex;
+  justify-content: center;
+}
+
+.cover-section .portrait-page {
+  /* Limit cover width to half screen to match spread aesthetic */
+  max-width: 50dvw; 
+}
+
+/* Portrait Page standard constraints */
+.portrait-page {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+@media (min-width: 1025px) {
+  /* On desktop, force single pages to also look like half-spreads for consistency */
+  .page-container:not(.spread-mode) .section-container {
+    max-width: 50dvw;
+    margin: 0 auto;
+  }
+}
+
 /* --- Privacy Blinder --- */
 .panel-privacy-blinder {
   position: absolute;

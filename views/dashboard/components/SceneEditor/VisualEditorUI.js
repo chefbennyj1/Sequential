@@ -82,49 +82,10 @@ export function renderPanelSettings(panelSelector, entry, isLsCustom, isPtCustom
             </div>
             
             <div class="flex-row gap-10 margin-b-15 border-dim-bottom padding-b-10">
-                <button class="mode-tab-btn active flex-1 small" data-mode="landscape" id="ls-tab-btn">Landscape</button>
-                <button class="mode-tab-btn flex-1 small" data-mode="portrait" id="pt-tab-btn">Portrait</button>
+                <h5 class="text-accent margin-0 uppercase">Display Alignment</h5>
             </div>
 
-            <div id="landscape-controls" class="mode-controls">
-                <div class="form-group margin-b-15">
-                    <label>Alignment</label>
-                    <select id="visual-style-object-position" class="gov-select width-100">
-                        <option value="cover" ${(!isLsCustom && (!entry.style || (entry.style.objectFit !== 'contain' && (!entry.style.objectPosition || entry.style.objectPosition === 'center')))) ? 'selected' : ''}>Cover (Center)</option>
-                        <option value="contain" ${(entry.style && entry.style.objectFit === 'contain') ? 'selected' : ''}>Contain (Fit Full)</option>
-                        <option value="top center" ${(entry.style && entry.style.objectPosition === 'top center') ? 'selected' : ''}>Cover (Top Pinned)</option>
-                        <option value="bottom center" ${(entry.style && entry.style.objectPosition === 'bottom center') ? 'selected' : ''}>Cover (Bottom Pinned)</option>
-                        <option value="left center" ${(entry.style && entry.style.objectPosition === 'left center') ? 'selected' : ''}>Cover (Left Pinned)</option>
-                        <option value="right center" ${(entry.style && entry.style.objectPosition === 'right center') ? 'selected' : ''}>Cover (Right Pinned)</option>
-                        <option value="custom" ${isLsCustom ? 'selected' : ''}>Cover (Custom Pan)</option>
-                    </select>
-                </div>
-                <div class="form-group margin-b-15">
-                    <label>Scale (Zoom)</label>
-                    <div class="flex-row gap-5 align-center">
-                        <button type="button" class="small btn-nudge" data-target="ls-scale" data-dir="-0.1">-</button>
-                        <input type="number" id="visual-ls-scale" class="gov-input flex-1" step="0.1" min="1.0" value="${lsScale}">
-                        <button type="button" class="small btn-nudge" data-target="ls-scale" data-dir="0.1">+</button>
-                    </div>
-                </div>
-                <div id="ls-pan-wrapper" style="display: ${isLsCustom ? 'block' : 'none'};">
-                    <label>Pan (X & Y)</label>
-                    <div class="flex-row gap-5 align-center margin-b-5">
-                       <span style="width: 15px">X</span>
-                       <button type="button" class="small btn-nudge" data-target="ls-x" data-dir="-1">-</button>
-                       <input type="range" id="ls-x-slider" min="-20" max="120" value="${lsPos.x}" class="flex-1">
-                       <button type="button" class="small btn-nudge" data-target="ls-x" data-dir="1">+</button>
-                    </div>
-                    <div class="flex-row gap-5 align-center">
-                       <span style="width: 15px">Y</span>
-                       <button type="button" class="small btn-nudge" data-target="ls-y" data-dir="-1">-</button>
-                       <input type="range" id="ls-y-slider" min="-20" max="120" value="${lsPos.y}" class="flex-1">
-                       <button type="button" class="small btn-nudge" data-target="ls-y" data-dir="1">+</button>
-                    </div>
-                </div>
-            </div>
-
-            <div id="portrait-controls" class="mode-controls" style="display:none;">
+            <div id="portrait-controls" class="mode-controls">
                 <div class="form-group margin-b-15">
                     <label>Alignment</label>
                     <select id="visual-portrait-style-object-position" class="gov-select width-100">

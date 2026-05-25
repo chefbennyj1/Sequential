@@ -41,39 +41,21 @@ export function syncPreviewLive(iframe, panelSelector, activeMode, currentMediaD
     const overlayOpacity = document.getElementById('visual-overlay-opacity')?.value || 1.0;
     const assetType = 'image';
 
-    if (activeMode === 'landscape') {
-        const align = document.getElementById('visual-style-object-position')?.value || 'center';
-        if (align === 'custom') {
-            const x = document.getElementById('ls-x-slider')?.value || '50';
-            const y = document.getElementById('ls-y-slider')?.value || '50';
-            styles.objectPosition = `${x}% ${y}%`;
-            styles.transformOrigin = `${x}% ${y}%`;
-        } else if (align === 'contain') {
-            styles.objectFit = 'contain';
-        } else {
-            styles.objectFit = 'cover';
-            styles.objectPosition = align === 'cover' ? 'center' : align;
-        }
-
-        const scale = document.getElementById('visual-ls-scale')?.value || '1';
-        styles.transform = parseFloat(scale) !== 1 ? `scale(${scale})` : 'none';
+    const align = document.getElementById('visual-portrait-style-object-position')?.value || 'center';
+    if (align === 'custom') {
+        const x = document.getElementById('pt-x-slider')?.value || '50';
+        const y = document.getElementById('pt-y-slider')?.value || '50';
+        styles.objectPosition = `${x}% ${y}%`;
+        styles.transformOrigin = `${x}% ${y}%`;
+    } else if (align === 'contain') {
+        styles.objectFit = 'contain';
     } else {
-        const align = document.getElementById('visual-portrait-style-object-position')?.value || 'center';
-        if (align === 'custom') {
-            const x = document.getElementById('pt-x-slider')?.value || '50';
-            const y = document.getElementById('pt-y-slider')?.value || '50';
-            styles.objectPosition = `${x}% ${y}%`;
-            styles.transformOrigin = `${x}% ${y}%`;
-        } else if (align === 'contain') {
-            styles.objectFit = 'contain';
-        } else {
-            styles.objectFit = 'cover';
-            styles.objectPosition = align === 'cover' ? 'center' : align;
-        }
-
-        const scale = document.getElementById('visual-pt-scale')?.value || '1';
-        styles.transform = parseFloat(scale) !== 1 ? `scale(${scale})` : 'none';
+        styles.objectFit = 'cover';
+        styles.objectPosition = align === 'cover' ? 'center' : align;
     }
+
+    const scale = document.getElementById('visual-pt-scale')?.value || '1';
+    styles.transform = parseFloat(scale) !== 1 ? `scale(${scale})` : 'none';
 
     // Floating specific
     const floatLeft = document.getElementById('float-left');

@@ -174,7 +174,7 @@ export async function populateLayoutSelect(targetId = 'builderLayoutSelect') {
     const select = document.getElementById(targetId); 
     if (!select) return;
     try {
-        const data = await fetchLayouts();
+        const data = await fetchLayouts('portrait'); // Always use portrait in the new architecture
         if (data.ok) {
             select.innerHTML = '<option value="">Select a Layout</option>';
             data.layouts.forEach(l => { 

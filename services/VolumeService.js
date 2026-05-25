@@ -64,10 +64,7 @@ async function createVolume({ index, title, seriesId, firstChapterTitle }) {
       const defJson = {
           header: { 
               version: "2.0", 
-              layouts: {
-                  landscape: { id: "Standard_Page", html: "Standard_Page.html", css: "" },
-                  portrait: { id: "Standard_Page", html: "Standard_Page.html", css: "" }
-              }
+              layout: { id: "Standard_Page", html: "Standard_Page.html", css: "" }
           },
           media: [], scene: []
       };
@@ -161,10 +158,7 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
             const defJson = {
                 header: { 
                     version: "2.0", 
-                    layouts: {
-                        landscape: { id: "Standard_Page", html: "Standard_Page.html", css: "" },
-                        portrait: { id: "Standard_Page", html: "Standard_Page.html", css: "" }
-                    }
+                    layout: { id: "Standard_Page", html: "Standard_Page.html", css: "" }
                 },
                 media: [], scene: []
             };
@@ -423,10 +417,7 @@ async function insertPage({ series, volume: volumeFolderName, chapter: chapterFo
         fs.mkdirSync(newPagePath, { recursive: true });
         const jsonPath = path.join(newPagePath, 'page.json');
         const defaultData = {
-            header: { version: "2.0", layouts: {
-                landscape: { id: "Standard_Page", html: "Standard_Page.html", css: "" },
-                portrait: { id: "Standard_Page", html: "Standard_Page.html", css: "" }
-            } },
+            header: { version: "2.0", layout: { id: "Standard_Page", html: "Standard_Page.html", css: "" } },
             media: [],
             scene: []
         };
@@ -477,7 +468,7 @@ async function createChapter({ seriesFolderName, volumeFolderName, title, chapte
     await fs.promises.mkdir(firstPagePath, { recursive: true });
 
     const pageJson = {
-        header: { version: "2.0", pageId: firstPageName, chapter: chapterFolderName, volume: volumeFolderName, layout: { id: "Standard_Page", html: "Standard_Page.html", css: "" } },
+        header: { version: "2.0", layout: { id: "Standard_Page", html: "Standard_Page.html", css: "" } },
         media: [], scene: []
     };
     await fs.promises.writeFile(path.join(firstPagePath, 'page.json'), JSON.stringify(pageJson, null, 2));
