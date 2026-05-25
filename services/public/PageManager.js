@@ -3,35 +3,35 @@ import { loadCSS, loadScript } from '/libs/Utility.js';
 
 class PageManager {
     static getPageInfo(url) {
-        const urlParts = url.split('/').filter(p => p.length > 0);
-        const libraryIndex = urlParts.indexOf('Library');
-        // Resolve series from path (e.g., /Library/No_Overflow/...)
-        const pathParts = url.split('/').filter(p => p.length > 0);
-        let series = pathParts[1]; // Index 1 is the folder name after 'Library'
+        const normalized = url.replace(/\\/g, '/');
+        const parts = normalized.split('/').filter(p => p.length > 0);
         
-        if (!series) {
-            console.error("Could not resolve series from URL:", url);
-            series = "No_Overflow"; // Last resort fallback for legacy
-        } 
-        let volume = "volume-1";
-        let chapter = "chapter-1";
-        let pageId = "page1";
+        // Find anchors in path
+        const libIdx = parts.findIndex(p => p.toLowerCase() === 'library');
+        const seriesIdx = parts.findIndex(p => p.toLowerCase() === 'comic series' || p.toLowerCase() === 'comic%20series');
+        
+        let series = "unknown";
+        let volume = "unknown";
+        let chapter = "unknown";
+        let pageId = "unknown";
 
-        if (libraryIndex !== -1 && urlParts.length > libraryIndex + 1) {
-            series = urlParts[libraryIndex + 1];
-            const volumesIndex = urlParts.indexOf('Volumes', libraryIndex);
-            if (volumesIndex !== -1 && urlParts.length > volumesIndex + 1) {
-                volume = urlParts[volumesIndex + 1];
-                if (urlParts.length > volumesIndex + 2) {
-                    chapter = urlParts[volumesIndex + 2];
-                }
-                if (urlParts.length > volumesIndex + 3) {
-                    pageId = urlParts[volumesIndex + 3];
-                }
+        const startIdx = libIdx !== -1 ? libIdx : seriesIdx;
+        
+        if (startIdx !== -1) {
+            // Path structure: .../Library/{Series}/Volumes/{Volume}/{Chapter}/{Page}/...
+            // or .../Comic Series/{Series}/Volumes/{Volume}/{Chapter}/{Page}/...
+            series = parts[startIdx + 1] || series;
+            const volAnchorIdx = parts.indexOf('Volumes', startIdx);
+            if (volAnchorIdx !== -1) {
+                volume = parts[volAnchorIdx + 1] || volume;
+                chapter = parts[volAnchorIdx + 2] || chapter;
+                pageId = parts[volAnchorIdx + 3] || pageId;
             }
         }
 
-        const pageIndex = parseInt(pageId.replace('page', ''), 10);
+        const pageMatch = pageId.match(/page(\d+)/i);
+        const pageIndex = pageMatch ? parseInt(pageMatch[1], 10) : 0;
+        
         return { series, pageId, pageIndex, chapter, volume };
     }
 

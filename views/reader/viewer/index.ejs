@@ -240,14 +240,23 @@
                 if (pageParam) {
                     const fIdx = chapterView.pages.findIndex(p => p.path.includes('/page' + pageParam + '/'));
                     if (fIdx !== -1) {
-                        initialIdx = window.GEMINI_SPREAD_MODE ? Math.floor(fIdx / 2) : fIdx;
+                        if (window.GEMINI_SPREAD_MODE) {
+                            // Page 1 is Spread 0. Pages 2 & 3 are Spread 1.
+                            initialIdx = (fIdx === 0) ? 0 : Math.floor((fIdx - 1) / 2) + 1;
+                        } else {
+                            initialIdx = fIdx;
+                        }
                     }
                 } else {
                     const storageKey = volumeId + "_" + chapterNumber;
                     const saved = getLastVisitedPage(storageKey);
                     if (saved !== null) {
                         const savedIdx = parseInt(saved, 10) || 0;
-                        initialIdx = window.GEMINI_SPREAD_MODE ? Math.floor(savedIdx / 2) : savedIdx;
+                        if (window.GEMINI_SPREAD_MODE) {
+                             initialIdx = (savedIdx === 0) ? 0 : Math.floor((savedIdx - 1) / 2) + 1;
+                        } else {
+                             initialIdx = savedIdx;
+                        }
                     }
                 }
 
