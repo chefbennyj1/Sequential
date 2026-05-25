@@ -1,0 +1,27 @@
+<style>
+@import url('/layouts/styles/base-comic-layout-portrait.css');
+
+/* 
+    Layout: Standard Page Spread (Double Wide)
+    Used for single images that span two pages.
+*/
+.portrait-page.layout-standard-page-spread {
+    aspect-ratio: 13.25 / 10.25 !important;
+    max-width: calc(94vh * (13.25 / 10.25)) !important;
+}
+
+.page-layout.layout-standard-page-spread {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: 1fr;
+    gap: 0;
+}
+
+.layout-standard-page-spread .panel-A {
+    grid-column: 1 / 2;
+    grid-row: 1 / 2;
+}
+</style>
+<div class="section-container portrait-page layout-standard-page-spread page-layout">
+    <div class="panel panel-A"></div>
+</div>

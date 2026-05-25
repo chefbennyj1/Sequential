@@ -481,7 +481,20 @@ section.exiting {
 
 /* Cover page (Page 1) is a single page on the right side of a spread */
 .cover-section .spread-wrapper {
+  justify-content: flex-end; /* Push cover to the right */
+}
+
+/* Full Width Spreads (Single pages designed to span two slots) */
+.full-width-spread .page-inner-container {
+  width: 100dvw;
+  display: flex;
   justify-content: center;
+}
+
+.full-width-spread .portrait-page {
+  /* Allow wide spreads to exceed the standard portrait aspect ratio */
+  max-width: 100dvw;
+  aspect-ratio: auto;
 }
 
 .cover-section .page-inner-container {

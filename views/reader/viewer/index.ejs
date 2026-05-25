@@ -110,18 +110,44 @@
                 if (window.GEMINI_SPREAD_MODE) {
                     const spreads = [];
                     // Page 1 is the cover, always single (on the right)
-                    spreads.push([chapterView.pages[0]]);
+                    if (chapterView.pages.length > 0) {
+                        spreads.push([chapterView.pages[0]]);
+                    }
                     
-                    // Pair the rest (2+3, 4+5, etc)
-                    for (let i = 1; i < chapterView.pages.length; i += 2) {
-                        spreads.push(chapterView.pages.slice(i, i + 2));
+                    // Pair the rest (2+3, 4+5, etc), respecting 'Spread' layout pages
+                    for (let i = 1; i < chapterView.pages.length; i++) {
+                        const page = chapterView.pages[i];
+                        const layoutId = page.layouts?.portrait || page.layouts?.landscape;
+                        
+                        // If this page is a self-contained spread, it gets its own section
+                        if (layoutId === 'Standard_Page_Spread') {
+                            spreads.push([page]);
+                        } else {
+                            // Try to pair with the next page
+                            const next = chapterView.pages[i + 1];
+                            const nextLayoutId = next ? (next.layouts?.portrait || next.layouts?.landscape) : null;
+                            
+                            if (next && nextLayoutId !== 'Standard_Page_Spread') {
+                                spreads.push([page, next]);
+                                i++; // Skip the next page as it's now paired
+                            } else {
+                                // Single page if no next page or next page is a spread
+                                spreads.push([page]);
+                            }
+                        }
                     }
 
                     spreads.forEach((spread, index) => {
                         const section = document.createElement("section");
                         section.id = 'section-' + index;
                         section.className = 'section-' + index + " scroll-section page-container spread-mode";
-                        if (spread.length === 1 && index === 0) section.classList.add('cover-section');
+                        
+                        // Check if this spread is a single 'Standard_Page_Spread'
+                        const isSingleFullSpread = spread.length === 1 && (spread[0].layouts?.portrait === 'Standard_Page_Spread' || spread[0].layouts?.landscape === 'Standard_Page_Spread');
+                        if (isSingleFullSpread) section.classList.add('full-width-spread');
+                        
+                        // Cover page logic
+                        if (spread.length === 1 && index === 0 && !isSingleFullSpread) section.classList.add('cover-section');
                         
                         const spreadWrapper = document.createElement("div");
                         spreadWrapper.className = "spread-wrapper";
