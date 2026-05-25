@@ -62,7 +62,7 @@
             const exportSecret = params.get('exportSecret');
 
             window.GEMINI_PORTRAIT_MODE = true; // Always true now as we use spreads for landscape
-            window.GEMINI_SPREAD_MODE = params.get('spread') === 'true' || window.innerWidth > 1024; // Auto-spread on desktop
+            window.GEMINI_SPREAD_MODE = params.get('spread') === 'true'; // Manual toggle only
 
             const modeBtn = document.getElementById('toggle-mode-btn');
             const modeText = document.getElementById('mode-text');
@@ -177,6 +177,13 @@
                         const section = document.createElement("section");
                         section.id = 'section-' + index;
                         section.className = 'section-' + index + " scroll-section page-container";
+                        
+                        // Smart check for spread layout even in single-page mode
+                        const layoutId = page.layouts?.portrait || page.layouts?.landscape;
+                        if (layoutId === 'Standard_Page_Spread') {
+                            section.classList.add('spread-mode', 'full-width-spread');
+                        }
+
                         scrollWrapper.appendChild(section);
                     });
 

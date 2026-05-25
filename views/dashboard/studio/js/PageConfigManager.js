@@ -80,6 +80,24 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
     // Run orphan check
     if (seriesId) checkOrphanDialogue(vol, chap, page, seriesId);
 
+    // --- SPREAD OPPORTUNITY ALERT ---
+    const pageMatch = page.match(/page(\d+)/i);
+    const pageNum = pageMatch ? parseInt(pageMatch[1], 10) : 0;
+    const isEven = pageNum % 2 === 0; // Page 2, 4, 6... are Left-hand pages
+
+    if (isEven && alertsContainer) {
+        const spreadAlert = document.createElement('div');
+        spreadAlert.className = 'alert alert-info border-dim padding-15 border-radius-8 bg-black-10 flex-row align-center gap-15 margin-t-10';
+        spreadAlert.innerHTML = `
+            <ion-icon name="bulb-outline" class="text-accent font-size-2"></ion-icon>
+            <div class="flex-1">
+                <h5 class="text-accent margin-b-5">Spread Opportunity</h5>
+                <p class="text-muted font-size-08">Page ${pageNum} is a <strong>Left-Hand</strong> page. This is a perfect spot to use the <strong>Standard Page Spread</strong> layout for a cinematic double-wide image.</p>
+            </div>
+        `;
+        alertsContainer.appendChild(spreadAlert);
+    }
+
     const refreshLayoutDisplay = async (pageEntry) => {
         let lid = "";
         if (pageEntry?.layouts) {
