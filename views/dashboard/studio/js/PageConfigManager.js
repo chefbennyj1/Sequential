@@ -78,7 +78,9 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
     });
 
     // Run orphan check
-    if (seriesId) checkOrphanDialogue(vol, chap, page, seriesId);
+    if (seriesId) await checkOrphanDialogue(vol, chap, page, seriesId);
+
+    const alertsContainer = document.getElementById('pageBuilderAlerts');
 
     // --- SPREAD OPPORTUNITY ALERT ---
     const pageMatch = page.match(/page(\d+)/i);
