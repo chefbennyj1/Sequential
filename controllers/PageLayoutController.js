@@ -200,7 +200,14 @@ exports.getPanels = async (req, res) => {
     }
 
     const layoutFolder = mode === 'landscape' ? 'landscape' : 'portrait';
-    const templatePath = path.join(__dirname, '..', 'Library', 'layouts', layoutFolder, `${layoutId}.html`);
+    const altFolder = layoutFolder === 'portrait' ? 'landscape' : 'portrait';
+    
+    let templatePath = path.join(__dirname, '..', 'Library', 'layouts', layoutFolder, `${layoutId}.html`);
+    // Fallback if not in primary folder
+    if (!fs.existsSync(templatePath)) {
+        templatePath = path.join(__dirname, '..', 'Library', 'layouts', altFolder, `${layoutId}.html`);
+    }
+
     let combinedContent = "";
     if (fs.existsSync(cssPath)) {
       combinedContent = fs.readFileSync(cssPath, "utf8");
@@ -216,10 +223,7 @@ exports.getPanels = async (req, res) => {
     }
 
     const templateHtmlContent = fs.existsSync(templatePath) ? fs.readFileSync(templatePath, 'utf8') : "";
-    const panels = new Set();
-    let match;
-    const templatePanelRegex = /class=\"[^ vital]*panel\s+panel-([a-zA-Z0-9]+)[^ vital]*\"/g;
-    while ((match = templatePanelRegex.exec(templateHtmlContent)) !== null) panels.add(`.panel-${match[1]}`);
+    const panels = PanelService.getPanelsFromTemplate(templateHtmlContent);
 
     if (panels.size === 0) {
       const nthChildPanelRegex = /panel:nth-child\((\d+)\)/g;
@@ -262,7 +266,13 @@ exports.servePreview = async (req, res) => {
     }
 
     const layoutFolder = mode === 'landscape' ? 'landscape' : 'portrait';
-    const templatePath = path.join(__dirname, '..', 'Library', 'layouts', layoutFolder, `${layoutId}.html`);
+    const altFolder = layoutFolder === 'portrait' ? 'landscape' : 'portrait';
+
+    let templatePath = path.join(__dirname, '..', 'Library', 'layouts', layoutFolder, `${layoutId}.html`);
+    if (!fs.existsSync(templatePath)) {
+        templatePath = path.join(__dirname, '..', 'Library', 'layouts', altFolder, `${layoutId}.html`);
+    }
+
     const content = fs.existsSync(templatePath)
       ? fs.readFileSync(templatePath, 'utf8')
       : `<div class="page-layout ${layoutId}">Layout Not Found</div>`;
