@@ -13,7 +13,15 @@ export let currentDesignMode = 'portrait';
  */
 async function checkOrphanDialogue(vol, chap, page, seriesId) {
     const alertsContainer = document.getElementById('pageBuilderAlerts');
-    if (!alertsContainer) return;
+    if (!alertsContainer) return 0;
+
+    // Use a dedicated sub-container for orphan alerts to avoid wiping other alerts
+    let orphanBox = alertsContainer.querySelector('.orphan-alert-box');
+    if (!orphanBox) {
+        orphanBox = document.createElement('div');
+        orphanBox.className = 'orphan-alert-box';
+        alertsContainer.prepend(orphanBox);
+    }
 
     try {
         const [scene, panelData] = await Promise.all([
@@ -23,16 +31,17 @@ async function checkOrphanDialogue(vol, chap, page, seriesId) {
 
         const panels = panelData.panels || [];
         const orphans = scene.filter(item => {
-            if (item.displayType.type === 'SpeechBubble' || (item.displayType.type === 'TextBlock' && item.placement?.panel)) {
-                const target = item.placement?.panel;
+            // Check ANY item with a panel placement (SpeechBubble, TextBlock, ActionText, SoundEffect)
+            if (item.placement?.panel) {
+                const target = item.placement.panel;
                 return target && !panels.includes(target);
             }
             return false;
         });
 
         if (orphans.length > 0) {
-            alertsContainer.innerHTML = `
-                <div class="alert alert-danger border-dim padding-15 border-radius-8 bg-black-20 flex-row align-center gap-15">
+            orphanBox.innerHTML = `
+                <div class="alert alert-danger border-dim padding-15 border-radius-8 bg-black-20 flex-row align-center gap-15 margin-b-10">
                     <ion-icon name="warning-outline" class="text-danger font-size-2"></ion-icon>
                     <div class="flex-1">
                         <h5 class="text-danger margin-b-5">Orphaned Dialogue Detected</h5>
@@ -42,10 +51,12 @@ async function checkOrphanDialogue(vol, chap, page, seriesId) {
                 </div>
             `;
         } else {
-            alertsContainer.innerHTML = '';
+            orphanBox.innerHTML = '';
         }
+        return orphans.length;
     } catch (err) {
         console.error("Orphan check failed:", err);
+        return 0;
     }
 }
 
@@ -77,10 +88,11 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
         }
     });
 
+    const alertsContainer = document.getElementById('pageBuilderAlerts');
+    if (alertsContainer) alertsContainer.innerHTML = ''; // Clear all on start
+
     // Run orphan check
     if (seriesId) await checkOrphanDialogue(vol, chap, page, seriesId);
-
-    const alertsContainer = document.getElementById('pageBuilderAlerts');
 
     // --- SPREAD OPPORTUNITY ALERT ---
     const pageMatch = page.match(/page(\d+)/i);
@@ -110,7 +122,7 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
         }
         await renderLayoutBrowser('activePageLayoutBrowser', 'activePageLayoutValue', lid, 'portrait');
 
-        if (seriesId) checkOrphanDialogue(vol, chap, page, seriesId);
+        if (seriesId) await checkOrphanDialogue(vol, chap, page, seriesId);
     };
 
     // 1. --- LAYOUT CONFIG ---
