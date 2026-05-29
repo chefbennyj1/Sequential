@@ -159,6 +159,9 @@ function returnToPageEdit() {
     
     // Hide all major dashboard sections
     sections.forEach(s => s.classList.add('hidden'));
+
+    // Clean up spread state
+    document.querySelector('.layout-editor')?.classList.remove('is-spread');
     
     if (builder) {
         console.log("[Navigation] Page Builder section identified. Restoring view.");
@@ -255,9 +258,10 @@ export async function openVisualEditor(volume, chapter, pageId, mode = 'landscap
     }
 
     document.querySelectorAll('.dashboard-section').forEach(s => s.classList.add('hidden'));
-    document.querySelector('.layout-editor').classList.remove('hidden');
+    const layoutEditor = document.querySelector('.layout-editor');
+    layoutEditor.classList.remove('hidden');
 
-    const previewPane = document.querySelector('.layout-editor .preview-pane-flex');
+    const previewPane = layoutEditor.querySelector('.preview-pane-flex');
     if (previewPane) {
         if (mode === 'portrait') previewPane.classList.add('portrait-mode');
         else previewPane.classList.remove('portrait-mode');
@@ -285,6 +289,13 @@ export async function openVisualEditor(volume, chapter, pageId, mode = 'landscap
             
             // Sync Timeline (even though hidden, it's the data source)
             if (timeline) timeline.setData(currentSceneData, characters || []);
+
+            // --- SPREAD CLASS TOGGLE ---
+            if (panelData.layoutClass === 'Standard_Page_Spread') {
+                layoutEditor.classList.add('is-spread');
+            } else {
+                layoutEditor.classList.remove('is-spread');
+            }
 
         } catch (err) {
             console.error("[VisualEditor] Failed to load data context", err);
