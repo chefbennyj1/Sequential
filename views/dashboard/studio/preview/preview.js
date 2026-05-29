@@ -15,6 +15,13 @@ export async function init(container, params) {
         
         // Add the pageId class so page.css selectors match
         sectionContainer.classList.add(pageId);
+
+        // --- SPREAD DETECTION ---
+        // If the layout is a spread, we need to apply the double-wide class for the editor resizer
+        const layoutClass = Array.from(sectionContainer.classList).find(c => c.includes('layout-'));
+        if (layoutClass === 'layout-standard-page-spread') {
+            sectionContainer.classList.add('editor-spread-view');
+        }
         
         // Reset transform to get natural size for measurement
         sectionContainer.style.transform = 'none';

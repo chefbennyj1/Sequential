@@ -470,6 +470,13 @@ section.exiting {
   padding: 0;
 }
 
+/* Editor Specific Spread Sizing */
+.editor-spread-view.portrait-page {
+  aspect-ratio: 13.25 / 10.25 !important;
+  max-width: calc(94vh * (13.25 / 10.25)) !important;
+  width: auto !important;
+}
+
 .spread-mode .page-inner-container {
   width: 50dvw;
   height: 100dvh;
