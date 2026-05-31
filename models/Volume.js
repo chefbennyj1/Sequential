@@ -9,6 +9,7 @@ const pageSchema = new Schema({
         landscape: { type: String, default: "Standard_Page" },
         portrait: { type: String, default: "Standard_Page" }
     },
+    header: { type: Object, default: {} },   // Cache of page.json header
     mediaData: { type: Object, default: {} }, // Cache of consolidated media config
     sceneData: { type: Array, default: [] }   // Cache of consolidated scene cues
 });

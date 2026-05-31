@@ -6,6 +6,8 @@ const { resolveSeriesPath } = require("../services/MediaService");
 const Volume = require("../models/Volume");
 const Series = require("../models/Series");
 const VolumeService = require("../services/VolumeService");
+const sharp = require("sharp");
+const GeminiVisionService = require("../services/gemini/GeminiVisionService");
 
 // Configure Multer for temporary storage
 const upload = multer({ dest: path.join(__dirname, "..", ".gemini", "tmp") });
@@ -133,6 +135,76 @@ exports.getAssets = async (req, res) => {
     res.json({ ok: true, files });
   } catch (err) {
     res.status(500).json({ ok: false, message: "Failed to list assets" });
+  }
+};
+
+exports.flipAsset = async (req, res) => {
+  const { series, volume, chapter, pageId, panel, fileName, direction } = req.body;
+  console.log(`[AssetUploadController] Flip request: ${panel} (${direction}) for ${fileName} in ${pageId}`);
+
+  if (!series || !volume || !chapter || !pageId || !panel || !fileName || !direction) {
+    return res.status(400).json({ ok: false, message: "Missing required fields" });
+  }
+
+  try {
+    const seriesFolderName = await getSeriesFolderName(series);
+    const seriesPath = await resolveSeriesPath(seriesFolderName);
+    const pageDir = path.join(seriesPath, "Volumes", volume, chapter, pageId);
+    const assetPath = path.join(pageDir, "assets", "image", fileName);
+    const pageJsonPath = path.join(pageDir, "page.json");
+
+    console.log(`[AssetUploadController] Resolved path: ${assetPath}`);
+
+    if (!fs.existsSync(assetPath)) {
+      console.error(`[AssetUploadController] Asset not found at: ${assetPath}`);
+      return res.status(404).json({ ok: false, message: "Asset not found" });
+    }
+
+    // Flip the image using sharp
+    const buffer = fs.readFileSync(assetPath);
+    let sharpInstance = sharp(buffer);
+
+    if (direction === 'horizontal') {
+      sharpInstance = sharpInstance.flop();
+    } else if (direction === 'vertical') {
+      sharpInstance = sharpInstance.flip();
+    } else {
+      return res.status(400).json({ ok: false, message: "Invalid flip direction" });
+    }
+
+    const outputBuffer = await sharpInstance.toBuffer();
+    fs.writeFileSync(assetPath, outputBuffer);
+    console.log(`[AssetUploadController] Successfully flipped image: ${fileName}`);
+
+    // Update page.json with new hash to keep vision in sync
+    if (fs.existsSync(pageJsonPath)) {
+      const pageData = JSON.parse(fs.readFileSync(pageJsonPath, "utf8"));
+      // Flexible matching for panel (handle dots)
+      const sanitizedPanel = panel.startsWith('.') ? panel : `.${panel}`;
+      const mediaEntry = pageData.media?.find(m => (m.panel === panel || m.panel === sanitizedPanel || m.panel === panel.replace('.', '')) && m.fileName === fileName);
+      
+      if (mediaEntry) {
+        console.log(`[AssetUploadController] Updating hash for panel: ${mediaEntry.panel}`);
+        const newHash = await GeminiVisionService.generateImageHash(assetPath);
+        if (newHash) {
+          mediaEntry.imageHash = newHash;
+          fs.writeFileSync(pageJsonPath, JSON.stringify(pageData, null, 2));
+          
+          // Sync with DB
+          const volumeId = await findVolumeId(volume, seriesFolderName);
+          if (volumeId) {
+            await VolumeService.syncSinglePage(volumeId, chapter, pageId, seriesFolderName);
+          }
+        }
+      } else {
+        console.warn(`[AssetUploadController] No media entry found in page.json for panel: ${panel}`);
+      }
+    }
+
+    res.json({ ok: true, message: `Image flipped ${direction}` });
+  } catch (err) {
+    console.error("[AssetUploadController] Flip Error:", err);
+    res.status(500).json({ ok: false, message: "Failed to flip image: " + err.message });
   }
 };
 

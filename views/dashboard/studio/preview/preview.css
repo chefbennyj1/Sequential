@@ -8,11 +8,28 @@ body {
 }
 
 #preview-container {
-    width: 100%;
-    height: 100%;
+    width: 100vw;
+    height: 100vh;
+    display: flex !important;
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    justify-content: center !important;
+    align-items: center !important;
+    gap: 0;
+    overflow: hidden;
+}
+
+.page-container {
     display: flex;
     justify-content: center;
     align-items: center;
+    height: 100%;
+    flex: 1 1 auto;
+    position: relative;
+}
+
+.page-container.half-width {
+    /* Manual widths removed: handled by dynamic JS scaling */
 }
 
 /* Force container visibility and fit */
@@ -31,6 +48,23 @@ body {
     max-width: none !important;
     background: #fff;
     /* ------------------------------------------- */
+}
+
+/* Spread specific overrides */
+.spread-view .section-container, .spread-view .page-layout {
+    margin: 0;
+}
+
+.spread-view .page-container.half-width:first-child .section-container,
+.spread-view .page-container.half-width:first-child .page-layout {
+    transform-origin: right center;
+    box-shadow: -20px 0 40px rgba(0,0,0,0.2); /* Shadow only on outer left edge */
+}
+
+.spread-view .page-container.half-width:last-child .section-container,
+.spread-view .page-container.half-width:last-child .page-layout {
+    transform-origin: left center;
+    box-shadow: 20px 0 40px rgba(0,0,0,0.2); /* Shadow only on outer right edge */
 }
 
 .panel { 

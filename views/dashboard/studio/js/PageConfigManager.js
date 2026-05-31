@@ -2,7 +2,8 @@
 import {
     fetchSingleVolumeWithChapters,
     fetchSceneData,
-    fetchPagePanels
+    fetchPagePanels,
+    fetchMedia
 } from '../api/StudioClient.js';
 import { renderLayoutBrowser } from '../../components/LayoutBrowser/LayoutBrowser.js';
 
@@ -99,19 +100,6 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
     const pageNum = pageMatch ? parseInt(pageMatch[1], 10) : 0;
     const isEven = pageNum % 2 === 0; // Page 2, 4, 6... are Left-hand pages
 
-    if (isEven && alertsContainer) {
-        const spreadAlert = document.createElement('div');
-        spreadAlert.className = 'alert alert-info border-dim padding-15 border-radius-8 bg-black-10 flex-row align-center gap-15 margin-t-10';
-        spreadAlert.innerHTML = `
-            <ion-icon name="bulb-outline" class="text-accent font-size-2"></ion-icon>
-            <div class="flex-1">
-                <h5 class="text-accent margin-b-5">Spread Opportunity</h5>
-                <p class="text-muted font-size-08">Page ${pageNum} is a <strong>Left-Hand</strong> page. This is a perfect spot to use the <strong>Standard Page Spread</strong> layout for a cinematic double-wide image.</p>
-            </div>
-        `;
-        alertsContainer.appendChild(spreadAlert);
-    }
-
     const refreshLayoutDisplay = async (pageEntry) => {
         let lid = "";
         if (pageEntry?.layouts) {
@@ -123,13 +111,86 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
         await renderLayoutBrowser('activePageLayoutBrowser', 'activePageLayoutValue', lid, 'portrait');
 
         if (seriesId) await checkOrphanDialogue(vol, chap, page, seriesId);
+
+        // --- SPREAD STATUS & TOGGLE ---
+        const spreadData = pageEntry?.header?.spread || { type: 'none', isBroken: false };
+        const isSpreadEnabled = spreadData.type !== 'none';
+
+        if ((isEven || isSpreadEnabled) && alertsContainer) {
+            const spreadAlert = document.createElement('div');
+            spreadAlert.className = `alert ${spreadData.isBroken ? 'alert-danger' : 'alert-info'} border-dim padding-15 border-radius-8 bg-black-10 flex-row align-center gap-15 margin-t-10`;
+            spreadAlert.innerHTML = `
+                <ion-icon name="${spreadData.isBroken ? 'warning-outline' : 'bulb-outline'}" class="${spreadData.isBroken ? 'text-danger' : 'text-accent'} font-size-2"></ion-icon>
+                <div class="flex-1">
+                    <h5 class="${spreadData.isBroken ? 'text-danger' : 'text-accent'} margin-b-5">${spreadData.isBroken ? 'Broken Spread Detected' : 'Spread Opportunity'}</h5>
+                    <p class="text-muted font-size-08">
+                        ${spreadData.isBroken 
+                            ? `This spread was compromised by a page insertion. Page ${pageNum} is now an <strong>${pageNum % 2 === 0 ? 'Even' : 'Odd'}</strong> index, breaking the previous pairing.` 
+                            : `Page ${pageNum} is a <strong>${isEven ? 'Left-Hand' : 'Right-Hand'}</strong> page. ${isEven ? 'Pair it with the next page for a cinematic spread.' : ''}`}
+                    </p>
+                </div>
+                <div class="flex-row align-center gap-10">
+                    <span class="text-muted font-size-07">${isSpreadEnabled ? 'Spread Active' : 'Enable Spread'}</span>
+                    <label class="switch">
+                        <input type="checkbox" id="pageSpreadToggle" ${isSpreadEnabled ? 'checked' : ''}>
+                        <span class="slider round"></span>
+                    </label>
+                </div>
+            `;
+            alertsContainer.appendChild(spreadAlert);
+
+            const toggle = document.getElementById('pageSpreadToggle');
+            toggle.onclick = async () => {
+                const enabled = toggle.checked;
+                try {
+                    const volumeObj = await fetchSingleVolumeWithChapters(vol, seriesId);
+                    const res = await fetch('/api/editor/toggle-spread', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            volumeId: volumeObj._id,
+                            chapterId: chap,
+                            pageId: page,
+                            enabled
+                        })
+                    });
+                    
+                    const text = await res.text();
+                    let result;
+                    try {
+                        result = JSON.parse(text);
+                    } catch (e) {
+                        console.error("Server returned non-JSON:", text);
+                        throw new Error(`Server Error (${res.status}): Invalid Response Format`);
+                    }
+
+                    if (result.ok) {
+                        // Refresh to show updated state
+                        await setActivePage(vol, chap, page, seriesId, seriesFolder);
+                    } else {
+                        alert("Error: " + result.message);
+                        toggle.checked = !enabled;
+                    }
+                } catch (err) {
+                    console.error(err);
+                    toggle.checked = !enabled;
+                }
+            };
+        }
     };
 
     // 1. --- LAYOUT CONFIG ---
     if (layoutBrowser) {
+        // Fetch full page data (including header/spread info) from the direct media API
+        const pageData = await fetchMedia(vol, chap, page, seriesId);
         const volumeObj = await fetchSingleVolumeWithChapters(vol, seriesId);
         const chapter = volumeObj?.chapters?.find(c => `chapter-${c.chapterNumber}` === chap);
         const pageEntry = chapter?.pages?.find(p => `page${p.index}` === page || p.path.includes(page));
+
+        // Merge spread data from page.json into the entry for display
+        if (pageEntry && pageData.header) {
+            pageEntry.header = pageData.header;
+        }
 
         await refreshLayoutDisplay(pageEntry);
 

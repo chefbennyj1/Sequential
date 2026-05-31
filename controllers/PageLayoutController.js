@@ -242,19 +242,87 @@ exports.getPanels = async (req, res) => {
   }
 };
 
+exports.toggleSpread = async (req, res) => {
+  const { volumeId, chapterId, pageId, enabled } = req.body;
+  console.log(`[PageLayoutController] Toggle Spread: ${pageId} (${enabled})`);
+  
+  try {
+    const volume = await Volume.findById(volumeId);
+    if (!volume) {
+        console.error("[PageLayoutController] Volume not found:", volumeId);
+        return res.status(404).json({ ok: false, message: "Volume not found" });
+    }
+
+    // Handle both / and \ paths
+    const normalizedPath = volume.volumePath.replace(/\\/g, '/');
+    const pathParts = normalizedPath.split('/').filter(p => p.length > 0);
+    
+    // Logic to find series folder: usually it's the one before 'Volumes'
+    const volumesIdx = pathParts.indexOf('Volumes');
+    const seriesFolderName = (volumesIdx > 0) ? pathParts[volumesIdx - 1] : pathParts[1];
+    
+    console.log(`[PageLayoutController] Series folder: ${seriesFolderName}`);
+
+    const seriesPath = await resolveSeriesPath(seriesFolderName);
+    const volumeSubFolder = path.basename(volume.volumePath);
+
+    const pageMatch = pageId.match(/page(\d+)/i);
+    if (!pageMatch) throw new Error("Invalid pageId format: " + pageId);
+    
+    const pageNum = parseInt(pageMatch[1]);
+    const isLeft = pageNum % 2 === 0;
+    
+    const partnerNum = isLeft ? pageNum + 1 : pageNum - 1;
+    const partnerId = `page${partnerNum}`;
+
+    console.log(`[PageLayoutController] Paging: Self=${pageId}, Partner=${partnerId}`);
+
+    const updatePage = (pId, type) => {
+      const pPath = path.join(seriesPath, 'Volumes', volumeSubFolder, chapterId, pId, 'page.json');
+      if (fs.existsSync(pPath)) {
+        const data = JSON.parse(fs.readFileSync(pPath, 'utf8'));
+        if (!data.header) data.header = {};
+        data.header.spread = enabled ? { type, isBroken: false } : { type: 'none', isBroken: false };
+        fs.writeFileSync(pPath, JSON.stringify(data, null, 2));
+        console.log(`[PageLayoutController] Updated page.json for ${pId}`);
+        return true;
+      }
+      console.warn(`[PageLayoutController] page.json not found for partner/self: ${pPath}`);
+      return false;
+    };
+
+    const successSelf = updatePage(pageId, isLeft ? 'left' : 'right');
+    const successPartner = updatePage(partnerId, isLeft ? 'right' : 'left');
+
+    await VolumeService.syncSinglePage(volumeId, chapterId, pageId, seriesFolderName);
+    if (successPartner) {
+      await VolumeService.syncSinglePage(volumeId, chapterId, partnerId, seriesFolderName);
+    }
+
+    res.json({ ok: true, message: `Spread ${enabled ? 'enabled' : 'disabled'}` });
+  } catch (e) {
+    console.error("[PageLayoutController] Toggle Spread Error:", e);
+    res.status(500).json({ ok: false, message: e.message });
+  }
+};
+
 exports.servePreview = async (req, res) => {
   const { series, volume, chapter, pageId } = req.params;
   const mode = req.query.mode || 'portrait';
-  
+
   try {
     const seriesFolderName = await getSeriesFolderName(series);
     const seriesPath = await resolveSeriesPath(seriesFolderName);
-    const pageDir = path.join(seriesPath, "Volumes", volume, chapter, pageId);
+    const volumesDir = path.join(seriesPath, "Volumes");
+    const pageDir = path.join(volumesDir, volume, chapter, pageId);
 
-    let layoutId = "Standard_Page";
-    const atomicPath = path.join(pageDir, 'page.json');
-    if (fs.existsSync(atomicPath)) {
+    const getPageContent = (pId) => {
+      const pDir = path.join(volumesDir, volume, chapter, pId);
+      const atomicPath = path.join(pDir, 'page.json');
+      if (!fs.existsSync(atomicPath)) return null;
+
       const atomic = JSON.parse(fs.readFileSync(atomicPath, 'utf8'));
+      let layoutId = "Standard_Page";
       if (atomic.header?.layout) {
           layoutId = atomic.header.layout.id;
       } else if (atomic.header?.layouts) {
@@ -263,21 +331,49 @@ exports.servePreview = async (req, res) => {
       } else {
         layoutId = (mode === 'portrait' ? atomic.header?.portraitLayout?.id : atomic.header?.layout?.id) || layoutId;
       }
+
+      const layoutFolder = mode === 'landscape' ? 'landscape' : 'portrait';
+      const altFolder = layoutFolder === 'portrait' ? 'landscape' : 'portrait';
+      let templatePath = path.join(__dirname, '..', 'Library', 'layouts', layoutFolder, `${layoutId}.html`);
+      if (!fs.existsSync(templatePath)) {
+          templatePath = path.join(__dirname, '..', 'Library', 'layouts', altFolder, `${layoutId}.html`);
+      }
+
+      const html = fs.existsSync(templatePath) ? fs.readFileSync(templatePath, 'utf8') : `<div class="page-layout ${layoutId}">Layout Not Found</div>`;
+      return { html, layoutId, spread: atomic.header?.spread };
+    };
+
+    const mainPage = getPageContent(pageId);
+    if (!mainPage) return res.status(404).send("Page not found");
+
+    let partnerPage = null;
+    let isSpread = false;
+
+    if (mainPage.spread && mainPage.spread.type !== 'none') {
+        isSpread = true;
+        const pageMatch = pageId.match(/page(\d+)/i);
+        if (pageMatch) {
+            const pageNum = parseInt(pageMatch[1]);
+            const isLeft = mainPage.spread.type === 'left';
+            const partnerId = `page${isLeft ? pageNum + 1 : pageNum - 1}`;
+            partnerPage = getPageContent(partnerId);
+            if (partnerPage) partnerPage.pageId = partnerId;
+        }
     }
 
-    const layoutFolder = mode === 'landscape' ? 'landscape' : 'portrait';
-    const altFolder = layoutFolder === 'portrait' ? 'landscape' : 'portrait';
-
-    let templatePath = path.join(__dirname, '..', 'Library', 'layouts', layoutFolder, `${layoutId}.html`);
-    if (!fs.existsSync(templatePath)) {
-        templatePath = path.join(__dirname, '..', 'Library', 'layouts', altFolder, `${layoutId}.html`);
-    }
-
-    const content = fs.existsSync(templatePath)
-      ? fs.readFileSync(templatePath, 'utf8')
-      : `<div class="page-layout ${layoutId}">Layout Not Found</div>`;
-
-    res.render("dashboard/studio/preview/preview", { series: seriesFolderName, volume, chapter, pageId, content });
+    res.render("dashboard/studio/preview/preview", { 
+        series: seriesFolderName, 
+        volume, 
+        chapter, 
+        pageId, 
+        content: mainPage.html,
+        isSpread,
+        partnerPage: partnerPage ? {
+            pageId: partnerPage.pageId,
+            content: partnerPage.html,
+            type: mainPage.spread.type === 'left' ? 'right' : 'left'
+        } : null
+    });
   } catch (err) {
     console.error("Preview Error:", err);
     res.status(500).send("Error serving preview");

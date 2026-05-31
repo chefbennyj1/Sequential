@@ -88,9 +88,9 @@ exports.getMedia = async (req, res) => {
 
     if (fs.existsSync(pageJsonPath)) {
       const pageData = JSON.parse(fs.readFileSync(pageJsonPath, "utf8"));
-      res.json({ ok: true, media: pageData.media || [] });
+      res.json({ ok: true, media: pageData.media || [], header: pageData.header || {} });
     } else {
-      res.json({ ok: true, media: [] });
+      res.json({ ok: true, media: [], header: {} });
     }
   } catch (e) {
     res.status(500).json({ ok: false, message: "Failed to parse page data" });

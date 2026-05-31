@@ -1,65 +1,183 @@
 import { initScene } from "/services/public/SceneManager.js";
 import { fetchScene, loadCSS } from "/libs/Utility.js";
 
-export async function init(container, params) {
-    const { volume, chapter, pageId } = params;
-    const fileInput = document.getElementById('globalPanelUpload');
-    let activeUploadTarget = null;
-    let sceneController = null;
-    let renderedDialogueItems = [];
-
-    // --- 1. Resizer ---
-    function fitContainer() {
-        const sectionContainer = container.querySelector('.section-container') || container.querySelector('.page-layout');
-        if (!sectionContainer) return;
-        
-        // Add the pageId class so page.css selectors match
-        sectionContainer.classList.add(pageId);
-
-        // --- SPREAD DETECTION ---
-        // If the layout is a spread, we need to apply the double-wide class for the editor resizer
-        const layoutClass = Array.from(sectionContainer.classList).find(c => c.includes('layout-'));
-        if (layoutClass === 'layout-standard-page-spread') {
-            sectionContainer.classList.add('editor-spread-view');
-        }
-        
-        // Reset transform to get natural size for measurement
-        sectionContainer.style.transform = 'none';
-        
-        const padding = 20;
-        const availableWidth = window.innerWidth - padding;
-        const availableHeight = window.innerHeight - padding;
-        
-        // Use getBoundingClientRect for absolute precision
-        const rect = sectionContainer.getBoundingClientRect();
-        const naturalWidth = rect.width;
-        const naturalHeight = rect.height;
-
-        if (naturalWidth === 0 || naturalHeight === 0) return;
-        
-        const scaleX = availableWidth / naturalWidth;
-        const scaleY = availableHeight / naturalHeight;
-        const scale = Math.min(scaleX, scaleY);
-        
-        sectionContainer.style.transform = `scale(${scale})`;
+class PageController {
+    constructor(container, pageId, params, globalControls) {
+        this.container = container;
+        this.pageId = pageId;
+        this.params = params;
+        this.globalControls = globalControls;
+        this.sceneController = null;
+        this.renderedDialogueItems = [];
+        this.mediaData = [];
     }
 
-    window.addEventListener('resize', fitContainer);
-    setTimeout(fitContainer, 100);
+    async init() {
+        const sectionContainer = this.container.querySelector('.section-container') || this.container.querySelector('.page-layout');
+        if (sectionContainer) {
+            sectionContainer.classList.add(this.pageId);
+        }
+        await this.loadExistingMedia();
+    }
 
-    // --- 2. Shared Upload Logic ---
-    async function handleUpload(file, panelElement, panelClass, labelElement) {
+    async loadExistingMedia() {
+        try {
+            const { series, volume, chapter, mode } = this.params;
+            const res = await fetch(`/api/media/${series}/${volume}/${chapter}/${this.pageId}?t=${Date.now()}`);
+            const data = await res.json();
+
+            if (data.ok && data.media) {
+                this.mediaData = Array.isArray(data.media) ? data.media : (data.media.media || []);
+                this.mediaData.forEach(item => {
+                    let panel = this.container.querySelector(item.panel);
+                    
+                    if (!panel && item.isFloating) {
+                        panel = document.createElement('div');
+                        const panelClass = item.panel.startsWith('.') ? item.panel.substring(1) : item.panel;
+                        panel.className = `panel ${panelClass} floating-panel`;
+                        const layoutCont = this.container.querySelector('.section-container') || this.container.querySelector('.page-layout') || this.container;
+                        layoutCont.appendChild(panel);
+                    }
+
+                    if (!panel) return;
+
+                    let el;
+                    if (item.type === 'image' && item.fileName) {
+                        el = document.createElement('img');
+                        el.src = `/api/images/${series}/${volume}/${chapter}/${this.pageId}/assets/${item.fileName}`;
+                        el.className = 'main-asset';
+                    }
+
+                    if (el) {
+                        el.style.width = '100%';
+                        el.style.height = '100%';
+                        el.style.objectFit = 'cover';
+                        el.style.objectPosition = 'center';
+
+                        const visualProps = ['objectFit', 'objectPosition', 'transform', 'transformOrigin', 'filter', 'opacity'];
+                        if (item.style) {
+                            for (const prop in item.style) {
+                                const target = (item.isFloating && !visualProps.includes(prop)) ? panel : el;
+                                target.style[prop] = item.style[prop];
+                            }
+                        }
+                        
+                        if (mode === 'portrait' && item.portraitStyle) {
+                            for (const prop in item.portraitStyle) {
+                                const target = (item.isFloating && !visualProps.includes(prop)) ? panel : el;
+                                target.style[prop] = item.portraitStyle[prop];
+                            }
+                        }
+                        
+                        panel.innerHTML = '';
+                        panel.appendChild(el);
+                    } else if (item.isFloating) {
+                        if (item.style) {
+                            for (const prop in item.style) {
+                                panel.style[prop] = item.style[prop];
+                            }
+                        }
+                    }
+                });
+
+                this.initPanels(); 
+                const sceneData = await fetchScene(volume, chapter, this.pageId, series);
+                await this.renderScene(sceneData, this.mediaData);
+            } else {
+                this.initPanels();
+            }
+        } catch (e) { 
+            console.error(`[${this.pageId}] Failed to load media:`, e); 
+            this.initPanels();
+        }
+    }
+
+    async renderScene(sceneData, mediaData) {
+        try {
+            await Promise.all([
+                loadCSS('/libs/SpeechBubble/SpeechBubble.css'),
+                loadCSS('/libs/TextBlock/TextBlock.css'),
+                loadCSS('/libs/ActionText/ActionText.css')
+            ]);
+
+            if (this.sceneController && this.sceneController.cleanup) this.sceneController.cleanup();
+
+            const pageInfo = { ...this.params, pageId: this.pageId, pageIndex: 0 }; 
+            this.sceneController = await initScene(this.container, pageInfo, sceneData, mediaData);
+
+            if (this.sceneController && this.sceneController.visualItems) {
+                this.renderedDialogueItems = this.sceneController.visualItems;
+                this.renderedDialogueItems.forEach(item => {
+                    if (item.container) {
+                        item.container.classList.add('visible'); 
+                        item.container.style.cursor = 'move';
+                        item.container.style.pointerEvents = 'all'; 
+                        this.makeDialogueDraggable(item);
+                    }
+                });
+            }
+        } catch (e) {
+            console.error(`[${this.pageId}] Failed to render scene:`, e);
+        }
+    }
+
+    initPanels() {
+        this.container.querySelectorAll('.panel').forEach(panel => {
+            const classes = Array.from(panel.classList);
+            const panelClass = classes.find(c => c.startsWith('panel-') && c !== 'panel');
+            
+            if (!panel.querySelector('.panel-label')) {
+                const label = document.createElement('div');
+                label.className = 'panel-label';
+                label.innerHTML = `${panelClass || 'Unknown'}<br><span>Click or Drop to Upload</span>`;
+                panel.appendChild(label);
+            }
+
+            const label = panel.querySelector('.panel-label');
+
+            if (panel.classList.contains('floating-panel')) {
+                this.makeDraggable(panel);
+            }
+
+            panel.addEventListener('dragover', (e) => { e.preventDefault(); panel.classList.add('drag-over'); });
+            panel.addEventListener('dragleave', (e) => { panel.classList.remove('drag-over'); });
+            panel.addEventListener('drop', (e) => {
+                e.preventDefault();
+                panel.classList.remove('drag-over');
+                const file = e.dataTransfer.files[0];
+                if (file) this.handleUpload(file, panel, panelClass, label);
+            });
+
+            panel.addEventListener('click', (e) => {
+                if (panel.dataset.wasDragged === 'true') {
+                    panel.dataset.wasDragged = 'false';
+                    return;
+                }
+
+                document.querySelectorAll('.panel').forEach(p => p.classList.remove('selected'));
+                panel.classList.add('selected');
+
+                window.parent.postMessage({ 
+                    type: 'panelSelected', 
+                    panel: '.' + panelClass,
+                    volume: this.params.volume, 
+                    chapter: this.params.chapter, 
+                    pageId: this.pageId 
+                }, '*');
+            }, true);
+        });
+    }
+
+    async handleUpload(file, panelElement, panelClass, labelElement) {
         if (!file || !panelClass) return;
 
         const originalText = labelElement.innerHTML;
         labelElement.innerHTML = "Uploading...";
-        labelElement.style.color = "white";
-        labelElement.style.background = "rgba(0,0,0,0.7)";
-
+        
         const formData = new FormData();
-        formData.append('volume', volume);
-        formData.append('chapter', chapter);
-        formData.append('pageId', pageId);
+        formData.append('volume', this.params.volume);
+        formData.append('chapter', this.params.chapter);
+        formData.append('pageId', this.pageId);
         formData.append('panel', '.' + panelClass);
         formData.append('asset', file);
 
@@ -70,10 +188,8 @@ export async function init(container, params) {
             if (data.ok) {
                 labelElement.innerText = "Success!";
                 const el = document.createElement('img');
-                
-                const series = params.series;
-                el.src = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${file.name}`;
-                
+                el.className = 'main-asset';
+                el.src = `/api/images/${this.params.series}/${this.params.volume}/${this.params.chapter}/${this.pageId}/assets/${file.name}`;
                 el.style.width = '100%'; 
                 el.style.height = '100%'; 
                 el.style.objectFit = 'cover';
@@ -81,14 +197,13 @@ export async function init(container, params) {
                 Array.from(panelElement.children).forEach(child => {
                     if (child !== labelElement) panelElement.removeChild(child);
                 });
-                
                 panelElement.prepend(el);
                 
-                // CRITICAL: Notify parent that an asset was uploaded so it can update its local media cache
                 window.parent.postMessage({ 
                     type: 'assetUploaded', 
                     panel: '.' + panelClass,
-                    type: 'image',
+                    pageId: this.pageId,
+                    assetType: 'image',
                     fileName: file.name
                 }, '*');
 
@@ -106,217 +221,26 @@ export async function init(container, params) {
         }
     }
 
-    // --- 3. Click-to-Upload Handler ---
-    if (fileInput) {
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file && activeUploadTarget) {
-                handleUpload(file, activeUploadTarget.panel, activeUploadTarget.panelClass, activeUploadTarget.label);
-            }
-            fileInput.value = ''; 
-            activeUploadTarget = null;
-        });
-    }
-
-    // --- 4. Loader ---
-    async function loadExistingMedia() {
-        try {
-            const series = params.series;
-            if (!series) throw new Error("No series context in params");
-            const res = await fetch(`/api/media/${series}/${volume}/${chapter}/${pageId}?t=${Date.now()}`);
-            const data = await res.json();
-
-            if (data.ok && data.media) {
-                const mediaArray = Array.isArray(data.media) ? data.media : (data.media.media || []);
-                mediaArray.forEach(item => {
-                    let panel = container.querySelector(item.panel);
-                    
-                    // --- Handle Floating Panels in Preview ---
-                    if (!panel && item.isFloating) {
-                        panel = document.createElement('div');
-                        const panelClass = item.panel.startsWith('.') ? item.panel.substring(1) : item.panel;
-                        panel.className = `panel ${panelClass} floating-panel`;
-                        
-                        // Add to the layout container
-                        const layoutCont = container.querySelector('.section-container') || container.querySelector('.page-layout') || container;
-                        layoutCont.appendChild(panel);
-                    }
-
-                    if (!panel) return;
-
-                    let el;
-                    if (item.type === 'image' && item.fileName) {
-                        el = document.createElement('img');
-                        el.src = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${item.fileName}`;
-                    }
-
-                    if (el) {
-                        el.style.width = '100%';
-                        el.style.height = '100%';
-                        el.style.objectFit = 'cover';
-                        el.style.objectPosition = 'center';
-
-                        // Apply custom styles from media.json
-                        const visualProps = ['objectFit', 'objectPosition', 'transform', 'transformOrigin', 'filter', 'opacity'];
-                        if (item.style) {
-                            for (const prop in item.style) {
-                                const target = (item.isFloating && !visualProps.includes(prop)) ? panel : el;
-                                target.style[prop] = item.style[prop];
-                            }
-                        }
-                        
-                        // Apply portrait-specific overrides if active
-                        if (params.mode === 'portrait' && item.portraitStyle) {
-                            for (const prop in item.portraitStyle) {
-                                const target = (item.isFloating && !visualProps.includes(prop)) ? panel : el;
-                                target.style[prop] = item.portraitStyle[prop];
-                            }
-                        }
-                        
-                        panel.innerHTML = '';
-                        panel.appendChild(el);
-                    } else if (item.isFloating) {
-                        // If it's a floating panel with no image yet, still apply styles so it shows up as a box
-                        if (item.style) {
-                            for (const prop in item.style) {
-                                panel.style[prop] = item.style[prop];
-                            }
-                        }
-                    }
-                });
-
-                initPanels(); 
-
-                // Fetch initial scene from server, then we'll rely on pushed updates
-                const sceneData = await fetchScene(volume, chapter, pageId, series);
-                renderScene(sceneData, mediaArray);
-            } else {
-                // Still need to init panels even if no media yet
-                initPanels();
-            }
-        } catch (e) { 
-            console.error("Failed to load media:", e); 
-            initPanels();
-        }
-    }
-
-    /**
-     * Core renderer for the dialogue scene.
-     */
-    async function renderScene(sceneData, mediaData) {
-        try {
-            // --- 1. Load Dialogue Component Styles ---
-            await Promise.all([
-                loadCSS('/libs/SpeechBubble/SpeechBubble.css'),
-                loadCSS('/libs/TextBlock/TextBlock.css'),
-                loadCSS('/libs/ActionText/ActionText.css')
-            ]);
-
-            if (sceneController && sceneController.cleanup) sceneController.cleanup();
-
-            const pageInfo = { ...params, pageIndex: 0 }; 
-            sceneController = await initScene(container, pageInfo, sceneData, mediaData);
-
-            if (sceneController && sceneController.visualItems) {
-                renderedDialogueItems = sceneController.visualItems;
-                renderedDialogueItems.forEach(item => {
-                    if (item.container) {
-                        item.container.classList.add('visible'); 
-                        item.container.style.cursor = 'move';
-                        item.container.style.pointerEvents = 'all'; 
-                        makeDialogueDraggable(item);
-                    }
-                });
-            }
-        } catch (e) {
-            console.error("Failed to render scene:", e);
-        }
-    }
-
-    function initPanels() {
-        const panels = [];
-        container.querySelectorAll('.panel').forEach(panel => {
-            const classes = Array.from(panel.classList);
-            const panelClass = classes.find(c => c.startsWith('panel-') && c !== 'panel');
-            if (panelClass) panels.push('.' + panelClass);
-            
-            // Only add label if it doesn't exist
-            if (!panel.querySelector('.panel-label')) {
-                const label = document.createElement('div');
-                label.className = 'panel-label';
-                label.innerHTML = `${panelClass || 'Unknown'}<br><span>Click or Drop to Upload</span>`;
-                panel.appendChild(label);
-            }
-
-            const label = panel.querySelector('.panel-label');
-
-            // --- Floating Panel Specific Logic ---
-            if (panel.classList.contains('floating-panel')) {
-                makeDraggable(panel);
-            }
-
-            panel.addEventListener('dragover', (e) => { e.preventDefault(); panel.classList.add('drag-over'); });
-            panel.addEventListener('dragleave', (e) => { panel.classList.remove('drag-over'); });
-            panel.addEventListener('drop', (e) => {
-                e.preventDefault();
-                panel.classList.remove('drag-over');
-                const file = e.dataTransfer.files[0];
-                if (file) handleUpload(file, panel, panelClass, label);
-            });
-
-            panel.addEventListener('click', (e) => {
-                // If the panel was just dragged, don't trigger the selection reload
-                if (panel.dataset.wasDragged === 'true') {
-                    panel.dataset.wasDragged = 'false';
-                    return;
-                }
-
-                container.querySelectorAll('.panel').forEach(p => p.classList.remove('selected'));
-                panel.classList.add('selected');
-
-                window.parent.postMessage({ 
-                    type: 'panelSelected', 
-                    panel: '.' + panelClass,
-                    volume, chapter, pageId 
-                }, '*');
-            }, true);
-        });
-
-        window.GEMINI_PANELS = panels;
-    }
-
-    function makeDraggable(el) {
+    makeDraggable(el) {
         let isDragging = false;
-        let hasMoved = false;
         let startX, startY, initialLeft, initialTop;
 
         el.addEventListener('mousedown', (e) => {
             if (e.button !== 0) return;
-            
             isDragging = true;
-            hasMoved = false;
             el.classList.add('is-dragging');
-            
-            const parent = el.offsetParent || container.querySelector('.section-container') || container;
+            const parent = el.offsetParent || this.container.querySelector('.section-container') || this.container;
             const parentRect = parent.getBoundingClientRect();
-            
             startX = e.clientX;
             startY = e.clientY;
-            
             initialLeft = parseFloat(el.style.left) || 0;
             initialTop = parseFloat(el.style.top) || 0;
 
             const onMouseMove = (e) => {
                 if (!isDragging) return;
-                
                 const dx = e.clientX - startX;
                 const dy = e.clientY - startY;
-
-                // Threshold to distinguish between a click and a drag
-                if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
-                    hasMoved = true;
-                    el.dataset.wasDragged = 'true';
-                }
+                if (Math.abs(dx) > 2 || Math.abs(dy) > 2) el.dataset.wasDragged = 'true';
 
                 const pctX = (dx / parentRect.width) * 100;
                 const pctY = (dy / parentRect.height) * 100;
@@ -329,6 +253,7 @@ export async function init(container, params) {
 
                 window.parent.postMessage({
                     type: 'panelDragged',
+                    pageId: this.pageId,
                     panel: '.' + Array.from(el.classList).find(c => c.startsWith('panel-')),
                     left: newLeft.toFixed(2),
                     top: newTop.toFixed(2)
@@ -348,66 +273,42 @@ export async function init(container, params) {
         });
     }
 
-    function makeDialogueDraggable(item) {
+    makeDialogueDraggable(item) {
         const el = item.container;
-        const id = item.sceneItemId; // Use unique ID for robust tracking
-        const targetParent = item.targetParentEl; // The physical parent (always Page)
-        const logicalAnchor = item.intendedPanelEl || targetParent; // The panel or page it's locked to
+        const id = item.sceneItemId;
+        const targetParent = item.targetParentEl;
+        const logicalAnchor = item.intendedPanelEl || targetParent;
 
         let isDragging = false;
         let startX, startY, initialLeft, initialTop;
 
         el.addEventListener('mousedown', (e) => {
             if (e.button !== 0) return;
-            e.stopPropagation(); // Don't trigger panel selection
-            
+            e.stopPropagation();
             isDragging = true;
             el.classList.add('is-dragging');
-            
-            const parentRect = targetParent.getBoundingClientRect();
             const anchorRect = logicalAnchor.getBoundingClientRect();
             const elRect = el.getBoundingClientRect();
-            
             startX = e.clientX;
             startY = e.clientY;
-            
-            // --- ROBUST PANEL-LOCKED COORDINATE CALCULATION ---
-            // Defensive Check: Ensure anchor has dimensions to avoid division by zero (NaN)
             const aWidth = anchorRect.width || 1;
             const aHeight = anchorRect.height || 1;
-
             initialLeft = ((elRect.left - anchorRect.left) / aWidth) * 100;
             initialTop = ((elRect.top - anchorRect.top) / aHeight) * 100;
 
-            if (isNaN(initialLeft)) initialLeft = 0;
-            if (isNaN(initialTop)) initialTop = 0;
-
             const onMouseMove = (e) => {
                 if (!isDragging) return;
-                
                 const dx = e.clientX - startX;
                 const dy = e.clientY - startY;
-
-                // Mark as dragged to avoid triggering 'click' on release
-                if (Math.abs(dx) > 2 || Math.abs(dy) > 2) {
-                    el.dataset.wasDragged = 'true';
-                }
-
-                // Delta is relative to the logical anchor's scale
+                if (Math.abs(dx) > 2 || Math.abs(dy) > 2) el.dataset.wasDragged = 'true';
                 const pctX = (dx / aWidth) * 100;
                 const pctY = (dy / aHeight) * 100;
-
-                // --- PROFESSIONAL TRANSITION: Always use Top/Left for drag results ---
                 let newLeft = initialLeft + pctX;
                 let newTop = initialTop + pctY;
 
-                if (isNaN(newLeft)) newLeft = initialLeft;
-                if (isNaN(newTop)) newTop = initialTop;
-
-                // For the LIVE PREVIEW in the editor, we still move it on the PAGE layer.
+                const parentRect = targetParent.getBoundingClientRect();
                 const pWidth = parentRect.width || 1;
                 const pHeight = parentRect.height || 1;
-                
                 const globalXInPixels = anchorRect.left - parentRect.left + (newLeft / 100 * aWidth);
                 const globalYInPixels = anchorRect.top - parentRect.top + (newTop / 100 * aHeight);
 
@@ -416,17 +317,11 @@ export async function init(container, params) {
                 el.style.right = 'auto';
                 el.style.bottom = 'auto';
 
-                const placement = {
-                    left: `${newLeft.toFixed(2)}%`,
-                    top: `${newTop.toFixed(2)}%`,
-                    right: '',
-                    bottom: ''
-                };
-
                 window.parent.postMessage({
                     type: 'dialogueDragged',
+                    pageId: this.pageId,
                     id: id,
-                    placement: placement
+                    placement: { left: `${newLeft.toFixed(2)}%`, top: `${newTop.toFixed(2)}%`, right: '', bottom: '' }
                 }, '*');
             };
 
@@ -442,72 +337,105 @@ export async function init(container, params) {
             e.preventDefault();
         });
 
-        // --- NEW: Visual Selection Integration ---
         el.addEventListener('click', (e) => {
-            // Prevent if we just finished dragging (avoid accidental selection changes during movement)
             if (el.dataset.wasDragged === 'true') {
                 el.dataset.wasDragged = 'false';
                 return;
             }
-
             e.stopPropagation();
-            
-            // Visual feedback in the preview
-            container.querySelectorAll('.speech-bubble-container, .text-block-container, .action-text-container')
-                .forEach(item => item.classList.remove('selected-dialogue'));
+            document.querySelectorAll('.speech-bubble-container, .text-block-container, .action-text-container').forEach(item => item.classList.remove('selected-dialogue'));
             el.classList.add('selected-dialogue');
+            window.parent.postMessage({ type: 'dialogueSelected', id: id, pageId: this.pageId }, '*');
+        });
+    }
+}
 
-            // Notify parent to select this item in the sidebar
-            window.parent.postMessage({
-                type: 'dialogueSelected',
-                id: id
-            }, '*');
+export async function init(container, params) {
+    const pages = [];
+    const pageContainers = container.querySelectorAll('.page-container');
+    
+    const globalControls = {
+        fileInput: document.getElementById('globalPanelUpload'),
+        activeUploadTarget: null
+    };
+
+    if (globalControls.fileInput) {
+        globalControls.fileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file && globalControls.activeUploadTarget) {
+                const { controller, panel, panelClass, label } = globalControls.activeUploadTarget;
+                controller.handleUpload(file, panel, panelClass, label);
+            }
+            globalControls.fileInput.value = ''; 
+            globalControls.activeUploadTarget = null;
         });
     }
 
+    for (const pageCont of pageContainers) {
+        const pageId = pageCont.dataset.pageId;
+        const controller = new PageController(pageCont, pageId, params, globalControls);
+        await controller.init();
+        pages.push(controller);
+    }
+
+    function fitContainer() {
+        const padding = 20;
+        const availableWidth = window.innerWidth - padding;
+        const availableHeight = window.innerHeight - padding;
+        
+        pageContainers.forEach(pageCont => {
+            const sectionContainer = pageCont.querySelector('.section-container') || pageCont.querySelector('.page-layout');
+            if (!sectionContainer) return;
+            sectionContainer.style.transform = 'none';
+            const rect = sectionContainer.getBoundingClientRect();
+            const naturalWidth = rect.width;
+            const naturalHeight = rect.height;
+            if (naturalWidth === 0 || naturalHeight === 0) return;
+            
+            const scaleX = (availableWidth / (params.isSpread ? 2 : 1)) / naturalWidth;
+            const scaleY = availableHeight / naturalHeight;
+            const scale = Math.min(scaleX, scaleY);
+            sectionContainer.style.transform = `scale(${scale})`;
+        });
+    }
+
+    window.addEventListener('resize', fitContainer);
+    setTimeout(fitContainer, 100);
+
     window.addEventListener('message', (e) => {
+        const targetPage = pages.find(p => p.pageId === e.data.pageId);
+        if (!targetPage && e.data.pageId) return;
+
         if (e.data.type === 'triggerUpload') {
-            const pClass = e.data.panel.replace('.', '');
-            const p = container.querySelector(e.data.panel);
+            const controller = targetPage || pages[0];
+            const p = controller.container.querySelector(e.data.panel);
             if (p) {
+                const pClass = e.data.panel.replace('.', '');
                 const label = p.querySelector('.panel-label');
-                activeUploadTarget = { panel: p, panelClass: pClass, label: label };
-                fileInput.click();
+                globalControls.activeUploadTarget = { controller, panel: p, panelClass: pClass, label: label };
+                globalControls.fileInput.click();
             }
         }
 
         if (e.data.type === 'styleUpdate' || e.data.type === 'mediaPersisted') {
-            const { panel: selector, styles, fileName, overlayImage, overlayOpacity, assetType, entry } = e.data;
-            const panel = container.querySelector(selector);
-            
+            const controller = targetPage || pages[0];
+            const { panel: selector, styles, fileName, overlayImage, overlayOpacity, entry } = e.data;
+            const panel = controller.container.querySelector(selector);
             if (panel) {
                 const targetFileName = fileName || entry?.fileName;
                 const targetOverlay = overlayImage || entry?.overlayImage;
                 const targetOpacity = overlayOpacity !== undefined ? overlayOpacity : entry?.overlayOpacity;
-                
-                const series = params.series;
-                const { volume, chapter, pageId } = params;
-
-                // 1. SURGICAL ASSET SWAP
                 if (targetFileName) {
                     let img = panel.querySelector('img.main-asset');
-                    if (!img) {
-                        // Compatibility: if old layout uses img without class, try finding any img not an overlay
-                        img = Array.from(panel.querySelectorAll('img')).find(i => !i.classList.contains('panel-overlay-img'));
-                    }
-
+                    if (!img) img = Array.from(panel.querySelectorAll('img')).find(i => !i.classList.contains('panel-overlay-img'));
                     if (!img) {
                         img = document.createElement('img');
                         img.className = 'main-asset';
-                        img.style.width = '100%';
-                        img.style.height = '100%';
-                        img.style.objectFit = 'cover';
+                        img.style.width = '100%'; img.style.height = '100%'; img.style.objectFit = 'cover';
                         panel.prepend(img);
                     }
-                    img.src = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${targetFileName}?t=${Date.now()}`;
+                    img.src = `/api/images/${params.series}/${params.volume}/${params.chapter}/${controller.pageId}/assets/${targetFileName}?t=${Date.now()}`;
                 }
-
-                // 2. OVERLAY UPDATE
                 if (targetOverlay) {
                     let over = panel.querySelector('img.panel-overlay-img');
                     if (!over) {
@@ -516,48 +444,29 @@ export async function init(container, params) {
                         Object.assign(over.style, { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', objectFit: 'cover', pointerEvents: 'none' });
                         panel.appendChild(over);
                     }
-                    over.src = `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${targetOverlay}?t=${Date.now()}`;
+                    over.src = `/api/images/${params.series}/${params.volume}/${params.chapter}/${controller.pageId}/assets/${targetOverlay}?t=${Date.now()}`;
                     over.style.opacity = targetOpacity || 1.0;
                 } else {
                     panel.querySelector('img.panel-overlay-img')?.remove();
                 }
-
-                // 3. STYLE UPDATES
                 const targetStyles = styles || entry?.style || {};
                 const img = panel.querySelector('img.main-asset') || panel.querySelector('img');
                 const visualProps = ['objectFit', 'objectPosition', 'transform', 'transformOrigin', 'filter', 'opacity'];
-                
-                // Clear existing visual styles first to ensure a clean slate
                 const targetEl = (panel.classList.contains('floating-panel')) ? panel : img;
                 if (targetEl) {
-                    visualProps.forEach(prop => {
-                        targetEl.style[prop] = '';
-                    });
-                    
-                    // Apply new styles
+                    visualProps.forEach(prop => { targetEl.style[prop] = ''; });
                     for (const prop in targetStyles) {
                         const isVisual = visualProps.includes(prop);
                         const applyTarget = (panel.classList.contains('floating-panel') && !isVisual) ? panel : img;
-                        
-                        // Map kebab-case from JSON to camelCase for JS style object
-                        let jsProp = prop;
-                        if (prop.includes('-')) {
-                            jsProp = prop.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-                        }
-
+                        let jsProp = prop.includes('-') ? prop.replace(/-([a-z])/g, (g) => g[1].toUpperCase()) : prop;
                         if (applyTarget) applyTarget.style[jsProp] = targetStyles[prop];
                     }
                 }
-
-                // Special case for Portrait Overrides
                 if (params.mode === 'portrait' && entry?.portraitStyle) {
                     for (const prop in entry.portraitStyle) {
                         const isVisual = visualProps.includes(prop);
                         const applyTarget = (panel.classList.contains('floating-panel') && !isVisual) ? panel : img;
-                        let jsProp = prop;
-                        if (prop.includes('-')) {
-                            jsProp = prop.replace(/-([a-z])/g, (g) => g[1].toUpperCase());
-                        }
+                        let jsProp = prop.includes('-') ? prop.replace(/-([a-z])/g, (g) => g[1].toUpperCase()) : prop;
                         if (applyTarget) applyTarget.style[jsProp] = entry.portraitStyle[prop];
                     }
                 }
@@ -565,24 +474,21 @@ export async function init(container, params) {
         }
 
         if (e.data.type === 'triggerPanelSelection') {
-            const { panel: selector } = e.data;
-            container.querySelectorAll('.panel').forEach(p => p.classList.remove('selected'));
-            const p = container.querySelector(selector);
+            const controller = targetPage || pages[0];
+            document.querySelectorAll('.panel').forEach(p => p.classList.remove('selected'));
+            const p = controller.container.querySelector(e.data.panel);
             if (p) p.classList.add('selected');
         }
 
         if (e.data.type === 'refreshScene') {
-            loadExistingMedia();
+            (targetPage || pages[0]).loadExistingMedia();
         }
 
         if (e.data.type === 'updateScene') {
-            const { scene, media } = e.data;
-            renderScene(scene, media);
+            const controller = targetPage || pages[0];
+            controller.renderScene(e.data.scene, e.data.media);
         }
     });
 
-    await loadExistingMedia();
-
-    // Notify parent that layout is fully loaded and GEMINI_PANELS is populated
-    window.parent.postMessage({ type: 'previewReady' }, '*');
+    window.parent.postMessage({ type: 'previewReady', isSpread: params.isSpread, pageId: params.pageId, partnerPageId: params.partnerPageId }, '*');
 }

@@ -3,28 +3,30 @@
  * Handles messaging between the main dashboard and the preview iframe.
  */
 
-export function pushSceneUpdate(iframe, sceneData, mediaData) {
+export function pushSceneUpdate(iframe, sceneData, mediaData, pageId) {
     if (iframe && iframe.contentWindow) {
         iframe.contentWindow.postMessage({ 
             type: 'updateScene', 
             scene: sceneData, 
-            media: mediaData 
+            media: mediaData,
+            pageId: pageId
         }, '*');
     }
 }
 
-export function pushPanelSelect(iframe, panelSelector) {
+export function pushPanelSelect(iframe, panelSelector, pageId) {
     if (iframe && iframe.contentWindow) {
-        iframe.contentWindow.postMessage({ type: 'triggerPanelSelection', panel: panelSelector }, '*');
+        iframe.contentWindow.postMessage({ type: 'triggerPanelSelection', panel: panelSelector, pageId: pageId }, '*');
     }
 }
 
-export function pushMediaPersisted(iframe, panelSelector, entry) {
+export function pushMediaPersisted(iframe, panelSelector, entry, pageId) {
     if (iframe && iframe.contentWindow) {
         iframe.contentWindow.postMessage({ 
             type: 'mediaPersisted', 
             panel: panelSelector, 
-            entry: entry 
+            entry: entry,
+            pageId: pageId
         }, '*');
     }
 }
@@ -32,7 +34,7 @@ export function pushMediaPersisted(iframe, panelSelector, entry) {
 /**
  * Syncs the live preview of a panel as sliders are moved.
  */
-export function syncPreviewLive(iframe, panelSelector, activeMode, currentMediaData) {
+export function syncPreviewLive(iframe, panelSelector, activeMode, currentMediaData, pageId) {
     if (!iframe || !iframe.contentWindow) return;
 
     const styles = {};
@@ -73,5 +75,5 @@ export function syncPreviewLive(iframe, panelSelector, activeMode, currentMediaD
         styles.zIndex = document.getElementById('float-z').value;
     }
 
-    iframe.contentWindow.postMessage({ type: 'styleUpdate', panel: panelSelector, styles, fileName, overlayImage, overlayOpacity, assetType }, '*');
+    iframe.contentWindow.postMessage({ type: 'styleUpdate', panel: panelSelector, styles, fileName, overlayImage, overlayOpacity, assetType, pageId }, '*');
 }

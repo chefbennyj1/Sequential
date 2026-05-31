@@ -2,6 +2,8 @@
 const express = require("express");
 const router = express.Router();
 
+console.log("[API] Initializing specialized editor routes...");
+
 // Controllers
 const UserController = require('../controllers/UserController.js');
 const VolumeController = require('../controllers/VolumeController.js');
@@ -20,6 +22,9 @@ const VisionController = require('../controllers/VisionController.js');
 
 const { isAuthApi: isAuth, isModerator, isAdmin } = require('../middleware/auth.js');
 
+// --- TEST ROUTE ---
+router.get('/test', (req, res) => res.json({ ok: true, message: "API is working" }));
+
 // --- SYSTEM SETTINGS ---
 router.get('/settings/global', isAdmin, SystemSettingsController.getGlobalSettings);
 router.put('/settings/global', isAdmin, SystemSettingsController.updateGlobalSettings);
@@ -32,12 +37,14 @@ router.post('/vision/stop', isModerator, (req, res) => VisionController.stopVisi
 router.get('/editor/layouts', isModerator, PageLayoutController.getLayouts);
 router.get('/editor/next-panel-id', isModerator, PageLayoutController.getNextPanelId);
 router.post('/editor/change-layout', isModerator, PageLayoutController.changeLayout);
+router.post('/editor/toggle-spread', isModerator, PageLayoutController.toggleSpread);
 router.get('/editor/panels/:series/:volume/:chapter/:pageId', isModerator, PageLayoutController.getPanels);
 router.get('/editor/preview/:series/:volume/:chapter/:pageId', isModerator, PageLayoutController.servePreview);
 
 // 2. Asset Management (AssetUploadController)
 router.get('/editor/assets/:series/:volume/:chapter/:pageId/:type', isModerator, AssetUploadController.getAssets);
 router.post('/editor/upload-asset', isModerator, AssetUploadController.uploadMiddleware, AssetUploadController.uploadAsset);
+router.post('/editor/flip-asset', isModerator, AssetUploadController.flipAsset);
 
 // 3. Page Data (PageDataController)
 router.get('/editor/scene/:series/:volume/:chapter/:pageId', isModerator, PageDataController.getScene);

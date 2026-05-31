@@ -3,7 +3,7 @@
     bodyClass: 'viewer-page',
     headerButtons: `
         <div class="page-nav-buttons">
-            <a href="/library/series/` + volume.series._id + `/volume/` + volume._id + `" class="nav-button btn">
+            <a href="/library/series/${volume.series._id}/volume/${volume._id}" class="nav-button btn">
                 Chapters <ion-icon size="large" name="library"></ion-icon>
             </a>
             <button id="load-prev-btn" class="nav-button btn">
@@ -24,7 +24,7 @@
         </div>
     `,
     body: `
-        <div class="scroll-wrapper" data-volume-id="` + volume._id + `" data-current-page="0" data-total-pages=""></div>
+        <div class="scroll-wrapper" data-volume-id="${volume._id}" data-current-page="0" data-total-pages=""></div>
         <div id="gutter-guide"></div>
         <style>
             #gutter-guide {
@@ -107,52 +107,69 @@
                 chapterView.pages.sort((a, b) => a.index - b.index);
 
                 let pages;
-                if (window.GEMINI_SPREAD_MODE) {
-                    const spreads = [];
-                    // Page 1 is the cover, always single (on the right)
-                    if (chapterView.pages.length > 0) {
-                        spreads.push([chapterView.pages[0]]);
+                const spreads = [];
+                
+                // Group pages into spreads or single pages
+                for (let i = 0; i < chapterView.pages.length; i++) {
+                    const page = chapterView.pages[i];
+                    const spreadData = page.header?.spread || { type: 'none' };
+                    const layoutId = page.layouts?.portrait || page.layouts?.landscape;
+                    const isEven = page.index % 2 === 0;
+
+                    // CASE 1: Explicit 'left' of a spread in metadata
+                    if (spreadData.type === 'left' && i < chapterView.pages.length - 1) {
+                        const next = chapterView.pages[i + 1];
+                        spreads.push([page, next]);
+                        i++; // Skip paired page
+                    } 
+                    // CASE 2: Legacy Spread Layout (Self-contained wide page)
+                    else if (layoutId === 'Standard_Page_Spread') {
+                        spreads.push([page]);
                     }
+                    // CASE 3: Manual Spread Mode Fallback (Page 1 single, 2+3, 4+5...)
+                    else if (window.GEMINI_SPREAD_MODE && page.index > 1 && isEven && i < chapterView.pages.length - 1) {
+                         const next = chapterView.pages[i + 1];
+                         // Only pair if next page isn't explicitly a 'left' page or a legacy spread
+                         const nextSpreadData = next.header?.spread || { type: 'none' };
+                         const nextLayoutId = next.layouts?.portrait || next.layouts?.landscape;
+                         
+                         if (nextSpreadData.type !== 'left' && nextLayoutId !== 'Standard_Page_Spread') {
+                             spreads.push([page, next]);
+                             i++;
+                         } else {
+                             spreads.push([page]);
+                         }
+                    }
+                    // CASE 4: Single Page
+                    else {
+                        spreads.push([page]);
+                    }
+                }
+
+                // Render the groups (sections)
+                spreads.forEach((group, index) => {
+                    const isDualSpread = group.length > 1;
+                    const isLegacyWide = group.length === 1 && (group[0].layouts?.portrait === 'Standard_Page_Spread' || group[0].layouts?.landscape === 'Standard_Page_Spread');
                     
-                    // Pair the rest (2+3, 4+5, etc), respecting 'Spread' layout pages
-                    for (let i = 1; i < chapterView.pages.length; i++) {
-                        const page = chapterView.pages[i];
-                        const layoutId = page.layouts?.portrait || page.layouts?.landscape;
-                        
-                        // If this page is a self-contained spread, it gets its own section
-                        if (layoutId === 'Standard_Page_Spread') {
-                            spreads.push([page]);
-                        } else {
-                            // Try to pair with the next page
-                            const next = chapterView.pages[i + 1];
-                            const nextLayoutId = next ? (next.layouts?.portrait || next.layouts?.landscape) : null;
-                            
-                            if (next && nextLayoutId !== 'Standard_Page_Spread') {
-                                spreads.push([page, next]);
-                                i++; // Skip the next page as it's now paired
-                            } else {
-                                // Single page if no next page or next page is a spread
-                                spreads.push([page]);
-                            }
-                        }
+                    const section = document.createElement("section");
+                    section.id = 'section-' + index;
+                    section.className = 'section-' + index + ' scroll-section page-container';
+                    
+                    if (isDualSpread || isLegacyWide) {
+                        section.classList.add('spread-mode');
+                        if (isLegacyWide) section.classList.add('full-width-spread');
                     }
 
-                    spreads.forEach((spread, index) => {
-                        const section = document.createElement("section");
-                        section.id = 'section-' + index;
-                        section.className = 'section-' + index + " scroll-section page-container spread-mode";
-                        
-                        // Check if this spread is a single 'Standard_Page_Spread'
-                        const isSingleFullSpread = spread.length === 1 && (spread[0].layouts?.portrait === 'Standard_Page_Spread' || spread[0].layouts?.landscape === 'Standard_Page_Spread');
-                        if (isSingleFullSpread) section.classList.add('full-width-spread');
-                        
-                        // Cover page logic
-                        if (spread.length === 1 && index === 0 && !isSingleFullSpread) section.classList.add('cover-section');
-                        
+                    // Cover page logic (Page 1, which is index 0 in the whole series usually)
+                    if (group.length === 1 && group[0].index === 1 && !isLegacyWide) {
+                        section.classList.add('cover-section');
+                    }
+                    
+                    if (isDualSpread) {
                         const spreadWrapper = document.createElement("div");
                         spreadWrapper.className = "spread-wrapper";
                         
-                        spread.forEach((page, pIndex) => {
+                        group.forEach((page, pIndex) => {
                             const pageInner = document.createElement("div");
                             pageInner.id = 'section-' + index + '-p' + pIndex;
                             pageInner.className = "page-inner-container";
@@ -160,39 +177,31 @@
                         });
                         
                         section.appendChild(spreadWrapper);
-                        scrollWrapper.appendChild(section);
-                    });
+                    }
 
-                    pages = spreads.map((spread, index) => ({
-                        isSpread: true,
-                        pages: spread.map((p, pIndex) => ({
-                            ...p,
-                            html: p.path,
-                            containerId: 'section-' + index + '-p' + pIndex
-                        })),
-                        containerId: 'section-' + index
-                    }));
-                } else {
-                    chapterView.pages.forEach((page, index) => {
-                        const section = document.createElement("section");
-                        section.id = 'section-' + index;
-                        section.className = 'section-' + index + " scroll-section page-container";
-                        
-                        // Smart check for spread layout even in single-page mode
-                        const layoutId = page.layouts?.portrait || page.layouts?.landscape;
-                        if (layoutId === 'Standard_Page_Spread') {
-                            section.classList.add('spread-mode', 'full-width-spread');
-                        }
+                    scrollWrapper.appendChild(section);
+                });
 
-                        scrollWrapper.appendChild(section);
-                    });
-
-                    pages = chapterView.pages.map((page, index) => ({
-                        ...page,
-                        html: page.path,
-                        containerId: 'section-' + index,
-                    }));
-                }
+                // Map to the internal PageManager format
+                pages = spreads.map((group, index) => {
+                    if (group.length > 1) {
+                        return {
+                            isSpread: true,
+                            pages: group.map((p, pIndex) => ({
+                                ...p,
+                                html: p.path,
+                                containerId: 'section-' + index + '-p' + pIndex
+                            })),
+                            containerId: 'section-' + index
+                        };
+                    } else {
+                        return {
+                            ...group[0],
+                            html: group[0].path,
+                            containerId: 'section-' + index
+                        };
+                    }
+                });
 
                 const pageManager = initPageManager(pages);
                 window.pageManager = pageManager;
@@ -203,14 +212,19 @@
                     setLastVisitedPage(storageKey, e.detail.index);
                     
                     const pageGroup = pages[e.detail.index];
-                    const pageEntry = pageGroup.isSpread ? pageGroup.pages[0] : pageGroup;
-                    if (pageEntry) {
-                        const pathParts = pageEntry.html.split("/");
+                    const newUrl = new URL(window.location.href);
+                    
+                    if (pageGroup.isSpread) {
+                        const startNum = pageGroup.pages[0].index;
+                        const endNum = pageGroup.pages[pageGroup.pages.length - 1].index;
+                        newUrl.searchParams.set("page", startNum + "-" + endNum);
+                    } else {
+                        const pathParts = pageGroup.html.split("/");
                         const pageId = pathParts[pathParts.length - 2];
-                        const newUrl = new URL(window.location.href);
                         newUrl.searchParams.set("page", pageId.replace('page', ''));
-                        window.history.replaceState({ path: newUrl.href }, "", newUrl.href);
                     }
+                    
+                    window.history.replaceState({ path: newUrl.href }, "", newUrl.href);
                 });
 
                 document.getElementById("load-next-btn").addEventListener("click", () => {
@@ -244,27 +258,14 @@
 
                 let initialIdx = 0;
                 const pageParam = params.get("page");
-                if (pageParam) {
-                    const fIdx = chapterView.pages.findIndex(p => p.path.includes('/page' + pageParam + '/'));
-                    if (fIdx !== -1) {
-                        if (window.GEMINI_SPREAD_MODE) {
-                            // Page 1 is Spread 0. Pages 2 & 3 are Spread 1.
-                            initialIdx = (fIdx === 0) ? 0 : Math.floor((fIdx - 1) / 2) + 1;
-                        } else {
-                            initialIdx = fIdx;
-                        }
-                    }
-                } else {
-                    const storageKey = volumeId + "_" + chapterNumber;
-                    const saved = getLastVisitedPage(storageKey);
-                    if (saved !== null) {
-                        const savedIdx = parseInt(saved, 10) || 0;
-                        if (window.GEMINI_SPREAD_MODE) {
-                             initialIdx = (savedIdx === 0) ? 0 : Math.floor((savedIdx - 1) / 2) + 1;
-                        } else {
-                             initialIdx = savedIdx;
-                        }
-                    }
+                const storageKey = volumeId + "_" + chapterNumber;
+                const saved = getLastVisitedPage(storageKey);
+                
+                let targetPageNum = pageParam ? parseInt(pageParam) : (saved !== null ? chapterView.pages[parseInt(saved)]?.index : null);
+
+                if (targetPageNum !== null) {
+                    const foundIdx = spreads.findIndex(group => group.some(p => p.index === targetPageNum));
+                    if (foundIdx !== -1) initialIdx = foundIdx;
                 }
 
                 await pageManager.goToPage(initialIdx);                

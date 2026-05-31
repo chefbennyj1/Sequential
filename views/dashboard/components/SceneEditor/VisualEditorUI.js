@@ -56,6 +56,10 @@ export function renderPanelSettings(panelSelector, entry, isLsCustom, isPtCustom
                     <input type="text" id="visual-asset-name" class="gov-select flex-1" value="${entry.fileName || ''}" placeholder="e.g. background.png">
                     <button id="visual-asset-browse" class="small btn-browse">...</button>
                 </div>
+                <div class="flex-row gap-5 margin-t-5">
+                    <button id="visual-flip-h" class="small btn-secondary flex-1">Flip Horizontal</button>
+                    <button id="visual-flip-v" class="small btn-secondary flex-1">Flip Vertical</button>
+                </div>
             </div>
             <div class="form-group margin-b-15">
                 <div class="flex-row justify-between align-center margin-b-5">

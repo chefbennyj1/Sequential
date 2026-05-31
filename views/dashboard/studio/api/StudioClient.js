@@ -207,10 +207,10 @@ export async function fetchMedia(volume, chapter, pageId, seriesId) {
     try {
         const res = await fetch(`/api/editor/media/${seriesId}/${volume}/${chapter}/${pageId}?t=${Date.now()}`);
         const data = await res.json();
-        return data.ok ? data.media : { media: [] };
+        return data; // Return full object { ok, media, header }
     } catch (err) {
         console.error(err);
-        return { media: [] };
+        return { ok: false, media: [], header: {} };
     }
 }
 

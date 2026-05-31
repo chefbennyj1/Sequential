@@ -165,15 +165,15 @@ app.use(express.static(path.join(__dirname, "views/public")));
 
 // --- ROUTES ---
 
+app.use("/api", apiRoutes);
+app.use("/authentication", authRoutes);
+
 // Main Site Routes (Must be before content routes to handle /library/series/...)
 app.use("/", siteRoutes);
 
 // IMPORTANT: Dynamic routes for library assets
 app.use('/Library', isAuth, contentRoutes);
 app.use('/Library', isAuth, express.static(path.join(__dirname, 'Library')));
-
-app.use("/authentication", authRoutes);
-app.use("/api", apiRoutes);
 
 
 const PORT = 3000;

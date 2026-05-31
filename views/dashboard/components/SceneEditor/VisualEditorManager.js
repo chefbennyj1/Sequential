@@ -31,14 +31,24 @@ export class VisualEditorManager {
 
     initMessageListeners() {
         window.addEventListener('message', (e) => {
-            if (e.data.type === 'assetUploaded') {
-                const { panel, type, fileName } = e.data;
-                this.updateCache(panel, type, fileName);
+            const { type, pageId, panel, assetType, fileName, id, placement } = e.data;
+
+            // If message is from a different page in a spread, we need to switch context
+            if (pageId && pageId !== this.currentVisualContext.pageId) {
+                if (type === 'panelSelected' || type === 'dialogueSelected') {
+                    // For selection, we switch the active page data
+                    this.loadPanel({ ...e.data, volume: this.currentVisualContext.volume, chapter: this.currentVisualContext.chapter }, this.activeSeriesId);
+                    return;
+                }
             }
-            if (e.data.type === 'panelDragged') {
+
+            if (type === 'assetUploaded') {
+                this.updateCache(panel, assetType, fileName);
+            }
+            if (type === 'panelDragged') {
                 this.updatePosition(e.data);
             }
-            if (e.data.type === 'panelSelected') {
+            if (type === 'panelSelected') {
                 this.loadPanel(e.data, this.activeSeriesId);
             }
         });
@@ -174,7 +184,7 @@ export class VisualEditorManager {
             itemDiv.onclick = (e) => {
                 if (e.target.closest('.delete-geom-btn')) return;
                 this.loadPanel({ ...this.currentVisualContext, panel: item.panel }, this.activeSeriesId);
-                pushPanelSelect(document.getElementById('pagePreviewFrame'), item.panel);
+                pushPanelSelect(document.getElementById('pagePreviewFrame'), item.panel, this.currentVisualContext.pageId);
             };
 
             if (item.isFloating) {
@@ -218,7 +228,7 @@ export class VisualEditorManager {
 
         getEl('backToDirectoryBtn').onclick = () => this.loadPanel({ ...this.currentVisualContext, panel: null }, this.activeSeriesId);
 
-        const sync = () => syncPreviewLive(iframe, panelSelector, 'portrait', this.currentVisualMediaData);
+        const sync = () => syncPreviewLive(iframe, panelSelector, 'portrait', this.currentVisualMediaData, this.currentVisualContext.pageId);
         
         ['visual-portrait-style-object-position', 'visual-asset-name', 'visual-overlay-name'].forEach(id => {
             const el = getEl(id);
@@ -256,6 +266,67 @@ export class VisualEditorManager {
         getEl('saveVisualMediaBtn').onclick = () => this.handleSave(panelSelector);
         if (getEl('deleteFloatingPanelBtn')) getEl('deleteFloatingPanelBtn').onclick = () => this.handleDeletePanel(panelSelector);
         if (getEl('visual-ai-analyze-btn')) getEl('visual-ai-analyze-btn').onclick = () => this.handleAiScan(panelSelector);
+
+        const flipH = getEl('visual-flip-h');
+        const flipV = getEl('visual-flip-v');
+        if (flipH) flipH.onclick = () => this.handleFlip(panelSelector, 'horizontal');
+        if (flipV) flipV.onclick = () => this.handleFlip(panelSelector, 'vertical');
+    }
+
+    async handleFlip(panelSelector, direction) {
+        const fileName = document.getElementById('visual-asset-name')?.value;
+        if (!fileName) return alert("No image file specified to flip.");
+
+        const btn = document.getElementById(`visual-flip-${direction === 'horizontal' ? 'h' : 'v'}`);
+        const originalText = btn.innerHTML;
+        btn.disabled = true;
+        btn.innerText = 'Flipping...';
+
+        try {
+            const res = await fetch('/api/editor/flip-asset', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    series: this.activeSeriesId,
+                    volume: this.currentVisualContext.volume,
+                    chapter: this.currentVisualContext.chapter,
+                    pageId: this.currentVisualContext.pageId,
+                    panel: panelSelector,
+                    fileName,
+                    direction
+                })
+            });
+
+            const text = await res.text();
+            if (!res.ok) {
+                console.error(`Server Error ${res.status}:`, text);
+                throw new Error(`Server Error (${res.status}): ${text.substring(0, 100)}`);
+            }
+
+            let data;
+            try {
+                data = JSON.parse(text);
+            } catch (e) {
+                console.error("Server returned non-JSON:", text);
+                throw new Error(`Invalid Response from Server (Status ${res.status})`);
+            }
+            if (!data.ok) throw new Error(data.message || "Flip failed");
+
+            // Refresh the iframe to show the flipped image
+            const iframe = document.getElementById('pagePreviewFrame');
+            if (iframe && iframe.contentWindow) {
+                // Hard reload the iframe content to bypass browser cache for the image
+                iframe.contentWindow.location.reload();
+            }
+            alert(`Image flipped ${direction} successfully.`);
+
+        } catch (err) {
+            console.error("[Flip Error]", err);
+            alert(err.message);
+        } finally {
+            btn.disabled = false;
+            btn.innerHTML = originalText;
+        }
     }
 
     async handleAiScan(panelSelector) {
@@ -348,7 +419,7 @@ export class VisualEditorManager {
             if (res.ok) {
                 btn.textContent = "Saved!";
                 setTimeout(() => { btn.disabled = false; btn.textContent = "Save Panel Asset"; }, 2000);
-                pushMediaPersisted(document.getElementById('pagePreviewFrame'), panelSelector, updated);
+                pushMediaPersisted(document.getElementById('pagePreviewFrame'), panelSelector, updated, this.currentVisualContext.pageId);
             } else throw new Error(res.message);
         } catch (err) { alert(err.message); btn.disabled = false; btn.textContent = "Retry Save"; }
     }
@@ -410,7 +481,7 @@ export class VisualEditorManager {
             
             propertiesManager.onUpdate = () => {
                 propertiesManager.updateItem(item);
-                pushSceneUpdate(document.getElementById('pagePreviewFrame'), this.getActiveSceneData(), this.currentVisualMediaData);
+                pushSceneUpdate(document.getElementById('pagePreviewFrame'), this.getActiveSceneData(), this.currentVisualMediaData, this.currentVisualContext.pageId);
             };
 
             propertiesManager.populate(item);

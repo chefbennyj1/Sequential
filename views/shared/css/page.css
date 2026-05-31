@@ -464,9 +464,9 @@ section.exiting {
   justify-content: center;
   align-items: center;
   height: 100dvh;
-  width: 100dvw;
-  gap: 0;
-  margin: 0;
+  width: 55vw;
+  gap: 10px; /* Small gap between pages */
+  margin: 0 auto;
   padding: 0;
 }
 
@@ -478,7 +478,7 @@ section.exiting {
 }
 
 .spread-mode .page-inner-container {
-  width: 50dvw;
+  width: 50%;
   height: 100dvh;
   display: flex;
   justify-content: center;

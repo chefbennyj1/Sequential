@@ -174,10 +174,12 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
         let mediaData = { media: [] };
         let sceneData = [];
         let layouts = { landscape: "Standard_Page", portrait: "Standard_Page" };
+        let header = {};
 
         try {
             const raw = fs.readFileSync(atomicPath, 'utf8');
             const atomic = JSON.parse(raw);
+            header = atomic.header || {};
             
             // Handle legacy or new structure
             if (atomic.header?.layouts) {
@@ -202,7 +204,7 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
         const urlPath = `${volume.volumePath}/${chapFolder}/${pageFolder}/page.json`.replace(/\\/g, '/');
 
         // Note: We always recalculate urlPath here to ensure it matches the current volume.volumePath
-        pages.push({ index: pageIndex, path: urlPath, layouts, mediaData, sceneData });
+        pages.push({ index: pageIndex, path: urlPath, layouts, header, mediaData, sceneData });
       }
       chapter.pages = pages;
     }
@@ -266,6 +268,7 @@ async function syncSinglePage(volumeId, chapterId, pageId, seriesFolderName = nu
         const pageEntry = chapter.pages.find(p => p.index === pageIndex);
         
         if (pageEntry) {
+            pageEntry.header = atomic.header || {};
             if (atomic.header?.layouts) {
                 pageEntry.layouts = {
                     landscape: atomic.header.layouts.landscape?.id || "Standard_Page",
@@ -292,6 +295,51 @@ async function syncSinglePage(volumeId, chapterId, pageId, seriesFolderName = nu
     } catch (err) {
         return { ok: false, message: err.message };
     }
+}
+
+async function checkSpreadIntegrity(chapterPath, insertIdx) {
+    const compromised = [];
+    try {
+        const pageDirs = (await fs.promises.readdir(chapterPath, { withFileTypes: true }))
+            .filter(d => d.isDirectory() && d.name.startsWith('page'))
+            .map(d => ({ name: d.name, num: parseInt(d.name.replace(/\D/g, '')) || 0 }))
+            .sort((a, b) => a.num - b.num);
+
+        for (const page of pageDirs) {
+            // We only care about pages at or after the insertion point that will be shifted
+            if (page.num < insertIdx) continue;
+
+            const jsonPath = path.join(chapterPath, page.name, 'page.json');
+            if (fs.existsSync(jsonPath)) {
+                const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
+                const spreadType = data.header?.spread?.type;
+
+                if (spreadType && spreadType !== 'none') {
+                    // Parity check: Current system assumes Even indices are Left, Odd are Right (starting from page 1 as Cover/Right)
+                    // If a page moves from Even to Odd (or vice-versa), its "Side" in the spread viewer flips.
+                    const oldParity = page.num % 2 === 0 ? 'even' : 'odd';
+                    const newParity = (page.num + 1) % 2 === 0 ? 'even' : 'odd';
+
+                    if (oldParity !== newParity) {
+                        compromised.push({
+                            pageId: page.name,
+                            oldIndex: page.num,
+                            newIndex: page.num + 1,
+                            type: spreadType
+                        });
+
+                        // Mark as broken in the file immediately
+                        if (!data.header.spread) data.header.spread = {};
+                        data.header.spread.isBroken = true;
+                        fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2));
+                    }
+                }
+            }
+        }
+    } catch (e) {
+        console.error("[Spread Integrity] Check failed:", e);
+    }
+    return compromised;
 }
 
 async function tryRename(oldP, newP, retries = 5) {
@@ -342,14 +390,20 @@ async function insertPage({ series, volume: volumeFolderName, chapter: chapterFo
     const targetChapIdx = chapterDirs.indexOf(chapterFolderName);
     if (targetChapIdx === -1) throw new Error("Target chapter not found in volume");
 
-    // --- PHASE 0: PRE-FLIGHT LOCK CHECK ---
+    // --- PHASE 0: PRE-FLIGHT LOCK CHECK & INTEGRITY SCAN ---
     const foldersToMove = [];
+    let compromisedSpreads = [];
+
     for (let i = targetChapIdx; i < chapterDirs.length; i++) {
         const currentChapName = chapterDirs[i];
         const currentChapPath = path.join(volumePath, currentChapName);
         const isTargetChapter = (i === targetChapIdx);
 
         if (fs.existsSync(path.join(currentChapPath, '.ignore-shift'))) continue;
+
+        // Check for spreads that will be broken in this chapter
+        const chapterCompromised = await checkSpreadIntegrity(currentChapPath, isTargetChapter ? insertIdx : 0);
+        compromisedSpreads = compromisedSpreads.concat(chapterCompromised);
 
         const pageDirs = (await fs.promises.readdir(currentChapPath, { withFileTypes: true }))
             .filter(d => d.isDirectory() && d.name.startsWith('page'))
@@ -411,6 +465,7 @@ async function insertPage({ series, volume: volumeFolderName, chapter: chapterFo
         if (fs.existsSync(jsonPath)) {
             const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
             data.media = []; data.scene = [];
+            if (data.header?.spread) data.header.spread.type = 'none'; // Reset spread on new page
             fs.writeFileSync(jsonPath, JSON.stringify(data, null, 2));
         }
     } else {
@@ -431,7 +486,16 @@ async function insertPage({ series, volume: volumeFolderName, chapter: chapterFo
     const volume = await VolumeModel.findOne({ volumePath: volPathRegex, series: seriesDoc ? seriesDoc._id : { $exists: false } });
     if (volume) await updateChaptersFromFS(volume);
 
-    return { ok: true, message: `Global Page Insertion complete at ${insertIdx}. Successfully shifted ${foldersToMove.length} pages.` };
+    let finalMessage = `Global Page Insertion complete at ${insertIdx}. Successfully shifted ${foldersToMove.length} pages.`;
+    if (compromisedSpreads.length > 0) {
+        finalMessage += ` WARNING: ${compromisedSpreads.length} page spread(s) were compromised by this shift. Check your page settings.`;
+    }
+
+    return { 
+        ok: true, 
+        message: finalMessage,
+        compromisedSpreads: compromisedSpreads.length > 0 ? compromisedSpreads : null
+    };
 }
 
 async function createChapter({ seriesFolderName, volumeFolderName, title, chapterIndex }) {
