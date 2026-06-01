@@ -33,15 +33,6 @@ export class VisualEditorManager {
         window.addEventListener('message', (e) => {
             const { type, pageId, panel, assetType, fileName, id, placement } = e.data;
 
-            // If message is from a different page in a spread, we need to switch context
-            if (pageId && pageId !== this.currentVisualContext.pageId) {
-                if (type === 'panelSelected' || type === 'dialogueSelected') {
-                    // For selection, we switch the active page data
-                    this.loadPanel({ ...e.data, volume: this.currentVisualContext.volume, chapter: this.currentVisualContext.chapter }, this.activeSeriesId);
-                    return;
-                }
-            }
-
             if (type === 'assetUploaded') {
                 this.updateCache(panel, assetType, fileName);
             }

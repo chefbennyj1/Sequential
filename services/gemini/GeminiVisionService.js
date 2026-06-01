@@ -45,8 +45,10 @@ class GeminiVisionService {
 
             // Use direct path instead of buffer to reduce memory overhead
             // Set concurrency to 1 and disable cache to avoid native thread/memory exhaustion crashes
+            sharp.concurrency(1);
+            sharp.cache(false);
+            
             const processedBuffer = await sharp(imagePath, { failOn: 'none' })
-                .concurrency(1)
                 .resize(256, 256, { fit: 'inside', withoutEnlargement: true })
                 .grayscale()
                 .toBuffer();

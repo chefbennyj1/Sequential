@@ -35,17 +35,18 @@
   <section id="landing-page" class="landing-page scroll-section active"></section>
 
   <script type="module">
+
     import { loadSection } from '/services/public/PageManager.js';
-    import { init as landingPageInit } from '/views/reader/landing/landingPage.js';
+    import { init as landingPageInit } from '/views/landing/landingPage.js';
     import { imageMaskReveal, loadCSS, loadScript } from '/libs/Utility.js';
 
     (async () => {
-      await loadSection('landing-page', '/views/reader/landing/landingPage.html', false);
+      await loadSection('landing-page', '/views/landing/landingPage.html', false);
 
       const landingPageSection = document.getElementById('landing-page');
       await landingPageInit(landingPageSection);
 
-      await loadCSS('/views/reader/landing/landingPage.css');
+      await loadCSS('/views/landing/landingPage.css');
       await loadCSS('/libs/TiltEffect/tiltEffects.css');
 
       // loading page elements
@@ -59,7 +60,7 @@
 
       enterBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        
+
         gsap.to(loader, {
           duration: 1,
           opacity: 0,
@@ -85,8 +86,8 @@
     function handleLoadingText(enterBtn) {
       enterBtn.classList.add("flex-center"); // Simple utility class if available, or just use CSS
       enterBtn.style.display = "block"; // Still need this for GSAP start point if it's hidden in CSS
-      gsap.fromTo(enterBtn, 
-        { opacity: 0, y: 20 }, 
+      gsap.fromTo(enterBtn,
+        { opacity: 0, y: 20 },
         { opacity: 1, y: 0, duration: 1, delay: 0.5, ease: "power2.out" }
       );
     }

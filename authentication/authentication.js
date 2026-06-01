@@ -53,10 +53,10 @@ router.post('/login', loginLimiter, async (req, res) => {
     };
     
     if (req.headers.accept && req.headers.accept.includes('application/json')) {
-      return res.json({ ok: true, redirect: '/dashboard' });
+      return res.json({ ok: true, redirect: '/library' });
     }
     
-    res.redirect('/dashboard');
+    res.redirect('/library');
 
   } catch (err) {
     console.error("Login Error:", err);

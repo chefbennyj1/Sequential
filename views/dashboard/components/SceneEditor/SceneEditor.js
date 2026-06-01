@@ -248,7 +248,6 @@ export async function openVisualEditor(volume, chapter, pageId, mode = 'landscap
     if (seriesId) activeSeriesId = seriesId;
     if (seriesFolder) activeSeriesFolder = seriesFolder;
 
-    const previousPageId = currentSceneInfo.pageId;
     currentSceneInfo = { volume, chapter, pageId };
 
     // Sync visual manager context
@@ -270,43 +269,59 @@ export async function openVisualEditor(volume, chapter, pageId, mode = 'landscap
     const iframe = document.getElementById('pagePreviewFrame');
     if (!iframe) return;
 
-    // --- NEW: Load Data for the Visual Editor if it's not already cached or if the page changed ---
-    if (currentSceneData.length === 0 || previousPageId !== pageId) {
-        console.log(`[VisualEditor] Fetching fresh data for ${pageId}...`);
-        try {
-            const [panelData, scene, characters, mediaRes] = await Promise.all([
-                fetchPagePanels(volume, chapter, pageId, mode, activeSeriesId),
-                fetchSceneData(volume, chapter, pageId, activeSeriesId),
-                activeSeriesId ? fetchCharactersAPI(activeSeriesId) : Promise.resolve([]),
-                fetchMedia(volume, chapter, pageId, activeSeriesId)
-            ]);
-
-            currentSceneData = scene || [];
-            if (visual) visual.currentVisualMediaData = Array.isArray(mediaRes) ? mediaRes : (mediaRes.media || []);
-            
-            // Sync Property Manager
-            if (properties) properties.setAvailableData(characters || [], panelData.panels || []);
-            
-            // Sync Timeline (even though hidden, it's the data source)
-            if (timeline) timeline.setData(currentSceneData, characters || []);
-
-            // --- SPREAD CLASS TOGGLE ---
-            if (panelData.layoutClass === 'Standard_Page_Spread') {
-                layoutEditor.classList.add('is-spread');
-            } else {
-                layoutEditor.classList.remove('is-spread');
-            }
-
-        } catch (err) {
-            console.error("[VisualEditor] Failed to load data context", err);
-        }
-    }
+    // Load initial data
+    await syncEditorContext(volume, chapter, pageId, mode);
 
     const targetSrc = `/api/editor/preview/${activeSeriesFolder}/${volume}/${chapter}/${pageId}?mode=${mode}`;
     iframe.src = targetSrc;
 
     // Reset visual editor sidebar to "Layout Tools" view
     visual.loadPanel({ panel: null, volume, chapter, pageId }, activeSeriesId);
+}
+
+/**
+ * Syncs all manager data (Scene, Media, Characters) for a specific page.
+ * Used during initial load and context switching (spreads).
+ */
+async function syncEditorContext(volume, chapter, pageId, mode) {
+    console.log(`[SceneEditor] Syncing context for ${pageId}...`);
+    try {
+        const [panelData, scene, characters, mediaRes] = await Promise.all([
+            fetchPagePanels(volume, chapter, pageId, mode, activeSeriesId),
+            fetchSceneData(volume, chapter, pageId, activeSeriesId),
+            activeSeriesId ? fetchCharactersAPI(activeSeriesId) : Promise.resolve([]),
+            fetchMedia(volume, chapter, pageId, activeSeriesId)
+        ]);
+
+        currentSceneData = scene || [];
+        currentSceneData.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+
+        if (visual) {
+            visual.currentVisualMediaData = Array.isArray(mediaRes) ? mediaRes : (mediaRes.media || []);
+            // Also update visual's internal context to prevent immediate re-sync loops
+            visual.currentVisualContext = { volume, chapter, pageId };
+        }
+        
+        // Sync Property Manager
+        if (properties) properties.setAvailableData(characters || [], panelData.panels || []);
+        
+        // Sync Timeline
+        if (timeline) timeline.setData(currentSceneData, characters || []);
+
+        const layoutEditor = document.querySelector('.layout-editor');
+        if (layoutEditor) {
+            if (panelData.layoutClass === 'Standard_Page_Spread') {
+                layoutEditor.classList.add('is-spread');
+            } else {
+                layoutEditor.classList.remove('is-spread');
+            }
+        }
+
+        currentSceneInfo = { volume, chapter, pageId };
+
+    } catch (err) {
+        console.error("[SceneEditor] Failed to sync data context", err);
+    }
 }
 
 /**
@@ -452,12 +467,25 @@ export function initSceneEditor() {
     }
 
     // 4. Iframe / Cross-Window Messaging
-    window.addEventListener('message', (e) => {
+    window.addEventListener('message', async (e) => {
         if (e.data.type === 'previewReady') {
             // Layout is loaded in iframe, refresh directory to catch new panels
             // But if we are currently editing a panel, don't navigate away!
             if (!visual.selectedPanelSelector) {
                 visual.loadPanel({ ...currentSceneInfo, panel: null }, activeSeriesId);
+            }
+        }
+
+        const { pageId, volume, chapter } = e.data;
+        
+        // --- SPREAD CONTEXT SWITCHING ---
+        // If an interaction happens on a partner page, we must switch the global editor context
+        if (pageId && pageId !== currentSceneInfo.pageId) {
+            const needsSwitch = ['panelSelected', 'dialogueSelected', 'assetUploaded', 'panelDragged', 'dialogueDragged'].includes(e.data.type);
+            if (needsSwitch) {
+                console.log(`[SceneEditor] Context switch detected: ${currentSceneInfo.pageId} -> ${pageId}`);
+                const mode = document.querySelector('.layout-editor .preview-pane-flex')?.classList.contains('portrait-mode') ? 'portrait' : 'landscape';
+                await syncEditorContext(volume || currentSceneInfo.volume, chapter || currentSceneInfo.chapter, pageId, mode);
             }
         }
 
@@ -478,7 +506,10 @@ export function initSceneEditor() {
             const id = e.data.id;
             // Use loose equality to handle string/number ID differences
             const index = currentSceneData.findIndex(item => item.id == id);
-            if (index === -1) return;
+            if (index === -1) {
+                console.warn(`[SceneEditor] Dialogue ID ${id} not found on page ${pageId}`);
+                return;
+            }
 
             const item = currentSceneData[index];
             selectedItemIndex = index;
@@ -497,7 +528,7 @@ export function initSceneEditor() {
 
         if (e.data.type === 'dialogueDragged') {
             const { id, placement } = e.data;
-            const index = currentSceneData.findIndex(item => item.id === id);
+            const index = currentSceneData.findIndex(item => item.id == id);
             if (index !== -1) {
                 Object.assign(currentSceneData[index].placement, placement);
                 // If the dragged item is currently selected, update the property inputs in real-time

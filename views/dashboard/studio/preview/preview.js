@@ -345,7 +345,13 @@ class PageController {
             e.stopPropagation();
             document.querySelectorAll('.speech-bubble-container, .text-block-container, .action-text-container').forEach(item => item.classList.remove('selected-dialogue'));
             el.classList.add('selected-dialogue');
-            window.parent.postMessage({ type: 'dialogueSelected', id: id, pageId: this.pageId }, '*');
+            window.parent.postMessage({ 
+                type: 'dialogueSelected', 
+                id: id, 
+                pageId: this.pageId,
+                volume: this.params.volume,
+                chapter: this.params.chapter
+            }, '*');
         });
     }
 }

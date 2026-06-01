@@ -1,7 +1,7 @@
 exports.getLandingPage = (req, res) => {
   console.log(req.session);
   console.log(req.session.id);
-  res.render("reader/landing/index", { config: req.app.get('APP_CONFIG') });
+  res.render("landing/index", { config: req.app.get('APP_CONFIG') });
 };
 
 exports.getLogin = (req, res) => {

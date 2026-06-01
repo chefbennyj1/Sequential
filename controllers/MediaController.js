@@ -141,7 +141,7 @@ exports.getMedia = async (req, res) => {
 };
 
 exports.getLandingPageImages = async (req, res) => {
-  const imagesDir = path.join(__dirname, '..', 'views', 'landingPage', 'images');
+  const imagesDir = path.join(__dirname, '..', 'views', 'landing', 'images');
   
   try {
     const files = await fs.promises.readdir(imagesDir);
