@@ -79,8 +79,10 @@ function renderCarousel() {
         const coverImageEl = slide.querySelector('.cover-image');
         coverImageEl.src = series.coverImage;
         
-        // Hide title if we have a real cover image (not the default fallback folder.png)
-        if (series.coverImage && !series.coverImage.endsWith('folder.png')) {
+        // Hide title ONLY if we have a real custom cover. 
+        // We show it only if we are using the generic fallback folder icon.
+        const fallbackPath = '/views/public/images/folder.png';
+        if (series.coverImage !== fallbackPath) {
              titleEl.style.display = 'none';
         }
 
@@ -97,7 +99,9 @@ function renderCarousel() {
             btn.style.opacity = 0.5;
             btn.style.cursor = "default";
         }
-        // Store images data on the element for easy access        slide.dataset.images = JSON.stringify(series.images || []);
+        
+        // Store images data for the slideshow
+        slide.dataset.images = JSON.stringify(series.images || []);
         slide.dataset.index = index;
 
         track.appendChild(slide);
@@ -108,10 +112,8 @@ function renderCarousel() {
     // Set Initial Positions
     updateCarouselPosition();
 
-    // Init Tilt on all (or just active? All is fine if optimized)
-    initPageTiltEffects(); // Ensure this lib handles multiple targets if designed so, or manually attach.
-    // The utility likely attaches to .tilt-effect or similar. My CSS doesn't have tilt classes yet. 
-    // I'll skip tilt for now to ensure basic carousel works, or check utility later.
+    // Init Tilt
+    initPageTiltEffects(); 
 }
 
 function moveCarousel(direction) {
