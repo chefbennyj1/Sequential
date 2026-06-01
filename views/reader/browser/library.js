@@ -128,23 +128,22 @@ function updateCarouselPosition() {
     activeSlide.classList.add('active-slide');
 
     // Calculate Center
-    // Use offsetWidth to get the layout width (unaffected by transform: scale)
-    const slideWidth = activeSlide.offsetWidth;
+    // Use offsetWidth to get the layout width. Fallback if hidden/loading.
+    let slideWidth = activeSlide.offsetWidth;
+    if (slideWidth === 0) {
+        slideWidth = window.innerWidth * (window.innerWidth <= 1024 ? 0.85 : 0.65);
+    }
     const gap = 40; // matches CSS gap
 
     // Formula: Center the Active Slide
-    // We will calculate from the left edge (0) to avoid ambiguity with CSS 'left: 50%'
-    track.style.left = '0';
-    const containerWidth = track.parentElement.offsetWidth;
+    // Start track at exact center of the screen
+    track.style.left = '50%';
 
-    // Distance from track start to slide center
+    // Distance from track's left edge to the center of the active slide
     const slideCenterRel = (currentSlideIndex * (slideWidth + gap)) + (slideWidth / 2);
 
-    // Shift track so slide center aligns with container center + 10% offset to the right
-    const translateVal = (containerWidth * 0.68) - slideCenterRel;
-
-    // Use translate(X, -50%) to maintain vertical centering defined in CSS
-    track.style.transform = `translate(${translateVal}px, -50%)`;
+    // Shift track left so the active slide's center aligns with the screen center
+    track.style.transform = `translate(-${slideCenterRel}px, -50%)`;
 
     // Update Button States
     prevBtn.style.opacity = currentSlideIndex === 0 ? 0.3 : 1;
