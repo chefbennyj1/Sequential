@@ -40,6 +40,10 @@ export async function init(container) {
 
     // Handle Window Resize for Centering
     window.addEventListener('resize', updateCarouselPosition);
+
+    // Force a position recalculation after the layout has painted and CSS is applied
+    setTimeout(updateCarouselPosition, 100);
+    setTimeout(updateCarouselPosition, 500);
 }
 
 async function fetchLibraryDataLocal() {
