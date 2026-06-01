@@ -69,10 +69,20 @@ function renderCarousel() {
         const slide = clone.querySelector('.carousel-slide');
 
         // Populate Data
-        slide.querySelector('.cover-image').src = series.coverImage;
-        slide.querySelector('.series-title').textContent = series.title;
-        slide.querySelector('.series-title').title = series.title; // For glitch attr
+        const titleEl = slide.querySelector('.series-title');
+        titleEl.textContent = series.title;
+        titleEl.title = series.title; // For glitch attr
+        titleEl.classList.remove('glitch-text'); // Remove legacy class
+        
         slide.querySelector('.series-description').textContent = series.description || "No description available.";
+
+        const coverImageEl = slide.querySelector('.cover-image');
+        coverImageEl.src = series.coverImage;
+        
+        // Hide title if we have a real cover image (not the default fallback folder.png)
+        if (series.coverImage && !series.coverImage.endsWith('folder.png')) {
+             titleEl.style.display = 'none';
+        }
 
         // Button Link
         const btn = slide.querySelector('.get-started-btn-hero');
