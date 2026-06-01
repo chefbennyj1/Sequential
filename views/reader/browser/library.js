@@ -146,8 +146,10 @@ function updateCarouselPosition() {
     // Calculate Center
     // Use offsetWidth to get the layout width. Fallback if hidden/loading.
     let slideWidth = activeSlide.offsetWidth;
-    if (slideWidth === 0) {
-        slideWidth = window.innerWidth * (window.innerWidth <= 1024 ? 0.85 : 0.65);
+    if (slideWidth < 100) {
+        const vh = window.innerHeight / 100;
+        const slideHeight = (window.innerWidth <= 1024) ? (65 * vh) : (80 * vh);
+        slideWidth = slideHeight * (6.625 / 10.25);
     }
     const gap = 40; // matches CSS gap
 
