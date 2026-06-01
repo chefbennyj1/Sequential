@@ -390,24 +390,28 @@ header {
     bottom: 15%;
     left: 8%;
     padding: 15px 40px;
-    background: var(--neon-text-color);
+    background-color: white;
+    background-image: radial-gradient(lightblue 33%, transparent 34%), radial-gradient(lightblue 33%, transparent 34%);
+    background-size: 5px 5px;
+    background-position: 0 0, 2.5px 2.5px;
     color: black;
-    font-family: var(--font-family-comicbook-bold, sans-serif);
+    font-family: var(--font-family-comic-bold, sans-serif);
     font-size: 1.2rem;
     text-transform: uppercase;
     text-decoration: none;
-    border: 2px solid transparent;
+    border: 2px solid black;
     z-index: 9;
     transition: all 0.3s ease;
-    box-shadow: 0 0 20px rgba(23, 158, 199, 0.4);
-    clip-path: polygon(10px 0, 100% 0, 100% calc(100% - 10px), calc(100% - 10px) 100%, 0 100%, 0 10px);
+    box-shadow: 5px 5px 15px rgba(0, 0, 0, 0.5);
+    /* Removed clip-path to match landing page shape */
 }
 
 .get-started-btn-hero:hover {
-    background: transparent;
-    color: var(--neon-text-color);
-    border-color: var(--neon-text-color);
-    box-shadow: 0 0 30px rgba(23, 158, 199, 0.6);
+    background-color: var(--neon-text-color);
+    background-image: radial-gradient(rgba(255,255,255,0.4) 33%, transparent 34%), radial-gradient(rgba(255,255,255,0.4) 33%, transparent 34%);
+    color: white;
+    border-color: black;
+    box-shadow: 8px 8px 20px rgba(0, 0, 0, 0.6);
 }
 
 /* GLITCH ANIMATION (Simplified) */
