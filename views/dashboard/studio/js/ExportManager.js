@@ -27,17 +27,17 @@ export function initExportManager(container) {
                 statusMsg.textContent = data.status;
 
                 // Reset button state if complete or error
-                const isComplete = data.status === 'Export Complete!' || data.status === 'Export & PDF Complete!';
+                const isComplete = data.status.includes('Complete') || data.status.includes('complete');
                 const isError = data.pageId === 'ERROR' || data.pageId === 'PDF Error';
 
                 if (isComplete || isError) {
                     const startExportBtn = document.getElementById('startExportBtn');
                     if (startExportBtn) {
-                        startExportBtn.innerHTML = 'Start Print Export <ion-icon name="print-outline"></ion-icon>';
+                        startExportBtn.innerHTML = 'Start Background Export <ion-icon size="small" name="print"></ion-icon>';
                         startExportBtn.style.pointerEvents = 'auto';
                     }
                     if (isError) statusMsg.style.color = 'red';
-                    else statusMsg.style.color = '';
+                    else statusMsg.style.color = 'var(--cyber-primary, #00ff41)';
                     
                     // Refresh carousel after completion to see new exports
                     if (isComplete && volumeSelect && volumeSelect.value) {
