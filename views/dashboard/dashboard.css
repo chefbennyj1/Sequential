@@ -73,8 +73,7 @@
   width: 450px;
   height: 100%;
   max-width: 95%;
-  border-left: 10px solid #222;
-  border-right: 10px solid #222;
+  border: none;
 }
 
 /* Modal sizing */
