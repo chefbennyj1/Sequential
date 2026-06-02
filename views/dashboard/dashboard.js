@@ -91,6 +91,29 @@ export async function init(container) {
         document.head.appendChild(link);
     }
 
+    // --- AI Status Indicator Logic ---
+    const updateAIIndicator = async () => {
+        try {
+            const res = await fetch('/api/settings/global');
+            if (!res.ok) return;
+            const data = await res.json();
+            const indicator = document.getElementById('dashboard-ai-indicator');
+            const svg = document.getElementById('dashboard-ai-brain-svg');
+            if (data.ok && data.settings && data.settings.vision && data.settings.vision.enabled) {
+                svg.style.fill = '#00ccff';
+                svg.style.filter = 'drop-shadow(0 0 5px rgba(0,204,255,0.5))';
+                indicator.title = 'AI Vision: Enabled';
+            } else {
+                svg.style.fill = '#555';
+                svg.style.filter = 'none';
+                indicator.title = 'AI Vision: Disabled';
+            }
+        } catch (e) { 
+            console.warn("[Dashboard] AI Status indicator check failed (likely permissions)."); 
+        }
+    };
+    updateAIIndicator();
+
     // User & Data Load
     let user;
     try {
