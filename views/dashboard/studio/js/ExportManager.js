@@ -76,14 +76,10 @@ export function initExportManager(container) {
             const presetText = presetSelect ? presetSelect.options[presetSelect.selectedIndex].text : 'UK Table';
             const targetPage = targetPageInput ? targetPageInput.value.trim() : '';
 
-            const portrait = document.getElementById('exportPortraitOption').checked;
-            const landscape = document.getElementById('exportLandscapeOption').checked;
+            // Standardize on Portrait, remove Landscape option as requested.
+            const portrait = true; 
+            const landscape = false;
             const pdf = document.getElementById('exportPdfOption').checked;   
-
-            if(!portrait && !landscape && !pdf) {
-                alert("Please select at least one export format.");
-                return;
-            }
 
             let confirmMsg = 'Are you sure you want to export ' + optionText + ' (' + presetText + ') to High-Res PNGs?';
             if (targetPage) {
