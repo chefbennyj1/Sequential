@@ -24,8 +24,10 @@
         </div>
     `,
     body: `
-        <div class="scroll-wrapper" data-volume-id="${volume._id}" data-current-page="0" data-total-pages=""></div>
-        <div id="gutter-guide"></div>
+        <main id="main-content">
+            <div class="scroll-wrapper" data-volume-id="${volume._id}" data-current-page="0" data-total-pages=""></div>
+            <div id="gutter-guide"></div>
+        </main>
         <style>
             #gutter-guide {
                 position: fixed;

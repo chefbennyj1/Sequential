@@ -9,9 +9,7 @@
 <body class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
     <%- include('./header') %>
 
-    <main id="main-content">
-        <%- body %>
-    </main>
+    <%- body %>
 
     <script>
         window.APP_CONFIG = <%- typeof config !== 'undefined' ? JSON.stringify(config) : '{}' %>;
