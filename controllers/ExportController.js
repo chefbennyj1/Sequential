@@ -375,10 +375,10 @@ class ExportController {
                         const scaleFactor = viewportH / baseHeight;
                         document.documentElement.style.fontSize = (baseFontSize * scaleFactor) + 'px'; 
                         
-                        targetContent.style.setProperty('--speech-bubble-scale', scaleFactor.toFixed(2));
-                        targetContent.style.setProperty('--text-block-scale', scaleFactor.toFixed(2));
-                        targetContent.style.setProperty('--panel-gap', (10 * scaleFactor) + 'px');
-                        targetContent.style.setProperty('--panel-padding', (10 * scaleFactor) + 'px');
+                        masterStage.style.setProperty('--speech-bubble-scale', scaleFactor.toFixed(2));
+                        masterStage.style.setProperty('--text-block-scale', scaleFactor.toFixed(2));
+                        masterStage.style.setProperty('--panel-gap', (10 * scaleFactor) + 'px');
+                        masterStage.style.setProperty('--panel-padding', (10 * scaleFactor) + 'px');
 
                         // Brute Force CSS Injection for Speech Bubbles & Text Blocks
                         const overrideStyle = document.createElement('style');

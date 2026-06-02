@@ -266,7 +266,7 @@ header {
     margin: 0;
     list-style: none;
     position: absolute;
-    top: 50%;
+    top: calc(50% + 20px);
     left: 50%;
     transform: translate(-50%, -50%); /* Centered initially */
     display: flex;
