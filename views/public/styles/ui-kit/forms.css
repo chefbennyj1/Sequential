@@ -1,0 +1,57 @@
+/* Sequential UI Kit - Forms */
+
+.input-field,
+.form-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 20px;
+}
+
+.input-field label,
+.form-group label {
+  color: var(--muted, #888);
+  font-size: 0.9rem;
+  margin-bottom: 6px;
+}
+
+.input-field input,
+.input-field textarea,
+.input-field select,
+.form-group select,
+.gov-input,
+.gov-select {
+  background: var(--bg, #1a1a1a);
+  border: 1px solid var(--border, #333);
+  color: var(--text, #fff);
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  transition: border-color 0.2s, background 0.2s;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.input-field input:focus,
+.input-field textarea:focus,
+.input-field select:focus,
+.form-group select:focus,
+.gov-input:focus,
+.gov-select:focus {
+  outline: none;
+  border-color: var(--accent, #00ccff);
+  background: #111;
+}
+
+.builder-status {
+  margin-top: 15px;
+  padding: 10px;
+  border-radius: 4px;
+  font-size: 0.85rem;
+  min-height: 20px;
+}
+
+/* Mono Input Override */
+.mono-input {
+  font-family: 'Consolas', monospace;
+}

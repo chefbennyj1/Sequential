@@ -4,7 +4,6 @@
 @import url('./styles/base.css');
 @import url('./styles/layout.css');
 @import url('./styles/components.css');
-@import url('./styles/forms.css');
 @import url('./styles/utilities.css');
 @import url('./components/SceneEditor/SceneEditor.css');
 @import url('./components/FileBrowser/FileBrowser.css');

@@ -1,5 +1,7 @@
-/* Shared UI Components */
+/* Deprecated: Shared UI components moved to /views/public/styles/ui-kit/ */
+@import url('/views/public/styles/ui-kit/cards.css');
 
+/* Remaining Sidebar/User Specific Dashboard Components */
 .logo {
   font-weight: 700;
   margin-bottom: 20px;
