@@ -37,33 +37,43 @@ class ExportController {
 
             for (const chapter of chapters) {
                 const chapterPath = path.join(volumePath, chapter);
-                const pages = fs.readdirSync(chapterPath, { withFileTypes: true })
+                const pageNames = fs.readdirSync(chapterPath, { withFileTypes: true })
                     .filter(d => d.isDirectory() && d.name.startsWith('page'))
                     .map(d => d.name)
-                    .sort((a, b) => {
-                        return parseInt(a.replace('page', '')) - parseInt(b.replace('page', ''));
-                    });
+                    .sort((a, b) => parseInt(a.replace('page', '')) - parseInt(b.replace('page', '')));
 
-                for (const pageId of pages) {
+                for (let i = 0; i < pageNames.length; i++) {
+                    const pageId = pageNames[i];
+                    
                     // Filter if targetPage is provided
                     if (targetPage) {
                         const numericTarget = targetPage.replace('page', '');
                         const numericCurrent = pageId.replace('page', '');
                         if (numericCurrent !== numericTarget) {
+                            // Even if it's not the target, we must check if this page is part of a spread containing the target
                             continue;
                         }
                     }
 
                     const jsonPath = path.join(chapterPath, pageId, 'page.json');
+                    let spreadType = 'none';
                     if (fs.existsSync(jsonPath)) {
                         const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
                         if ((!data.media || data.media.length === 0) && (!data.scene || data.scene.length === 0)) continue;
+                        spreadType = data.header?.spread?.type || 'none';
                     }
-                    pagesToRender.push({ chapter, page: pageId });
+
+                    // Group logic: If this is a 'left' page and there is a next page, treat as spread
+                    if (spreadType === 'left' && i < pageNames.length - 1 && !targetPage) {
+                        pagesToRender.push({ chapter, page: pageId, isSpread: true, secondPage: pageNames[i+1] });
+                        i++; // Skip the next page folder as it's handled by this render
+                    } else {
+                        pagesToRender.push({ chapter, page: pageId, isSpread: false });
+                    }
                 }
             }
 
-            res.json({ ok: true, message: `Started background export of ${pagesToRender.length} pages.`, totalPages: pagesToRender.length });
+            res.json({ ok: true, message: `Started background export of ${pagesToRender.length} rendering groups.`, totalPages: pagesToRender.length });
 
             const host = req.get('host');
             const baseUrl = `${req.protocol}://${host}`;
@@ -161,11 +171,16 @@ class ExportController {
                 // Add timestamp for cache busting
                 let url = `${baseUrl}/viewer?series=${series}&volume=${volume}&chapter=${target.chapter}&page=${pageNum}&exportSecret=${INTERNAL_SECRET}&t=${Date.now()}`;
                 
+                // If it's a spread, we must ensure spread mode is enabled in the viewer
+                if (target.isSpread) {
+                    url += '&spread=true';
+                }
+
                 if (options.preset === 'us-portrait') {
                     url += '&mode=portrait';
                 }
 
-                console.log(`[EXPORT] (${i + 1}/${totalPages}) Rendering ${target.page}...`);
+                console.log(`[EXPORT] (${i + 1}/${totalPages}) Rendering ${target.page}${target.isSpread ? ' (+ ' + target.secondPage + ')' : ''}...`);
                 if (options.io) {
                     options.io.emit('export_progress', {
                         current: i + 1,
@@ -180,6 +195,22 @@ class ExportController {
                     
                     // Wait for the application's own render flag
                     await page.waitForFunction(() => window.renderComplete === true, { timeout: 60000 });
+
+                    // Determine current viewport needs
+                    let currentBleedWidth = BLEED_WIDTH;
+                    let currentBleedHeight = BLEED_HEIGHT;
+                    let currentIsSpread = target.isSpread;
+
+                    // If we are in us-portrait but hit a spread, we need to double the width to render correctly
+                    if (currentIsSpread && options.preset === 'us-portrait') {
+                        currentBleedWidth = PAGE_WIDTH * 2;
+                    }
+
+                    await page.setViewport({
+                        width: currentBleedWidth,
+                        height: currentBleedHeight,
+                        deviceScaleFactor: 1
+                    });
 
                     // --- FORCE PRINT LAYOUT (WHITE STAGE STRATEGY) ---
                     const evalResult = await page.evaluate(async (viewportW, viewportH, currentPreset) => {
@@ -344,10 +375,10 @@ class ExportController {
                         const scaleFactor = viewportH / baseHeight;
                         document.documentElement.style.fontSize = (baseFontSize * scaleFactor) + 'px'; 
                         
-                        container.style.setProperty('--speech-bubble-scale', scaleFactor.toFixed(2));
-                        container.style.setProperty('--text-block-scale', scaleFactor.toFixed(2));
-                        container.style.setProperty('--panel-gap', (10 * scaleFactor) + 'px');
-                        container.style.setProperty('--panel-padding', (10 * scaleFactor) + 'px');
+                        targetContent.style.setProperty('--speech-bubble-scale', scaleFactor.toFixed(2));
+                        targetContent.style.setProperty('--text-block-scale', scaleFactor.toFixed(2));
+                        targetContent.style.setProperty('--panel-gap', (10 * scaleFactor) + 'px');
+                        targetContent.style.setProperty('--panel-padding', (10 * scaleFactor) + 'px');
 
                         // Brute Force CSS Injection for Speech Bubbles & Text Blocks
                         const overrideStyle = document.createElement('style');
@@ -392,7 +423,7 @@ class ExportController {
                         });
 
                         return { ok: true };
-                    }, BLEED_WIDTH, BLEED_HEIGHT, options.preset);
+                    }, currentBleedWidth, currentBleedHeight, options.preset);
 
                     if (evalResult.error) {
                         console.error(`[EXPORT] Evaluation failed for ${target.page}: ${evalResult.error}`);
@@ -400,7 +431,7 @@ class ExportController {
                     }
 
                     await page.evaluateHandle('document.fonts.ready');
-                    await new Promise(r => setTimeout(r, 4000)); // Increased to 4s to ensure complex layouts/masks are fully stable
+                    await new Promise(r => setTimeout(r, 4000)); // Ensure complex layouts/masks are fully stable
 
                     const pageNumPadded = target.page.replace('page', '').padStart(3, '0');
 
@@ -408,7 +439,7 @@ class ExportController {
                         const fullPath = path.join(exportDir, `page${pageNumPadded}_FULL.png`);
                         await page.screenshot({
                             path: fullPath,
-                            fullPage: false // Viewport is already set to BLEED_WIDTH/HEIGHT
+                            fullPage: false 
                         });
                     }
 
@@ -416,22 +447,26 @@ class ExportController {
                         const fileName = options.preset === 'us-portrait' ? `page${pageNumPadded}_PORTRAIT.png` : `page${pageNumPadded}a.png`;
                         const leftPath = path.join(exportDir, fileName);
                         
-                        // For portrait, we capture the left half of the spread (or full page if us-portrait)
+                        // For portrait, we capture the left half of the spread (or full page if single)
                         await page.screenshot({
                             path: leftPath,
-                            clip: { x: 0, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT }
+                            clip: { x: 0, y: 0, width: PAGE_WIDTH, height: currentBleedHeight }
                         });
 
-                        if (options.preset !== 'us-portrait') {
-                            const rightPath = path.join(exportDir, `page${pageNumPadded}b.png`);
+                        // Capture the second page of the spread if it exists
+                        if (target.isSpread) {
+                            const secondNumPadded = target.secondPage.replace('page', '').padStart(3, '0');
+                            const fileNameB = options.preset === 'us-portrait' ? `page${secondNumPadded}_PORTRAIT.png` : `page${pageNumPadded}b.png`;
+                            const rightPath = path.join(exportDir, fileNameB);
+                            
                             await page.screenshot({
                                 path: rightPath,
-                                clip: { x: PAGE_WIDTH, y: 0, width: PAGE_WIDTH, height: PAGE_HEIGHT }
+                                clip: { x: PAGE_WIDTH, y: 0, width: PAGE_WIDTH, height: currentBleedHeight }
                             });
                         }
                     }
 
-                    console.log(`[EXPORT] SUCCESS: ${target.page}`);
+                    console.log(`[EXPORT] SUCCESS: ${target.page}${target.isSpread ? ' (Spread)' : ''}`);
 
                 } catch (e) {
                     console.error(`[EXPORT] ERROR ${target.page}:`, e.message);
