@@ -36,8 +36,15 @@ exports.getSeriesVolumes = async (req, res) => {
           for (const volume of series.volumes) {
               let volumeDirName = `volume-${volume.index}`; 
               const volumeDir = path.join(seriesDir, 'Volumes', volumeDirName);
-              const coverName = `volume-${volume.index}`;
-              const coverFile = await MediaService.findCoverImage(volumeDir, coverName);
+              
+              // 1. Try 'folder.<ext>' first
+              let coverFile = await MediaService.findCoverImage(volumeDir, 'folder');
+              
+              // 2. Fallback to 'volume-<N>.<ext>'
+              if (!coverFile) {
+                  const coverName = `volume-${volume.index}`;
+                  coverFile = await MediaService.findCoverImage(volumeDir, coverName);
+              }
 
               if (coverFile) {
                   volume.coverImage = `/Library/${series.folderName}/Volumes/${volumeDirName}/${coverFile}`;
