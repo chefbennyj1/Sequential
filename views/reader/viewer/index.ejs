@@ -110,39 +110,48 @@
                 const spreads = [];
                 
                 // Group pages into spreads or single pages
+                // If exportSecret is present, force every page to be single
+                const isExportMode = !!exportSecret;
+
                 for (let i = 0; i < chapterView.pages.length; i++) {
                     const page = chapterView.pages[i];
                     const spreadData = page.header?.spread || { type: 'none' };
                     const layoutId = page.layouts?.portrait || page.layouts?.landscape;
                     const isEven = page.index % 2 === 0;
 
-                    // CASE 1: Explicit 'left' of a spread in metadata
-                    if (spreadData.type === 'left' && i < chapterView.pages.length - 1) {
-                        const next = chapterView.pages[i + 1];
-                        spreads.push([page, next]);
-                        i++; // Skip paired page
-                    } 
-                    // CASE 2: Legacy Spread Layout (Self-contained wide page)
-                    else if (layoutId === 'Standard_Page_Spread') {
+                    if (isExportMode) {
+                        // FORCE SINGLE PAGE MODE FOR EXPORTER
                         spreads.push([page]);
-                    }
-                    // CASE 3: Manual Spread Mode Fallback (Page 1 single, 2+3, 4+5...)
-                    else if (window.GEMINI_SPREAD_MODE && page.index > 1 && isEven && i < chapterView.pages.length - 1) {
-                         const next = chapterView.pages[i + 1];
-                         // Only pair if next page isn't explicitly a 'left' page or a legacy spread
-                         const nextSpreadData = next.header?.spread || { type: 'none' };
-                         const nextLayoutId = next.layouts?.portrait || next.layouts?.landscape;
-                         
-                         if (nextSpreadData.type !== 'left' && nextLayoutId !== 'Standard_Page_Spread') {
-                             spreads.push([page, next]);
-                             i++;
-                         } else {
-                             spreads.push([page]);
-                         }
-                    }
-                    // CASE 4: Single Page
-                    else {
-                        spreads.push([page]);
+                    } else {
+                        // NORMAL BROWSER BEHAVIOR
+                        // CASE 1: Explicit 'left' of a spread in metadata
+                        if (spreadData.type === 'left' && i < chapterView.pages.length - 1) {
+                            const next = chapterView.pages[i + 1];
+                            spreads.push([page, next]);
+                            i++; // Skip paired page
+                        } 
+                        // CASE 2: Legacy Spread Layout (Self-contained wide page)
+                        else if (layoutId === 'Standard_Page_Spread') {
+                            spreads.push([page]);
+                        }
+                        // CASE 3: Manual Spread Mode Fallback (Page 1 single, 2+3, 4+5...)
+                        else if (window.GEMINI_SPREAD_MODE && page.index > 1 && isEven && i < chapterView.pages.length - 1) {
+                             const next = chapterView.pages[i + 1];
+                             // Only pair if next page isn't explicitly a 'left' page or a legacy spread
+                             const nextSpreadData = next.header?.spread || { type: 'none' };
+                             const nextLayoutId = next.layouts?.portrait || next.layouts?.landscape;
+                             
+                             if (nextSpreadData.type !== 'left' && nextLayoutId !== 'Standard_Page_Spread') {
+                                 spreads.push([page, next]);
+                                 i++;
+                             } else {
+                                 spreads.push([page]);
+                             }
+                        }
+                        // CASE 4: Single Page
+                        else {
+                            spreads.push([page]);
+                        }
                     }
                 }
 
