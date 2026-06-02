@@ -37,7 +37,8 @@ body {
     transform-origin: center center; 
     /* transform set via JS */
     margin: 0 auto; 
-    box-shadow: 0 0 40px rgba(0,0,0,0.3); 
+    border: 1px solid #ccc; /* Flat border instead of soft shadow */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
     opacity: 1 !important; /* Override base layout hidden state */
     flex-shrink: 0;
 
@@ -53,25 +54,20 @@ body {
 /* Spread specific overrides */
 .spread-view .section-container, .spread-view .page-layout {
     margin: 0;
-}
-
-.spread-view .page-container.half-width:first-child .section-container,
-.spread-view .page-container.half-width:first-child .page-layout {
-    transform-origin: right center;
-    box-shadow: -20px 0 40px rgba(0,0,0,0.2); /* Shadow only on outer left edge */
+    border-right: none;
 }
 
 .spread-view .page-container.half-width:last-child .section-container,
 .spread-view .page-container.half-width:last-child .page-layout {
     transform-origin: left center;
-    box-shadow: 20px 0 40px rgba(0,0,0,0.2); /* Shadow only on outer right edge */
+    border-right: 1px solid #ccc;
 }
 
 .panel { 
-    border: 2px dashed #ccc; 
+    border: 1px solid #ddd; /* Clean flat border */
     position: relative; 
     cursor: pointer;
-    background: #f9f9f9;
+    background: #fdfdfd;
 }
 
 .panel:hover {
@@ -80,8 +76,8 @@ body {
 }
 
 .panel.drag-over { 
-    border: 4px solid #007bff; 
-    background: rgba(0, 123, 255, 0.2); 
+    border: 2px solid #007bff; 
+    background: rgba(0, 123, 255, 0.1); 
     z-index: 10; 
 }
 
@@ -89,14 +85,13 @@ body {
 .panel-label {
     position: absolute; top: 0; left: 0; right:0; bottom:0;
     display: flex; align-items: center; justify-content: center;
-    background: rgba(255,255,255,0.5); 
-    color: #666;
+    background: rgba(255,255,255,0.4); 
+    color: #888;
     font-weight: bold; 
     pointer-events: none;
     transition: opacity 0.2s, background 0.2s;
     font-size: 1.2rem;
     text-transform: uppercase;
-    border: 1px solid transparent;
     text-align: center;
     flex-direction: column;
 }
@@ -127,12 +122,12 @@ body {
 
 .panel.selected {
     border-color: #ff9800 !important;
-    box-shadow: 0 0 10px #ff9800;
+    background: rgba(255, 152, 0, 0.05);
 }
 
 .panel.floating-panel {
-    border: solid 2px #000;
-    box-shadow: 0 0 0 5px #fff, 0 15px 30px rgba(0, 0, 0, 0.5);
+    border: solid 1px #000;
+    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2); /* Reduced shadow, removed white bevel */
     z-index: 100;
     border-radius: 0;
 }
