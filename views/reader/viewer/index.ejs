@@ -116,7 +116,6 @@
                 for (let i = 0; i < chapterView.pages.length; i++) {
                     const page = chapterView.pages[i];
                     const spreadData = page.header?.spread || { type: 'none' };
-                    const layoutId = page.layouts?.portrait || page.layouts?.landscape;
                     const isEven = page.index % 2 === 0;
 
                     if (isExportMode) {
@@ -130,25 +129,20 @@
                             spreads.push([page, next]);
                             i++; // Skip paired page
                         } 
-                        // CASE 2: Legacy Spread Layout (Self-contained wide page)
-                        else if (layoutId === 'Standard_Page_Spread') {
-                            spreads.push([page]);
-                        }
-                        // CASE 3: Manual Spread Mode Fallback (Page 1 single, 2+3, 4+5...)
+                        // CASE 2: Manual Spread Mode Fallback (Page 1 single, 2+3, 4+5...)
                         else if (window.GEMINI_SPREAD_MODE && page.index > 1 && isEven && i < chapterView.pages.length - 1) {
                              const next = chapterView.pages[i + 1];
-                             // Only pair if next page isn't explicitly a 'left' page or a legacy spread
+                             // Only pair if next page isn't explicitly a 'left' page
                              const nextSpreadData = next.header?.spread || { type: 'none' };
-                             const nextLayoutId = next.layouts?.portrait || next.layouts?.landscape;
                              
-                             if (nextSpreadData.type !== 'left' && nextLayoutId !== 'Standard_Page_Spread') {
+                             if (nextSpreadData.type !== 'left') {
                                  spreads.push([page, next]);
                                  i++;
                              } else {
                                  spreads.push([page]);
                              }
                         }
-                        // CASE 4: Single Page
+                        // CASE 3: Single Page
                         else {
                             spreads.push([page]);
                         }
@@ -158,19 +152,17 @@
                 // Render the groups (sections)
                 spreads.forEach((group, index) => {
                     const isDualSpread = group.length > 1;
-                    const isLegacyWide = group.length === 1 && (group[0].layouts?.portrait === 'Standard_Page_Spread' || group[0].layouts?.landscape === 'Standard_Page_Spread');
 
                     const section = document.createElement("section");
                     section.id = 'section-' + index;
                     section.className = 'section-' + index + ' scroll-section page-container';
                     
-                    if (isDualSpread || isLegacyWide) {
+                    if (isDualSpread) {
                         section.classList.add('spread-mode');
-                        if (isLegacyWide) section.classList.add('full-width-spread');
                     }
 
                     // Cover page logic
-                    if (group.length === 1 && group[0].index === 1 && !isLegacyWide) {
+                    if (group.length === 1 && group[0].index === 1) {
                         section.classList.add('cover-section');
                     }
 
