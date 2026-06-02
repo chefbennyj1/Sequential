@@ -217,10 +217,11 @@ class ExportController {
                         await waitForImages();
 
                         const container = activeSection.querySelector('.section-container');
+                        const spreadWrapper = activeSection.querySelector('.spread-wrapper');
                         const layout = activeSection.querySelector('.page-layout');
 
-                        if (!container) {
-                            console.error('[EXPORT] CRITICAL: No .section-container found in active section!');
+                        if (!container && !spreadWrapper) {
+                            console.error('[EXPORT] CRITICAL: No .section-container or .spread-wrapper found in active section!');
                             return { error: 'no-container' };
                         }
 
@@ -255,8 +256,9 @@ class ExportController {
 
                         document.body.appendChild(stage);
 
-                        // 4. Move container into the black stage
-                        stage.appendChild(container);
+                        // 4. Move content into the black stage
+                        const targetContent = spreadWrapper || container;
+                        stage.appendChild(targetContent);
 
                         // Determine container height based on physical paper size
                         let containerHeight = '100%';
@@ -276,24 +278,53 @@ class ExportController {
                         }
 
                         // Position it perfectly inside the stage
-                        container.style.setProperty('visibility', 'visible', 'important');
-                        container.style.setProperty('opacity', '1', 'important');
-                        container.style.setProperty('position', 'relative', 'important');
-                        container.style.setProperty('top', '0', 'important');
-                        container.style.setProperty('left', '0', 'important');
-                        container.style.setProperty('width', '100%', 'important');
-                        container.style.setProperty('height', containerHeight, 'important');
-                        container.style.setProperty('min-height', containerHeight, 'important');
-                        container.style.setProperty('max-height', containerHeight, 'important');
-                        container.style.setProperty('margin', '0', 'important');
+                        targetContent.style.setProperty('visibility', 'visible', 'important');
+                        targetContent.style.setProperty('opacity', '1', 'important');
+                        targetContent.style.setProperty('position', 'relative', 'important');
+                        targetContent.style.setProperty('top', '0', 'important');
+                        targetContent.style.setProperty('left', '0', 'important');
+                        targetContent.style.setProperty('width', '100%', 'important');
+                        targetContent.style.setProperty('height', containerHeight, 'important');
+                        targetContent.style.setProperty('min-height', containerHeight, 'important');
+                        targetContent.style.setProperty('max-height', containerHeight, 'important');
+                        targetContent.style.setProperty('margin', '0', 'important');
                         // Use a solid white background on the container to create the outer frame
-                        container.style.setProperty('background', '#ffffff', 'important');
-                        container.style.setProperty('border', 'none', 'important');
-                        container.style.setProperty('box-shadow', 'none', 'important');
-                        container.style.setProperty('transform', 'none', 'important');
-                        container.style.setProperty('box-sizing', 'border-box', 'important');
+                        targetContent.style.setProperty('background', '#ffffff', 'important');
+                        targetContent.style.setProperty('border', 'none', 'important');
+                        targetContent.style.setProperty('box-shadow', 'none', 'important');
+                        targetContent.style.setProperty('transform', 'none', 'important');
+                        targetContent.style.setProperty('box-sizing', 'border-box', 'important');
 
-                        if (layout) {
+                        // Special handling for Dual Spreads
+                        if (spreadWrapper) {
+                            spreadWrapper.style.setProperty('display', 'flex', 'important');
+                            spreadWrapper.style.setProperty('gap', '0', 'important');
+                            
+                            const inners = spreadWrapper.querySelectorAll('.page-inner-container');
+                            inners.forEach(inner => {
+                                inner.style.setProperty('width', '50%', 'important');
+                                inner.style.setProperty('height', '100%', 'important');
+                                inner.style.setProperty('overflow', 'hidden', 'important');
+                                
+                                const innerContainer = inner.querySelector('.section-container');
+                                if (innerContainer) {
+                                    innerContainer.style.setProperty('width', '100%', 'important');
+                                    innerContainer.style.setProperty('height', '100%', 'important');
+                                    innerContainer.style.setProperty('background', '#ffffff', 'important');
+                                    
+                                    const innerLayout = innerContainer.querySelector('.page-layout');
+                                    if (innerLayout) {
+                                        innerLayout.style.setProperty('height', '100%', 'important');
+                                        innerLayout.style.setProperty('width', '100%', 'important');
+                                        innerLayout.style.setProperty('padding', '30px', 'important');
+                                        innerLayout.style.setProperty('gap', '30px', 'important');
+                                        innerLayout.style.setProperty('box-sizing', 'border-box', 'important');
+                                    }
+                                }
+                            });
+                        }
+
+                        if (!spreadWrapper && layout) {
                             layout.style.setProperty('height', '100%', 'important');
                             layout.style.setProperty('width', '100%', 'important');
                             layout.style.setProperty('padding', '30px', 'important'); // Scaled from 10px
