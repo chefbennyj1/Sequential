@@ -1,37 +1,37 @@
-<div class="section-container">
-    <div class="carousel-wrapper">
-        <div class="carousel-nav prev" id="prevBtn"><ion-icon name="chevron-back-outline"></ion-icon></div>
-        
-        <div class="carousel-track-container">
-            <ul class="carousel-track" id="libraryTrack">
-                <!-- Library Items Injected Here -->
-            </ul>
-        </div>
+<div class="library-root">
+    <div class="library-header">
+        <h1 id="library-logo">MY COLLECTION</h1>
+        <p class="text-muted">Select a series to begin reading.</p>
+    </div>
 
-        <div class="carousel-nav next" id="nextBtn"><ion-icon name="chevron-forward-outline"></ion-icon></div>
+    <div class="library-grid-container">
+        <div class="library-grid" id="libraryGrid">
+            <!-- Library Items Injected Here -->
+        </div>
     </div>
     
     <!-- Template for a Library Item -->
     <template id="library-item-template">
-        <li class="carousel-slide">
-            <div class="shadow-wrapper">
-                <div class="video-container">
-                    <div class="hero-image-wrapper">
+        <div class="library-card">
+            <div class="card-shadow-wrapper">
+                <div class="card-content-container">
+                    <div class="card-image-wrapper">
                         <!-- Cover Image (Static) -->
                         <img class="cover-image" src="" alt="Cover" />
-                        <!-- Active Slide Image (Dynamic) -->
-                        <img class="active-image" src="" alt="Active" style="opacity: 0;" />
                     </div>
                     
-                    <div class="logo-container">
-                        <h1 class="series-title glitch-text" title="">TITLE</h1>
+                    <div class="card-overlay">
+                        <div class="card-info-top">
+                            <h2 class="series-title">TITLE</h2>
+                        </div>
+                        
+                        <div class="card-info-bottom">
+                            <p class="series-description"></p>
+                            <a href="#" class="btn read-now-btn">READ NOW</a>
+                        </div>
                     </div>
-                    
-                    <p class="series-description"></p>
-
-                    <a href="#" class="btn get-started-btn-hero">READ NOW</a>
                 </div>
             </div>
-        </li>
+        </div>
     </template>
 </div>
