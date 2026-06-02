@@ -158,8 +158,13 @@
                 // Render the groups (sections)
                 spreads.forEach((group, index) => {
                     const isDualSpread = group.length > 1;
-                    const isLegacyWide = group.length === 1 && (group[0].layouts?.portrait === 'Standard_Page_Spread' || group[0].layouts?.landscape === 'Standard_Page_Spread');
+                    let isLegacyWide = group.length === 1 && (group[0].layouts?.portrait === 'Standard_Page_Spread' || group[0].layouts?.landscape === 'Standard_Page_Spread');
                     
+                    // FORCE SINGLE PAGE LAYOUT IF EXPORTING
+                    if (isExportMode) {
+                        isLegacyWide = false;
+                    }
+
                     const section = document.createElement("section");
                     section.id = 'section-' + index;
                     section.className = 'section-' + index + ' scroll-section page-container';
