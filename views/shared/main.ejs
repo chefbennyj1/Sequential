@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <%- include('../partials/head') %>
+    <%- include('./head') %>
     <% if (typeof extraStyles !== 'undefined') { %>
         <%- extraStyles %>
     <% } %>
 </head>
 <body class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
-    <%- include('../partials/header') %>
+    <%- include('./header') %>
 
     <main id="main-content">
         <%- body %>
