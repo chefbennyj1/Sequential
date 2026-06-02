@@ -962,7 +962,11 @@
         </button>
 
         <!-- Preview Carousel -->
-        <div id="export-carousel-container" class="critic-carousel-wrapper margin-t-30">
+        <div class="flex-row justify-between align-center margin-t-30 margin-b-10">
+            <h4 class="text-accent margin-0">Pages Preview</h4>
+            <button id="refreshExportCarouselBtn" class="action-btn small" title="Refresh Previews"><ion-icon name="refresh"></ion-icon></button>
+        </div>
+        <div id="export-carousel-container" class="critic-carousel-wrapper">
             <div id="export-carousel" class="critic-carousel">
                 <div class="text-muted padding-20">Select a volume to preview pages.</div>
             </div>
@@ -998,6 +1002,10 @@
             </button>
         </div>
 
+        <div class="flex-row justify-between align-center margin-b-10">
+            <h4 class="text-accent margin-0">Story Timeline</h4>
+            <button id="refreshCriticCarouselBtn" class="action-btn small" title="Refresh Previews"><ion-icon name="refresh"></ion-icon></button>
+        </div>
         <div id="critic-carousel-container" class="critic-carousel-wrapper margin-b-30">
             <div id="critic-carousel" class="critic-carousel">
                 <!-- Pages injected here -->
