@@ -45,16 +45,6 @@ class ExportController {
                 for (let i = 0; i < pageNames.length; i++) {
                     const pageId = pageNames[i];
                     
-                    // Filter if targetPage is provided
-                    if (targetPage) {
-                        const numericTarget = targetPage.replace('page', '');
-                        const numericCurrent = pageId.replace('page', '');
-                        if (numericCurrent !== numericTarget) {
-                            // Even if it's not the target, we must check if this page is part of a spread containing the target
-                            continue;
-                        }
-                    }
-
                     const jsonPath = path.join(chapterPath, pageId, 'page.json');
                     let spreadType = 'none';
                     if (fs.existsSync(jsonPath)) {
@@ -64,7 +54,7 @@ class ExportController {
                     }
 
                     // Group logic: If this is a 'left' page and there is a next page, treat as spread
-                    if (spreadType === 'left' && i < pageNames.length - 1 && !targetPage) {
+                    if (spreadType === 'left' && i < pageNames.length - 1) {
                         pagesToRender.push({ chapter, page: pageId, isSpread: true, secondPage: pageNames[i+1] });
                         i++; // Skip the next page folder as it's handled by this render
                     } else {
@@ -73,7 +63,18 @@ class ExportController {
                 }
             }
 
-            res.json({ ok: true, message: `Started background export of ${pagesToRender.length} rendering groups.`, totalPages: pagesToRender.length });
+            // Filter if targetPage is provided AFTER grouping, so spreads remain intact
+            let finalPagesToRender = pagesToRender;
+            if (targetPage) {
+                const numericTarget = targetPage.replace('page', '');
+                finalPagesToRender = pagesToRender.filter(group => {
+                    const matchFirst = group.page.replace('page', '') === numericTarget;
+                    const matchSecond = group.isSpread && group.secondPage && group.secondPage.replace('page', '') === numericTarget;
+                    return matchFirst || matchSecond;
+                });
+            }
+
+            res.json({ ok: true, message: `Started background export of ${finalPagesToRender.length} rendering groups.`, totalPages: finalPagesToRender.length });
 
             const host = req.get('host');
             const baseUrl = `${req.protocol}://${host}`;
@@ -83,10 +84,11 @@ class ExportController {
                 landscape: landscape === 'true',
                 pdf: pdf === 'true',
                 preset: activePreset,
-                io: req.app.locals.io
+                io: req.app.locals.io,
+                targetPage: targetPage // Pass targetPage to puppeteer options
             };
 
-            ExportController.runPuppeteerExport(series.folderName, volumeFolderName, pagesToRender, exportDir, baseUrl, options);
+            ExportController.runPuppeteerExport(series.folderName, volumeFolderName, finalPagesToRender, exportDir, baseUrl, options);
 
         } catch (error) {
             console.error('Export Error:', error);
