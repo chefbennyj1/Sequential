@@ -55,12 +55,18 @@ class ExportController {
                     }
 
                     const jsonPath = path.join(chapterPath, pageId, 'page.json');
+                    let isLegacyWide = false;
                     if (fs.existsSync(jsonPath)) {
                         const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
                         if ((!data.media || data.media.length === 0) && (!data.scene || data.scene.length === 0)) continue;
+                        
+                        const layoutId = data.header?.layouts?.portrait || data.header?.layouts?.landscape || data.layouts?.portrait || data.layouts?.landscape;
+                        if (layoutId === 'Standard_Page_Spread') {
+                            isLegacyWide = true;
+                        }
                     }
 
-                    pagesToRender.push({ chapter, page: pageId, isSpread: false });
+                    pagesToRender.push({ chapter, page: pageId, isSpread: false, isLegacyWide });
                 }
             }
 
@@ -449,7 +455,14 @@ class ExportController {
 
                         // Capture the second page of the spread if it exists
                         if (target.isSpread) {
-                            const secondNumPadded = target.secondPage.replace('page', '').padStart(3, '0');
+                            let secondNumPadded;
+                            if (target.secondPage) {
+                                secondNumPadded = target.secondPage.replace('page', '').padStart(3, '0');
+                            } else {
+                                // For legacy wide pages, the second half is logically the next page number
+                                secondNumPadded = String(parseInt(pageNumPadded) + 1).padStart(3, '0');
+                            }
+                            
                             const fileNameB = options.preset === 'us-portrait' ? `page${secondNumPadded}_PORTRAIT.png` : `page${pageNumPadded}b.png`;
                             const rightPath = path.join(exportDir, fileNameB);
                             
