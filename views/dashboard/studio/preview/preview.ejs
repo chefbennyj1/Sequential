@@ -17,12 +17,14 @@
     <input type="file" id="globalPanelUpload" style="display:none" accept="image/*,video/*">
 
     <div id="preview-container" class="<%= isSpread ? 'flex-row' : '' %>">
-        <div class="page-container <%= isSpread ? 'half-width' : '' %>" data-page-id="<%= pageId %>">
-            <%- content %>
-        </div>
-        <% if (isSpread && partnerPage) { %>
-            <div class="page-container half-width" data-page-id="<%= partnerPage.pageId %>">
-                <%- partnerPage.content %>
+        <% if (leftPage) { %>
+            <div class="page-container <%= isSpread ? 'half-width' : '' %>" data-page-id="<%= leftPage.pageId %>">
+                <%- leftPage.html %>
+            </div>
+        <% } %>
+        <% if (isSpread && rightPage) { %>
+            <div class="page-container half-width" data-page-id="<%= rightPage.pageId %>">
+                <%- rightPage.html %>
             </div>
         <% } %>
     </div>
@@ -45,7 +47,7 @@
                 pageId: "<%= pageId %>",
                 mode: mode,
                 isSpread: <%= isSpread %>,
-                partnerPageId: "<%= partnerPage ? partnerPage.pageId : '' %>"
+                partnerPageId: "<%= (isSpread && leftPage && rightPage) ? (pageId === leftPage.pageId ? rightPage.pageId : leftPage.pageId) : '' %>"
             };
 
             await initPreview(container, params);

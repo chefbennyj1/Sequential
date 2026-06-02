@@ -19,6 +19,10 @@ body {
     overflow: hidden;
 }
 
+.spread-view #preview-container {
+    gap: 20px; /* Space between pages in spread */
+}
+
 .page-container {
     display: flex;
     justify-content: center;

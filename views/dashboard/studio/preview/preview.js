@@ -386,7 +386,8 @@ export async function init(container, params) {
 
     function fitContainer() {
         const padding = 20;
-        const availableWidth = window.innerWidth - padding;
+        const gap = params.isSpread ? 20 : 0; // Matches CSS gap
+        const availableWidth = window.innerWidth - padding - gap;
         const availableHeight = window.innerHeight - padding;
         
         pageContainers.forEach(pageCont => {

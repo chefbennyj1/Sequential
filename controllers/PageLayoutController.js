@@ -346,7 +346,8 @@ exports.servePreview = async (req, res) => {
     const mainPage = getPageContent(pageId);
     if (!mainPage) return res.status(404).send("Page not found");
 
-    let partnerPage = null;
+    let leftPage = null;
+    let rightPage = null;
     let isSpread = false;
 
     if (mainPage.spread && mainPage.spread.type !== 'none') {
@@ -354,25 +355,30 @@ exports.servePreview = async (req, res) => {
         const pageMatch = pageId.match(/page(\d+)/i);
         if (pageMatch) {
             const pageNum = parseInt(pageMatch[1]);
-            const isLeft = mainPage.spread.type === 'left';
-            const partnerId = `page${isLeft ? pageNum + 1 : pageNum - 1}`;
-            partnerPage = getPageContent(partnerId);
-            if (partnerPage) partnerPage.pageId = partnerId;
+            const isMainLeft = mainPage.spread.type === 'left';
+            const partnerId = `page${isMainLeft ? pageNum + 1 : pageNum - 1}`;
+            const partnerPage = getPageContent(partnerId);
+            
+            if (isMainLeft) {
+                leftPage = { ...mainPage, pageId };
+                rightPage = partnerPage ? { ...partnerPage, pageId: partnerId } : null;
+            } else {
+                rightPage = { ...mainPage, pageId };
+                leftPage = partnerPage ? { ...partnerPage, pageId: partnerId } : null;
+            }
         }
+    } else {
+        leftPage = { ...mainPage, pageId };
     }
 
     res.render("dashboard/studio/preview/preview", { 
         series: seriesFolderName, 
         volume, 
         chapter, 
-        pageId, 
-        content: mainPage.html,
+        pageId, // This is the 'active' context page
         isSpread,
-        partnerPage: partnerPage ? {
-            pageId: partnerPage.pageId,
-            content: partnerPage.html,
-            type: mainPage.spread.type === 'left' ? 'right' : 'left'
-        } : null
+        leftPage,
+        rightPage
     });
   } catch (err) {
     console.error("Preview Error:", err);
