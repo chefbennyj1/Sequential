@@ -194,19 +194,11 @@ class ExportController {
                     // Wait for the application's own render flag
                     await page.waitForFunction(() => window.renderComplete === true, { timeout: 60000 });
 
-                    // Determine current viewport needs
-                    let currentBleedWidth = BLEED_WIDTH;
-                    let currentBleedHeight = BLEED_HEIGHT;
-                    let currentIsSpread = target.isSpread;
-
-                    // If we are in us-portrait but hit a spread, we need to double the width to render correctly
-                    if (currentIsSpread && options.preset === 'us-portrait') {
-                        currentBleedWidth = PAGE_WIDTH * 2;
-                    }
-
+                    // --- STRICT SINGLE PAGE VIEWPORT ---
+                    // No double-width logic. Every page gets rendered exactly at its intended portrait size.
                     await page.setViewport({
-                        width: currentBleedWidth,
-                        height: currentBleedHeight,
+                        width: BLEED_WIDTH,
+                        height: BLEED_HEIGHT,
                         deviceScaleFactor: 1
                     });
 
@@ -217,9 +209,9 @@ class ExportController {
                         hideList.forEach(s => { document.querySelectorAll(s).forEach(el => el.style.display = 'none'); });
 
                         // 1. Identify active content
-                        const activeSection = document.querySelector('section.active') || document.querySelector('.page-container');
-                        if (!activeSection) {
-                            console.error('[EXPORT] CRITICAL: No active section or page-container found!');
+                        const activeContainer = document.querySelector('.master-stage.active') || document.querySelector('.section-container.active');
+                        if (!activeContainer) {
+                            console.error('[EXPORT] CRITICAL: No active master-stage or section-container found!');
                             return { error: 'no-active-section' };
                         }
 
@@ -245,15 +237,7 @@ class ExportController {
 
                         await waitForImages();
 
-                        // Target the consistent Master Container
-                        const masterStage = activeSection.querySelector('.section-container.master-stage') || activeSection.querySelector('.section-container');
-                        const spreadWrapper = activeSection.querySelector('.spread-wrapper');
-                        const layout = activeSection.querySelector('.page-layout');
-
-                        if (!masterStage) {
-                            console.error('[EXPORT] CRITICAL: No .section-container found in active section!');
-                            return { error: 'no-container' };
-                        }
+                        const masterStage = activeContainer;
 
                         // 2. Clear the Body and Set Black "Bleed" Background
                         Array.from(document.body.children).forEach(child => { child.style.display = 'none'; });
@@ -291,14 +275,6 @@ class ExportController {
 
                         // Determine container height based on physical paper size
                         let containerHeight = '100%';
-                        // If viewport is A4 Landscape (3578 x 2515)
-                        if (viewportW === 3578 && viewportH === 2515) {
-                            // Force 16:9 mathematically
-                            const letterboxH = Math.round(trimW / (16/9));
-                            containerHeight = letterboxH + 'px';
-                        }
-                        
-                        // Handle US Portrait specifically
                         if (currentPreset === 'us-portrait') {
                            // Force portrait aspect ratio for the content container
                            const aspect = 10.25 / 6.625; 
@@ -317,49 +293,19 @@ class ExportController {
                         masterStage.style.setProperty('min-height', containerHeight, 'important');
                         masterStage.style.setProperty('max-height', containerHeight, 'important');
                         masterStage.style.setProperty('margin', '0', 'important');
-                        // Use a solid white background on the container to create the outer frame
                         masterStage.style.setProperty('background', '#ffffff', 'important');
                         masterStage.style.setProperty('border', 'none', 'important');
                         masterStage.style.setProperty('box-shadow', 'none', 'important');
                         masterStage.style.setProperty('transform', 'none', 'important');
                         masterStage.style.setProperty('box-sizing', 'border-box', 'important');
 
-                        // Special handling for Dual Spreads
-                        if (spreadWrapper) {
-                            spreadWrapper.style.setProperty('display', 'flex', 'important');
-                            spreadWrapper.style.setProperty('gap', '0', 'important');
-                            spreadWrapper.style.setProperty('width', '100%', 'important');
-                            spreadWrapper.style.setProperty('height', '100%', 'important');
-                            
-                            const inners = spreadWrapper.querySelectorAll('.page-inner-container');
-                            inners.forEach(inner => {
-                                inner.style.setProperty('width', '50%', 'important');
-                                inner.style.setProperty('height', '100%', 'important');
-                                inner.style.setProperty('overflow', 'hidden', 'important');
-                                
-                                const innerContainer = inner.querySelector('.section-container');
-                                if (innerContainer) {
-                                    innerContainer.style.setProperty('width', '100%', 'important');
-                                    innerContainer.style.setProperty('height', '100%', 'important');
-                                    innerContainer.style.setProperty('background', '#ffffff', 'important');
-                                    
-                                    const innerLayout = innerContainer.querySelector('.page-layout');
-                                    if (innerLayout) {
-                                        innerLayout.style.setProperty('height', '100%', 'important');
-                                        innerLayout.style.setProperty('width', '100%', 'important');
-                                        innerLayout.style.setProperty('padding', '30px', 'important');
-                                        innerLayout.style.setProperty('gap', '30px', 'important');
-                                        innerLayout.style.setProperty('box-sizing', 'border-box', 'important');
-                                    }
-                                }
-                            });
-                        }
-
-                        if (!spreadWrapper && layout) {
+                        // Clean up any inner layouts to ensure they fill the new box perfectly
+                        const layout = masterStage.querySelector('.page-layout');
+                        if (layout) {
                             layout.style.setProperty('height', '100%', 'important');
                             layout.style.setProperty('width', '100%', 'important');
-                            layout.style.setProperty('padding', '30px', 'important'); // Scaled from 10px
-                            layout.style.setProperty('gap', '30px', 'important'); // Scaled from 10px
+                            layout.style.setProperty('padding', '30px', 'important'); 
+                            layout.style.setProperty('gap', '30px', 'important'); 
                             layout.style.setProperty('margin', '0', 'important');
                             layout.style.setProperty('box-sizing', 'border-box', 'important');
                         }
@@ -370,7 +316,7 @@ class ExportController {
                         document.head.appendChild(style);
                         
                         // Apply dynamic font scaling based on viewport height
-                        const baseFontSize = 14; // Target ~0.875rem @ 16px base
+                        const baseFontSize = 14; 
                         const baseHeight = 1080;
                         const scaleFactor = viewportH / baseHeight;
                         document.documentElement.style.fontSize = (baseFontSize * scaleFactor) + 'px'; 
@@ -383,37 +329,13 @@ class ExportController {
                         // Brute Force CSS Injection for Speech Bubbles & Text Blocks
                         const overrideStyle = document.createElement('style');
                         overrideStyle.textContent = `
-                            .speech-bubble-container {
-                                width: auto !important;
-                                min-width: 100px !important;
-                            }
-                            .super-bubble { 
-                                font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important;
-                                padding: ${(10 * scaleFactor).toFixed(2)}px ${(15 * scaleFactor).toFixed(2)}px !important;
-                                border-width: ${(3 * scaleFactor).toFixed(2)}px !important;
-                                line-height: 1.1 !important;
-                            }
-                            .speech-text {
-                                font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important;
-                                line-height: 1.1 !important;
-                                -webkit-text-stroke: 0px transparent !important;
-                            }
-                            .text-block {
-                                font-size: ${(16 * scaleFactor).toFixed(2)}px !important;
-                                padding: ${(15 * scaleFactor).toFixed(2)}px !important;
-                            }
-                            .tail-container::before, .tail-container::after {
-                                border-width: ${(15 * scaleFactor).toFixed(2)}px !important;
-                            }
-                            /* Fix for portrait mode scale inheritance */
-                            .portrait-page .super-bubble, .portrait-page .speech-text {
-                                font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important;
-                            }
-                            /* Fix for missing images in Puppeteer: Force a compositing layer */
-                            .panel img {
-                                transform: translateZ(0);
-                                backface-visibility: hidden;
-                            }
+                            .speech-bubble-container { width: auto !important; min-width: 100px !important; }
+                            .super-bubble { font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; padding: ${(10 * scaleFactor).toFixed(2)}px ${(15 * scaleFactor).toFixed(2)}px !important; border-width: ${(3 * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; }
+                            .speech-text { font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; -webkit-text-stroke: 0px transparent !important; }
+                            .text-block { font-size: ${(16 * scaleFactor).toFixed(2)}px !important; padding: ${(15 * scaleFactor).toFixed(2)}px !important; }
+                            .tail-container::before, .tail-container::after { border-width: ${(15 * scaleFactor).toFixed(2)}px !important; }
+                            .portrait-page .super-bubble, .portrait-page .speech-text { font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; }
+                            .panel img { transform: translateZ(0); backface-visibility: hidden; }
                         `;
                         document.head.appendChild(overrideStyle);
 
@@ -423,7 +345,7 @@ class ExportController {
                         });
 
                         return { ok: true };
-                    }, currentBleedWidth, currentBleedHeight, options.preset);
+                    }, BLEED_WIDTH, BLEED_HEIGHT, options.preset);
 
                     if (evalResult.error) {
                         console.error(`[EXPORT] Evaluation failed for ${target.page}: ${evalResult.error}`);
@@ -435,45 +357,16 @@ class ExportController {
 
                     const pageNumPadded = target.page.replace('page', '').padStart(3, '0');
 
-                    if (options.landscape && options.preset !== 'us-portrait') {
-                        const fullPath = path.join(exportDir, `page${pageNumPadded}_FULL.png`);
-                        await page.screenshot({
-                            path: fullPath,
-                            fullPage: false 
-                        });
-                    }
+                    // Every page is just a single portrait screenshot of the full viewport now
+                    const fileName = options.preset === 'us-portrait' ? `page${pageNumPadded}_PORTRAIT.png` : `page${pageNumPadded}_FULL.png`;
+                    const outPath = path.join(exportDir, fileName);
+                    
+                    await page.screenshot({
+                        path: outPath,
+                        fullPage: false // The viewport is exactly the size we need
+                    });
 
-                    if (options.portrait || options.preset === 'us-portrait') {
-                        const fileName = options.preset === 'us-portrait' ? `page${pageNumPadded}_PORTRAIT.png` : `page${pageNumPadded}a.png`;
-                        const leftPath = path.join(exportDir, fileName);
-                        
-                        // For portrait, we capture the left half of the spread (or full page if single)
-                        await page.screenshot({
-                            path: leftPath,
-                            clip: { x: 0, y: 0, width: PAGE_WIDTH, height: currentBleedHeight }
-                        });
-
-                        // Capture the second page of the spread if it exists
-                        if (target.isSpread) {
-                            let secondNumPadded;
-                            if (target.secondPage) {
-                                secondNumPadded = target.secondPage.replace('page', '').padStart(3, '0');
-                            } else {
-                                // For legacy wide pages, the second half is logically the next page number
-                                secondNumPadded = String(parseInt(pageNumPadded) + 1).padStart(3, '0');
-                            }
-                            
-                            const fileNameB = options.preset === 'us-portrait' ? `page${secondNumPadded}_PORTRAIT.png` : `page${pageNumPadded}b.png`;
-                            const rightPath = path.join(exportDir, fileNameB);
-                            
-                            await page.screenshot({
-                                path: rightPath,
-                                clip: { x: PAGE_WIDTH, y: 0, width: PAGE_WIDTH, height: currentBleedHeight }
-                            });
-                        }
-                    }
-
-                    console.log(`[EXPORT] SUCCESS: ${target.page}${target.isSpread ? ' (Spread)' : ''}`);
+                    console.log(`[EXPORT] SUCCESS: ${target.page}`);
 
                 } catch (e) {
                     console.error(`[EXPORT] ERROR ${target.page}:`, e.message);
