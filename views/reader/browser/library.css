@@ -196,6 +196,73 @@
     pointer-events: all;
 }
 
+/* LIST VIEW (Chapters) */
+.library-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+    width: 100%;
+    max-width: 1000px;
+}
+
+.library-item {
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 8px;
+    padding: 20px 30px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.library-item:hover {
+    background: #1a1a1a;
+    border-color: var(--neon-blue);
+    transform: translateX(10px);
+}
+
+.library-item-title {
+    font-family: var(--font-family-comicbook-bold, sans-serif);
+    font-size: 1.4rem;
+    color: white;
+    text-transform: uppercase;
+    margin-bottom: 5px;
+}
+
+.library-item-meta {
+    font-family: 'Consolas', monospace;
+    font-size: 0.9rem;
+    color: #888;
+}
+
+.library-item-icon {
+    font-size: 2rem;
+    color: #444;
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+.library-item:hover .library-item-icon {
+    color: var(--neon-blue);
+    transform: scale(1.2);
+}
+
+.library-back-link {
+    color: #888;
+    text-decoration: none;
+    font-family: 'Consolas', monospace;
+    font-size: 0.9rem;
+    transition: color 0.3s ease;
+    display: inline-block;
+    margin-bottom: 20px;
+}
+
+.library-back-link:hover {
+    color: var(--neon-blue);
+}
+
 /* RESPONSIVENESS */
 @media (max-width: 768px) {
     .library-root { padding: 100px 20px 40px; }

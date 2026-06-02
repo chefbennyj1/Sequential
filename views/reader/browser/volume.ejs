@@ -1,29 +1,30 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <title><%= series.title %> - Vol <%= volume.index %></title>
-  <link rel="stylesheet" href="/views/public/styles/fonts.css">
-  <link rel="stylesheet" href="/views/reader/browser/library.css"> 
-</head>
-<body class="library-body">
-    <a href="/library/series/<%= series._id %>" class="library-back-link">&larr; Back to Volumes</a>
-    
-    <div class="library-container">
-        <h1 class="library-title"><%= series.title %></h1>
-        <h2 class="library-subtitle">Volume <%= volume.index %>: <%= volume.title %></h2>
-        
-        <div class="library-list">
-            <% volume.chapters.forEach(chap => { %>
-                <a href="/viewer?id=<%= volume._id %>&chapter=<%= chap.chapterNumber %>&page=0" class="library-item">
-                    <div>
-                        <div class="library-item-title">Chapter <%= chap.chapterNumber %></div>
-                        <div class="library-card-meta"><%= chap.title || "Untitled" %></div>
-                    </div>
-                    <div class="library-item-icon">▶</div>
-                </a>
-            <% }) %>
+<%- include('../../shared/main', { 
+    title: series.title + ' - Vol ' + volume.index, 
+    bodyClass: 'library-page-shell',
+    body: `
+        <div class="library-root">
+            <div class="library-header">
+                <a href="/library/series/<%= series._id %>" class="library-back-link">&larr; Back to Volumes</a>
+                <h1 id="library-logo">${series.title}</h1>
+                <p class="text-muted">Volume ${volume.index}: ${volume.title}</p>
+            </div>
+            
+            <div class="library-list">
+                <% volume.chapters.forEach(chap => { %>
+                    <a href="/viewer?id=<%= volume._id %>&chapter=<%= chap.chapterNumber %>&page=0" class="library-item">
+                        <div class="library-item-content">
+                            <div class="library-item-title">Chapter <%= chap.chapterNumber %></div>
+                            <div class="library-item-meta"><%= chap.title || "Untitled" %></div>
+                        </div>
+                        <div class="library-item-icon">
+                            <ion-icon name="play-circle-outline"></ion-icon>
+                        </div>
+                    </a>
+                <% }) %>
+            </div>
         </div>
-    </div>
-</body>
-</html>
+    `,
+    extraStyles: `
+        <link rel="stylesheet" href="/views/reader/browser/library.css">
+    `
+}) %>
