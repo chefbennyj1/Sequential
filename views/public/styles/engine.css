@@ -1,4 +1,4 @@
-@import url('/views/shared/css/button.css');
+@import url('/views/public/styles/ui-kit/buttons.css');
 
 :root {
   --background-color: #11292a;
