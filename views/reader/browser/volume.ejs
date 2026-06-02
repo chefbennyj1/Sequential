@@ -4,23 +4,23 @@
     body: `
         <div class="library-root">
             <div class="library-header">
-                <a href="/library/series/<%= series._id %>" class="library-back-link">&larr; Back to Volumes</a>
+                <a href="/library/series/${series._id}" class="library-back-link">&larr; Back to Volumes</a>
                 <h1 id="library-logo">${series.title}</h1>
                 <p class="text-muted">Volume ${volume.index}: ${volume.title}</p>
             </div>
             
             <div class="library-list">
-                <% volume.chapters.forEach(chap => { %>
-                    <a href="/viewer?id=<%= volume._id %>&chapter=<%= chap.chapterNumber %>&page=0" class="library-item">
+                ${volume.chapters.map(chap => `
+                    <a href="/viewer?id=${volume._id}&chapter=${chap.chapterNumber}&page=0" class="library-item">
                         <div class="library-item-content">
-                            <div class="library-item-title">Chapter <%= chap.chapterNumber %></div>
-                            <div class="library-item-meta"><%= chap.title || "Untitled" %></div>
+                            <div class="library-item-title">Chapter ${chap.chapterNumber}</div>
+                            <div class="library-item-meta">${chap.title || "Untitled"}</div>
                         </div>
                         <div class="library-item-icon">
                             <ion-icon name="play-circle-outline"></ion-icon>
                         </div>
                     </a>
-                <% }) %>
+                `).join('')}
             </div>
         </div>
     `,

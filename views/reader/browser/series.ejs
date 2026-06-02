@@ -10,26 +10,26 @@
             </div>
 
             <div class="library-grid">
-                <% series.volumes.forEach(vol => { %>
-                    <a href="/library/series/<%= series._id %>/volume/<%= vol._id %>" class="library-card">
+                ${series.volumes.map(vol => `
+                    <a href="/library/series/${series._id}/volume/${vol._id}" class="library-card">
                         <div class="card-shadow-wrapper">
                             <div class="card-content-container">
                                 <div class="card-image-wrapper">
-                                    <img src="<%= vol.coverImage %>" alt="Volume Cover" class="cover-image">
+                                    <img src="${vol.coverImage}" alt="Volume Cover" class="cover-image">
                                 </div>
                                 <div class="card-overlay">
                                     <div class="card-info-top">
-                                        <h2 class="series-title">Volume <%= vol.index %></h2>
+                                        <h2 class="series-title">Volume ${vol.index}</h2>
                                     </div>
                                     <div class="card-info-bottom">
-                                        <p class="series-description"><%= vol.title %></p>
+                                        <p class="series-description">${vol.title}</p>
                                         <div class="btn read-now-btn">VIEW CHAPTERS</div>
                                     </div>
                                 </div>
                             </div>
                         </div>
                     </a>
-                <% }) %>
+                `).join('')}
             </div>
         </div>
     `,
