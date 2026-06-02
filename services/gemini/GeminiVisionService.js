@@ -35,35 +35,29 @@ class GeminiVisionService {
         try {
             if (!fs.existsSync(imagePath)) return null;
             const stats = fs.statSync(imagePath);
-            if (stats.size === 0) {
-                console.warn(`[GeminiVision] Skipping 0-byte file: ${imagePath}`);
-                return null;
-            }
+            if (stats.size === 0) return null;
 
-            // Logging for native crash diagnosis
-            console.log(`[GeminiVision] [Hash] Starting Sharp process for: ${path.basename(imagePath)} (${(stats.size / 1024).toFixed(2)} KB)`);
-
-            // Use direct path instead of buffer to reduce memory overhead
-            // Set concurrency to 1 and disable cache to avoid native thread/memory exhaustion crashes
+            // Defensive Sharp configuration
             sharp.concurrency(1);
             sharp.cache(false);
-            
-            const processedBuffer = await sharp(imagePath, { failOn: 'none' })
-                .resize(256, 256, { fit: 'inside', withoutEnlargement: true })
-                .grayscale()
-                .toBuffer();
 
-            console.log(`[GeminiVision] [Hash] Sharp finished for: ${path.basename(imagePath)}`);
-            return crypto.createHash('md5').update(processedBuffer).digest('hex');
-        } catch (err) {
-            console.error(`[GeminiVision] Hash Generation Error for ${path.basename(imagePath)}:`, err.message);
-            // Fallback to simple file-based hash if Sharp fails to prevent server crash
+            // Attempt fast visual hash using Sharp
             try {
-                const fileBuffer = await fs.promises.readFile(imagePath);
+                const processedBuffer = await sharp(imagePath, { failOn: 'none' })
+                    .resize(256, 256, { fit: 'inside', withoutEnlargement: true })
+                    .grayscale()
+                    .toBuffer();
+                
+                return crypto.createHash('md5').update(processedBuffer).digest('hex');
+            } catch (sharpError) {
+                console.warn(`[GeminiVision] Sharp failed for ${path.basename(imagePath)}, falling back to file hash.`, sharpError.message);
+                // Fallback to simple file-based MD5
+                const fileBuffer = fs.readFileSync(imagePath);
                 return crypto.createHash('md5').update(fileBuffer).digest('hex');
-            } catch (e) {
-                return null;
             }
+        } catch (err) {
+            console.error(`[GeminiVision] Critical Hashing Error for ${path.basename(imagePath)}:`, err.message);
+            return null;
         }
     }
     async analyzeImage(imagePath, customPrompt = null, context = "") {

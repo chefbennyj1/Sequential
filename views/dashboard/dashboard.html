@@ -503,33 +503,32 @@
 
             <!-- RIGHT: Scanners & Tools -->
             <div class="task-panel">
-                <!-- 1. Library Sync -->
+                <!-- 1. Library Sync (Local) -->
                 <div class="scanner-group margin-b-30 border-dim-bottom padding-b-20">
                     <div class="scanner-header">
                         <h3 class="system-scanner-header">Library Synchronization</h3>
                         <div class="flex-row gap-10">
-                            <button id="run-sync-quick-btn" class="small">Sync Quick</button>
-                            <button id="run-sync-full-btn" class="update__btn">Sync Content</button>
+                            <button id="run-sync-btn" class="update__btn">Sync Library</button>
                         </div>
                     </div>
                     <p class="font-size-07 text-muted margin-t-10">
-                        Detect new series, volumes, and chapters on disk. Does <strong>not</strong> use AI.
+                        Local file scan to discover new volumes/chapters and update image hashes. (Does <strong>not</strong> use AI).
                     </p>
                 </div>
 
-                <!-- 2. Vision AI Processor -->
+                <!-- 2. Vision AI Management -->
                 <div class="scanner-group">
                     <div class="scanner-header">
                         <h3 class="system-scanner-header text-accent">Vision AI Management</h3>
                         <div class="flex-row gap-10">
-                            <button id="run-vision-scan-btn" class="small">Run AI Scan</button>
-                            <button id="run-vision-force-btn" class="update__btn btn-danger-outline">Force Rescan All</button>
+                            <button id="run-vision-scan-btn" class="update__btn">Analyze with AI</button>
+                            <button id="stop-vision-btn" class="small btn-danger-outline">Stop</button>
                         </div>
                     </div>
 
                     <!-- Targeted Scan Options -->
                     <div class="targeted-scan-options margin-t-15 border-dim padding-10 border-radius-4 bg-black-10">
-                        <label class="font-size-07 text-muted margin-b-5 block">Targeted Scan (Optional Scope):</label>
+                        <label class="font-size-07 text-muted margin-b-5 block">Targeted AI Scope (Optional):</label>
                         <div class="flex-row gap-5">
                             <select id="visionSeriesSelect" class="gov-select flex-1 font-size-07"><option value="">All Series</option></select>
                             <select id="visionVolumeSelect" class="gov-select flex-1 font-size-07" disabled><option value="">All Volumes</option></select>
@@ -537,12 +536,10 @@
                         </div>
                     </div>
 
-                    <p class="font-size-07 text-muted margin-t-10">
-                        Generate descriptions for panels via Google Gemini.<br>
-                        <strong>AI Scan:</strong> Processes missing or changed panels.<br>
-                        <strong>Force Rescan:</strong> Re-analyzes <em>everything</em> and overwrites all descriptions.
+                    <p class="font-size-07 text-muted margin-t-15">
+                        Uses Gemini Vision to generate descriptions for missing or changed panels.<br>
+                        <em>Background process. Takes ~4 mins per panel.</em>
                     </p>
-                    <button id="stop-vision-btn" class="small width-100 margin-t-15 btn-danger-outline">Stop AI Processor</button>
                 </div>
                 
                 <div class="scanner-progress-container margin-t-20" style="display: none;">

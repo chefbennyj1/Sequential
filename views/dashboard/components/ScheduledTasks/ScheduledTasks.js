@@ -8,13 +8,11 @@ export default class ScheduledTaskView {
         
         this.addBtn = this.container.querySelector('#add-root-btn');
         
-        // Library Sync Buttons
-        this.syncQuickBtn = this.container.querySelector('#run-sync-quick-btn');
-        this.syncFullBtn = this.container.querySelector('#run-sync-full-btn');
+        // Library Sync Button
+        this.syncBtn = this.container.querySelector('#run-sync-btn');
 
         // Vision AI Controls
         this.visionScanBtn = this.container.querySelector('#run-vision-scan-btn');
-        this.visionForceBtn = this.container.querySelector('#run-vision-force-btn');
         this.visionStopBtn = this.container.querySelector('#stop-vision-btn');
 
         this.visionSeriesSelect = this.container.querySelector('#visionSeriesSelect');
@@ -147,8 +145,7 @@ export default class ScheduledTaskView {
         this.addBtn.addEventListener('click', () => this.addRoot());
         
         // Library Sync
-        this.syncQuickBtn.addEventListener('click', () => this.runLibrarySync(true));
-        this.syncFullBtn.addEventListener('click', () => this.runLibrarySync(false));
+        this.syncBtn.addEventListener('click', () => this.runLibrarySync());
 
         // Vision AI Scoping Logic
         this.visionSeriesSelect.addEventListener('change', () => {
@@ -162,12 +159,7 @@ export default class ScheduledTaskView {
         });
 
         // Vision AI Actions
-        this.visionScanBtn.addEventListener('click', () => this.runVisionAI(false));
-        this.visionForceBtn.addEventListener('click', () => {
-            if (confirm("FORCE RESCAN: This will re-analyze images in the selected scope and OVERWRITE all existing descriptions. Continue?")) {
-                this.runVisionAI(true);
-            }
-        });
+        this.visionScanBtn.addEventListener('click', () => this.runVisionAI());
         this.visionStopBtn.addEventListener('click', () => this.stopVisionAI());
         
         // Back button logic
@@ -180,22 +172,20 @@ export default class ScheduledTaskView {
         }
     }
 
-    async runLibrarySync(isQuick = false) {
-        this.syncQuickBtn.disabled = true;
-        this.syncFullBtn.disabled = true;
-
-        this.syncFullBtn.textContent = "Syncing...";
+    async runLibrarySync() {
+        this.syncBtn.disabled = true;
+        this.syncBtn.textContent = "Syncing...";
         
         this.progressContainer.style.display = 'block';
         this.progressBar.style.width = '0%';
         this.logContainer.innerHTML = ''; 
-        this.log(`> Starting library ${isQuick ? 'QUICK ' : ''}sync...`);
+        this.log(`> Starting library synchronization...`);
 
         try {
             const res = await fetch('/api/library/scan', { 
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ quick: isQuick })
+                body: JSON.stringify({ quick: true }) // Library sync always performs a quick hash check
             });
             const data = await res.json();
 
@@ -204,7 +194,7 @@ export default class ScheduledTaskView {
                 this.log(`> Sync complete.`);
                 data.results.forEach(series => {
                     const count = series.volumes ? series.volumes.length : 0;
-                    this.log(`  + Found: ${series.title} (${count} volumes)`);
+                    this.log(`  + Updated: ${series.title} (${count} volumes)`);
                 });
             } else {
                 this.log(`> Error: ${data.message}`);
@@ -212,20 +202,16 @@ export default class ScheduledTaskView {
         } catch (e) {
             this.log(`> Critical Error: ${e.message}`);
         } finally {
-            this.syncQuickBtn.disabled = false;
-            this.syncFullBtn.disabled = false;
-            this.syncFullBtn.textContent = "Sync Content";
+            this.syncBtn.disabled = false;
+            this.syncBtn.textContent = "Sync Library";
             setTimeout(() => { this.progressContainer.style.display = 'none'; }, 2000);
         }
     }
 
-    async runVisionAI(isForce = false) {
+    async runVisionAI() {
         this.visionScanBtn.disabled = true;
-        this.visionForceBtn.disabled = true;
-        
-        const label = isForce ? "FORCE RESCANNING..." : "AI SCANNING...";
-        const originalForceText = "Force Rescan All";
-        this.visionForceBtn.textContent = label;
+        const originalText = this.visionScanBtn.textContent;
+        this.visionScanBtn.textContent = "Analyzing...";
 
         // Build Scope
         const scope = {};
@@ -240,7 +226,7 @@ export default class ScheduledTaskView {
         this.progressBar.style.width = '0%';
         this.logContainer.innerHTML = '';
         
-        let logMsg = `> Initializing Vision AI ${isForce ? '(FORCE OVERWRITE)' : '(Queue Processor)'}...`;
+        let logMsg = `> Initializing Vision AI Analysis...`;
         if (scope.chapter) logMsg += ` Scope: ${scope.chapter}`;
         else if (scope.volumeId) logMsg += ` Scope: Volume`;
         
@@ -251,7 +237,7 @@ export default class ScheduledTaskView {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ 
-                    force: isForce,
+                    force: false, // Default to analysis mode (missing/changed)
                     scope: Object.keys(scope).length > 0 ? scope : null
                 })
             });
@@ -267,8 +253,7 @@ export default class ScheduledTaskView {
             this.log(`> Vision Critical Error: ${e.message}`);
         } finally {
             this.visionScanBtn.disabled = false;
-            this.visionForceBtn.disabled = false;
-            this.visionForceBtn.textContent = originalForceText;
+            this.visionScanBtn.textContent = originalText;
             setTimeout(() => { this.progressContainer.style.display = 'none'; }, 2000);
         }
     }
