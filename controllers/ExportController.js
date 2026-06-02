@@ -247,12 +247,13 @@ class ExportController {
 
                         await waitForImages();
 
-                        const container = activeSection.querySelector('.section-container');
+                        // Target the consistent Master Container
+                        const masterStage = activeSection.querySelector('.section-container.master-stage') || activeSection.querySelector('.section-container');
                         const spreadWrapper = activeSection.querySelector('.spread-wrapper');
                         const layout = activeSection.querySelector('.page-layout');
 
-                        if (!container && !spreadWrapper) {
-                            console.error('[EXPORT] CRITICAL: No .section-container or .spread-wrapper found in active section!');
+                        if (!masterStage) {
+                            console.error('[EXPORT] CRITICAL: No .section-container found in active section!');
                             return { error: 'no-container' };
                         }
 
@@ -287,9 +288,8 @@ class ExportController {
 
                         document.body.appendChild(stage);
 
-                        // 4. Move content into the black stage
-                        const targetContent = spreadWrapper || container;
-                        stage.appendChild(targetContent);
+                        // 4. Move master stage into the black stage
+                        stage.appendChild(masterStage);
 
                         // Determine container height based on physical paper size
                         let containerHeight = '100%';
@@ -309,27 +309,29 @@ class ExportController {
                         }
 
                         // Position it perfectly inside the stage
-                        targetContent.style.setProperty('visibility', 'visible', 'important');
-                        targetContent.style.setProperty('opacity', '1', 'important');
-                        targetContent.style.setProperty('position', 'relative', 'important');
-                        targetContent.style.setProperty('top', '0', 'important');
-                        targetContent.style.setProperty('left', '0', 'important');
-                        targetContent.style.setProperty('width', '100%', 'important');
-                        targetContent.style.setProperty('height', containerHeight, 'important');
-                        targetContent.style.setProperty('min-height', containerHeight, 'important');
-                        targetContent.style.setProperty('max-height', containerHeight, 'important');
-                        targetContent.style.setProperty('margin', '0', 'important');
+                        masterStage.style.setProperty('visibility', 'visible', 'important');
+                        masterStage.style.setProperty('opacity', '1', 'important');
+                        masterStage.style.setProperty('position', 'relative', 'important');
+                        masterStage.style.setProperty('top', '0', 'important');
+                        masterStage.style.setProperty('left', '0', 'important');
+                        masterStage.style.setProperty('width', '100%', 'important');
+                        masterStage.style.setProperty('height', containerHeight, 'important');
+                        masterStage.style.setProperty('min-height', containerHeight, 'important');
+                        masterStage.style.setProperty('max-height', containerHeight, 'important');
+                        masterStage.style.setProperty('margin', '0', 'important');
                         // Use a solid white background on the container to create the outer frame
-                        targetContent.style.setProperty('background', '#ffffff', 'important');
-                        targetContent.style.setProperty('border', 'none', 'important');
-                        targetContent.style.setProperty('box-shadow', 'none', 'important');
-                        targetContent.style.setProperty('transform', 'none', 'important');
-                        targetContent.style.setProperty('box-sizing', 'border-box', 'important');
+                        masterStage.style.setProperty('background', '#ffffff', 'important');
+                        masterStage.style.setProperty('border', 'none', 'important');
+                        masterStage.style.setProperty('box-shadow', 'none', 'important');
+                        masterStage.style.setProperty('transform', 'none', 'important');
+                        masterStage.style.setProperty('box-sizing', 'border-box', 'important');
 
                         // Special handling for Dual Spreads
                         if (spreadWrapper) {
                             spreadWrapper.style.setProperty('display', 'flex', 'important');
                             spreadWrapper.style.setProperty('gap', '0', 'important');
+                            spreadWrapper.style.setProperty('width', '100%', 'important');
+                            spreadWrapper.style.setProperty('height', '100%', 'important');
                             
                             const inners = spreadWrapper.querySelectorAll('.page-inner-container');
                             inners.forEach(inner => {

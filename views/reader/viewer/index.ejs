@@ -160,10 +160,16 @@
                         if (isLegacyWide) section.classList.add('full-width-spread');
                     }
 
-                    // Cover page logic (Page 1, which is index 0 in the whole series usually)
+                    // Cover page logic
                     if (group.length === 1 && group[0].index === 1 && !isLegacyWide) {
                         section.classList.add('cover-section');
                     }
+
+                    // MASTER CONTAINER: The section-container shouldn't change. 
+                    // Every scroll unit has exactly one master stage.
+                    const masterContainer = document.createElement("div");
+                    masterContainer.className = "section-container master-stage";
+                    masterContainer.id = 'section-' + index + '-master';
                     
                     if (isDualSpread) {
                         const spreadWrapper = document.createElement("div");
@@ -176,9 +182,10 @@
                             spreadWrapper.appendChild(pageInner);
                         });
                         
-                        section.appendChild(spreadWrapper);
+                        masterContainer.appendChild(spreadWrapper);
                     }
 
+                    section.appendChild(masterContainer);
                     scrollWrapper.appendChild(section);
                 });
 
@@ -198,7 +205,7 @@
                         return {
                             ...group[0],
                             html: group[0].path,
-                            containerId: 'section-' + index
+                            containerId: 'section-' + index + '-master'
                         };
                     }
                 });
