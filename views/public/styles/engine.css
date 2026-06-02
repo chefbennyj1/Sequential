@@ -25,27 +25,19 @@
 
 html,
 body {
-  height: 100%;
   scroll-behavior: smooth;
   scroll-snap-type: y proximity;
-  width: 100dvw;
-  overflow: hidden;
 }
 
 
 html {
-
   font-family: var(--font-family-comic-bold);
-  /* Create a snapping rule on the html element */
-  /* scroll-snap-type: y proximity; */
-  /* position: relative; */
-
 }
 
 body {
+  min-height: 100vh;
   overflow-x: hidden;
   background: #0a0a0a;
-  /* Deep black for cinematic focus */
 }
 
 body.cursor-hidden {
@@ -201,7 +193,7 @@ header .page-nav-buttons {
   display: flex;
 }
 
-section {
+.viewer-page section {
   position: fixed;
   height: 100dvh;
   top: 0;
@@ -214,20 +206,18 @@ section {
   display: flex;
   justify-content: center;
   align-items: center;
-  /* Align to center globally instead of flex-start */
   visibility: hidden;
   width: 100%;
   animation: zoom-scroll-out 0.8s ease-in-out forwards;
 }
 
-section.spread-mode {
-  align-items: center;
-  /* Center spread vertically */
+section:not(.viewer-page section) {
+    position: relative;
+    width: 100%;
+    visibility: visible;
 }
 
-section .section-container {}
-
-section.active {
+.viewer-page section.active {
   visibility: visible;
   z-index: 1;
   animation: zoom-scroll-in 0.8s ease-in-out forwards;
@@ -237,13 +227,13 @@ section.active .section-container {
   opacity: 1;
 }
 
-section.entering {
+.viewer-page section.entering {
   animation: zoom-scroll-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
   visibility: visible;
   z-index: 2;
 }
 
-section.exiting {
+.viewer-page section.exiting {
   animation: zoom-scroll-out 0.8s cubic-bezier(0.32, 0, 0.67, 0) forwards;
   visibility: visible;
   z-index: 1;
