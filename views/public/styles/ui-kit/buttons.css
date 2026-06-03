@@ -69,76 +69,75 @@ button:hover {
 
 /* .action-btn: Small Utility Buttons (Circular/Icon based) */
 .action-btn {
-  background: #1a1a1a;
-  border: 2px solid #000;
+  background: var(--panel, #1a1a1a);
+  border: 1px solid var(--border, #333);
   color: var(--accent, #00ccff);
-  width: 38px;
-  height: 38px;
+  width: 34px;
+  height: 34px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
+  border-radius: 8px; /* Matching dashboard inputs/buttons */
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 3px 3px 0 rgba(0,0,0,0.8);
   padding: 0;
   font-family: 'Consolas', monospace;
 }
 
 .action-btn:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 5px 5px 0 rgba(0,0,0,0.8);
   background-color: #252525;
   color: #fff;
   border-color: var(--accent, #00ccff);
+  box-shadow: 0 0 10px rgba(0, 170, 255, 0.2);
 }
 
 .action-btn:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0 rgba(0,0,0,0.8);
+  transform: translateY(1px);
 }
 
 .action-btn.small {
-  width: 32px;
-  height: 32px;
+  width: 28px;
+  height: 28px;
   font-size: 0.8rem;
 }
 
 .action-btn ion-icon {
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   pointer-events: none;
 }
 
 .action-btn.small ion-icon {
-  font-size: 1.1rem;
+  font-size: 1rem;
 }
 
-/* Comic-style variation (Lighter/Dotted) */
+/* Comic-style variation (Lighter/Dotted) - Kept for Viewer use */
 .action-btn.comic-style {
   background: rgba(255, 255, 255, 0.9);
   background-image: radial-gradient(lightblue 33%, transparent 34%), radial-gradient(lightblue 33%, transparent 34%) !important;
   background-size: 4px 4px;
   background-position: 0 0, 2px 2px;
   color: #000;
+  border: 2px solid #000;
+  border-radius: 50%;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.8);
 }
 
 .action-btn.comic-style:hover {
   background-color: #fff;
-  color: #000;
-  border-color: #000;
+  box-shadow: 5px 5px 0 rgba(0,0,0,0.8);
 }
 
-/* Yellow variation for refresh/sync */
+/* Color variations using dashboard variables */
 .action-btn.refresh,
 .action-btn[id*="refresh"], 
 .action-btn[id*="sync"] {
-    color: var(--cyber-primary, #00ff41);
+    color: var(--accent, #00ccff);
 }
 
 .action-btn.refresh:hover,
 .action-btn[id*="refresh"]:hover,
 .action-btn[id*="sync"]:hover {
-    border-color: var(--cyber-primary, #00ff41);
+    border-color: var(--accent, #00ccff);
 }
 
 /* .toggle-btn: Consolas Toggle Style */
