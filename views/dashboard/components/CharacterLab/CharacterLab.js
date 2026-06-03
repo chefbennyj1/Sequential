@@ -4,6 +4,8 @@ import { fetchCharactersAPI, fetchSeriesAPI } from '../../studio/api/StudioClien
 export default class CharacterLab {
     constructor(container) {
         this.container = container;
+        if (!container) return; // Guard clause
+        
         this.listContainer = container.querySelector('#character-list');
         this.formContainer = container.querySelector('#character-form-container');
         this.createBtn = container.querySelector('#create-character-btn');
@@ -15,6 +17,8 @@ export default class CharacterLab {
     }
 
     async init() {
+        if (!this.seriesSelect) return; // Guard clause
+        
         // Load series list
         try {
             const seriesList = await fetchSeriesAPI();
@@ -29,15 +33,20 @@ export default class CharacterLab {
 
         this.seriesSelect.onchange = (e) => {
             this.activeSeriesId = e.target.value;
-            this.createBtn.disabled = !this.activeSeriesId;
+            if (this.createBtn) this.createBtn.disabled = !this.activeSeriesId;
             if (this.activeSeriesId) this.loadCharacters();
-            else this.listContainer.innerHTML = '';
+            else if (this.listContainer) this.listContainer.innerHTML = '';
         };
 
-        this.createBtn.onclick = () => this.showForm();
+        if (this.createBtn) {
+            this.createBtn.onclick = () => this.showForm();
+        }
         
-        document.getElementById('save-character-btn').onclick = () => this.saveCharacter();
-        document.getElementById('cancel-character-btn').onclick = () => this.hideForm();
+        const saveBtn = document.getElementById('save-character-btn');
+        if (saveBtn) saveBtn.onclick = () => this.saveCharacter();
+        
+        const cancelBtn = document.getElementById('cancel-character-btn');
+        if (cancelBtn) cancelBtn.onclick = () => this.hideForm();
 
         // Handle Avatar Upload
         const avatarInput = document.getElementById('char-avatar-input');

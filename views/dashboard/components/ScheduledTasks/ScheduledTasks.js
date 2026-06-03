@@ -3,6 +3,8 @@ import { populateSeriesSelect, populateVolumeSelect, populateChapterSelect } fro
 export default class ScheduledTaskView {
     constructor() {
         this.container = document.querySelector('.scheduled-tasks');
+        if (!this.container) return; // Guard clause
+        
         this.rootsList = this.container.querySelector('#library-roots-list');
         this.logContainer = this.container.querySelector('#scanner-log');
         

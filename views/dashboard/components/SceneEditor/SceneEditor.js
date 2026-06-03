@@ -258,6 +258,10 @@ export async function openVisualEditor(volume, chapter, pageId, mode = 'landscap
 
     document.querySelectorAll('.dashboard-section').forEach(s => s.classList.add('hidden'));
     const layoutEditor = document.querySelector('.layout-editor');
+    if (!layoutEditor) {
+        console.error("[SceneEditor] CRITICAL: .layout-editor section not found in the DOM!");
+        return;
+    }
     layoutEditor.classList.remove('hidden');
 
     const previewPane = layoutEditor.querySelector('.preview-pane-flex');
@@ -267,16 +271,26 @@ export async function openVisualEditor(volume, chapter, pageId, mode = 'landscap
     }
 
     const iframe = document.getElementById('pagePreviewFrame');
-    if (!iframe) return;
+    if (!iframe) {
+        console.error("[SceneEditor] CRITICAL: #pagePreviewFrame not found!");
+        return;
+    }
 
     // Load initial data
     await syncEditorContext(volume, chapter, pageId, mode);
 
-    const targetSrc = `/api/editor/preview/${activeSeriesFolder}/${volume}/${chapter}/${pageId}?mode=${mode}`;
+    // Build the URL safely
+    const folder = activeSeriesFolder || 'unknown';
+    const vol = volume || 'volume-1';
+    const chap = chapter || 'chapter-1';
+    const pid = pageId || 'page0';
+    const targetSrc = `/api/editor/preview/${folder}/${vol}/${chap}/${pid}?mode=${mode}`;
+    
+    console.log(`[VisualEditor] Loading Preview: ${targetSrc}`);
     iframe.src = targetSrc;
 
     // Reset visual editor sidebar to "Layout Tools" view
-    visual.loadPanel({ panel: null, volume, chapter, pageId }, activeSeriesId);
+    if (visual) visual.loadPanel({ panel: null, volume, chapter, pageId }, activeSeriesId);
 }
 
 /**
