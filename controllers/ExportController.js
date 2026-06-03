@@ -154,7 +154,16 @@ class ExportController {
             hideList.forEach(s => { document.querySelectorAll(s).forEach(el => el.style.display = 'none'); });
 
             // 1. Identify active content
-            const activeContainer = document.querySelector('.master-stage.active') || document.querySelector('.section-container.active');
+            let activeContainer = document.querySelector('.master-stage.active') || document.querySelector('.section-container.active');
+            
+            // Fallback for new PageManager logic where .active is on the parent section
+            if (!activeContainer) {
+                const activeSection = document.querySelector('section.active');
+                if (activeSection) {
+                    activeContainer = activeSection.querySelector('.master-stage') || activeSection.querySelector('.section-container');
+                }
+            }
+
             if (!activeContainer) {
                 console.error('[EXPORT] CRITICAL: No active master-stage or section-container found!');
                 return { error: 'no-active-section' };
