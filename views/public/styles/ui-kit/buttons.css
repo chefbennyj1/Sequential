@@ -67,31 +67,56 @@ button:hover {
   box-shadow: 0 0 15px rgba(0, 204, 255, 0.4);
 }
 
-/* .action-btn: Small Utility Buttons */
+/* .action-btn: Small Utility Buttons (Circular/Icon based) */
 .action-btn {
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  color: #fff;
-  width: 36px;
-  height: 36px;
+  background: rgba(255, 255, 255, 0.9);
+  background-image: radial-gradient(lightblue 33%, transparent 34%), radial-gradient(lightblue 33%, transparent 34%) !important;
+  background-size: 4px 4px;
+  background-position: 0 0, 2px 2px;
+  border: 2px solid #000;
+  color: #000;
+  width: 38px;
+  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 50%;
   cursor: pointer;
   transition: all 0.2s;
+  box-shadow: 3px 3px 0 rgba(0,0,0,0.8);
+  padding: 0;
 }
 
 .action-btn:hover {
-  background: var(--accent, #00ccff);
-  color: #000;
-  border-color: var(--accent, #00ccff);
+  transform: translate(-1px, -1px);
+  box-shadow: 5px 5px 0 rgba(0,0,0,0.8);
+  background-color: #fff;
+}
+
+.action-btn:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 rgba(0,0,0,0.8);
 }
 
 .action-btn.small {
-  width: 28px;
-  height: 28px;
+  width: 32px;
+  height: 32px;
   font-size: 0.8rem;
+}
+
+.action-btn ion-icon {
+  font-size: 1.4rem;
+  pointer-events: none;
+}
+
+.action-btn.small ion-icon {
+  font-size: 1.1rem;
+}
+
+/* Yellow variation for refresh/sync */
+.action-btn[id*="refresh"], 
+.action-btn[id*="sync"] {
+    background-image: radial-gradient(yellow 33%, transparent 34%), radial-gradient(yellow 33%, transparent 34%) !important;
 }
 
 /* .toggle-btn: Consolas Toggle Style */
