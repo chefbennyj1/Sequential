@@ -96,7 +96,14 @@ export function initExportManager(container) {
                 confirmMsg = 'Are you sure you want to export ONLY page ' + targetPage + ' from ' + optionText + ' (' + presetText + ')?';
             }
 
-            if(!confirm(confirmMsg + ' This will take a few minutes in the background.')) return;
+            const finalConfirm = confirm(
+                confirmMsg + 
+                '\n\nIMPORTANT: Please double-check your two-page spread positions (left/right alignment) before proceeding. ' +
+                'Page shifts can occasionally displace spreads.' +
+                '\n\nThis will take a few minutes in the background.'
+            );
+
+            if(!finalConfirm) return;
 
             const btn = e.currentTarget;
             const originalText = btn.innerHTML;

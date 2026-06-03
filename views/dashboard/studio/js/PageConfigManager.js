@@ -118,15 +118,13 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
 
         if ((isEven || isSpreadEnabled) && alertsContainer) {
             const spreadAlert = document.createElement('div');
-            spreadAlert.className = `alert ${spreadData.isBroken ? 'alert-danger' : 'alert-info'} border-dim padding-15 border-radius-8 bg-black-10 flex-row align-center gap-15 margin-t-10`;
+            spreadAlert.className = `alert border-dim padding-15 border-radius-8 bg-black-10 flex-row align-center gap-15 margin-t-10`;
             spreadAlert.innerHTML = `
-                <ion-icon name="${spreadData.isBroken ? 'warning-outline' : 'bulb-outline'}" class="${spreadData.isBroken ? 'text-danger' : 'text-accent'} font-size-2"></ion-icon>
+                <ion-icon name="bulb-outline" class="text-accent font-size-2"></ion-icon>
                 <div class="flex-1">
-                    <h5 class="${spreadData.isBroken ? 'text-danger' : 'text-accent'} margin-b-5">${spreadData.isBroken ? 'Broken Spread Detected' : 'Spread Opportunity'}</h5>
+                    <h5 class="text-accent margin-b-5">Two-Page Spread</h5>
                     <p class="text-muted font-size-08">
-                        ${spreadData.isBroken 
-                            ? `This spread was compromised by a page insertion. Page ${pageNum} is now an <strong>${pageNum % 2 === 0 ? 'Even' : 'Odd'}</strong> index, breaking the previous pairing.` 
-                            : `Page ${pageNum} is a <strong>${isEven ? 'Left-Hand' : 'Right-Hand'}</strong> page. ${isEven ? 'Pair it with the next page for a cinematic spread.' : ''}`}
+                        Page ${pageNum} is a <strong>${isEven ? 'Left-Hand' : 'Right-Hand'}</strong> page. Spreads pair even pages with the following odd page.
                     </p>
                 </div>
                 <div class="flex-row align-center gap-10">
