@@ -4,22 +4,22 @@
     headerButtons: `
         <div class="page-nav-buttons">
             <a href="/library/series/${volume.series._id}/volume/${volume._id}" class="nav-button btn">
-                Chapters <ion-icon size="large" name="library"></ion-icon>
+                Chapters <ion-icon name="library"></ion-icon>
             </a>
             <button id="load-prev-btn" class="nav-button btn">
-                <ion-icon size="large" name="play-back"></ion-icon> Previous Page
+                <ion-icon name="play-back"></ion-icon> Previous Page
             </button>
             <button id="load-next-btn" class="nav-button btn">
-                Next Page <ion-icon size="large" name="play-forward"></ion-icon>
+                Next Page <ion-icon name="play-forward"></ion-icon>
             </button>
             <button id="reload-page-btn" class="nav-button btn">
-                Reload page <ion-icon size="large" name="reload-circle"></ion-icon>
+                Reload page <ion-icon name="reload-circle"></ion-icon>
             </button>
             <button id="toggle-gutter-btn" class="nav-button btn">
-                Gutter Guide <ion-icon size="large" name="cut-outline"></ion-icon>
+                Gutter Guide <ion-icon name="cut-outline"></ion-icon>
             </button>
             <button id="toggle-mode-btn" class="nav-button btn">
-                <span id="mode-text">Portrait</span> <ion-icon size="large" name="phone-portrait-outline"></ion-icon>
+                <span id="mode-text">Portrait</span> <ion-icon name="phone-portrait-outline"></ion-icon>
             </button>
         </div>
     `,
@@ -194,23 +194,16 @@
 
                 // Map to the internal PageManager format
                 pages = spreads.map((group, index) => {
-                    if (group.length > 1) {
-                        return {
-                            isSpread: true,
-                            pages: group.map((p, pIndex) => ({
-                                ...p,
-                                html: p.path,
-                                containerId: 'section-' + index + '-p' + pIndex
-                            })),
-                            containerId: 'section-' + index
-                        };
-                    } else {
-                        return {
-                            ...group[0],
-                            html: group[0].path,
-                            containerId: 'section-' + index + '-master'
-                        };
-                    }
+                    const isDualSpread = group.length > 1;
+                    return {
+                        isSpread: true,
+                        pages: group.map((p, pIndex) => ({
+                            ...p,
+                            html: p.path,
+                            containerId: isDualSpread ? 'section-' + index + '-p' + pIndex : 'section-' + index + '-master'
+                        })),
+                        containerId: 'section-' + index
+                    };
                 });
 
                 const pageManager = initPageManager(pages);
@@ -224,12 +217,13 @@
                     const pageGroup = pages[e.detail.index];
                     const newUrl = new URL(window.location.href);
                     
-                    if (pageGroup.isSpread) {
+                    if (pageGroup.pages.length > 1) {
                         const startNum = pageGroup.pages[0].index;
                         const endNum = pageGroup.pages[pageGroup.pages.length - 1].index;
                         newUrl.searchParams.set("page", startNum + "-" + endNum);
                     } else {
-                        const pathParts = pageGroup.html.split("/");
+                        const p = pageGroup.pages[0];
+                        const pathParts = p.html.split("/");
                         const pageId = pathParts[pathParts.length - 2];
                         newUrl.searchParams.set("page", pageId.replace('page', ''));
                     }
@@ -248,8 +242,9 @@
                 });
 
                 document.getElementById("reload-page-btn").addEventListener("click", async () => {
-                    const curr = pages[pageManager.currentPageIndex];
-                    if (!curr) return;
+                    const group = pages[pageManager.currentPageIndex];
+                    if (!group || !group.pages[0]) return;
+                    const curr = group.pages[0];
                     const parts = curr.html.split("/");
                     const pId = parts[parts.length - 2];
                     const cId = parts[parts.length - 3];

@@ -386,7 +386,7 @@ export async function init(container, params) {
 
     function fitContainer() {
         const padding = 20;
-        const gap = params.isSpread ? 20 : 0; // Matches CSS gap
+        const gap = params.isSpread ? 20 : 0; // Matches CSS gutter gap
         const availableWidth = window.innerWidth - padding - gap;
         const availableHeight = window.innerHeight - padding;
         

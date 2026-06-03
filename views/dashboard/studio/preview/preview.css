@@ -13,7 +13,6 @@ body {
     display: flex !important;
     flex-direction: row !important;
     flex-wrap: nowrap !important;
-    justify-content: center !important;
     align-items: center !important;
     gap: 0;
     overflow: hidden;
@@ -21,6 +20,7 @@ body {
 
 .spread-view #preview-container {
     gap: 20px; /* Space between pages in spread */
+    justify-content: center !important; /* Center the pair in the iframe */
 }
 
 .page-container {
@@ -32,38 +32,54 @@ body {
     position: relative;
 }
 
-.page-container.half-width {
-    /* Manual widths removed: handled by dynamic JS scaling */
+.spread-view .page-container {
+    width: 50% !important;
+    flex: 0 0 50% !important;
+}
+
+/* Align pages towards the center gutter */
+.spread-view .page-container:first-child {
+    justify-content: flex-end !important;
+}
+
+.spread-view .page-container:last-child {
+    justify-content: flex-start !important;
+}
+
+/* Scale from the gutter (middle) to keep them joined */
+.spread-view .page-container:first-child .section-container,
+.spread-view .page-container:first-child .page-layout {
+    transform-origin: right center !important;
+}
+
+.spread-view .page-container:last-child .section-container,
+.spread-view .page-container:last-child .page-layout {
+    transform-origin: left center !important;
 }
 
 /* Force container visibility and fit */
 .section-container, .page-layout { 
     transform-origin: center center; 
-    /* transform set via JS */
     margin: 0 auto; 
-    border: 1px solid #ccc; /* Flat border instead of soft shadow */
+    border: 1px solid #ccc; 
     box-shadow: 0 4px 10px rgba(0,0,0,0.1); 
-    opacity: 1 !important; /* Override base layout hidden state */
+    opacity: 1 !important; 
     flex-shrink: 0;
-
-    /* --- EDITOR STABILITY: Flexible but Stable Baseline --- */
     height: 100% !important; 
     aspect-ratio: 6.625 / 10.25 !important;
     width: auto !important;
     max-width: none !important;
     background: #fff;
-    /* ------------------------------------------- */
 }
 
-/* Spread specific overrides */
+/* Spread specific overrides - Remove margin centering so transform-origin works */
 .spread-view .section-container, .spread-view .page-layout {
     margin: 0;
     border-right: none;
 }
 
-.spread-view .page-container.half-width:last-child .section-container,
-.spread-view .page-container.half-width:last-child .page-layout {
-    transform-origin: left center;
+.spread-view .page-container:last-child .section-container,
+.spread-view .page-container:last-child .page-layout {
     border-right: 1px solid #ccc;
 }
 

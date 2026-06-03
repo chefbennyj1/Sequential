@@ -175,19 +175,22 @@ class PageManager {
                 const { pageId } = PageManager.getPageInfo(p.html);
                 const pageCss = document.getElementById(`css-${pageId}`);
                 if (pageCss) pageCss.remove();
+                
+                // Clear the inner content but keep the container
+                const inner = document.getElementById(p.containerId);
+                if (inner) inner.innerHTML = '';
             });
         } else {
             const { pageId } = PageManager.getPageInfo(pageGroup.html);
             const pageCss = document.getElementById(`css-${pageId}`);
             if (pageCss) pageCss.remove();
+            
+            // For single pages, we can just clear the container
+            pageContainer.innerHTML = '';
         }
 
-        // Deep Clean: Reset container
-        const newContainer = pageContainer.cloneNode(false);
-        newContainer.innerHTML = '';
-        newContainer.classList.remove('active', 'leaving');
-        newContainer.removeAttribute('data-loaded');
-        pageContainer.parentNode.replaceChild(newContainer, pageContainer);
+        pageContainer.classList.remove('active', 'leaving');
+        pageContainer.removeAttribute('data-loaded');
     }
 
     showPage(index) {

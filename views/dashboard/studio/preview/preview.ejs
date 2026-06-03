@@ -8,9 +8,11 @@
     <% 
        let seriesFolder = series;
     %>
-    <link rel="stylesheet" href="/Library/<%= seriesFolder %>/Volumes/<%= volume %>/<%= chapter %>/<%= pageId %>/page.css">
-    <% if (isSpread && partnerPage) { %>
-        <link rel="stylesheet" href="/Library/<%= seriesFolder %>/Volumes/<%= volume %>/<%= chapter %>/<%= partnerPage.pageId %>/page.css">
+    <% if (leftPage) { %>
+        <link rel="stylesheet" href="/Library/<%= seriesFolder %>/Volumes/<%= volume %>/<%= chapter %>/<%= leftPage.pageId %>/page.css">
+    <% } %>
+    <% if (isSpread && rightPage) { %>
+        <link rel="stylesheet" href="/Library/<%= seriesFolder %>/Volumes/<%= volume %>/<%= chapter %>/<%= rightPage.pageId %>/page.css">
     <% } %>
 </head>
 <body class="preview-mode <%= isSpread ? 'spread-view' : '' %>">

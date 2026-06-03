@@ -1,3 +1,10 @@
+html,
+body {
+    overflow: hidden;
+    margin: 0;
+    padding: 0;
+}
+
 .hidden {
     display: none !important;
 }
@@ -89,9 +96,10 @@
 }
 
 .landing-page {
-    position: fixed;
-    top: 0;
-    left: 0;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    margin: 0 !important;
     width: 100vw;
     height: 100vh;
     background-size: cover;
