@@ -93,19 +93,23 @@ header {
 }
 
 /* Editor Specific Layout (Kept for backwards compatibility) */
+.layout-editor.dashboard-section {
+  padding: 20px 40px 40px 40px; /* Reduced top padding from 40px to 20px */
+}
+
 .editor-header-flex {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 20px;
-  padding: 10px 0;
+  margin-bottom: 15px; /* Tightened from 20px */
+  padding: 5px 0; /* Tightened from 10px */
   border-bottom: 1px solid var(--border);
 }
 
 .editor-container-flex {
   display: flex;
   gap: 20px;
-  height: 80vh;
+  height: calc(100vh - 190px); /* More precise height to prevent overflow (80px topbar + 20px padding + 60px header + buffer) */
   max-width: 100%;
   box-sizing: border-box;
 }
