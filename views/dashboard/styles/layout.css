@@ -143,8 +143,10 @@ header {
   background: #000;
 }
 
+/* Wider preview for spreads (approx 2x standard portrait width) */
 .layout-editor.is-spread .preview-pane-flex.portrait-mode .preview-iframe {
-  width: 100%;
+  width: 950px;
+  max-width: 95%;
   height: 100%;
 }
 
