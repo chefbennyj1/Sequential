@@ -11,7 +11,7 @@
     transition: opacity 0.3s ease-out, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), visibility 0s linear 0.3s;
 
     /* Default variables */
-    --action-font: "Mangat Bold", sans-serif;
+    --action-font: var(--font-family-mangat-bold, "Mangat Bold", sans-serif);
     --action-rotation: 0deg;
 }
 

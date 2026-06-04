@@ -77,7 +77,7 @@ class ActionText {
                 document.head.appendChild(style);
             }
             fontValue = `"${fontName}"`;
-        } else if (!fontValue) {
+        } else if (!fontValue || fontValue === 'initial') {
             fontValue = 'var(--font-family-mangat-bold)';
         }
 
