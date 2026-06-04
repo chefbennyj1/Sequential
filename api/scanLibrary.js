@@ -132,18 +132,20 @@ async function scanVolumesInSeries(seriesDoc, volumesPath, seriesFolderName, io 
             });
             await volume.save();
 
-            // Link to series
-            if (!seriesDoc.volumes.includes(volume._id)) {
-                seriesDoc.volumes.push(volume._id);
-                await seriesDoc.save();
-            }
         } else {
             // Path Reconciliation: If the folder name changed, update the path
             if (volume.volumePath !== expectedVolumePath) {
                 console.log(`Path mismatch detected for ${volume.title}. Updating: ${volume.volumePath} -> ${expectedVolumePath}`);
                 volume.volumePath = expectedVolumePath;
-                // Note: updateChaptersFromFS will handle updating the page paths inside the chapters array
+                await volume.save();
             }
+        }
+
+        // ALWAYS: Ensure volume is linked to the series
+        if (!seriesDoc.volumes.includes(volume._id)) {
+            console.log(`Linking existing volume ${volume.title} to series ${seriesDoc.title}`);
+            seriesDoc.volumes.push(volume._id);
+            await seriesDoc.save();
         }
 
         // Sync chapters and pages
