@@ -2,7 +2,7 @@
 import { saveMediaAPI, fetchMedia, fetchNextPanelId } from '../../studio/api/StudioClient.js';
 import { openFileBrowser } from '../FileBrowser/FileBrowser.js';
 import { extractPalette } from '/libs/Utility.js';
-import { renderPanelSettings } from './VisualEditorUI.js';
+import { renderPanelSettings, renderAllPanelsTemplate } from './VisualEditorUI.js';
 import { pushSceneUpdate, pushPanelSelect, pushMediaPersisted, syncPreviewLive } from './VisualEditorSync.js';
 
 export class VisualEditorManager {
@@ -17,6 +17,7 @@ export class VisualEditorManager {
         this.selectedPanelSelector = null;
         this.activeMode = 'landscape';
         this.activeDialogueId = null;
+        this.isSpread = false; // Add isSpread to state
 
         this.initSocketListeners();
         this.initMessageListeners();
@@ -113,6 +114,9 @@ export class VisualEditorManager {
 
         const res = await fetchMedia(volume, chapter, pageId, seriesId);
         this.currentVisualMediaData = Array.isArray(res) ? res : (res.media || []);
+        
+        // Sync isSpread state from the API response
+        this.isSpread = !!res.isSpread;
 
         const container = document.querySelector('.layout-editor .tools-pane');
         // CRITICAL FIX: Reset any inline styles (like overflow: hidden) applied by other views
@@ -129,63 +133,98 @@ export class VisualEditorManager {
 
     renderAllPanels(panelNames = []) {
         const toolsPane = document.querySelector('.layout-editor .tools-pane');
-        const allUniqueSelectors = new Set([...panelNames, ...this.currentVisualMediaData.map(m => m.panel)]);
-        const allItems = Array.from(allUniqueSelectors).map(p => {
-            const entry = this.currentVisualMediaData.find(m => m.panel === p);
-            return { panel: p, isFloating: entry?.isFloating || false, fileName: entry?.fileName || '', type: entry?.type || 'image' };
-        }).sort((a, b) => a.isFloating !== b.isFloating ? (a.isFloating ? 1 : -1) : a.panel.localeCompare(b.panel));
+        toolsPane.innerHTML = renderAllPanelsTemplate(
+            panelNames, 
+            this.currentVisualMediaData, 
+            this.activeSeriesFolder, 
+            this.activeSeriesId, 
+            this.currentVisualContext,
+            this.isSpread
+        );
 
-        toolsPane.innerHTML = `
-            <div class="flex-row justify-between align-center margin-b-15">
-                <h4 class="margin-0">Page Panels</h4>
-                <button id="addFloatingPanelBtn" class="small btn-accent">+ Add Floating</button>
-            </div>
-            <div class="panel-editor-ui">
-                <p class="text-muted margin-b-15">Select any element to edit its asset and alignment.</p>
-                <div class="geometry-list margin-b-20"></div>
-            </div>
-        `;
+        // Bind Add Floating
+        const addBtn = document.getElementById('addFloatingPanelBtn');
+        if (addBtn) addBtn.onclick = () => this.createFloatingPanel();
 
-        document.getElementById('addFloatingPanelBtn').onclick = () => this.createFloatingPanel();
-        const geoList = toolsPane.querySelector('.geometry-list');
-
-        allItems.forEach(item => {
-            const itemDiv = document.createElement('div');
-            itemDiv.className = `geometry-item ${item.isFloating ? 'bg-black-20 border-accent' : 'bg-black-10 border-dim'} padding-10 border-radius-8 margin-b-10 flex-row align-center cursor-pointer hover-bright`;
-            
-            const series = this.activeSeriesFolder || this.activeSeriesId;
-            const { volume, chapter, pageId } = this.currentVisualContext;
-            const thumbSrc = item.fileName ? `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${item.fileName}` : null;
-
-            itemDiv.innerHTML = `
-                <div class="flex-row align-center gap-10 flex-1">
-                    <div class="geometry-thumb border-dim border-radius-4" style="width:40px; height:40px; background:#000; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
-                        ${thumbSrc ? `<img src="${thumbSrc}" style="width:100%; height:100%; object-fit:cover;">` : `<ion-icon name="image-outline" class="text-muted"></ion-icon>`}
-                    </div>
-                    <div style="min-width:0;">
-                        <div class="text-accent font-weight-bold font-size-09 flex-row align-center gap-5">
-                            ${item.panel.replace('.', '')} ${item.isFloating ? `<span class="text-muted font-size-06 uppercase border-dim padding-x-5 border-radius-4">Floating</span>` : ''}
-                        </div>
-                        <div class="text-muted font-size-07 truncate">${item.fileName || 'No asset assigned'}</div>
-                    </div>
-                </div>
-                ${item.isFloating ? `<button class="small btn-danger-outline delete-geom-btn margin-l-10" title="Delete Geometry"><ion-icon name="trash-outline"></ion-icon></button>` : ''}
-            `;
-
-            itemDiv.onclick = (e) => {
+        // Bind Geometry Items
+        const geoItems = toolsPane.querySelectorAll('.geometry-item');
+        geoItems.forEach(item => {
+            item.onclick = (e) => {
                 if (e.target.closest('.delete-geom-btn')) return;
-                this.loadPanel({ ...this.currentVisualContext, panel: item.panel }, this.activeSeriesId);
-                pushPanelSelect(document.getElementById('pagePreviewFrame'), item.panel, this.currentVisualContext.pageId);
+                const panel = item.dataset.panel;
+                this.loadPanel({ ...this.currentVisualContext, panel }, this.activeSeriesId);
+                pushPanelSelect(document.getElementById('pagePreviewFrame'), panel, this.currentVisualContext.pageId);
             };
 
-            if (item.isFloating) {
-                itemDiv.querySelector('.delete-geom-btn').onclick = (e) => {
+            const delBtn = item.querySelector('.delete-geom-btn');
+            if (delBtn) {
+                delBtn.onclick = (e) => {
                     e.stopPropagation();
-                    this.handleDeletePanel(item.panel);
+                    this.handleDeletePanel(item.dataset.panel);
                 };
             }
-            geoList.appendChild(itemDiv);
         });
+
+        // Bind Spread Toggle
+        const spreadToggle = document.getElementById('toggleSpreadMode');
+        if (spreadToggle) {
+            spreadToggle.onchange = async (e) => {
+                const enabled = e.target.checked;
+                const { volume, chapter, pageId } = this.currentVisualContext;
+                
+                // Show loading state
+                spreadToggle.disabled = true;
+                
+                try {
+                    const res = await fetch('/api/editor/toggle-spread', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            volumeId: this.currentVisualContext.volumeId || '', // We may need volume ID here
+                            chapterId: chapter,
+                            pageId: pageId,
+                            enabled
+                        })
+                    });
+                    
+                    // Note: If volumeId is missing from context, we need to find it
+                    if (!this.currentVisualContext.volumeId) {
+                        const volumeModelRes = await fetch(`/api/series/${this.activeSeriesId}/volumes`);
+                        const volumes = await volumeModelRes.json();
+                        const activeVol = volumes.find(v => v.title.toLowerCase() === volume.toLowerCase() || v.volumePath.endsWith(volume));
+                        if (activeVol) {
+                            await fetch('/api/editor/toggle-spread', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({
+                                    volumeId: activeVol._id,
+                                    chapterId: chapter,
+                                    pageId: pageId,
+                                    enabled
+                                })
+                            });
+                        }
+                    }
+
+                    // HARD REFRESH PREVIEW: This will trigger the new spread logic and resize the iframe
+                    const iframe = document.getElementById('pagePreviewFrame');
+                    if (iframe) {
+                        // Reset is-spread class on layout-editor immediately for smooth transition
+                        const layoutEditor = document.querySelector('.layout-editor');
+                        if (layoutEditor) layoutEditor.classList.toggle('is-spread', enabled);
+                        
+                        iframe.contentWindow.location.reload();
+                    }
+
+                } catch (err) {
+                    console.error("Spread toggle failed", err);
+                    alert("Failed to toggle spread mode.");
+                    spreadToggle.checked = !enabled;
+                } finally {
+                    spreadToggle.disabled = false;
+                }
+            };
+        }
     }
 
     render(panelSelector) {

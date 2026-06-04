@@ -3,6 +3,63 @@
  * Pure template functions for the Visual Editor sidebar.
  */
 
+export function renderAllPanelsTemplate(panelNames, currentVisualMediaData, activeSeriesFolder, activeSeriesId, currentVisualContext, isSpread) {
+    const allUniqueSelectors = new Set([...panelNames, ...currentVisualMediaData.map(m => m.panel)]);
+    const allItems = Array.from(allUniqueSelectors).map(p => {
+        const entry = currentVisualMediaData.find(m => m.panel === p);
+        return { panel: p, isFloating: entry?.isFloating || false, fileName: entry?.fileName || '', type: entry?.type || 'image' };
+    }).sort((a, b) => a.isFloating !== b.isFloating ? (a.isFloating ? 1 : -1) : a.panel.localeCompare(b.panel));
+
+    return `
+        <div class="flex-row justify-between align-center margin-b-15">
+            <h4 class="margin-0">Page Panels</h4>
+            <button id="addFloatingPanelBtn" class="small btn-accent">+ Add Floating</button>
+        </div>
+        
+        <div class="panel-editor-ui">
+            <p class="text-muted margin-b-15">Select any element to edit its asset and alignment.</p>
+            <div class="geometry-list margin-b-20">
+                ${allItems.map(item => {
+                    const series = activeSeriesFolder || activeSeriesId;
+                    const { volume, chapter, pageId } = currentVisualContext;
+                    const thumbSrc = item.fileName ? `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${item.fileName}` : null;
+                    
+                    return `
+                        <div class="geometry-item ${item.isFloating ? 'bg-black-20 border-accent' : 'bg-black-10 border-dim'} padding-10 border-radius-8 margin-b-10 flex-row align-center cursor-pointer hover-bright" data-panel="${item.panel}" data-floating="${item.isFloating}">
+                            <div class="flex-row align-center gap-10 flex-1">
+                                <div class="geometry-thumb border-dim border-radius-4" style="width:40px; height:40px; background:#000; display:flex; align-items:center; justify-content:center; overflow:hidden; flex-shrink:0;">
+                                    ${thumbSrc ? `<img src="${thumbSrc}" style="width:100%; height:100%; object-fit:cover;">` : `<ion-icon name="image-outline" class="text-muted"></ion-icon>`}
+                                </div>
+                                <div style="min-width:0;">
+                                    <div class="text-accent font-weight-bold font-size-09 flex-row align-center gap-5">
+                                        ${item.panel.replace('.', '')} ${item.isFloating ? `<span class="text-muted font-size-06 uppercase border-dim padding-x-5 border-radius-4">Floating</span>` : ''}
+                                    </div>
+                                    <div class="text-muted font-size-07 truncate">${item.fileName || 'No asset assigned'}</div>
+                                </div>
+                            </div>
+                            ${item.isFloating ? `<button class="small btn-danger-outline delete-geom-btn margin-l-10" title="Delete Geometry"><ion-icon name="trash-outline"></ion-icon></button>` : ''}
+                        </div>
+                    `;
+                }).join('')}
+            </div>
+
+            <div class="flex-row gap-10 margin-b-15 border-dim-bottom padding-b-10">
+                <h5 class="text-accent margin-0 uppercase">Page Settings</h5>
+            </div>
+
+            <div class="form-group bg-black-10 padding-15 border-radius-8 border-dim">
+                <label class="flex-row align-center gap-10 cursor-pointer">
+                    <input type="checkbox" id="toggleSpreadMode" ${isSpread ? 'checked' : ''} style="width: 18px; height: 18px;">
+                    <span class="font-weight-bold">Enable Double-Page Spread</span>
+                </label>
+                <p class="text-muted font-size-08 margin-t-10">
+                    If enabled, this page will pair with its logical partner (e.g. page 2 & 3) to form a widescreen layout.
+                </p>
+            </div>
+        </div>
+    `;
+}
+
 export function renderPanelSettings(panelSelector, entry, isLsCustom, isPtCustom, lsPos, ptPos, lsScale, ptScale, getNum) {
     return `
         <div class="panel-editor-ui">
