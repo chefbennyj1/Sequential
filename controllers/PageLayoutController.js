@@ -225,6 +225,31 @@ exports.getPanels = async (req, res) => {
     const templateHtmlContent = fs.existsSync(templatePath) ? fs.readFileSync(templatePath, 'utf8') : "";
     const panels = PanelService.getPanelsFromTemplate(templateHtmlContent);
 
+    // Spread Detection
+    let isSpread = false;
+    if (atomicPath && fs.existsSync(atomicPath)) {
+        const atomic = JSON.parse(fs.readFileSync(atomicPath, 'utf8'));
+        const spreadType = atomic.header?.spread?.type;
+        if (spreadType && spreadType !== 'none') {
+            isSpread = true;
+        } else {
+            // Auto-detect fallback
+            const pageMatch = pageId.match(/page(\d+)/i);
+            if (pageMatch) {
+                const pageNum = parseInt(pageMatch[1]);
+                const isPotentialLeft = pageNum % 2 === 0;
+                const partnerId = `page${isPotentialLeft ? pageNum + 1 : pageNum - 1}`;
+                const partnerPath = path.join(seriesPath, "Volumes", volume, chapter, partnerId, 'page.json');
+                if (fs.existsSync(partnerPath)) {
+                    const partnerAtomic = JSON.parse(fs.readFileSync(partnerPath, 'utf8'));
+                    if (partnerAtomic.header?.spread?.type && partnerAtomic.header.spread.type !== 'none') {
+                        isSpread = true;
+                    }
+                }
+            }
+        }
+    }
+
     if (panels.size === 0) {
       const nthChildPanelRegex = /panel:nth-child\((\d+)\)/g;
       let nthMatch;
@@ -236,7 +261,7 @@ exports.getPanels = async (req, res) => {
       if (maxNth > 0) for (let i = 1; i <= maxNth; i++) panels.add(`.panel-${i}`);
     }
 
-    res.json({ ok: true, panels: Array.from(panels).sort(), layoutClass: layoutId });
+    res.json({ ok: true, panels: Array.from(panels).sort(), layoutClass: layoutId, isSpread });
   } catch (err) {
     res.status(500).json({ ok: false, message: "Failed to parse panels" });
   }

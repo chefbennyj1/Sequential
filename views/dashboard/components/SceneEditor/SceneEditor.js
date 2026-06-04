@@ -328,13 +328,10 @@ async function syncEditorContext(volume, chapter, pageId, mode) {
 
         const layoutEditor = document.querySelector('.layout-editor');
         if (layoutEditor) {
-            // Check if the layout class contains "Spread" (case-insensitive)
-            const isSpreadLayout = panelData.layoutClass && /spread/i.test(panelData.layoutClass);
-            if (isSpreadLayout) {
-                layoutEditor.classList.add('is-spread');
-            } else {
-                layoutEditor.classList.remove('is-spread');
-            }
+            // Use the isSpread boolean from the API response
+            const isSpread = !!panelData.isSpread;
+            console.log(`[SceneEditor] syncEditorContext: Is Spread: ${isSpread}`);
+            layoutEditor.classList.toggle('is-spread', isSpread);
         }
 
         currentSceneInfo = { volume, chapter, pageId };
@@ -489,6 +486,12 @@ export function initSceneEditor() {
     // 4. Iframe / Cross-Window Messaging
     window.addEventListener('message', async (e) => {
         if (e.data.type === 'previewReady') {
+            const layoutEditor = document.querySelector('.layout-editor');
+            if (layoutEditor) {
+                console.log(`[SceneEditor] previewReady: Is Spread: ${e.data.isSpread}`);
+                layoutEditor.classList.toggle('is-spread', !!e.data.isSpread);
+            }
+
             // Layout is loaded in iframe, refresh directory to catch new panels
             // But if we are currently editing a panel, don't navigate away!
             if (!visual.selectedPanelSelector) {
