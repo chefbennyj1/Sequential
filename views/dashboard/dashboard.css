@@ -116,10 +116,5 @@ body .layout-editor.is-spread #pagePreviewFrame {
   max-width: 98% !important;
 }
 
-/* Fallback if is-spread is missing but we're in portrait-mode container */
-body .layout-editor .preview-pane-flex.portrait-mode #pagePreviewFrame {
-  width: 960px !important;
-  min-width: 960px !important;
-}
 
 
