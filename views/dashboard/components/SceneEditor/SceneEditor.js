@@ -284,7 +284,11 @@ export async function openVisualEditor(volume, chapter, pageId, mode = 'landscap
     const vol = volume || 'volume-1';
     const chap = chapter || 'chapter-1';
     const pid = pageId || 'page0';
-    const targetSrc = `/api/editor/preview/${folder}/${vol}/${chap}/${pid}?mode=${mode}`;
+    
+    // Use URL object for robust construction
+    const targetUrl = new URL(`${window.location.origin}/api/editor/preview/${folder}/${vol}/${chap}/${pid}`);
+    targetUrl.searchParams.set('mode', mode);
+    const targetSrc = targetUrl.pathname + targetUrl.search;
     
     console.log(`[VisualEditor] Loading Preview: ${targetSrc}`);
     iframe.src = targetSrc;
@@ -324,7 +328,9 @@ async function syncEditorContext(volume, chapter, pageId, mode) {
 
         const layoutEditor = document.querySelector('.layout-editor');
         if (layoutEditor) {
-            if (panelData.layoutClass === 'Standard_Page_Spread') {
+            // Check if the layout class contains "Spread" (case-insensitive)
+            const isSpreadLayout = panelData.layoutClass && /spread/i.test(panelData.layoutClass);
+            if (isSpreadLayout) {
                 layoutEditor.classList.add('is-spread');
             } else {
                 layoutEditor.classList.remove('is-spread');

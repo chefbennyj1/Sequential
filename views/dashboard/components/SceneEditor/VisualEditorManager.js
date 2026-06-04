@@ -118,6 +118,7 @@ export class VisualEditorManager {
         const layoutEditor = document.querySelector('.layout-editor');
         if (layoutEditor && iframe && iframe.contentWindow?.GEMINI_LAYOUT_CLASS) {
             const isSpread = /spread/i.test(iframe.contentWindow.GEMINI_LAYOUT_CLASS);
+            console.log(`[VisualEditorManager] Layout detected: ${iframe.contentWindow.GEMINI_LAYOUT_CLASS}, Is Spread: ${isSpread}`);
             layoutEditor.classList.toggle('is-spread', isSpread);
         }
 

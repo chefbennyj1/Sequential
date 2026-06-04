@@ -105,19 +105,21 @@ input[type="range"] {
 }
 
 /* --- Spread Mode Override (ULTRA Specificity) --- */
-/* This forces the width even if is-spread is missing, targeting portrait-mode specifically */
-body .layout-editor .preview-pane-flex.portrait-mode .preview-iframe {
+/* Targeting the ID directly to ensure it wins all specificity battles */
+#pagePreviewFrame {
+    transition: width 0.3s ease, min-width 0.3s ease;
+}
+
+body .layout-editor.is-spread #pagePreviewFrame {
   width: 960px !important;
+  min-width: 960px !important;
   max-width: 98% !important;
-  min-width: 960px !important;
 }
 
-body .layout-editor.is-spread .preview-pane-flex.portrait-mode .preview-iframe {
+/* Fallback if is-spread is missing but we're in portrait-mode container */
+body .layout-editor .preview-pane-flex.portrait-mode #pagePreviewFrame {
   width: 960px !important;
   min-width: 960px !important;
 }
 
-.preview-pane-flex {
-    transition: width 0.3s ease;
-}
 
