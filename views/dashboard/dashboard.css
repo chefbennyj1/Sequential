@@ -103,3 +103,21 @@
 input[type="range"] {
   accent-color: var(--accent);
 }
+
+/* --- Spread Mode Override (ULTRA Specificity) --- */
+/* This forces the width even if is-spread is missing, targeting portrait-mode specifically */
+body .layout-editor .preview-pane-flex.portrait-mode .preview-iframe {
+  width: 960px !important;
+  max-width: 98% !important;
+  min-width: 960px !important;
+}
+
+body .layout-editor.is-spread .preview-pane-flex.portrait-mode .preview-iframe {
+  width: 960px !important;
+  min-width: 960px !important;
+}
+
+.preview-pane-flex {
+    transition: width 0.3s ease;
+}
+

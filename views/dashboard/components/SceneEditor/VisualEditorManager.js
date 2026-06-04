@@ -114,6 +114,13 @@ export class VisualEditorManager {
         const res = await fetchMedia(volume, chapter, pageId, seriesId);
         this.currentVisualMediaData = Array.isArray(res) ? res : (res.media || []);
 
+        // Fallback spread detection for the active layout
+        const layoutEditor = document.querySelector('.layout-editor');
+        if (layoutEditor && iframe && iframe.contentWindow?.GEMINI_LAYOUT_CLASS) {
+            const isSpread = /spread/i.test(iframe.contentWindow.GEMINI_LAYOUT_CLASS);
+            layoutEditor.classList.toggle('is-spread', isSpread);
+        }
+
         const container = document.querySelector('.layout-editor .tools-pane');
         // CRITICAL FIX: Reset any inline styles (like overflow: hidden) applied by other views
         if (container) container.removeAttribute('style');
