@@ -343,12 +343,31 @@ exports.servePreview = async (req, res) => {
       return { html, layoutId, spread: atomic.header?.spread };
     };
 
-    const mainPage = getPageContent(pageId);
+    let mainPage = getPageContent(pageId);
     if (!mainPage) return res.status(404).send("Page not found");
 
     let leftPage = null;
     let rightPage = null;
     let isSpread = false;
+
+    // AUTO-DETECTION Fallback: If metadata is missing on this page, check the logical partner
+    if (!mainPage.spread || mainPage.spread.type === 'none') {
+        const pageMatch = pageId.match(/page(\d+)/i);
+        if (pageMatch) {
+            const pageNum = parseInt(pageMatch[1]);
+            const isPotentialLeft = pageNum % 2 === 0;
+            const partnerId = `page${isPotentialLeft ? pageNum + 1 : pageNum - 1}`;
+            const partnerPage = getPageContent(partnerId);
+            
+            if (partnerPage && partnerPage.spread && partnerPage.spread.type !== 'none') {
+                console.log(`[Preview] Detected un-marked spread page ${pageId}. Partner ${partnerId} confirmed.`);
+                mainPage.spread = { 
+                    type: partnerPage.spread.type === 'left' ? 'right' : 'left',
+                    isBroken: false 
+                };
+            }
+        }
+    }
 
     if (mainPage.spread && mainPage.spread.type !== 'none') {
         isSpread = true;
