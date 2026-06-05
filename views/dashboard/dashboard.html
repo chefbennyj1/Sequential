@@ -677,9 +677,27 @@
 
     <div id="fileBrowserModal" class="modal modal-overlay">
         <div class="modal-content modal-content-large">
-            <div class="modal-header flex-between padding-15 border-dim">
-                <h3>Select Asset</h3>
+            <div class="modal-header padding-15 border-dim modal-header-flex">
+                <h3 class="props-header">Select Asset</h3>
                 <button id="closeFileBrowserBtn" class="small">Close</button>
+            </div>
+            <div class="modal-toolbar padding-10 bg-panel modal-toolbar-flex" style="display: flex; gap: 10px; align-items: center; border-bottom: 1px solid var(--border);">
+                 <select id="fbScopeSelect" class="gov-select">
+                    <option value="page">Page Assets</option>
+                    <option value="volume">Volume Assets</option>
+                    <option value="series">Series Assets</option>
+                 </select>
+                 <input type="text" id="fbSearchInput" placeholder="Search..." class="flex-1 gov-select">
+                 <select id="fbSortSelect" class="gov-select">
+                    <option value="date">Newest First</option>
+                    <option value="name">Name (A-Z)</option>
+                 </select>
+                 <div class="divider-v margin-b-0"></div>
+                 <label class="small modal-file-label" style="cursor: pointer;">
+                    Upload New
+                    <input type="file" id="fileBrowserUploadInput" class="hidden" style="display: none;">
+                 </label>
+                 <span id="fileBrowserStatus" class="text-muted font-size-09 align-self-center"></span>
             </div>
             <div id="fileBrowserGrid" class="flex-1 padding-20 file-browser-grid"></div>
         </div>
