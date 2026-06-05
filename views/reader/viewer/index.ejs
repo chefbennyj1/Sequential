@@ -157,7 +157,7 @@
 
                     const section = document.createElement("section");
                     section.id = 'section-' + index;
-                    section.className = `section-${index} scroll-section page-container ${isDualSpread ? 'spread-mode' : ''}`;
+                    section.className = 'section-' + index + ' scroll-section page-container ' + (isDualSpread ? 'spread-mode' : '');
                     
                     // Cover page logic
                     if (group.length === 1 && group[0].index === 1) {
@@ -167,7 +167,7 @@
                     // PRIMARY STAGE: This is the single centering unit for the viewport
                     const masterStage = document.createElement("div");
                     masterStage.className = "master-stage";
-                    masterStage.id = `section-${index}-master`;
+                    masterStage.id = 'section-' + index + '-master';
                     
                     if (isDualSpread) {
                         // Widescreen container for two pages
@@ -176,7 +176,7 @@
                         
                         group.forEach((page, pIndex) => {
                             const pageCell = document.createElement("div");
-                            pageCell.id = `section-${index}-p${pIndex}`;
+                            pageCell.id = 'section-' + index + '-p' + pIndex;
                             pageCell.className = "page-cell";
                             spreadWrapper.appendChild(pageCell);
                         });
