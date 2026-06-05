@@ -591,8 +591,82 @@
                         <div class="input-field"><label>Panel Selector</label><input type="text" id="prop-panel" placeholder=".panel-A"></div>
                         <div class="input-field"><label>Top (%)</label><input type="text" id="prop-top"></div>
                         <div class="input-field"><label>Left (%)</label><input type="text" id="prop-left"></div>
+                        <div class="input-field"><label>Right (%)</label><input type="text" id="prop-right"></div>
+                        <div class="input-field"><label>Bottom (%)</label><input type="text" id="prop-bottom"></div>
                         <div class="input-field"><label>Width (%)</label><input type="text" id="prop-width" placeholder="Auto"></div>
+
+                        <div class="input-field">
+                            <label>Tail Position</label>
+                            <select id="prop-tail" class="gov-select width-100">
+                                <option value="">None</option>
+                                <option value="top-left">Top Left</option>
+                                <option value="top-right">Top Right</option>
+                                <option value="bottom-left">Bottom Left</option>
+                                <option value="bottom-right">Bottom Right</option>
+                            </select>
+                        </div>
+                        <div class="input-field"><label>Tail Skew</label><input type="number" id="prop-tail-skew" placeholder="25"></div>
+                        <div class="input-field"><label>Tail Scale</label><input type="text" id="prop-tail-scale" placeholder="1.0"></div>
+                        
+                        <div class="input-field">
+                            <label>Font Size</label>
+                            <input type="text" id="prop-font-size" placeholder="0.85rem">
+                        </div>
+                        <div class="input-field prop-group-font">
+                            <label>Action Font</label>
+                            <select id="prop-font-family" class="gov-select width-100">
+                                <option value="">Default</option>
+                            </select>
+                        </div>
+                        <div class="input-field">
+                            <label>Text Color</label>
+                            <input type="color" id="prop-action-color" value="#000000" class="gov-color-input">
+                        </div>
+
+                        <!-- AI Color Extraction Tool -->
+                        <div class="palette-extraction-row flex-row align-center gap-10 margin-b-15">
+                            <button type="button" id="prop-gen-palette" class="small btn-secondary flex-row align-center gap-5" style="white-space: nowrap;">
+                                <ion-icon name="color-palette-outline"></ion-icon>
+                                <span>Image color extraction</span>
+                            </button>
+                            <div id="prop-palette-swatches" class="flex-row gap-5 hidden">
+                                <!-- Swatches injected here -->
+                            </div>
+                        </div>
+
+                        <div class="input-field" style="display:flex; flex-direction:row; align-items:center; gap:8px; margin-bottom: 15px;">
+                            <input type="checkbox" id="prop-outline-enabled" style="margin:0;">
+                            <label style="margin:0;">Text Outline</label>
+                        </div>
+                        <div class="input-field">
+                            <label>Outline Color</label>
+                            <input type="color" id="prop-outline-color" value="#000000" class="gov-color-input">
+                        </div>
+                        <div class="input-field">
+                            <label>Thickness (px)</label>
+                            <input type="number" step="0.1" id="prop-outline-size" placeholder="1.0">
+                        </div>
+
+                        <div class="prop-group-curve">
+                            <div class="input-field"><label>SVG Curve Path</label><input type="text" id="prop-curve" placeholder="M 10,90 Q 150,10 290,90"></div>
+                            <div class="input-field"><label>Curve W</label><input type="number" id="prop-curve-w" placeholder="300"></div>
+                            <div class="input-field"><label>Curve H</label><input type="number" id="prop-curve-h" placeholder="100"></div>
+                            <div class="input-field"><label>Rotation</label><input type="number" step="0.1" id="prop-rotation" placeholder="-20"></div>
+                        </div>
                     </div>
+                    
+                    <div class="input-field">
+                        <label>Panel Effect</label>
+                        <select id="prop-panel-effect">
+                            <option value="">None (Standard)</option>
+                            <option value="memory">Digital Recall (Memory)</option>
+                            <option value="haze">Soft Haze (Nostalgia)</option>
+                            <option value="glitch">Corrupted (Fragment)</option>
+                            <option value="cloudy">Cloudy Memory (Dream)</option>
+                        </select>
+                    </div>
+
+                    <div class="prop-group-duration hidden"><div class="input-field"><label>Duration (ms)</label><input type="number" id="prop-duration"></div></div>
                     <button type="button" id="deleteItemBtn" class="delete-item-btn">Delete Item</button>
                 </form>
             </div>
