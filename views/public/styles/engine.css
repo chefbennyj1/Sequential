@@ -494,14 +494,6 @@ section.active .section-container {
   flex-shrink: 0;
 }
 
-/* OVERRIDE base-comic-layout.css for pages inside a spread */
-.spread-wrapper .section-container {
-  max-width: none !important;
-  aspect-ratio: auto !important;
-  width: 100% !important;
-  height: 100% !important;
-}
-
 .spread-mode .page-inner-container {
   flex: 0 0 auto;
   width: auto;

@@ -157,38 +157,34 @@
 
                     const section = document.createElement("section");
                     section.id = 'section-' + index;
-                    section.className = 'section-' + index + ' scroll-section page-container';
+                    section.className = `section-${index} scroll-section page-container ${isDualSpread ? 'spread-mode' : ''}`;
                     
-                    if (isDualSpread) {
-                        section.classList.add('spread-mode');
-                    }
-
                     // Cover page logic
                     if (group.length === 1 && group[0].index === 1) {
                         section.classList.add('cover-section');
                     }
 
-                    // MASTER CONTAINER: The section-container shouldn't change. 
-                    // Every scroll unit has exactly one master stage.
-                    const masterContainer = document.createElement("div");
-                    masterContainer.className = "section-container master-stage";
-                    masterContainer.id = 'section-' + index + '-master';
+                    // PRIMARY STAGE: This is the single centering unit for the viewport
+                    const masterStage = document.createElement("div");
+                    masterStage.className = "master-stage";
+                    masterStage.id = `section-${index}-master`;
                     
                     if (isDualSpread) {
+                        // Widescreen container for two pages
                         const spreadWrapper = document.createElement("div");
                         spreadWrapper.className = "spread-wrapper";
                         
                         group.forEach((page, pIndex) => {
-                            const pageInner = document.createElement("div");
-                            pageInner.id = 'section-' + index + '-p' + pIndex;
-                            pageInner.className = "page-inner-container";
-                            spreadWrapper.appendChild(pageInner);
+                            const pageCell = document.createElement("div");
+                            pageCell.id = `section-${index}-p${pIndex}`;
+                            pageCell.className = "page-cell";
+                            spreadWrapper.appendChild(pageCell);
                         });
                         
-                        masterContainer.appendChild(spreadWrapper);
+                        masterStage.appendChild(spreadWrapper);
                     }
 
-                    section.appendChild(masterContainer);
+                    section.appendChild(masterStage);
                     scrollWrapper.appendChild(section);
                 });
 
