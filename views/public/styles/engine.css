@@ -263,11 +263,15 @@ section.active .section-container {
 }
 
 .section-container {
-
   position: relative;
   background: transparent;
   transform: translateZ(0);
   backface-visibility: hidden;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 
@@ -474,29 +478,28 @@ section.active .section-container {
 /* --- SPREAD MODE STYLES --- */
 .spread-wrapper {
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   justify-content: center;
   align-items: center;
   height: 100dvh;
-  width: 55vw;
-  gap: 10px; /* Small gap between pages */
+  width: fit-content;
+  max-width: none;
+  gap: 0px;
   margin: 0 auto;
   padding: 0;
-}
-
-/* Editor Specific Spread Sizing */
-.editor-spread-view.portrait-page {
-  aspect-ratio: 13.25 / 10.25 !important;
-  max-width: calc(94vh * (13.25 / 10.25)) !important;
-  width: auto !important;
+  flex-shrink: 0;
 }
 
 .spread-mode .page-inner-container {
-  width: 50%;
+  flex: 0 0 auto;
+  width: auto;
   height: 100dvh;
   display: flex;
   justify-content: center;
   align-items: center;
-  overflow: hidden;
+  overflow: visible;
+  position: relative;
 }
 
 /* Cover page (Page 1) is a single page on the right side of a spread */
