@@ -3,33 +3,45 @@ import { fetchCharactersAPI, fetchSeriesAPI } from '../../studio/api/StudioClien
 
 export default class CharacterLab {
     constructor(container) {
-        this.container = container;
-        if (!container) return; // Guard clause
-        
-        this.listContainer = container.querySelector('#character-list');
-        this.formContainer = container.querySelector('#character-form-container');
-        this.createBtn = container.querySelector('#create-character-btn');
-        this.seriesSelect = container.querySelector('#char-series-select');
-        this.activeCharacterId = null;
-        this.activeSeriesId = null;
+        try {
+            this.container = container;
+            if (!container) return; // Guard clause
+            
+            this.listContainer = container.querySelector('#character-list');
+            this.formContainer = container.querySelector('#character-form-container');
+            this.createBtn = container.querySelector('#create-character-btn');
+            this.seriesSelect = container.querySelector('#char-series-select');
+            this.activeCharacterId = null;
+            this.activeSeriesId = null;
 
-        this.init();
+            this.init();
+        } catch (err) {
+            console.error("[CharacterLab] Constructor failed:", err);
+        }
     }
 
     async init() {
-        if (!this.seriesSelect) return; // Guard clause
+        console.log("[CharacterLab] Initializing...");
+        if (!this.seriesSelect) {
+            console.warn("[CharacterLab] Missing #char-series-select. Initialization aborted.");
+            return;
+        }
         
         // Load series list
         try {
             const seriesList = await fetchSeriesAPI();
-            this.seriesSelect.innerHTML = '<option value="">Select Series</option>';
-            seriesList.forEach(s => {
-                const opt = document.createElement('option');
-                opt.value = s._id;
-                opt.textContent = s.title;
-                this.seriesSelect.appendChild(opt);
-            });
-        } catch (e) { console.error(e); }
+            if (Array.isArray(seriesList)) {
+                this.seriesSelect.innerHTML = '<option value="">Select Series</option>';
+                seriesList.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s._id;
+                    opt.textContent = s.title;
+                    this.seriesSelect.appendChild(opt);
+                });
+            }
+        } catch (e) { 
+            console.error("[CharacterLab] Failed to load series:", e); 
+        }
 
         this.seriesSelect.onchange = (e) => {
             this.activeSeriesId = e.target.value;
@@ -50,15 +62,21 @@ export default class CharacterLab {
 
         // Handle Avatar Upload
         const avatarInput = document.getElementById('char-avatar-input');
-        avatarInput.onchange = (e) => this.handleAvatarUpload(e);
+        if (avatarInput) {
+            avatarInput.onchange = (e) => this.handleAvatarUpload(e);
+        }
 
         // Handle AI Scan Profile
         this.aiScanBtn = document.getElementById('ai-analyze-char-btn');
-        this.aiScanBtn.onclick = () => this.handleAIScan();
+        if (this.aiScanBtn) {
+            this.aiScanBtn.onclick = () => this.handleAIScan();
+        }
 
         // Handle Reference Upload
         const refInput = document.getElementById('char-reference-input');
-        refInput.onchange = (e) => this.handleReferenceUpload(e);
+        if (refInput) {
+            refInput.onchange = (e) => this.handleReferenceUpload(e);
+        }
     }
 
     async loadCharacters() {

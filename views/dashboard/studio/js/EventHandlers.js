@@ -72,18 +72,21 @@ export function initEventHandlers(container, allSections) {
         // STUDIO HUB: Mode Cards
         if (target.classList.contains('mode-card') && target.closest('.studio')) {
             const targetPage = target.dataset.target;
+            console.log(`[Dashboard] Mode Card Clicked: ${targetPage}`);
             if (!targetPage) return;
 
-            container.querySelector('.studio').classList.add('hidden');       
-
-            const targetSection = container.querySelector('.' + targetPage);  
+            const studio = container.querySelector('.studio');
+            const targetSection = container.querySelector('.' + targetPage);
+            
             if (targetSection) {
+                if (studio) studio.classList.add('hidden');
                 targetSection.classList.remove('hidden');
 
                 if (targetPage === 'create-new-volume') populateSeriesSelect('createVolumeSeriesSelect');
                 if (targetPage === 'edit-volume') populateSeriesSelect('volumeSeriesSelect');
                 if (targetPage === 'create-new-chapter') populateSeriesSelect('chapterSeriesSelect');
                 if (targetPage === 'export-tool') populateSeriesSelect('exportSeriesSelect');
+                if (targetPage === 'characters') populateSeriesSelect('char-series-select');
                 if (targetPage === 'page-builder') {
                     populateSeriesSelect('builderSeriesSelect');
                     populateSeriesSelect('insertSeriesSelect');
@@ -101,6 +104,8 @@ export function initEventHandlers(container, allSections) {
                          modeSel.classList.remove('hidden');
                     }
                 }
+            } else {
+                console.warn(`[Dashboard] Target section not found: .${targetPage}`);
             }
         }
 

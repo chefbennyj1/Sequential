@@ -67,13 +67,13 @@ export async function init(container) {
     initExportManager(container);
 
     // Initialize UI Sub-Systems
-    initFileBrowser();
-    initSceneEditor();
-    initVisualEditor();
-    new CharacterEditor(container);
-    new ScheduledTaskView();
-    initPlotLab(container);
-    initStoryCritic(container);
+    try { initFileBrowser(); } catch (e) { console.error("FileBrowser init failed", e); }
+    try { initSceneEditor(); } catch (e) { console.error("SceneEditor init failed", e); }
+    try { initVisualEditor(); } catch (e) { console.error("VisualEditor init failed", e); }
+    try { new CharacterEditor(container); } catch (e) { console.error("CharacterEditor init failed", e); }
+    try { new ScheduledTaskView(); } catch (e) { console.error("ScheduledTaskView init failed", e); }
+    try { initPlotLab(container); } catch (e) { console.error("PlotLab init failed", e); }
+    try { initStoryCritic(container); } catch (e) { console.error("StoryCritic init failed", e); }
 
     // Inject PlotLab CSS
     if (!document.querySelector(`link[href="/views/dashboard/components/PlotLab/PlotLab.css"]`)) {
