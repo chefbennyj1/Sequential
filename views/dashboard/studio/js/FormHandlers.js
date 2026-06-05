@@ -308,9 +308,11 @@ async function initGlobalSettings() {
     const autoScan = document.getElementById('global-auto-scan');
 
     const toggleFields = () => {
-        fieldsContainer.style.display = visionEnabled.checked ? 'block' : 'none';
+        if (fieldsContainer && visionEnabled) {
+            fieldsContainer.style.display = visionEnabled.checked ? 'block' : 'none';
+        }
     };
-    visionEnabled.onchange = toggleFields;
+    if (visionEnabled) visionEnabled.onchange = toggleFields;
 
     // Load initial data
     try {
@@ -318,13 +320,13 @@ async function initGlobalSettings() {
         const data = await res.json();
         if (data.ok && data.settings) {
             const v = data.settings.vision || {};
-            visionEnabled.checked = v.enabled || false;
-            apiKeyInput.value = v.apiKey || '';
+            if (visionEnabled) visionEnabled.checked = v.enabled || false;
+            if (apiKeyInput) apiKeyInput.value = v.apiKey || '';
             if (modelNameSelect) modelNameSelect.value = v.modelName || 'gemini-1.5-flash';
-            systemPrompt.value = v.systemPrompt || '';
-            maxTokens.value = v.maxTokens || 100;
-            temperature.value = v.temperature || 0.2;
-            autoScan.checked = v.autoScanOnSave !== false;
+            if (systemPrompt) systemPrompt.value = v.systemPrompt || '';
+            if (maxTokens) maxTokens.value = v.maxTokens || 100;
+            if (temperature) temperature.value = v.temperature || 0.2;
+            if (autoScan) autoScan.checked = v.autoScanOnSave !== false;
             toggleFields();
         }
     } catch (err) {
@@ -335,17 +337,19 @@ async function initGlobalSettings() {
         e.preventDefault();
         const settings = {
             vision: {
-                enabled: visionEnabled.checked,
-                apiKey: apiKeyInput.value,
+                enabled: visionEnabled ? visionEnabled.checked : false,
+                apiKey: apiKeyInput ? apiKeyInput.value : '',
                 modelName: modelNameSelect ? modelNameSelect.value : 'gemini-1.5-flash',
-                systemPrompt: systemPrompt.value,
-                maxTokens: parseInt(maxTokens.value),
-                temperature: parseFloat(temperature.value),
-                autoScanOnSave: autoScan.checked
+                systemPrompt: systemPrompt ? systemPrompt.value : '',
+                maxTokens: maxTokens ? parseInt(maxTokens.value) : 100,
+                temperature: temperature ? parseFloat(temperature.value) : 0.2,
+                autoScanOnSave: autoScan ? autoScan.checked : true
             }
         };
 
         const btn = document.getElementById('saveGlobalSettingsBtn');
+        if (!btn) return;
+        
         const originalText = btn.textContent;
         btn.disabled = true;
         btn.textContent = "Saving...";

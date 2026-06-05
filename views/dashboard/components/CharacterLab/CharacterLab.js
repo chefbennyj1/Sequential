@@ -63,6 +63,15 @@ export default class CharacterLab {
         // Handle Avatar Upload
         const avatarInput = document.getElementById('char-avatar-input');
         if (avatarInput) {
+            const avatarLabel = avatarInput.closest('label');
+            if (avatarLabel) {
+                avatarLabel.addEventListener('click', (e) => {
+                    if (!this.activeCharacterId) {
+                        e.preventDefault();
+                        alert("Please Save the Record first before uploading a photo. We need an active profile to attach the image to!");
+                    }
+                }, true); // Capture phase to ensure we intercept before file picker
+            }
             avatarInput.onchange = (e) => this.handleAvatarUpload(e);
         }
 
@@ -75,6 +84,15 @@ export default class CharacterLab {
         // Handle Reference Upload
         const refInput = document.getElementById('char-reference-input');
         if (refInput) {
+            const refLabel = refInput.closest('label');
+            if (refLabel) {
+                refLabel.addEventListener('click', (e) => {
+                    if (!this.activeCharacterId) {
+                        e.preventDefault();
+                        alert("Please Save the Record first before adding reference images. We need an active profile to attach the files to!");
+                    }
+                }, true);
+            }
             refInput.onchange = (e) => this.handleReferenceUpload(e);
         }
     }
@@ -160,31 +178,42 @@ export default class CharacterLab {
     setUploadsState(enabled) {
         const avatarInput = document.getElementById('char-avatar-input');
         const refInput = document.getElementById('char-reference-input');
+        if (!avatarInput || !refInput) return;
+
         const avatarLabel = avatarInput.closest('label');
         const refLabel = refInput.closest('label');
 
-        avatarInput.disabled = !enabled;
-        refInput.disabled = !enabled;
-
+        // We don't disable the input anymore, we intercept the click on the label
+        // to show a helpful message if not enabled.
         if (enabled) {
-            avatarLabel.style.opacity = '1';
-            avatarLabel.style.cursor = 'pointer';
-            refLabel.style.opacity = '1';
-            refLabel.style.cursor = 'pointer';
-            avatarLabel.title = "";
-            refLabel.title = "";
+            if (avatarLabel) {
+                avatarLabel.style.opacity = '1';
+                avatarLabel.style.cursor = 'pointer';
+                avatarLabel.title = "";
+            }
+            if (refLabel) {
+                refLabel.style.opacity = '1';
+                refLabel.style.cursor = 'pointer';
+                refLabel.title = "";
+            }
         } else {
-            avatarLabel.style.opacity = '0.5';
-            avatarLabel.style.cursor = 'not-allowed';
-            refLabel.style.opacity = '0.5';
-            refLabel.style.cursor = 'not-allowed';
-            avatarLabel.title = "Save character record first to enable uploads";
-            refLabel.title = "Save character record first to enable uploads";
+            if (avatarLabel) {
+                avatarLabel.style.opacity = '0.5';
+                avatarLabel.style.cursor = 'pointer'; // Keep pointer to encourage click
+                avatarLabel.title = "Save character record first to enable uploads";
+            }
+            if (refLabel) {
+                refLabel.style.opacity = '0.5';
+                refLabel.style.cursor = 'pointer';
+                refLabel.title = "Save character record first to enable uploads";
+            }
         }
     }
 
     async handleAIScan() {
-        if (!this.activeCharacterId) return;
+        if (!this.activeCharacterId) {
+            return alert("Please Save the character record first to enable AI Profile Scanning.");
+        }
         
         const originalText = this.aiScanBtn.textContent;
         this.aiScanBtn.disabled = true;
