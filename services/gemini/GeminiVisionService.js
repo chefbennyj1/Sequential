@@ -37,24 +37,10 @@ class GeminiVisionService {
             const stats = fs.statSync(imagePath);
             if (stats.size === 0) return null;
 
-            // Defensive Sharp configuration
-            sharp.concurrency(1);
-            sharp.cache(false);
+            // Use simple file-based MD5 to prevent native C++ Sharp crashes (segfaults) on Windows during bulk scans.
+            const fileBuffer = fs.readFileSync(imagePath);
+            return crypto.createHash('md5').update(fileBuffer).digest('hex');
 
-            // Attempt fast visual hash using Sharp
-            try {
-                const processedBuffer = await sharp(imagePath, { failOn: 'none' })
-                    .resize(256, 256, { fit: 'inside', withoutEnlargement: true })
-                    .grayscale()
-                    .toBuffer();
-                
-                return crypto.createHash('md5').update(processedBuffer).digest('hex');
-            } catch (sharpError) {
-                console.warn(`[GeminiVision] Sharp failed for ${path.basename(imagePath)}, falling back to file hash.`, sharpError.message);
-                // Fallback to simple file-based MD5
-                const fileBuffer = fs.readFileSync(imagePath);
-                return crypto.createHash('md5').update(fileBuffer).digest('hex');
-            }
         } catch (err) {
             console.error(`[GeminiVision] Critical Hashing Error for ${path.basename(imagePath)}:`, err.message);
             return null;
