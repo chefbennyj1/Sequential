@@ -49,7 +49,6 @@
                 <h3>Sequential Studio</h3>
                 <p class="text-muted margin-b-40">Select a tool to begin.</p>
             
-            
                 <div class="global-settings bg-dark padding-20 border-radius-12 border-dim margin-b-30">
                     <h4 class="margin-b-15">Active Workspace</h4>
                     <div class="flex-row gap-15">
@@ -66,70 +65,69 @@
                 </div>
 
                 <div class="flex-row gap-20 justify-center flex-wrap">
-                
-                <div class="mode-card" data-target="library-settings">
-                    <ion-icon name="settings-outline"></ion-icon>
-                    <h4>Library Settings</h4>
-                    <p>Global defaults and series-wide preferences.</p>
-                </div>
+                    <div class="mode-card" data-target="library-settings">
+                        <ion-icon name="settings-outline"></ion-icon>
+                        <h4>Library Settings</h4>
+                        <p>Global defaults and series-wide preferences.</p>
+                    </div>
 
-                <div class="mode-card" data-target="create-new-volume">
-                    <ion-icon name="book-outline"></ion-icon>
-                    <h4>Create Volume</h4>
-                    <p>Start a new volume in the current series.</p>
-                </div>
+                    <div class="mode-card" data-target="create-new-volume">
+                        <ion-icon name="book-outline"></ion-icon>
+                        <h4>Create Volume</h4>
+                        <p>Start a new volume in the current series.</p>
+                    </div>
 
-                <div class="mode-card" data-target="edit-volume">
-                    <ion-icon name="create-outline"></ion-icon>
-                    <h4>Edit Volume</h4>
-                    <p>Manage chapters and metadata.</p>
-                </div>
+                    <div class="mode-card" data-target="edit-volume">
+                        <ion-icon name="create-outline"></ion-icon>
+                        <h4>Edit Volume</h4>
+                        <p>Manage chapters and metadata.</p>
+                    </div>
 
-                <div class="mode-card" data-target="create-new-chapter">
-                    <ion-icon name="bookmarks-outline"></ion-icon>
-                    <h4>New Chapter</h4>
-                    <p>Append a new chapter and initialize the next page.</p>
-                </div>
+                    <div class="mode-card" data-target="create-new-chapter">
+                        <ion-icon name="bookmarks-outline"></ion-icon>
+                        <h4>New Chapter</h4>
+                        <p>Append a new chapter and initialize the next page.</p>
+                    </div>
 
-                <div class="mode-card" data-target="page-builder">
-                    <ion-icon name="layers-outline"></ion-icon>
-                    <h4>Page Builder</h4>
-                    <p>Scaffold, edit, and arrange comic pages.</p>
-                </div>
+                    <div class="mode-card" data-target="page-builder">
+                        <ion-icon name="layers-outline"></ion-icon>
+                        <h4>Page Builder</h4>
+                        <p>Scaffold, edit, and arrange comic pages.</p>
+                    </div>
 
-                <div class="mode-card" data-target="characters">
-                    <ion-icon name="people-outline"></ion-icon>
-                    <h4>Character Lab</h4>
-                    <p>Create and manage character profiles.</p>
-                </div>
+                    <div class="mode-card" data-target="characters">
+                        <ion-icon name="people-outline"></ion-icon>
+                        <h4>Character Lab</h4>
+                        <p>Create and manage character profiles.</p>
+                    </div>
 
-                <div class="mode-card" data-target="plot-lab">
-                    <ion-icon name="bulb-outline"></ion-icon>
-                    <h4>Plot Lab</h4>
-                    <p>Brainstorm and storyboard your ideas.</p>
-                </div>
+                    <div class="mode-card" data-target="plot-lab">
+                        <ion-icon name="bulb-outline"></ion-icon>
+                        <h4>Plot Lab</h4>
+                        <p>Brainstorm and storyboard your ideas.</p>
+                    </div>
 
-                <div class="mode-card" data-target="story-critic">
-                    <ion-icon name="analytics-outline"></ion-icon>
-                    <h4>Story Critic</h4>
-                    <p>AI-powered narrative analysis and overview.</p>
-                </div>
+                    <div class="mode-card" data-target="story-critic">
+                        <ion-icon name="analytics-outline"></ion-icon>
+                        <h4>Story Critic</h4>
+                        <p>AI-powered narrative analysis and overview.</p>
+                    </div>
 
-                <div class="mode-card" data-target="export-tool">
-                    <ion-icon name="print-outline"></ion-icon>
-                    <h4>Print Exporter</h4>
-                    <p>Render and export high-res PNG files.</p>
-                </div>
+                    <div class="mode-card" data-target="export-tool">
+                        <ion-icon name="print-outline"></ion-icon>
+                        <h4>Print Exporter</h4>
+                        <p>Render and export high-res PNG files.</p>
+                    </div>
 
-                <!-- Placeholder for Series Manager -->
-                <div class="mode-card disabled opacity-50 cursor-not-allowed">
-                    <ion-icon name="library-outline"></ion-icon>
-                    <h4>New Series</h4>
-                    <p>Coming Soon</p>
-                </div> <!-- Closes flex-row grid -->
+                    <div class="mode-card disabled opacity-50 cursor-not-allowed">
+                        <ion-icon name="library-outline"></ion-icon>
+                        <h4>New Series</h4>
+                        <p>Coming Soon</p>
+                    </div>
+                </div> <!-- Closes flex-row gap-20 (grid) -->
             </div> <!-- Closes studio-header -->
         </div> <!-- Closes medium-container -->
-    </div> <!-- Closes studio -->
+    </div> <!-- Closes studio dashboard-section -->
 
 
     <!-- USER / ACCOUNT SETTINGS -->
@@ -162,394 +160,268 @@
 
     <!-- SUB-SECTIONS (Hidden by default, accessed via Studio) -->
 
-        <div class="create-new-volume dashboard-section hidden">
-
-            <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
-
-            <h3>Create New Volume</h3>
-
-            <form id="volume-info">
-                <div class="form-group">
-                    <label>Select Series</label>
-                    <select id="createVolumeSeriesSelect" name="seriesId" required></select>
-                </div>
-                <div class="input-field">
-                    <label for="index">Volume Index (Number)</label>
-                    <input type="number" id="index" name="index" placeholder="e.g. 1" required />
-                </div>
-                <div class="input-field">
-                    <label for="title">Volume Title</label>
-                    <input type="text" id="title" name="title" placeholder="e.g. The Beginning" required />
-                </div>
-                <div class="input-field">
-                    <label for="firstChapterTitle">First Chapter Title</label>
-                    <input type="text" id="firstChapterTitle" name="firstChapterTitle" placeholder="e.g. Arrival" required />
-                </div>
-                <button class="update__btn w-full" type="submit" id="createVolumeBtn">Create Volume Structure</button>
-            </form>
-            <div id="volumeStatus" class="builder-status"></div>
-
-        </div>
-
-        <div class="create-new-chapter dashboard-section hidden">
-            <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
-            <h3>Create New Chapter</h3>
-            <p class="text-muted margin-b-20">This will create the next chapter folder and the first page within it.</p>
-            <form id="chapter-info">
-                <div class="form-group">
-                    <label>Select Series</label>
-                    <select id="chapterSeriesSelect"></select>
-                </div>
-                <div class="form-group">
-                    <label>Select Volume</label>
-                    <select id="chapterVolumeSelect" disabled><option value="">Select a Series first</option></select>
-                </div>
-                <div class="input-field">
-                    <label for="chapterIndex">Chapter Index (Number)</label>
-                    <input type="number" id="chapterIndex" name="chapterIndex" placeholder="e.g. 3" required />
-                </div>
-                <div class="input-field">
-                    <label for="chapterTitle">Chapter Title</label>
-                    <input type="text" id="chapterTitle" name="title" placeholder="e.g. The Neon Rain" />
-                </div>
-                <button class="update__btn w-full" type="submit" id="createChapterBtn">Initialize Chapter</button>
-            </form>
-            <div id="chapterStatus" class="builder-status"></div>
-        </div>
-
-        <div class="edit-volume dashboard-section hidden">
-
-            <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
-
-            <h3>Edit Volume Metadata</h3>
-
+    <div class="create-new-volume dashboard-section hidden">
+        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+        <h3>Create New Volume</h3>
+        <form id="volume-info">
             <div class="form-group">
-                <label for="volumeSeriesSelect">Select Series:</label>
-                <select id="volumeSeriesSelect"></select>
+                <label>Select Series</label>
+                <select id="createVolumeSeriesSelect" name="seriesId" required></select>
             </div>
-
-            <div class="form-group">
-                <label for="volumeSelect">Select Volume:</label>
-                <select id="volumeSelect" disabled><option value="">Select a Series first</option></select>
+            <div class="input-field">
+                <label for="index">Volume Index (Number)</label>
+                <input type="number" id="index" name="index" placeholder="e.g. 1" required />
             </div>
+            <div class="input-field">
+                <label for="title">Volume Title</label>
+                <input type="text" id="title" name="title" placeholder="e.g. The Beginning" required />
+            </div>
+            <div class="input-field">
+                <label for="firstChapterTitle">First Chapter Title</label>
+                <input type="text" id="firstChapterTitle" name="firstChapterTitle" placeholder="e.g. Arrival" required />
+            </div>
+            <button class="update__btn w-full" type="submit" id="createVolumeBtn">Create Volume Structure</button>
+        </form>
+        <div id="volumeStatus" class="builder-status"></div>
+    </div>
 
-            <div id="editVolumeContainer"></div> 
+    <div class="create-new-chapter dashboard-section hidden">
+        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+        <h3>Create New Chapter</h3>
+        <p class="text-muted margin-b-20">This will create the next chapter folder and the first page within it.</p>
+        <form id="chapter-info">
+            <div class="form-group">
+                <label>Select Series</label>
+                <select id="chapterSeriesSelect"></select>
+            </div>
+            <div class="form-group">
+                <label>Select Volume</label>
+                <select id="chapterVolumeSelect" disabled><option value="">Select a Series first</option></select>
+            </div>
+            <div class="input-field">
+                <label for="chapterIndex">Chapter Index (Number)</label>
+                <input type="number" id="chapterIndex" name="chapterIndex" placeholder="e.g. 3" required />
+            </div>
+            <div class="input-field">
+                <label for="chapterTitle">Chapter Title</label>
+                <input type="text" id="chapterTitle" name="title" placeholder="e.g. The Neon Rain" />
+            </div>
+            <button class="update__btn w-full" type="submit" id="createChapterBtn">Initialize Chapter</button>
+        </form>
+        <div id="chapterStatus" class="builder-status"></div>
+    </div>
 
+    <div class="edit-volume dashboard-section hidden">
+        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+        <h3>Edit Volume Metadata</h3>
+        <div class="form-group">
+            <label for="volumeSeriesSelect">Select Series:</label>
+            <select id="volumeSeriesSelect"></select>
+        </div>
+        <div class="form-group">
+            <label for="volumeSelect">Select Volume:</label>
+            <select id="volumeSelect" disabled><option value="">Select a Series first</option></select>
+        </div>
+        <div id="editVolumeContainer"></div> 
+    </div>
+
+    <div class="library-settings dashboard-section hidden">
+        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+        <h3>Library Settings</h3>
+        <p class="text-muted margin-b-20">Configure global defaults for your series.</p>
+        
+        <div class="form-group">
+            <label>Select Series to Configure</label>
+            <select id="settingsSeriesSelect" class="gov-select">
+                <option value="">Select a Series</option>
+            </select>
         </div>
 
-        <!-- LIBRARY SETTINGS -->
-        <div class="library-settings dashboard-section hidden">
-            <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
-            <h3>Library Settings</h3>
-            <p class="text-muted margin-b-20">Configure global defaults for your series.</p>
-            
-            <div class="form-group">
-                <label>Select Series to Configure</label>
-                <select id="settingsSeriesSelect" class="gov-select">
-                    <option value="">Select a Series</option>
+        <div id="series-settings-form-container" class="hidden margin-t-20 bg-dark padding-30 border-radius-12 border-dim">
+            <form id="library-settings-form">
+                <input type="hidden" id="settings-series-id">
+                <div class="form-group">
+                    <label>Default Viewer Mode</label>
+                    <select id="settings-default-view-mode" class="gov-select">
+                        <option value="landscape">Landscape (Standard)</option>
+                        <option value="portrait">Portrait (Tall)</option>
+                    </select>
+                    <p class="font-size-07 text-muted margin-t-10">This determines how the comic loads by default for all readers of this series.</p>
+                </div>
+                <div class="margin-t-30">
+                    <button type="submit" class="update__btn w-full">Save Library Settings</button>
+                </div>
+            </form>
+        </div>
+
+        <hr class="margin-y-40 border-dim">
+
+        <h3>AI Settings</h3>
+        <p class="text-muted margin-b-20">Configure global Gemini AI integration.</p>
+
+        <div id="global-settings-form-container" class="bg-dark padding-30 border-radius-12 border-dim">
+            <form id="global-settings-form">
+                <div class="form-group">
+                    <label class="flex-row align-center gap-10">
+                        <input type="checkbox" id="global-vision-enabled">
+                        <span>Enable Gemini Vision AI</span>
+                    </label>
+                    <p class="font-size-07 text-muted margin-t-5">Automatic panel image description via Google Gemini</p>
+                </div>
+
+                <div id="vision-settings-fields" class="margin-t-20 border-dim padding-20 border-radius-8">
+                    <div class="form-group">
+                        <label>Gemini API Key</label>
+                        <div class="flex-row gap-10 align-center">
+                            <input type="password" id="global-api-key" class="gov-input flex-1" placeholder="Paste your API key here">
+                            <a href="https://aistudio.google.com/app/apikey" target="_blank" class="small btn-browse text-center" style="text-decoration: none; display: inline-block; padding: 10px;">Get API Key</a>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Gemini Model Version</label>
+                        <select id="global-model-name" class="gov-select width-100">
+                            <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast, Stable)</option>
+                            <option value="gemini-1.5-pro">Gemini 1.5 Pro (Detailed, Slower)</option>
+                            <option value="gemini-flash-latest">Gemini Flash Latest (2026 Standard)</option>
+                            <option value="gemini-3.1-flash-image-preview">Gemini 3.1 Flash Image Preview (Advanced Vision)</option>
+                            <option value="gemini-3-pro-image-preview">Gemini 3.0 Pro Image Preview</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Vision System Prompt</label>
+                        <textarea id="global-system-prompt" class="gov-input width-100" rows="3"></textarea>
+                    </div>
+                    <div class="flex-row gap-15">
+                        <div class="form-group flex-1">
+                            <label>Max Tokens</label>
+                            <input type="number" id="global-max-tokens" class="gov-input width-100" value="100">
+                        </div>
+                        <div class="form-group flex-1">
+                            <label>Temperature</label>
+                            <input type="number" id="global-temperature" class="gov-input width-100" step="0.1" value="0.2">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="margin-t-30 flex-row gap-15">
+                    <button type="submit" class="update__btn flex-2" id="saveGlobalSettingsBtn">Save AI Settings</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+
+    <div class="characters dashboard-section hidden">
+        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+        
+        <div class="flex-between margin-b-20">
+            <div class="flex-row-center gap-15">
+                <h3>Character Manager</h3>
+                <select id="char-series-select" class="gov-select">
+                    <option value="">Select Series</option>
                 </select>
             </div>
-
-            <div id="series-settings-form-container" class="hidden margin-t-20 bg-dark padding-30 border-radius-12 border-dim">
-                <form id="library-settings-form">
-                    <input type="hidden" id="settings-series-id">
-                    
-                    <div class="form-group">
-                        <label>Default Viewer Mode</label>
-                        <select id="settings-default-view-mode" class="gov-select">
-                            <option value="landscape">Landscape (Standard)</option>
-                            <option value="portrait">Portrait (Tall)</option>
-                        </select>
-                        <p class="font-size-07 text-muted margin-t-10">This determines how the comic loads by default for all readers of this series.</p>
-                    </div>
-
-                    <div class="margin-t-30">
-                        <button type="submit" class="update__btn w-full">Save Library Settings</button>
-                    </div>
-                </form>
-            </div>
-
-            <hr class="margin-y-40 border-dim">
-
-            <h3>AI Settings</h3>
-            <p class="text-muted margin-b-20">Configure global Gemini AI integration.</p>
-
-            <div id="global-settings-form-container" class="bg-dark padding-30 border-radius-12 border-dim">
-                <form id="global-settings-form">
-                    <div class="form-group">
-                        <label class="flex-row align-center gap-10">
-                            <input type="checkbox" id="global-vision-enabled">
-                            <span>Enable Gemini Vision AI</span>
-                        </label>
-                        <p class="font-size-07 text-muted margin-t-5">Automatic panel image description via Google Gemini</p>
-                    </div>
-
-                    <div id="vision-settings-fields" class="margin-t-20 border-dim padding-20 border-radius-8">
-                        <div class="form-group">
-                            <label>Gemini API Key</label>
-                            <div class="flex-row gap-10 align-center">
-                                <input type="password" id="global-api-key" class="gov-input flex-1" placeholder="Paste your API key here">
-                                <a href="https://aistudio.google.com/app/apikey" target="_blank" class="small btn-browse text-center" style="text-decoration: none; display: inline-block; padding: 10px;">Get API Key</a>
-                            </div>
-                            <p class="font-size-07 text-muted margin-t-10">
-                                <strong class="text-accent">Privacy Disclaimer:</strong> On the Free Tier, Google may use your image inputs to train their models. Use a paid plan if privacy is a concern.
-                            </p>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Gemini Model Version</label>
-                            <select id="global-model-name" class="gov-select width-100">
-                                <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast, Stable)</option>
-                                <option value="gemini-1.5-pro">Gemini 1.5 Pro (Detailed, Slower)</option>
-                                <option value="gemini-flash-latest">Gemini Flash Latest (2026 Standard)</option>
-                                <option value="gemini-3.1-flash-image-preview">Gemini 3.1 Flash Image Preview (Advanced Vision)</option>
-                                <option value="gemini-3-pro-image-preview">Gemini 3.0 Pro Image Preview</option>
-                            </select>
-                            <p class="font-size-07 text-muted margin-t-5">Ensure your API key has access to the selected model tier.</p>
-                        </div>
-
-                        <div class="bg-dark-red padding-15 border-radius-8 margin-b-20 border-red">
-                            <h5 class="text-red flex-row align-center gap-5 margin-b-5">
-                                <ion-icon name="warning-outline"></ion-icon>
-                                Ethical Usage Warning
-                            </h5>
-                            <p class="font-size-07 text-dim">
-                                Do not use this AI to process inappropriate, sexually explicit, or illegal content. All requests are subject to Google's safety filters and automated monitoring. Violations may result in API suspension.
-                            </p>
-                        </div>
-
-                        <div class="bg-panel padding-15 border-radius-8 margin-b-20 border-accent" style="background: rgba(0, 204, 255, 0.05);">
-                            <h5 class="text-accent flex-row align-center gap-5 margin-b-5">
-                                <ion-icon name="information-circle-outline"></ion-icon>
-                                Character Lab Integration
-                            </h5>
-                            <p class="font-size-08 text-muted margin-0" style="line-height: 1.4;">
-                                To help the AI accurately identify people in your comic panels by name, create their profiles in the <strong>Character Lab</strong> first. 
-                                The system will automatically inject their physical descriptions into the AI's "vision context" during a scan.
-                            </p>
-                        </div>
-
-                        <div class="form-group">
-                            <label>Vision System Prompt</label>
-                            <textarea id="global-system-prompt" class="gov-input width-100" rows="3"></textarea>
-                        </div>
-                        <div class="flex-row gap-15">
-                            <div class="form-group flex-1">
-                                <label>Max Tokens</label>
-                                <input type="number" id="global-max-tokens" class="gov-input width-100" value="100">
-                            </div>
-                            <div class="form-group flex-1">
-                                <label>Temperature</label>
-                                <input type="number" id="global-temperature" class="gov-input width-100" step="0.1" value="0.2">
-                            </div>
-                        </div>
-                        <div class="form-group">
-                            <label class="flex-row align-center gap-10">
-                                <input type="checkbox" id="global-auto-scan" checked>
-                                <span>Auto-Scan on Page Save</span>
-                            </label>
-                        </div>
-                    </div>
-
-                    <div class="margin-t-30 flex-row gap-15">
-                        <button type="submit" class="update__btn flex-2" id="saveGlobalSettingsBtn">Save AI Settings</button>
-                    </div>
-                </form>
-            </div>
+            <button id="create-character-btn" class="update__btn" disabled>+ New Character</button>
         </div>
 
-    
+        <div id="character-editor-container" class="flex-row gap-20 flex-start">
+            <div id="character-list" class="flex-1 grid-chars"></div>
 
-        <div class="characters dashboard-section hidden">
+            <div id="character-form-container" class="character-gov-form hidden">
+                <div class="gov-header">
+                    <h4 id="form-title">IDENTIFICATION</h4>
+                    <span class="gov-stamp">CLASSIFIED</span>
+                </div>
+                
+                <div class="gov-body">
+                    <div class="gov-main-info">
+                        <div class="gov-field-group">
+                            <label>Designation (Name)</label>
+                            <input type="text" id="char-name" class="gov-input mono" placeholder="e.g. NOVA">
+                        </div>
+                        <div class="gov-field-group">
+                            <label>Color Signature</label>
+                            <input type="color" id="char-color" value="#ffffff" class="gov-color-input" style="width: 100%; height: 40px;">
+                        </div>
+                    </div>
 
-            <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
-
-            <div class="flex-between margin-b-20">
-
-                <div class="flex-row-center gap-15">
-
-                    <h3>Character Manager</h3>
-
-                    <select id="char-series-select" class="gov-select">
-
-                        <option value="">Select Series</option>
-
-                    </select>
-
+                    <div class="gov-photo-section">
+                        <div class="photo-frame">
+                            <img id="char-avatar-preview" src="/views/public/images/avatar.png" alt="Subject">
+                        </div>
+                        <label class="gov-btn-small">
+                            Upload Photo
+                            <input type="file" id="char-avatar-input" accept="image/*" class="hidden">
+                        </label>
+                        <button id="ai-analyze-char-btn" class="gov-btn-small margin-t-5" style="background: #1a2a3a; border-color: #00ccff; color: #00ccff;">
+                            AI Scan Profile
+                        </button>
+                    </div>
                 </div>
 
-                <button id="create-character-btn" class="update__btn" disabled>+ New Character</button>
-
-            </div>
-
-            <div id="character-editor-container" class="flex-row gap-20 flex-start">
-
-                <div id="character-list" class="flex-1 grid-chars"></div>
-
-                <div id="character-form-container" class="character-gov-form hidden">
-
-                    <div class="gov-header">
-
-                        <h4 id="form-title">IDENTIFICATION</h4>
-
-                        <span class="gov-stamp">CLASSIFIED</span>
-
-                    </div>
-
-                    
-
-                    <div class="gov-body">
-
-                        <div class="gov-main-info">
-
-                            <div class="gov-field-group">
-
-                                <label>Designation (Name)</label>
-
-                                <input type="text" id="char-name" class="gov-input mono" placeholder="e.g. NOVA">
-
-                            </div>
-
-                            
-
-                            <div class="gov-field-group">
-
-                                <label>Color Signature</label>
-
-                                <div class="flex-row-center gap-10">
-
-                                    <input type="color" id="char-color" value="#ffffff" class="gov-color-input" style="width: 100%; height: 40px;">
-
-                                </div>
-
-                            </div>
-
-                        </div>
-
-    
-
-                        <div class="gov-photo-section">
-
-                            <div class="photo-frame">
-
-                                <img id="char-avatar-preview" src="/views/public/images/avatar.png" alt="Subject">
-
-                            </div>
-
-                            <label class="gov-btn-small">
-                                Upload Photo
-                                <input type="file" id="char-avatar-input" accept="image/*" class="hidden">
-                            </label>
-                            <button id="ai-analyze-char-btn" class="gov-btn-small margin-t-5" style="background: #1a2a3a; border-color: #00ccff; color: #00ccff;">
-                                AI Scan Profile
-                            </button>
-                            </div>
-
-                    </div>
-
-    
-
-                    <div class="gov-full-width">
-
-                        <label>Profile / Description (Prompt)</label>
-
-                        <textarea id="char-description" class="gov-textarea" rows="4" placeholder="Subject details..."></textarea>
-
-                    </div>
-
-    
-
-                    <div class="gov-full-width">
-
-                        <label>Reference Imagery</label>
-
-                        <div class="reference-grid" id="char-references-grid">
-
-                            <!-- References injected here -->
-
-                        </div>
-
-                    </div>
-                    <label class="gov-btn-small text-center margin-t-5">
-                        + Add Reference Image
-                        <input type="file" id="char-reference-input" accept="image/*" style="display: none;">
-                    </label>
+                <div class="gov-full-width">
+                    <label>Profile / Description (Prompt)</label>
+                    <textarea id="char-description" class="gov-textarea" rows="4" placeholder="Subject details..."></textarea>
                 </div>
 
-                <div class="gov-footer">
+                <div class="gov-full-width">
+                    <label>Reference Imagery</label>
+                    <div class="reference-grid" id="char-references-grid"></div>
+                </div>
+                
+                <label class="gov-btn-small text-center margin-t-5 cursor-pointer">
+                    + Add Reference Image
+                    <input type="file" id="char-reference-input" accept="image/*" style="display: none;">
+                </label>
+
+                <div class="gov-footer margin-t-20">
                     <button id="save-character-btn" class="gov-btn-action">Save Record</button>
                     <button id="cancel-character-btn" class="gov-btn-cancel">Cancel</button>
                 </div>
-                </div>
-                </div>
-                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="scheduled-tasks dashboard-section hidden">
         <div class="scheduled-tasks-container">
-            
-            <!-- LEFT: Library Roots Manager -->
             <div class="task-panel">
                 <h3>Library Source Manager</h3>
-                <p>Configure physical directories to watch for comic series.</p>
-
-                <!-- List -->
                 <div id="library-roots-list" class="roots-list">
-                    <!-- Injected via JS -->
                     <div class="text-muted italic">Loading roots...</div>
                 </div>
-
-                <!-- Add New Form -->
-                <div class="add-root-form">
+                <div class="add-root-form margin-t-20">
                     <h4>Add New Watch Folder</h4>
-                    <div class="input-field">
-                        <input type="text" id="new-root-name" placeholder="Name (e.g. External Drive D)" class="mono-input">
-                    </div>
-                    <div class="input-field">
-                        <input type="text" id="new-root-path" placeholder="Absolute Path (e.g. D:\Comics)" class="mono-input">
-                    </div>
+                    <div class="input-field"><input type="text" id="new-root-name" placeholder="Name" class="mono-input"></div>
+                    <div class="input-field"><input type="text" id="new-root-path" placeholder="Absolute Path" class="mono-input"></div>
                     <button id="add-root-btn" class="small w-full">+ Add Root</button>
                 </div>
             </div>
 
-            <!-- RIGHT: Scanners & Tools -->
             <div class="task-panel">
-                <!-- 1. Library Sync (Local) -->
                 <div class="scanner-group margin-b-30 border-dim-bottom padding-b-20">
-                    <div class="scanner-header">
+                    <div class="scanner-header flex-between">
                         <h3 class="system-scanner-header">Library Synchronization</h3>
-                        <div class="flex-row gap-10">
-                            <button id="run-sync-btn" class="update__btn">Sync Library</button>
-                        </div>
+                        <button id="run-sync-btn" class="update__btn">Sync Library</button>
                     </div>
-                    <p class="font-size-07 text-muted margin-t-10">
-                        Local file scan to discover new volumes/chapters and update image hashes. (Does <strong>not</strong> use AI).
-                    </p>
                 </div>
 
-                <!-- 2. Vision AI Management -->
                 <div class="scanner-group">
-                    <div class="scanner-header">
+                    <div class="scanner-header flex-between">
                         <h3 class="system-scanner-header text-accent">Vision AI Management</h3>
                         <div class="flex-row gap-10">
                             <button id="run-vision-scan-btn" class="update__btn">Analyze with AI</button>
                             <button id="stop-vision-btn" class="small btn-danger-outline">Stop</button>
                         </div>
                     </div>
-
-                    <!-- Targeted Scan Options -->
                     <div class="targeted-scan-options margin-t-15 border-dim padding-10 border-radius-4 bg-black-10">
-                        <label class="font-size-07 text-muted margin-b-5 block">Targeted AI Scope (Optional):</label>
                         <div class="flex-row gap-5">
                             <select id="visionSeriesSelect" class="gov-select flex-1 font-size-07"><option value="">All Series</option></select>
                             <select id="visionVolumeSelect" class="gov-select flex-1 font-size-07" disabled><option value="">All Volumes</option></select>
                             <select id="visionChapterSelect" class="gov-select flex-1 font-size-07" disabled><option value="">All Chapters</option></select>
                         </div>
                     </div>
-
-                    <p class="font-size-07 text-muted margin-t-15">
-                        Uses Gemini Vision to generate descriptions for missing or changed panels.<br>
-                        <em>Background process. Takes ~4 mins per panel.</em>
-                    </p>
                 </div>
                 
                 <div class="scanner-progress-container margin-t-20" style="display: none;">
@@ -557,62 +429,44 @@
                 </div>
 
                 <div id="scanner-log" class="scanner-log margin-t-20">
-                    <span class="log-placeholder">> System ready.<br>> Waiting for command...</span>
+                    <span class="log-placeholder">> System ready.</span>
                 </div>
             </div>
-
         </div>
     </div>
 
     <div class="page-builder dashboard-section hidden">
         <div class="narrow-container padding-20">
             <button class="small back-to-studio-btn margin-b-20">&larr; Back to Studio</button>
-            
             <div id="pageBuilderAlerts" class="margin-b-20"></div>
 
             <div id="pageBuilderModeSelection" class="page-builder-selection">
                 <h3>Page Management</h3>
-                <p class="text-muted margin-b-30">Select an action to continue</p>
                 <div class="flex-row gap-20 justify-center">
-                    <div class="mode-card width-200 padding-30" id="modeCreateBtn">
-                        <ion-icon name="add-circle-outline"></ion-icon>
-                        <h4>New Page</h4>
-                    </div>
-                    <div class="mode-card width-200 padding-30" id="modeInsertBtn">
-                        <ion-icon name="git-branch-outline"></ion-icon>
-                        <h4>Insert Page</h4>
-                    </div>
-                    <div class="mode-card width-200 padding-30" id="modeEditBtn">
-                        <ion-icon name="create-outline"></ion-icon>
-                        <h4>Edit Page</h4>
-                    </div>
-                    <div class="mode-card width-200 padding-30" id="modeArrangeBtn">
-                        <ion-icon name="swap-horizontal-outline"></ion-icon>
-                        <h4>Arrange Pages</h4>
-                    </div>
-                    <div class="mode-card width-200 padding-30" id="modeScriptBtn">
-                        <ion-icon name="document-text-outline"></ion-icon>
-                        <h4>Export Script</h4>
-                    </div>
+                    <div class="mode-card width-200 padding-30" id="modeCreateBtn"><ion-icon name="add-circle-outline"></ion-icon><h4>New Page</h4></div>
+                    <div class="mode-card width-200 padding-30" id="modeInsertBtn"><ion-icon name="git-branch-outline"></ion-icon><h4>Insert Page</h4></div>
+                    <div class="mode-card width-200 padding-30" id="modeEditBtn"><ion-icon name="create-outline"></ion-icon><h4>Edit Page</h4></div>
+                    <div class="mode-card width-200 padding-30" id="modeArrangeBtn"><ion-icon name="swap-horizontal-outline"></ion-icon><h4>Arrange Pages</h4></div>
+                    <div class="mode-card width-200 padding-30" id="modeScriptBtn"><ion-icon name="document-text-outline"></ion-icon><h4>Export Script</h4></div>
                 </div>
             </div>
 
             <!-- CREATE PAGE -->
             <div id="createPageContainer" class="bg-dark padding-30 border-radius-12 border-dim hidden">
                 <button class="small mode-back-btn margin-b-15">&larr; Back</button>
-                <h3 class="margin-b-20">Create New Page</h3>
                 <div class="form-group"><label>Select Series</label><select id="builderSeriesSelect"></select></div>
                 <div class="form-group"><label>Select Volume</label><select id="builderVolumeSelect" disabled><option value="">Select a Series first</option></select></div>
                 <div class="form-group"><label>Select Chapter</label><select id="builderChapterSelect" disabled><option value="">Select a Volume first</option></select></div>
                 <form id="page-builder-form">
                    <div class="input-field">
-                       <label>Page ID (e.g. page17)</label>
+                       <label>Page ID</label>
                        <div class="flex-row gap-10">
                            <input type="text" id="builderPageId" name="pageId" placeholder="page17" required />
-                           <button type="button" id="getNextPageIdBtn" class="update__btn small" title="Auto-fill next consecutive page number">Next Consecutive</button>
+                           <button type="button" id="getNextPageIdBtn" class="update__btn small">Next Consecutive</button>
                        </div>
                    </div>
-                   <div class="form-group"><label>Select Layout Template</label><select id="builderLayoutSelect" required><option value="">Loading Layouts...</option></select></div>                    <button class="update__btn w-full" type="submit" id="createPageBtn">Create Page Structure</button>
+                   <div class="form-group"><label>Select Layout Template</label><select id="builderLayoutSelect" required><option value="">Loading Layouts...</option></select></div>
+                   <button class="update__btn w-full" type="submit" id="createPageBtn">Create Page Structure</button>
                 </form>
                 <div id="builderStatus" class="builder-status"></div>
             </div>
@@ -620,18 +474,11 @@
             <!-- INSERT PAGE -->
             <div id="insertPageContainer" class="bg-dark padding-30 border-radius-12 border-dim hidden">
                 <button class="small mode-back-btn margin-b-15">&larr; Back</button>
-                <h3 class="margin-b-20">Insert New Page</h3>
-                <p class="text-muted margin-b-20">This will shift all subsequent pages up and clone the preceding page to the new slot.</p>
-                
                 <div class="form-group"><label>Select Series</label><select id="insertSeriesSelect"></select></div>
                 <div class="form-group"><label>Select Volume</label><select id="insertVolumeSelect" disabled><option value="">Select a Series first</option></select></div>
                 <div class="form-group"><label>Select Chapter</label><select id="insertChapterSelect" disabled><option value="">Select a Volume first</option></select></div>
-                
                 <form id="insert-page-form">
-                    <div class="input-field">
-                        <label>Insert At Index (e.g. 14)</label>
-                        <input type="number" id="insertPoint" name="insertPoint" placeholder="14" required />
-                    </div>
+                    <div class="input-field"><label>Insert At Index</label><input type="number" id="insertPoint" name="insertPoint" required /></div>
                     <button class="update__btn w-full" type="submit" id="insertPageBtn">Insert & Shift Pages</button>
                 </form>
                 <div id="insertStatus" class="builder-status"></div>
@@ -640,22 +487,12 @@
             <!-- ARRANGE PAGES -->
             <div id="arrangePagesContainer" class="bg-dark padding-30 border-radius-12 border-dim hidden">
                 <button class="small mode-back-btn margin-b-15">&larr; Back</button>
-                <h3 class="margin-b-20">Arrange Pages</h3>
-                <p class="text-muted margin-b-20">Drag and drop pages to reorder them. Click "Save New Order" to commit changes.</p>
-                
                 <div class="flex-row gap-15 margin-b-20">
                     <div class="form-group flex-1"><label>Series</label><select id="arrangeSeriesSelect"></select></div>
                     <div class="form-group flex-1"><label>Volume</label><select id="arrangeVolumeSelect" disabled><option value="">Select a Series first</option></select></div>
                     <div class="form-group flex-1"><label>Chapter</label><select id="arrangeChapterSelect" disabled><option value="">Select a Volume first</option></select></div>
                 </div>
-
-                <div id="arrangeStatus" class="builder-status"></div>
-
-                <div id="arrangePagesList" class="arrange-pages-list margin-t-20">
-                    <!-- Pages will be injected here as draggable items -->
-                    <div class="text-muted padding-20 italic">Select a chapter to load pages...</div>
-                </div>
-
+                <div id="arrangePagesList" class="arrange-pages-list margin-t-20"></div>
                 <div class="margin-t-30 flex-row gap-15">
                     <button id="savePageOrderBtn" class="update__btn flex-1" disabled>Save New Order</button>
                     <button id="resetPageOrderBtn" class="small flex-1" disabled>Reset</button>
@@ -665,12 +502,8 @@
             <!-- EXPORT SCRIPT -->
             <div id="exportScriptContainer" class="bg-dark padding-30 border-radius-12 border-dim hidden">
                 <button class="small mode-back-btn margin-b-15">&larr; Back</button>
-                <h3 class="margin-b-20">Export Script</h3>
-                <p class="text-muted margin-b-20">This will generate a concatenated .txt file containing all dialogue from the selected volume.</p>
-                
                 <div class="form-group"><label>Select Series</label><select id="scriptSeriesSelect" class="gov-select"></select></div>
                 <div class="form-group"><label>Select Volume</label><select id="scriptVolumeSelect" class="gov-select" disabled><option value="">Select a Series first</option></select></div>
-                
                 <button class="update__btn w-full margin-t-20" id="generateScriptBtn">Generate Script File</button>
                 <div id="scriptStatus" class="builder-status"></div>
             </div>
@@ -678,53 +511,31 @@
             <!-- EDIT PAGE -->
             <div id="editPageContainer" class="hidden">
                 <button class="small mode-back-btn margin-b-15">&larr; Back</button>
-                <h3 class="margin-b-20">Edit Existing Page</h3>
-                
-                <!-- 1. SELECTION (Top) -->
-                <div class="bg-select padding-25 border-radius-12 border-bright margin-b-30 box-shadow-soft">
+                <div class="bg-select padding-25 border-radius-12 border-bright margin-b-30">
                     <div class="flex-row gap-15 margin-b-20">
                         <div class="form-group flex-1"><label>Series</label><select id="editSeriesSelect"></select></div>
                         <div class="form-group flex-1"><label>Volume</label><select id="editVolumeSelect" disabled><option value="">Select a Series first</option></select></div>
                         <div class="form-group flex-1"><label>Chapter</label><select id="editChapterSelect" disabled><option value="">Select a Volume first</option></select></div>
                         <div class="form-group flex-1"><label>Page</label><select id="editPageSelect" disabled><option value="">Select a Page</option></select></div>
                     </div>
-                    <button id="loadPageBtn" class="update__btn width-100 font-size-1-1 page-tool-load-btn">Load Page Tools</button>
+                    <button id="loadPageBtn" class="update__btn width-100 font-size-1-1">Load Page Tools</button>
                 </div>
 
-                <!-- 2. TOOLS (Middle) -->
                 <div id="activePageToolbar" class="hidden">
-                    
-                    <!-- Info & Editors -->
                     <div class="flex-between bg-dark padding-20 border-radius-12 border-accent margin-b-30">
-                        <div>
-                            <span class="text-muted font-size-07 text-uppercase letter-spacing-1">Active Page</span>
-                            <h4 id="activePageDisplay" class="text-accent font-size-1-4 active-page-display">None</h4>
-                        </div>
+                        <div><span class="text-muted font-size-07 uppercase">Active Page</span><h4 id="activePageDisplay" class="text-accent font-size-1-4">None</h4></div>
                         <div class="flex-row gap-15">
-                            <button id="openLayoutEditorBtn" class="update__btn visual-editor-btn">Visual Editor</button>
+                            <button id="openLayoutEditorBtn" class="update__btn">Visual Editor</button>
                             <button id="openSceneEditorBtn" class="update__btn">Scene Editor</button>
                         </div>
                     </div>
-
-                    <!-- 3. CONFIG (Middle) -->
                     <div class="bg-panel padding-25 border-radius-12 border-dim margin-b-30">
-                        <div class="page-config-header flex-between align-center margin-b-15">
-                            <h4 class="config-header">Page Configuration</h4>
-                        </div>
                         <div class="form-group">
                             <label>Structural Layout</label>
-                            <input type="hidden" id="activePageLayoutValue" value="">
-                            <div id="activePageLayoutBrowser" class="layout-browser-grid">
-                                <!-- Layout cards injected here by JS -->
-                                <div class="text-muted padding-20">Initializing visual browser...</div>
-                            </div>
-                            <div class="flex-row margin-t-15">
-                                <button id="applyLayoutBtn" class="small btn-apply width-100">Apply Selected Layout</button>
-                            </div>
-                            <p class="font-size-07 layout-preview-note">Choosing a new layout will immediately update the structural grid of the page.</p>
+                            <div id="activePageLayoutBrowser" class="layout-browser-grid"></div>
+                            <button id="applyLayoutBtn" class="small btn-apply width-100 margin-t-15">Apply Selected Layout</button>
                         </div>
                     </div>
-
                 </div>
             </div>
         </div>
@@ -736,19 +547,10 @@
             <button id="closeEditorBtn">Close &rarr;</button>
         </div>
         <div class="editor-container editor-container-flex">
-            <div class="preview-pane preview-pane-flex">
-                <iframe id="pagePreviewFrame" class="preview-iframe"></iframe>
-            </div>
+            <div class="preview-pane preview-pane-flex"><iframe id="pagePreviewFrame" class="preview-iframe"></iframe></div>
             <div class="tools-pane tools-pane-flex">
-                <h4>Visual Editor (Initial State)</h4>
-                <p class="tools-pane-note">
-                    This tool sets the <strong>base media</strong> that appears when the page first loads (populates <code>media.json</code>).
-                </p>
-                <ul class="tools-pane-list">
-                    <li>Drag & Drop images or videos onto panels.</li>
-                    <li>These assets render <em>before</em> the Scene timeline starts.</li>
-                    <li>Use the <strong>Scene Editor</strong> for dialogue and changing media during the story.</li>
-                </ul>
+                <h4>Visual Editor</h4>
+                <p class="text-muted">Drag & Drop assets onto panels.</p>
                 <div id="uploadStatus"></div>
             </div>
         </div>
@@ -757,141 +559,46 @@
     <div class="scene-editor dashboard-section hidden h-full">
         <div class="scene-tree-pane timeline-pane-flex">
             <h4 class="timeline-header">Timeline</h4>
-            <div class="scene-toolbar timeline-toolbar">
-                <button class="small" id="addItemBtn">+ Add Item</button>
-            </div>
+            <button class="small w-full margin-b-10" id="addItemBtn">+ Add Item</button>
             <ul id="sceneTreeList" class="scene-list timeline-list"></ul>
         </div>
         <div class="scene-props-pane props-pane-flex">
             <div id="sceneItemEditor" class="hidden">
                 <form id="sceneItemForm">
-                        <div class="input-field"><label>ID</label><input type="text" id="prop-id" readonly></div>
-                        <div class="input-field">
-                            <label>Display Type</label>
-                            <select id="prop-type">
-                                <option value="SpeechBubble">Speech Bubble</option>
-                                <option value="Narrator">TextBlock: Narrator</option>
-                                <option value="InternalMonologue">TextBlock: Internal Monologue</option>
-                                <option value="Dialogue">TextBlock: Dialogue</option>
-                                <option value="SoundEffect">Sound Effect</option>
-                                <option value="ActionText">Action Text (Minimal)</option>
-                                <option value="Pause">Pause</option>
-                            </select>
-                        </div>
-                        <div class="input-field prop-group-character"><label>Character</label><input type="text" id="prop-character"></div>
-                        <div class="input-field prop-group-text"><label>Dialogue</label><textarea id="prop-text" rows="4"></textarea></div>
-                        <div class="input-field">
-                            <label>Panel Effect</label>
-                            <select id="prop-panel-effect">
-                                <option value="">None (Standard)</option>
-                                <option value="memory">Digital Recall (Memory)</option>
-                                <option value="haze">Soft Haze (Nostalgia)</option>
-                                <option value="glitch">Corrupted (Fragment)</option>
-                                <option value="cloudy">Cloudy Memory (Dream)</option>
-                            </select>
-                        </div>
-                        <div class="props-group">
-                            <h5>Placement</h5>
-                            <div class="input-field">
-                                <label>Panel Selector</label>
-                                <input type="text" id="prop-panel" placeholder=".panel-A">
-                                <p class="font-size-07 text-muted margin-t-5">Leave empty to place item globally on the page.</p>
-                            </div>
-                            <div class="input-field"><label>Top (%)</label><input type="text" id="prop-top"></div>
-                            <div class="input-field"><label>Left (%)</label><input type="text" id="prop-left"></div>
-                            <div class="input-field"><label>Right (%)</label><input type="text" id="prop-right"></div>
-                            <div class="input-field"><label>Bottom (%)</label><input type="text" id="prop-bottom"></div>
-                            <div class="input-field"><label>Width (%)</label><input type="text" id="prop-width" placeholder="Auto"></div>
-
-                            <div class="input-field">
-                                <label>Tail Position</label>
-                                <select id="prop-tail" class="gov-select width-100">
-                                    <option value="">None</option>
-                                    <option value="top-left">Top Left</option>
-                                    <option value="top-right">Top Right</option>
-                                    <option value="bottom-left">Bottom Left</option>
-                                    <option value="bottom-right">Bottom Right</option>
-                                </select>
-                            </div>
-                            <div class="input-field"><label>Tail Skew</label><input type="number" id="prop-tail-skew" placeholder="25"></div>
-                            <div class="input-field"><label>Tail Scale</label><input type="text" id="prop-tail-scale" placeholder="1.0"></div>
-                            <div class="input-field">
-                                <label>Font Size</label>
-                                <input type="text" id="prop-font-size" placeholder="0.85rem">
-                            </div>
-                            <div class="input-field prop-group-font">
-                                <label>Action Font</label>
-                                <select id="prop-font-family" class="gov-select width-100">
-                                    <option value="">Default</option>
-                                </select>
-                            </div>
-                            <div class="input-field">
-                                <label>Text Color</label>
-                                <input type="color" id="prop-action-color" value="#000000" class="gov-color-input">
-                            </div>
-
-                            <!-- AI Color Extraction Tool -->
-                            <div class="palette-extraction-row flex-row align-center gap-10 margin-b-15">
-                                <button type="button" id="prop-gen-palette" class="small btn-secondary flex-row align-center gap-5" style="white-space: nowrap;">
-                                    <ion-icon name="color-palette-outline"></ion-icon>
-                                    <span>Image color extraction</span>
-                                </button>
-                                <div id="prop-palette-swatches" class="flex-row gap-5 hidden">
-                                    <!-- Swatches injected here -->
-                                </div>
-                            </div>
-                            
-                            <div class="input-field" style="display:flex; flex-direction:row; align-items:center; gap:8px; margin-bottom: 15px;">
-                                <input type="checkbox" id="prop-outline-enabled" style="margin:0;">
-                                <label style="margin:0;">Text Outline</label>
-                            </div>
-                            <div class="input-field">
-                                <label>Outline Color</label>
-                                <input type="color" id="prop-outline-color" value="#000000" class="gov-color-input">
-                            </div>
-                            <div class="input-field">
-                                <label>Thickness (px)</label>
-                                <input type="number" step="0.1" id="prop-outline-size" placeholder="1.0">
-                            </div>
-
-                            <div class="prop-group-curve">
-                                <div class="input-field"><label>SVG Curve Path</label><input type="text" id="prop-curve" placeholder="M 10,90 Q 150,10 290,90"></div>
-                                <div class="input-field"><label>Curve W</label><input type="number" id="prop-curve-w" placeholder="300"></div>
-                                <div class="input-field"><label>Curve H</label><input type="number" id="prop-curve-h" placeholder="100"></div>
-                                <div class="input-field"><label>Rotation</label><input type="number" step="0.1" id="prop-rotation" placeholder="-20"></div>
-                            </div>
-                        </div>
-                        <div class="prop-group-duration hidden"><div class="input-field"><label>Duration (ms)</label><input type="number" id="prop-duration"></div></div>
-                        <button type="button" id="deleteItemBtn" class="delete-item-btn">Delete Item</button>
-                    </form>
-                </div>
-                <div id="sceneItemPlaceholder" class="item-placeholder">Select an item from the timeline to edit.</div>
+                    <div class="input-field"><label>ID</label><input type="text" id="prop-id" readonly></div>
+                    <div class="input-field">
+                        <label>Display Type</label>
+                        <select id="prop-type">
+                            <option value="SpeechBubble">Speech Bubble</option>
+                            <option value="Narrator">TextBlock: Narrator</option>
+                            <option value="InternalMonologue">TextBlock: Internal Monologue</option>
+                            <option value="Dialogue">TextBlock: Dialogue</option>
+                            <option value="SoundEffect">Sound Effect</option>
+                            <option value="ActionText">Action Text (Minimal)</option>
+                            <option value="Pause">Pause</option>
+                        </select>
+                    </div>
+                    <div class="input-field prop-group-character"><label>Character</label><input type="text" id="prop-character"></div>
+                    <div class="input-field prop-group-text"><label>Dialogue</label><textarea id="prop-text" rows="4"></textarea></div>
+                    <div class="props-group">
+                        <h5>Placement</h5>
+                        <div class="input-field"><label>Panel Selector</label><input type="text" id="prop-panel" placeholder=".panel-A"></div>
+                        <div class="input-field"><label>Top (%)</label><input type="text" id="prop-top"></div>
+                        <div class="input-field"><label>Left (%)</label><input type="text" id="prop-left"></div>
+                        <div class="input-field"><label>Width (%)</label><input type="text" id="prop-width" placeholder="Auto"></div>
+                    </div>
+                    <button type="button" id="deleteItemBtn" class="delete-item-btn">Delete Item</button>
+                </form>
             </div>
+            <div id="sceneItemPlaceholder" class="item-placeholder text-muted italic">Select an item to edit.</div>
         </div>
+    </div>
 
     <div id="fileBrowserModal" class="modal modal-overlay">
         <div class="modal-content modal-content-large">
-            <div class="modal-header padding-15 border-dim modal-header-flex">
-                <h3 class="props-header">Select Asset</h3>
+            <div class="modal-header flex-between padding-15 border-dim">
+                <h3>Select Asset</h3>
                 <button id="closeFileBrowserBtn" class="small">Close</button>
-            </div>
-            <div class="modal-toolbar padding-10 bg-panel modal-toolbar-flex">
-                 <select id="fbScopeSelect" class="gov-select">
-                    <option value="page">Page Assets</option>
-                    <option value="volume">Volume Assets</option>
-                    <option value="series">Series Assets</option>
-                 </select>
-                 <input type="text" id="fbSearchInput" placeholder="Search..." class="flex-1 gov-select">
-                 <select id="fbSortSelect" class="gov-select">
-                    <option value="date">Newest First</option>
-                    <option value="name">Name (A-Z)</option>
-                 </select>
-                 <div class="divider-v margin-b-0"></div>
-                 <label class="small modal-file-label">
-                    Upload New
-                    <input type="file" id="fileBrowserUploadInput" class="hidden">
-                 </label>
-                 <span id="fileBrowserStatus" class="text-muted font-size-09 align-self-center"></span>
             </div>
             <div id="fileBrowserGrid" class="flex-1 padding-20 file-browser-grid"></div>
         </div>
@@ -900,7 +607,6 @@
     <div id="savingOverlay" class="saving-overlay">
         <div class="loader-spinner"></div>
         <h3>Saving Data...</h3>
-        <p>Please wait while we update the grid.</p>
     </div>
 
     <!-- PLOT LAB SECTION -->
@@ -909,85 +615,20 @@
         <div class="flex-between margin-b-20">
             <div class="flex-row-center gap-15">
                 <h3>Plot Lab</h3>
-                <select id="plot-series-select" class="gov-select">
-                    <option value="">Select Series</option>
-                </select>
+                <select id="plot-series-select" class="gov-select"><option value="">Select Series</option></select>
             </div>
             <button id="add-plot-beat-btn" class="update__btn">+ Add Beat</button>
         </div>
-
-        <div class="plot-board-container" id="plot-board-container">
-            <!-- Story beats injected here by JS -->
-            <div class="text-muted padding-20">Select a series to load the plot board.</div>
-        </div>
+        <div class="plot-board-container" id="plot-board-container"></div>
     </div>
 
     <!-- EXPORT TOOL SECTION -->
     <div class="export-tool dashboard-section hidden">
         <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
         <h3>Print Exporter</h3>
-        <p>Render high-resolution PNGs of an entire volume.</p>
-                  
-                  <div class="form-group" style="margin-top:20px;">
-                      <label for="exportSeriesSelect">Select Series:</label>
-                      <select id="exportSeriesSelect" class="gov-select"></select>
-                  </div>
-
-                  <div class="form-group" style="margin-top:20px;">
-                      <label for="exportVolumeSelect">Select Volume to Export:</label>
-                      <select id="exportVolumeSelect" class="gov-select" disabled><option value="">Select a Series first</option></select>
-                  </div>
-
-                  <div class="form-group" style="margin-top:20px;">
-                      <label for="exportPresetSelect">Export Preset (Style):</label>
-                      <select id="exportPresetSelect" style="width:100%; padding:10px; background:#1a1a1a; color:white; border:1px solid #333; border-radius:4px; font-family:'Consolas', monospace;">
-                          <option value="uk-table">UK Table Book (A3 Spread)</option>
-                          <option value="us-landscape">US Comic Landscape (Spread)</option>
-                          <option value="us-portrait">US Comic Portrait (Standard 6.625x10.25)</option>
-                          <option value="cinematic-16-9">Cinematic (16:9 Aspect Ratio)</option>
-                          <option value="a4-landscape-letterbox">A4 Landscape (16:9 Letterbox)</option>
-                      </select>
-                  </div>
-        
-                  <div class="form-group" style="margin-top:20px;">
-                      <label for="exportTargetPage">Target Page (Optional):</label>
-                      <input type="text" id="exportTargetPage" class="mono-input" placeholder="e.g. 80" style="width:100%; padding:10px; background:#1a1a1a; color:white; border:1px solid #333; border-radius:4px; font-family:'Consolas', monospace; margin-top:5px;">
-                      <p class="font-size-07 text-muted margin-t-5">Leave blank to export the entire volume.</p>
-                  </div>
-        
-                  <div class="form-group" style="margin-top:20px;">
-                      <label>Export Options:</label>
-                      <div class="flex-row gap-20 margin-t-10">
-                          <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size: 0.9em;">
-                              <input type="checkbox" id="exportPdfOption" checked> <span>Combine to PDF</span>
-                          </label>
-                      </div>
-                  </div>
-        
-                  <button id="startExportBtn" class="update__btn w-full margin-t-20">            Start Background Export <ion-icon size="small" name="print"></ion-icon>
-        </button>
-
-        <!-- Preview Carousel -->
-        <div class="flex-row justify-between align-center margin-t-30 margin-b-10">
-            <h4 class="text-accent margin-0">Pages Preview</h4>
-            <button id="refreshExportCarouselBtn" class="action-btn small" title="Refresh Previews"><ion-icon name="refresh-outline"></ion-icon></button>
-        </div>
-        <div id="export-carousel-container" class="critic-carousel-wrapper">
-            <div id="export-carousel" class="critic-carousel">
-                <div class="text-muted padding-20">Select a volume to preview pages.</div>
-            </div>
-        </div>
-
-        <div id="exportProgressContainer" class="margin-t-20 hidden">
-            <div class="flex-between margin-b-10">
-                <span id="exportProgressLabel" class="font-size-08 text-accent">Exporting...</span>
-                <span id="exportProgressPercent" class="font-size-08 text-muted">0%</span>
-            </div>
-            <div class="scanner-progress-container" style="display: block; margin-bottom: 10px;">
-                <div class="scanner-progress-bar" id="export-progress-bar" style="width: 0%;"></div>
-            </div>
-            <p id="exportStatusMsg" style="margin-top: 5px; color: var(--cyber-primary, #00ff41); font-size: 0.8rem;"></p>
-        </div>
+        <div class="form-group margin-t-20"><label>Select Series</label><select id="exportSeriesSelect" class="gov-select"></select></div>
+        <div class="form-group margin-t-20"><label>Select Volume</label><select id="exportVolumeSelect" class="gov-select" disabled><option value="">Select a Series first</option></select></div>
+        <button id="startExportBtn" class="update__btn w-full margin-t-20">Start Export</button>
     </div>
 
     <!-- STORY CRITIC SECTION -->
@@ -996,36 +637,12 @@
         <div class="flex-between margin-b-20">
             <div class="flex-row-center gap-15">
                 <h3>Story Critic</h3>
-                <select id="critic-series-select" class="gov-select">
-                    <option value="">Select Series</option>
-                </select>
-                <select id="critic-volume-select" class="gov-select" disabled>
-                    <option value="">Select Volume</option>
-                </select>
+                <select id="critic-series-select" class="gov-select"><option value="">Select Series</option></select>
+                <select id="critic-volume-select" class="gov-select" disabled><option value="">Select Volume</option></select>
             </div>
-            <button id="run-critic-btn" class="update__btn" disabled>
-                <ion-icon name="sparkles-outline"></ion-icon> Run Gemini Critic
-            </button>
+            <button id="run-critic-btn" class="update__btn" disabled>Run Critic</button>
         </div>
-
-        <div class="flex-row justify-between align-center margin-b-10">
-            <h4 class="text-accent margin-0">Story Timeline</h4>
-            <button id="refreshCriticCarouselBtn" class="action-btn small" title="Refresh Previews"><ion-icon name="refresh-outline"></ion-icon></button>
-        </div>
-        <div id="critic-carousel-container" class="critic-carousel-wrapper margin-b-30">
-            <div id="critic-carousel" class="critic-carousel">
-                <!-- Pages injected here -->
-                <div class="text-muted padding-20">Select a volume to view the story timeline.</div>
-            </div>
-        </div>
-
-        <div id="critic-output-container" class="critic-output bg-dark padding-30 border-radius-12 border-dim">
-            <h4 class="margin-b-15 text-accent">Narrative Analysis</h4>
-            <div id="critic-log" class="critic-log">
-                <p class="text-muted italic">Waiting for analysis command...</p>
-            </div>
-        </div>
+        <div id="critic-output-container" class="critic-output bg-dark padding-30 border-radius-12 border-dim"></div>
     </div>
 
 </main>
-
