@@ -103,12 +103,12 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
     const refreshLayoutDisplay = async (pageEntry) => {
         let lid = "";
         if (pageEntry?.layouts) {
-            lid = pageEntry.layouts.portrait || pageEntry.layouts.landscape;
+            lid = pageEntry.layouts.portrait || pageEntry.layout?.id || 'Standard_Page';
             if (typeof lid === 'object' && lid !== null) lid = lid.id;
         } else {
             lid = pageEntry?.portraitLayoutId || pageEntry?.layoutId || "";
         }
-        await renderLayoutBrowser('activePageLayoutBrowser', 'activePageLayoutValue', lid, 'portrait');
+        await renderLayoutBrowser('activePageLayoutBrowser', 'activePageLayoutValue', lid);
 
         if (seriesId) await checkOrphanDialogue(vol, chap, page, seriesId);
 

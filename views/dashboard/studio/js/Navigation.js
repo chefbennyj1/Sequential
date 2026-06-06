@@ -38,8 +38,8 @@ export function restoreStateFromUrl(container) {
         if (vol && chap && page) {
             setTimeout(() => {
                 // Dispatch to registered handlers
-                if (tab === 'scene-editor' && _handlers.openSceneEditor) _handlers.openSceneEditor(vol, chap, page, 'landscape', series);
-                else if (tab === 'layout-editor' && _handlers.openVisualEditor) _handlers.openVisualEditor(vol, chap, page, 'landscape', series, seriesFolder);
+                if (tab === 'scene-editor' && _handlers.openSceneEditor) _handlers.openSceneEditor(vol, chap, page, series);
+                else if (tab === 'layout-editor' && _handlers.openVisualEditor) _handlers.openVisualEditor(vol, chap, page, series, seriesFolder);
                 if (tab === 'page-builder' && _handlers.setActivePage) _handlers.setActivePage(vol, chap, page, series, seriesFolder);
             }, 100);
         }

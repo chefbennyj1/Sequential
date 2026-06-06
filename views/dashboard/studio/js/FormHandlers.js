@@ -394,7 +394,7 @@ function initLibrarySettings() {
                 if (data.ok && data.series) {
                     seriesIdInput.value = data.series._id;
                     if (data.series.settings) {
-                        defaultViewSelect.value = data.series.settings.defaultViewMode || 'landscape';
+                        defaultViewSelect.value = data.series.settings.defaultViewMode || 'portrait';
                     }
                     formContainer.classList.remove('hidden');
                 }

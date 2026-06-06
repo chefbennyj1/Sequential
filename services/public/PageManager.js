@@ -245,14 +245,6 @@ export async function loadSection(containerId, htmlPath, isComicPage = true, pag
         }
         let response = await fetch(layoutUrl);
 
-        // Fallback to landscape if portrait layout is requested but doesn't exist
-        if (window.GEMINI_PORTRAIT_MODE && response.status === 404 && pageData && pageData.layouts && pageData.layouts.landscape) {
-            const landscapeId = typeof pageData.layouts.landscape === 'string' ? pageData.layouts.landscape : pageData.layouts.landscape.id;
-            console.warn(`Portrait layout ${lid} not found, falling back to landscape ${landscapeId}.`);
-            layoutUrl = `/layouts/landscape/${landscapeId}.html?t=${Date.now()}`;
-            response = await fetch(layoutUrl);
-        }
-
         if (response.status === 401) {
             window.location.href = '/login';
             return;

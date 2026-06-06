@@ -55,10 +55,7 @@ exports.createPage = async (req, res) => {
     const pageJson = {
       header: {
         version: "2.0",
-        layouts: {
-          landscape: { id: layoutId, html: `${layoutId}.html`, css: "" },
-          portrait: { id: layoutId, html: `${layoutId}.html`, css: "" }
-        }
+        layout: { id: layoutId, html: `${layoutId}.html`, css: "" }
       },
       media: [],
       scene: []

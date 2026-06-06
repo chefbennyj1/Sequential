@@ -243,10 +243,10 @@ export async function fetchLayouts(mode = 'landscape') {
     }
 }
 
-export async function fetchPagePanels(volume, chapter, pageId, mode = 'landscape', seriesId) {
+export async function fetchPagePanels(volume, chapter, pageId, seriesId) {
     if (!seriesId) throw new Error("seriesId is required");
     try {
-        const res = await fetch(`/api/editor/panels/${seriesId}/${volume}/${chapter}/${pageId}?mode=${mode}`);
+        const res = await fetch(`/api/editor/panels/${seriesId}/${volume}/${chapter}/${pageId}`);
         const data = await res.json();
         return data.ok ? { panels: data.panels, layoutClass: data.layoutClass } : { panels: [], layoutClass: null };
     } catch (err) {
@@ -254,3 +254,4 @@ export async function fetchPagePanels(volume, chapter, pageId, mode = 'landscape
         return { panels: [], layoutClass: null };
     }
 }
+

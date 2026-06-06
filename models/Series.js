@@ -33,10 +33,9 @@ const seriesSchema = new Schema({
         ref: 'Volume'
     }],
     settings: {
-        defaultViewMode: {
-            type: String,
-            enum: ['landscape', 'portrait'],
-            default: 'landscape'
+        defaultViewMode: { 
+            type: String, 
+            default: 'portrait' 
         }
     }
 }, { timestamps: true });
