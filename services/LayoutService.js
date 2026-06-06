@@ -56,7 +56,6 @@ class LayoutService {
 
         if (fs.existsSync(templatePath)) {
             const templateHtml = fs.readFileSync(templatePath, 'utf8');
-            // We could parse existing panels here if needed, but we rely on media array for floating panels
         }
         
         const usedPanels = pageJson.media ? pageJson.media.map(m => m.panel) : [];
@@ -148,9 +147,12 @@ class LayoutService {
         let layoutId = "Standard_Page";
         const atomicPath = path.join(pageDir, 'page.json');
         let isSpread = false;
+        let panels = new Set();
+        let atomicMedia = [];
 
         if (fs.existsSync(atomicPath)) {
             const atomic = JSON.parse(fs.readFileSync(atomicPath, 'utf8'));
+            atomicMedia = atomic.media || [];
             if (atomic.header?.spread && atomic.header.spread.type !== 'none') isSpread = true;
             
             // Partner check if not explicitly marked
@@ -170,6 +172,13 @@ class LayoutService {
             layoutId = atomic.header?.layout?.id || atomic.header?.portraitLayout?.id || atomic.header?.layouts?.portrait?.id || layoutId;
         }
 
+        // Include floating panels from metadata to prevent false positive orphan alerts
+        atomicMedia.forEach(m => {
+            if (m.panel && (m.isFloating || m.panel.startsWith('.z-'))) {
+                panels.add(m.panel);
+            }
+        });
+
         const templatePath = path.join(layoutsDir, 'portrait', `${layoutId}.html`);
         let combinedContent = "";
 
@@ -186,10 +195,10 @@ class LayoutService {
             }
         }
 
-        let panels = new Set();
         if (fs.existsSync(templatePath)) {
             const templateHtml = fs.readFileSync(templatePath, "utf8");
-            panels = PanelService.getPanelsFromTemplate(templateHtml);
+            const templatePanels = PanelService.getPanelsFromTemplate(templateHtml);
+            templatePanels.forEach(p => panels.add(p));
         } else {
             // Regex Fallback
             const panelRegex = /\.panel-[a-zA-Z0-9_-]+/g;
