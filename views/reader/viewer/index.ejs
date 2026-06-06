@@ -18,9 +18,6 @@
             <button id="toggle-gutter-btn" class="nav-button btn">
                 Gutter Guide <ion-icon name="cut-outline"></ion-icon>
             </button>
-            <button id="toggle-mode-btn" class="nav-button btn">
-                <span id="mode-text">Portrait</span> <ion-icon name="phone-portrait-outline"></ion-icon>
-            </button>
         </div>
     `,
     body: `
@@ -62,31 +59,6 @@
 
             const params = new URLSearchParams(window.location.search);
             const exportSecret = params.get('exportSecret');
-
-            window.GEMINI_PORTRAIT_MODE = true; // Always true now as we use spreads for landscape
-            window.GEMINI_SPREAD_MODE = params.get('spread') === 'true'; // Manual toggle only
-
-            const modeBtn = document.getElementById('toggle-mode-btn');
-            const modeText = document.getElementById('mode-text');
-
-            if (window.GEMINI_SPREAD_MODE) {
-                modeBtn.classList.add('portrait-active');
-                if (modeText) modeText.textContent = 'Single Page';
-            } else {
-                if (modeText) modeText.textContent = 'Spread View';
-            }
-
-            if (modeBtn) {
-                modeBtn.addEventListener('click', () => {
-                    const newUrl = new URL(window.location.href);
-                    if (window.GEMINI_SPREAD_MODE) {
-                        newUrl.searchParams.set('spread', 'false');
-                    } else {
-                        newUrl.searchParams.set('spread', 'true');
-                    }
-                    window.location.href = newUrl.href;
-                });
-            }
 
             (async () => {
                 const scrollWrapper = document.querySelector(".scroll-wrapper");
@@ -131,20 +103,7 @@
                             spreads.push([page, next]);
                             i++; // Skip paired page
                         } 
-                        // CASE 2: Manual Spread Mode Fallback (Page 1 single, 2+3, 4+5...)
-                        else if (window.GEMINI_SPREAD_MODE && page.index > 1 && isEven && i < chapterView.pages.length - 1) {
-                             const next = chapterView.pages[i + 1];
-                             // Only pair if next page isn't explicitly a 'left' page
-                             const nextSpreadData = next.header?.spread || { type: 'none' };
-                             
-                             if (nextSpreadData.type !== 'left') {
-                                 spreads.push([page, next]);
-                                 i++;
-                             } else {
-                                 spreads.push([page]);
-                             }
-                        }
-                        // CASE 3: Single Page
+                        // CASE 2: Single Page
                         else {
                             spreads.push([page]);
                         }
