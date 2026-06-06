@@ -57,6 +57,8 @@
             import { getLastVisitedPage, setLastVisitedPage } from "/libs/Utility.js";
             import { fetchChapterData, syncPageData } from "/views/reader/api/ReaderClient.js";
 
+            window.GEMINI_PORTRAIT_MODE = true; // CRITICAL: Forces engine to use portrait layouts for spread cells
+
             const params = new URLSearchParams(window.location.search);
             const exportSecret = params.get('exportSecret');
 
