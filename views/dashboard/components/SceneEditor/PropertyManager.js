@@ -334,7 +334,7 @@ export class PropertyManager {
             font: this.container.querySelector('.prop-group-font')
         };
         const isPause = type === 'Pause';
-        const isActionText = type === 'ActionText';
+        const isActionText = (type === 'ActionText' || type === 'SoundEffect');
 
         if (groups.char) isPause ? groups.char.classList.add('hidden') : groups.char.classList.remove('hidden');
         if (groups.text) isPause ? groups.text.classList.add('hidden') : groups.text.classList.remove('hidden');

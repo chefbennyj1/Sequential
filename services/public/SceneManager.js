@@ -97,7 +97,7 @@ export async function initScene(container, pageInfo, sceneData, mediaData = []) 
             if (textBlock.container) textBlock.container.setAttribute('data-id', item.id);
             visualItem = textBlock;
 
-        } else if (item.displayType.type === 'ActionText') {
+        } else if (item.displayType.type === 'ActionText' || item.displayType.type === 'SoundEffect') {
             const actionTextOptions = { ...item, series, volume, chapter, pageId };
             Object.assign(actionTextOptions, finalPlacement);
             
