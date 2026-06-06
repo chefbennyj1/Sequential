@@ -278,64 +278,70 @@ class PageController {
         const id = item.sceneItemId;
         const targetParent = item.targetParentEl;
         const logicalAnchor = item.intendedPanelEl || targetParent;
+        const isActionText = item.options?.displayType?.type === 'ActionText' || item.options?.displayType?.type === 'SoundEffect';
 
         let isDragging = false;
         let startX, startY, initialLeft, initialTop;
 
-        el.addEventListener('mousedown', (e) => {
-            if (e.button !== 0) return;
-            e.stopPropagation();
-            isDragging = true;
-            el.classList.add('is-dragging');
-            const anchorRect = logicalAnchor.getBoundingClientRect();
-            const elRect = el.getBoundingClientRect();
-            startX = e.clientX;
-            startY = e.clientY;
-            const aWidth = anchorRect.width || 1;
-            const aHeight = anchorRect.height || 1;
-            initialLeft = ((elRect.left - anchorRect.left) / aWidth) * 100;
-            initialTop = ((elRect.top - anchorRect.top) / aHeight) * 100;
+        if (!isActionText) {
+            el.addEventListener('mousedown', (e) => {
+                if (e.button !== 0) return;
+                e.stopPropagation();
+                isDragging = true;
+                el.classList.add('is-dragging');
+                const anchorRect = logicalAnchor.getBoundingClientRect();
+                const elRect = el.getBoundingClientRect();
+                startX = e.clientX;
+                startY = e.clientY;
+                const aWidth = anchorRect.width || 1;
+                const aHeight = anchorRect.height || 1;
+                initialLeft = ((elRect.left - anchorRect.left) / aWidth) * 100;
+                initialTop = ((elRect.top - anchorRect.top) / aHeight) * 100;
 
-            const onMouseMove = (e) => {
-                if (!isDragging) return;
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                if (Math.abs(dx) > 2 || Math.abs(dy) > 2) el.dataset.wasDragged = 'true';
-                const pctX = (dx / aWidth) * 100;
-                const pctY = (dy / aHeight) * 100;
-                let newLeft = initialLeft + pctX;
-                let newTop = initialTop + pctY;
+                const onMouseMove = (e) => {
+                    if (!isDragging) return;
+                    const dx = e.clientX - startX;
+                    const dy = e.clientY - startY;
+                    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) el.dataset.wasDragged = 'true';
+                    const pctX = (dx / aWidth) * 100;
+                    const pctY = (dy / aHeight) * 100;
+                    let newLeft = initialLeft + pctX;
+                    let newTop = initialTop + pctY;
 
-                const parentRect = targetParent.getBoundingClientRect();
-                const pWidth = parentRect.width || 1;
-                const pHeight = parentRect.height || 1;
-                const globalXInPixels = anchorRect.left - parentRect.left + (newLeft / 100 * aWidth);
-                const globalYInPixels = anchorRect.top - parentRect.top + (newTop / 100 * aHeight);
+                    const parentRect = targetParent.getBoundingClientRect();
+                    const pWidth = parentRect.width || 1;
+                    const pHeight = parentRect.height || 1;
+                    const globalXInPixels = anchorRect.left - parentRect.left + (newLeft / 100 * aWidth);
+                    const globalYInPixels = anchorRect.top - parentRect.top + (newTop / 100 * aHeight);
 
-                el.style.left = `${(globalXInPixels / pWidth * 100).toFixed(2)}%`;
-                el.style.top = `${(globalYInPixels / pHeight * 100).toFixed(2)}%`;
-                el.style.right = 'auto';
-                el.style.bottom = 'auto';
+                    el.style.left = `${(globalXInPixels / pWidth * 100).toFixed(2)}%`;
+                    el.style.top = `${(globalYInPixels / pHeight * 100).toFixed(2)}%`;
+                    el.style.right = 'auto';
+                    el.style.bottom = 'auto';
 
-                window.parent.postMessage({
-                    type: 'dialogueDragged',
-                    pageId: this.pageId,
-                    id: id,
-                    placement: { left: `${newLeft.toFixed(2)}%`, top: `${newTop.toFixed(2)}%`, right: '', bottom: '' }
-                }, '*');
-            };
+                    window.parent.postMessage({
+                        type: 'dialogueDragged',
+                        pageId: this.pageId,
+                        id: id,
+                        placement: { left: `${newLeft.toFixed(2)}%`, top: `${newTop.toFixed(2)}%`, right: '', bottom: '' }
+                    }, '*');
+                };
 
-            const onMouseUp = () => {
-                isDragging = false;
-                el.classList.remove('is-dragging');
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-            };
+                const onMouseUp = () => {
+                    isDragging = false;
+                    el.classList.remove('is-dragging');
+                    document.removeEventListener('mousemove', onMouseMove);
+                    document.removeEventListener('mouseup', onMouseUp);
+                };
 
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-            e.preventDefault();
-        });
+                document.addEventListener('mousemove', onMouseMove);
+                document.addEventListener('mouseup', onMouseUp);
+                e.preventDefault();
+            });
+        } else {
+            // ActionText shouldn't show a move cursor since dragging is disabled
+            el.style.cursor = 'pointer';
+        }
 
         el.addEventListener('click', (e) => {
             if (el.dataset.wasDragged === 'true') {
@@ -345,9 +351,9 @@ class PageController {
             e.stopPropagation();
             document.querySelectorAll('.speech-bubble-container, .text-block-container, .action-text-container').forEach(item => item.classList.remove('selected-dialogue'));
             el.classList.add('selected-dialogue');
-            window.parent.postMessage({ 
-                type: 'dialogueSelected', 
-                id: id, 
+            window.parent.postMessage({
+                type: 'dialogueSelected',
+                id: id,
                 pageId: this.pageId,
                 volume: this.params.volume,
                 chapter: this.params.chapter
