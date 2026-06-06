@@ -378,27 +378,23 @@ function initLibrarySettings() {
     const formContainer = document.getElementById('series-settings-form-container');
     const form = document.getElementById('library-settings-form');
     const seriesIdInput = document.getElementById('settings-series-id');
-    const defaultViewSelect = document.getElementById('settings-default-view-mode');
 
-    if (seriesSelect) {
+    if (seriesSelect) {        
         seriesSelect.onchange = async () => {
             const seriesId = seriesSelect.value;
-            if (!seriesId) {
-                formContainer.classList.add('hidden');
-                return;
+            if (!seriesId) {   
+                formContainer.classList.add('hidden');        
+                return;        
             }
 
             try {
                 const res = await fetch(`/api/library/series/${seriesId}`);
                 const data = await res.json();
                 if (data.ok && data.series) {
-                    seriesIdInput.value = data.series._id;
-                    if (data.series.settings) {
-                        defaultViewSelect.value = data.series.settings.defaultViewMode || 'portrait';
-                    }
-                    formContainer.classList.remove('hidden');
+                    seriesIdInput.value = data.series._id;    
+                    formContainer.classList.remove('hidden'); 
                 }
-            } catch (err) {
+            } catch (err) {    
                 console.error("Failed to load series settings", err);
             }
         };
@@ -408,31 +404,29 @@ function initLibrarySettings() {
         form.onsubmit = async (e) => {
             e.preventDefault();
             const seriesId = seriesIdInput.value;
-            const settings = {
-                defaultViewMode: defaultViewSelect.value
-            };
+            const settings = {};
 
             const submitBtn = form.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;
+            const originalText = submitBtn.textContent;       
             submitBtn.disabled = true;
             submitBtn.textContent = "Saving...";
 
             try {
-                const res = await fetch(`/api/library/series/${seriesId}/settings`, {
+                const res = await fetch(`/api/library/series/${seriesId}/settings`, {        
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ settings })
+                    body: JSON.stringify({ settings })        
                 });
                 const data = await res.json();
-                if (data.ok) {
+                if (data.ok) { 
                     alert("Library settings saved successfully!");
-                } else {
+                } else {       
                     alert("Error saving settings: " + data.message);
                 }
-            } catch (err) {
+            } catch (err) {    
                 console.error("Failed to save series settings", err);
                 alert("Request failed.");
-            } finally {
+            } finally {        
                 submitBtn.disabled = false;
                 submitBtn.textContent = originalText;
             }
