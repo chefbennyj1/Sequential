@@ -724,9 +724,70 @@
     <div class="export-tool dashboard-section hidden">
         <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
         <h3>Print Exporter</h3>
-        <div class="form-group margin-t-20"><label>Select Series</label><select id="exportSeriesSelect" class="gov-select"></select></div>
-        <div class="form-group margin-t-20"><label>Select Volume</label><select id="exportVolumeSelect" class="gov-select" disabled><option value="">Select a Series first</option></select></div>
-        <button id="startExportBtn" class="update__btn w-full margin-t-20">Start Export</button>
+        <p>Render high-resolution PNGs of an entire volume.</p>
+
+        <div class="form-group margin-t-20">
+            <label for="exportSeriesSelect">Select Series:</label>
+            <select id="exportSeriesSelect" class="gov-select"></select>
+        </div>
+
+        <div class="form-group margin-t-20">
+            <label for="exportVolumeSelect">Select Volume to Export:</label>
+            <select id="exportVolumeSelect" class="gov-select" disabled><option value="">Select a Series first</option></select>
+        </div>
+
+        <div class="form-group margin-t-20">
+            <label for="exportPresetSelect">Export Preset (Style):</label>
+            <select id="exportPresetSelect" class="gov-select">
+                <option value="uk-table">UK Table Book (A3 Spread)</option>
+                <option value="us-landscape">US Comic Landscape (Spread)</option>
+                <option value="us-portrait">US Comic Portrait (Standard 6.625x10.25)</option>
+                <option value="cinematic-16-9">Cinematic (16:9 Aspect Ratio)</option>
+                <option value="a4-landscape-letterbox">A4 Landscape (16:9 Letterbox)</option>
+            </select>
+        </div>
+
+        <div class="form-group margin-t-20">
+            <label for="exportTargetPage">Target Page (Optional):</label>
+            <input type="text" id="exportTargetPage" class="mono-input gov-input" placeholder="e.g. 80">
+            <p class="font-size-07 text-muted margin-t-5">Leave blank to export the entire volume.</p>
+        </div>
+
+        <div class="form-group margin-t-20">
+            <label>Export Options:</label>
+            <div class="flex-row gap-20 margin-t-10">
+                <label style="display:flex; align-items:center; gap:8px; cursor:pointer; font-size: 0.9em;">
+                    <input type="checkbox" id="exportPdfOption" checked>
+                    <span>Combine to PDF</span>
+                </label>
+            </div>
+        </div>
+
+        <button id="startExportBtn" class="update__btn w-full margin-t-20">
+            Start Background Export <ion-icon size="small" name="print"></ion-icon>
+        </button>
+
+        <!-- Preview Carousel -->
+        <div class="flex-row justify-between align-center margin-t-30 margin-b-10">
+            <h4 class="text-accent margin-0">Pages Preview</h4>
+            <button id="refreshExportCarouselBtn" class="action-btn small" title="Refresh Previews"><ion-icon name="refresh-outline"></ion-icon></button>
+        </div>
+        <div id="export-carousel-container" class="critic-carousel-wrapper">
+            <div id="export-carousel" class="critic-carousel">
+                <div class="text-muted padding-20">Select a volume to preview pages.</div>
+            </div>
+        </div>
+        
+        <div id="exportProgressContainer" class="margin-t-20 hidden">
+            <div class="flex-between margin-b-10">
+                <span id="exportProgressLabel" class="font-size-08 text-accent">Exporting...</span>
+                <span id="exportProgressPercent" class="font-size-08 text-muted">0%</span>
+            </div>
+            <div class="scanner-progress-container" style="display: block; margin-bottom: 10px;">
+                <div class="scanner-progress-bar" id="export-progress-bar" style="width: 0%;"></div>
+            </div>
+            <p id="exportStatusMsg" style="margin-top: 5px; color: var(--cyber-primary, #00ff41); font-size: 0.8rem;"></p>
+        </div>
     </div>
 
     <!-- STORY CRITIC SECTION -->
