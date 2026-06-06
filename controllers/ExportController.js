@@ -136,7 +136,7 @@ class ExportController {
             BLEED_WIDTH = 3370;
             BLEED_HEIGHT = 1926;
             PAGE_WIDTH = 1685;
-        if (preset === 'a4-landscape-letterbox') {
+        } else if (preset === 'a4-landscape-letterbox') {
             // A4 Landscape: 297mm x 210mm
             // At 300 DPI with 3mm bleed: 3578 x 2515
             BLEED_WIDTH = 3578;
