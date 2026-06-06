@@ -27,7 +27,7 @@ async function checkOrphanDialogue(vol, chap, page, seriesId) {
     try {
         const [scene, panelData] = await Promise.all([
             fetchSceneData(vol, chap, page, seriesId),
-            fetchPagePanels(vol, chap, page, 'portrait', seriesId)
+            fetchPagePanels(vol, chap, page, seriesId)
         ]);
 
         const panels = panelData.panels || [];

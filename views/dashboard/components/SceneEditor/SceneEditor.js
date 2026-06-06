@@ -86,7 +86,7 @@ async function loadScene(volume, chapter, pageId, seriesId, mode = 'landscape') 
 
     // Fetch Data
     const [panelData, scene, characters, mediaRes] = await Promise.all([
-        fetchPagePanels(volume, chapter, pageId, mode, activeSeriesId),
+        fetchPagePanels(volume, chapter, pageId, activeSeriesId),
         fetchSceneData(volume, chapter, pageId, activeSeriesId),
         activeSeriesId ? fetchCharactersAPI(activeSeriesId) : Promise.resolve([]),
         fetchMedia(volume, chapter, pageId, activeSeriesId)
@@ -305,7 +305,7 @@ async function syncEditorContext(volume, chapter, pageId, mode) {
     console.log(`[SceneEditor] Syncing context for ${pageId}...`);
     try {
         const [panelData, scene, characters, mediaRes] = await Promise.all([
-            fetchPagePanels(volume, chapter, pageId, mode, activeSeriesId),
+            fetchPagePanels(volume, chapter, pageId, activeSeriesId),
             fetchSceneData(volume, chapter, pageId, activeSeriesId),
             activeSeriesId ? fetchCharactersAPI(activeSeriesId) : Promise.resolve([]),
             fetchMedia(volume, chapter, pageId, activeSeriesId)
@@ -507,8 +507,7 @@ export function initSceneEditor() {
             const needsSwitch = ['panelSelected', 'dialogueSelected', 'assetUploaded', 'panelDragged', 'dialogueDragged'].includes(e.data.type);
             if (needsSwitch) {
                 console.log(`[SceneEditor] Context switch detected: ${currentSceneInfo.pageId} -> ${pageId}`);
-                const mode = document.querySelector('.layout-editor .preview-pane-flex')?.classList.contains('portrait-mode') ? 'portrait' : 'landscape';
-                await syncEditorContext(volume || currentSceneInfo.volume, chapter || currentSceneInfo.chapter, pageId, mode);
+                await syncEditorContext(volume || currentSceneInfo.volume, chapter || currentSceneInfo.chapter, pageId);
             }
         }
 
@@ -603,6 +602,10 @@ function duplicateSceneItem(index) {
 }
 
 // Keeping initVisualEditor for external dashboard call
+export function initVisualEditor() {
+    // Shared with initSceneEditor but kept for compatibility
+}
+ping initVisualEditor for external dashboard call
 export function initVisualEditor() {
     // Shared with initSceneEditor but kept for compatibility
 }
