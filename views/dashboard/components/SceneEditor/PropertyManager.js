@@ -149,6 +149,12 @@ export class PropertyManager {
         if (type === 'TextBlock' && item.displayType?.style) {
             type = item.displayType.style;
         }
+        
+        // Migrate legacy SoundEffects to ActionText
+        if (type === 'SoundEffect') {
+            type = 'ActionText';
+        }
+        
         setVal('#prop-type', type);
 
         const select = this.container.querySelector('#prop-character-select');
