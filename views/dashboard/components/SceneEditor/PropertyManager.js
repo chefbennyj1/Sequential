@@ -27,6 +27,9 @@ export class PropertyManager {
         const fontSelect = this.container.querySelector('#prop-font-family');
         if (!fontSelect) return;
 
+        // Preserve current value in case populate() ran before fetch finished
+        const currentValue = fontSelect.value;
+
         // Clear existing except default
         fontSelect.innerHTML = '<option value="">Default</option>';
 
@@ -52,6 +55,11 @@ export class PropertyManager {
                 fontSelect.appendChild(opt);
             });
             fontSelect.appendChild(group);
+        }
+
+        // Restore value
+        if (currentValue) {
+            fontSelect.value = currentValue;
         }
     }
 
