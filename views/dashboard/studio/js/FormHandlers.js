@@ -132,7 +132,7 @@ export function initFormHandlers(container) {
             const range = await fetchChapterRange(seriesId, vol, chap);
             if (range && range.count > 0) {
                 if (insertPoint < range.min || insertPoint > (range.max + 1)) {
-                    const confirmMsg = `WARNING: The selected chapter (${chap}) typically contains pages ${range.min} to ${range.max}.\n\n` +
+                    const confirmMsg = `WARNING: The selected chapter (${chap}) typically contains pages ${range.min} to ${range.max}.n\n` +
                                      `You are attempting to insert page ${insertPoint}.\n\n` +
                                      `This may cause structural issues if this chapter isn't the correct place for that index.\n\n` +
                                      `Are you sure you want to proceed?`;
