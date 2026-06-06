@@ -738,9 +738,27 @@
                 <select id="critic-series-select" class="gov-select"><option value="">Select Series</option></select>
                 <select id="critic-volume-select" class="gov-select" disabled><option value="">Select Volume</option></select>
             </div>
-            <button id="run-critic-btn" class="update__btn" disabled>Run Critic</button>
+            <button id="run-critic-btn" class="update__btn" disabled>
+                <ion-icon name="sparkles-outline"></ion-icon> Run Gemini Critic
+            </button>
         </div>
-        <div id="critic-output-container" class="critic-output bg-dark padding-30 border-radius-12 border-dim"></div>
+
+        <div class="flex-row justify-between align-center margin-b-10">
+            <h4 class="text-accent margin-0">Story Timeline</h4>
+            <button id="refreshCriticCarouselBtn" class="action-btn small" title="Refresh Previews"><ion-icon name="refresh-outline"></ion-icon></button>
+        </div>
+        <div id="critic-carousel-container" class="critic-carousel-wrapper margin-b-30">
+            <div id="critic-carousel" class="critic-carousel">
+                <div class="text-muted padding-20">Select a volume to view the story timeline.</div>
+            </div>
+        </div>
+
+        <div id="critic-output-container" class="critic-output bg-dark padding-30 border-radius-12 border-dim">
+            <h4 class="margin-b-15 text-accent">Narrative Analysis</h4>
+            <div id="critic-log" class="critic-log">
+                <div class="text-muted italic">Awaiting analysis...</div>
+            </div>
+        </div>
     </div>
 
 </main>
