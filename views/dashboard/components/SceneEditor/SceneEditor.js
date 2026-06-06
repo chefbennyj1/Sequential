@@ -605,7 +605,3 @@ function duplicateSceneItem(index) {
 export function initVisualEditor() {
     // Shared with initSceneEditor but kept for compatibility
 }
-ping initVisualEditor for external dashboard call
-export function initVisualEditor() {
-    // Shared with initSceneEditor but kept for compatibility
-}
