@@ -36,26 +36,17 @@ async function findVolumeId(volumeFolderName, seriesFolderName) {
 
 exports.getLayouts = (req, res) => {
   try {
-    const mode = req.query.mode === 'portrait' ? 'portrait' : 'landscape';  
-    const modeDir = path.join(layoutsDir, mode);
+    const portraitDir = path.join(layoutsDir, 'portrait');
 
-    let layoutMap = {};
-    const mapPath = path.join(layoutsDir, 'layout_map.json');
-    if (fs.existsSync(mapPath)) {
-      layoutMap = JSON.parse(fs.readFileSync(mapPath, 'utf8'));
+    if (!fs.existsSync(portraitDir)) {
+      return res.json({ ok: true, layouts: [] });
     }
 
-    if (!fs.existsSync(modeDir)) {
-      return res.json({ ok: true, layouts: [], layoutMap });
-    }
-
-    const files = fs.readdirSync(modeDir);
-    const layouts = files.filter(
-      (f) => f.endsWith(".html")
-    );
-    res.json({ ok: true, layouts, layoutMap });
+    const files = fs.readdirSync(portraitDir);
+    const layouts = files.filter(f => f.endsWith(".html"));
+    res.json({ ok: true, layouts });
   } catch (err) {
-    res.status(500).json({ ok: false, message: "Failed to list layouts" }); 
+    res.status(500).json({ ok: false, message: "Failed to list layouts" });
   }
 };
 
