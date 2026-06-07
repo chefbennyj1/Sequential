@@ -127,13 +127,17 @@ export async function populateChapterSelect(volumeId, selectId = 'chapterSelect'
     }
 
     const chapters = await fetchChaptersAPI(realVolumeId);
+    const fragment = document.createDocumentFragment();
+    
     chapters.forEach(chapter => {
         const option = document.createElement('option');
         option.value = folderMode ? `chapter-${chapter.chapterNumber}` : chapter._id;
         if (selectId === 'editChapterSelect') option.setAttribute('data-number', chapter.chapterNumber);
         option.textContent = `Chapter ${chapter.chapterNumber}: ${chapter.title}`;
-        select.appendChild(option);
+        fragment.appendChild(option);
     });
+    
+    select.appendChild(fragment);
     select.disabled = false;
 }
 

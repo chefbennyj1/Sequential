@@ -40,6 +40,8 @@ export async function renderLayoutBrowser(containerId, hiddenInputId, currentLay
                 return;
             }
 
+            const fragment = document.createDocumentFragment();
+
             for (const layoutFile of layoutsToShow) {
                 const layoutId = layoutFile.replace('.html', '');
                 const card = document.createElement('div');
@@ -72,8 +74,10 @@ export async function renderLayoutBrowser(containerId, hiddenInputId, currentLay
                         container.dispatchEvent(new CustomEvent('layoutChanged', { detail: { layout: layoutFile } }));
                     }
                 };
-                grid.appendChild(card);
+                fragment.appendChild(card);
             }
+
+            grid.appendChild(fragment);
         };
 
         container.appendChild(header);
