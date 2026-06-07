@@ -100,7 +100,12 @@ class PageController {
                 loadCSS('/libs/ActionText/ActionText.css')
             ]);
 
+            // 1. Logic-based cleanup
             if (this.sceneController && this.sceneController.cleanup) this.sceneController.cleanup();
+
+            // 2. DOM-based purge (Safety fallback)
+            // This ensures that even if tracking was lost, the DOM is actually clean.
+            this.container.querySelectorAll('.speech-bubble-container, .text-block-container, .action-text-container').forEach(el => el.remove());
 
             const pageInfo = { ...this.params, pageId: this.pageId, pageIndex: 0 }; 
             this.sceneController = await initScene(this.container, pageInfo, sceneData, mediaData);
