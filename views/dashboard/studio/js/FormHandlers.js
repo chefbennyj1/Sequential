@@ -45,8 +45,8 @@ export function initFormHandlers(container) {
                     status.className = "builder-status text-accent font-bold";
 
                     setTimeout(() => {
-                        setActivePage(vol, chap, pageId);
-                        updateUrlState({ tab: 'page-builder', vol, chap, page: pageId });
+                        setActivePage(vol, chap, pageId, seriesId);
+                        updateUrlState({ tab: 'page-builder', vol, chap, page: pageId, series: seriesId });
                     }, 1000);
                 } else {
                     status.textContent = "Error: " + data.message;
@@ -161,8 +161,8 @@ export function initFormHandlers(container) {
                     status.className = "builder-status text-accent font-bold";
 
                     const newPageId = 'page' + insertPoint;
-                    setActivePage(vol, chap, newPageId);
-                    updateUrlState({ tab: 'page-builder', vol, chap, page: newPageId });
+                    setActivePage(vol, chap, newPageId, seriesId);
+                    updateUrlState({ tab: 'page-builder', vol, chap, page: newPageId, series: seriesId });
                 } else {
                     status.textContent = "Error: " + data.message;
                     status.className = "builder-status text-accent";
@@ -270,8 +270,8 @@ export function initFormHandlers(container) {
 
                     // Give the DB a second to settle after the scan
                     setTimeout(() => {
-                        setActivePage(vol, data.chapter, data.pageId);        
-                        updateUrlState({ tab: 'page-builder', vol, chap: data.chapter, page: data.pageId });
+                        setActivePage(vol, data.chapter, data.pageId, seriesId);
+                        updateUrlState({ tab: 'page-builder', vol, chap: data.chapter, page: data.pageId, series: seriesId });
                     }, 1000);
                 } else {
                     status.textContent = "Error: " + data.message;
