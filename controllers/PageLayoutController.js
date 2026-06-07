@@ -40,9 +40,9 @@ exports.changeLayout = async (req, res) => {
 };
 
 exports.getPanels = async (req, res) => {
-    const { series, volume, chapter, pageId } = req.query;
+    const { series, volume, chapter, pageId } = req.params;
     if (!series || !volume || !chapter || !pageId) {
-        return res.status(400).json({ ok: false, message: "Missing required query parameters" });
+        return res.status(400).json({ ok: false, message: "Missing required parameters" });
     }
     try {
         const result = await LayoutService.getPanels(series, volume, chapter, pageId);
