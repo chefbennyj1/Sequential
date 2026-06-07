@@ -292,11 +292,6 @@ class ExportController {
             `;
             document.head.appendChild(overrideStyle);
 
-            // Disable any memory/cloudy effects that use white backgrounds
-            document.querySelectorAll('.panel-effect-memory, .panel-effect-cloudy').forEach(p => {
-                p.style.setProperty('background-color', 'transparent', 'important');
-            });
-
             return { ok: true };
         }, BLEED_WIDTH, BLEED_HEIGHT, preset);
     }

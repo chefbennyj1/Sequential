@@ -45,8 +45,8 @@ async function convertToPdf(txtPath, pdfPath) {
         </head>
         <body>
             <div class="page-header">
-                NO://OVERFLOW - REDUX<br>
-                VOLUME 1 SCREENPLAY
+                NO OVERFLOW<br>
+                SCREENPLAY EXPORT
             </div>
             <pre>${content.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</pre>
         </body>

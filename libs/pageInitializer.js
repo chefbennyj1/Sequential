@@ -184,32 +184,7 @@ function initMedia(container, pageInfo, mediaDataArray) {
                     overlayImg.style.opacity = media.overlayOpacity !== undefined ? media.overlayOpacity : '1';
                     panel.appendChild(overlayImg);
                 }
-
-                // Apply Panel Effect if specified in media.json
-                if (media.panelEffect) {
-                    panel.classList.add(`panel-effect-${media.panelEffect}`);
-                    if (media.panelEffect === 'memory') panel.classList.add('active-memory');
-                }
             }
         }
-    }
-}
-
-function applyPanelEffect(container, panelSelector, effectType) {
-    const panel = container.querySelector(panelSelector);
-    if (!panel) return;
-
-    // Remove all existing panel effects
-    panel.classList.remove('panel-effect-memory', 'panel-effect-haze', 'panel-effect-glitch', 'panel-effect-cloudy', 'active-memory');
-
-    if (!effectType) return;
-
-    // Apply new effect
-    const effectClass = `panel-effect-${effectType}`;
-    panel.classList.add(effectClass);
-    
-    // Add pulsing for memory
-    if (effectType === 'memory') {
-        panel.classList.add('active-memory');
     }
 }

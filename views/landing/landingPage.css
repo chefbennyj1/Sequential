@@ -150,7 +150,7 @@ body {
 #hero-image-wrapper {
     position: absolute;
     top: 0;
-    right: -15%;
+    right: 0;
     left: auto;
     height: 100%;
     width: auto;
@@ -162,10 +162,10 @@ body {
 
 #hero-image {
 
-    height: 120%;
-    width: auto;
+    height: 100%;
+    /* width: auto;
     object-fit: contain;
-    display: block;
+    display: block; */
 }
 
 .overlay {

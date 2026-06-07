@@ -202,7 +202,6 @@ export class PropertyManager {
         setVal('#prop-outline-color', item.outlineColor || '#000000');
         setVal('#prop-outline-size', item.outlineSize || '1.0');
         setVal('#prop-duration', item.duration || '');
-        setVal('#prop-panel-effect', item.panelEffect || '');
         setVal('#prop-font-family', item.fontFamily || '');
 
         this.toggleVisibility(item.displayType?.type);
@@ -302,7 +301,6 @@ export class PropertyManager {
         }
 
         item.text = this.container.querySelector('#prop-text').value;
-        item.panelEffect = this.container.querySelector('#prop-panel-effect').value;
         item.curve = this.container.querySelector('#prop-curve').value;
         item.curveWidth = this.container.querySelector('#prop-curve-w').value;
         item.curveHeight = this.container.querySelector('#prop-curve-h').value;
