@@ -205,7 +205,7 @@ exports.getChapterPages = async (req, res) => {
 
     const seriesFolderName = volume.series ? volume.series.folderName : null;
     if (!seriesFolderName) throw new Error("Series folder name not found for volume");
-    const enrichedPages = chapter.pages.map(p => ({ ...p.toObject(), series: seriesFolderName }));
+    const enrichedPages = chapter.pages.map(p => ({ ...p, series: seriesFolderName }));
 
     // Return a new object that looks like the old 'volume' object for client compatibility
     res.json({
