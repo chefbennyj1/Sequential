@@ -58,7 +58,7 @@ export class TimelineManager {
     render() {
         if (!this.list) return;
         this.list.innerHTML = '';
-        this.currentSceneData.forEach((item, index) => {
+        const fragment = document.createDocumentFragment();\n\n        this.currentSceneData.forEach((item, index) => {
             const li = document.createElement('li');
             li.className = `scene-item ${index === this.selectedItemIndex ? 'selected' : ''} ${item.isOrphaned ? 'is-orphaned' : ''}`;
             li.draggable = true;
@@ -115,7 +115,7 @@ export class TimelineManager {
                 document.querySelectorAll('.scene-item').forEach(i => i.classList.remove('over')); 
             });
 
-            this.list.appendChild(li);
+            fragment.appendChild(li);
         });
     }
 
