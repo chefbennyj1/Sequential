@@ -107,14 +107,16 @@ async function showNextImage() {
 
     // Apply the mask reveal effect
     const gifUrl = "/libs/panel_mask_image.gif";
+    const container = document.querySelector('.video-container');
     
-    // Apply mask to the image element
-    // We await the reveal to ensure the visual transition finishes before we consider the "slide" complete
-    // The mask GIF usually starts "full" or "empty" - assuming it transitions to clear.
-    // If we swap the src immediately, the mask should hide the cut.
+    // Apply mask to the container (which finds the inner img)
     _heroImage.src = imageUrl;
     
-    await imageMaskReveal([_heroImage], gifUrl, 2000);
+    if (container) {
+        await imageMaskReveal([container], gifUrl, 2000);
+    } else {
+        await imageMaskReveal([_heroImage.parentElement], gifUrl, 2000);
+    }
     
     // Update index only after successful transition
     currentImageIndex = nextIndex;
