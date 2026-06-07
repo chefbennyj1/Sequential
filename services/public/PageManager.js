@@ -220,28 +220,16 @@ export async function loadSection(containerId, htmlPath, isComicPage = true, pag
 
         let layoutUrl = htmlPath;
         if (pageData) {
-            const isPortrait = window.GEMINI_PORTRAIT_MODE;
-            const modeKey = isPortrait ? 'portrait' : 'landscape';
-            const folder = isPortrait ? 'portrait' : 'landscape';
+            const lid = pageData.layout?.id || 
+                      pageData.header?.layout?.id || 
+                      pageData.portraitLayoutId || 
+                      pageData.layoutId || 
+                      pageData.header?.portraitLayout?.id ||
+                      pageData.header?.layouts?.portrait?.id || 
+                      pageData.layouts?.portrait?.id || 
+                      "Standard_Page";
 
-            let lid = "";
-            if (pageData.header && pageData.header.layouts) {
-                // Handle new nested header.layouts structure
-                const layoutObj = pageData.header.layouts[modeKey];
-                lid = (typeof layoutObj === 'string') ? layoutObj : (layoutObj?.id || "");
-            } else if (pageData.layouts) {
-                // Handle flat layouts structure
-                const layoutObj = pageData.layouts[modeKey];
-                lid = (typeof layoutObj === 'string') ? layoutObj : (layoutObj?.id || "");
-            } else if (isPortrait) {
-                lid = pageData.portraitLayoutId || pageData.layoutId;
-            } else {
-                lid = pageData.layoutId;
-            }
-
-            if (lid) {
-                layoutUrl = `/layouts/${folder}/${lid}.html?t=${Date.now()}`;
-            }
+            layoutUrl = `/layouts/portrait/${lid}.html?t=${Date.now()}`;
         }
         let response = await fetch(layoutUrl);
 
