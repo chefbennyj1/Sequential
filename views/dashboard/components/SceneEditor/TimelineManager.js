@@ -12,6 +12,29 @@ export class TimelineManager {
         this.availableCharacters = [];
         this.contextMenu = null;
         this.initContextMenu();
+        this.initEventListeners();
+    }
+
+    initEventListeners() {
+        if (!this.list) return;
+
+        // --- Event Delegation: Click & Context Menu ---
+        this.list.addEventListener('click', (e) => {
+            const item = e.target.closest('.scene-item');
+            if (item) {
+                const index = parseInt(item.dataset.index);
+                this.onSelect(index);
+            }
+        });
+
+        this.list.addEventListener('contextmenu', (e) => {
+            const item = e.target.closest('.scene-item');
+            if (item) {
+                e.preventDefault();
+                const index = parseInt(item.dataset.index);
+                this.showContextMenu(e.clientX, e.clientY, index);
+            }
+        });
     }
 
     initContextMenu() {
@@ -58,65 +81,68 @@ export class TimelineManager {
     render() {
         if (!this.list) return;
         this.list.innerHTML = '';
-        const fragment = document.createDocumentFragment();\n\n        this.currentSceneData.forEach((item, index) => {
+
+        if (this.currentSceneData.length === 0) {
+            this.list.innerHTML = '<div class="text-muted italic padding-15">Empty Scene</div>';
+            return;
+        }
+
+        const fragment = document.createDocumentFragment();
+
+        this.currentSceneData.forEach((item, index) => {
             const li = document.createElement('li');
             li.className = `scene-item ${index === this.selectedItemIndex ? 'selected' : ''} ${item.isOrphaned ? 'is-orphaned' : ''}`;
             li.draggable = true;
             li.dataset.index = index;
 
-            const type = item.displayType?.type || 'Unknown';
+            const type = item.displayType?.type || 'Unknown'; 
             const char = item.character || '';
-            const previewText = item.text ? `"${item.text.substring(0, 30)}${item.text.length > 30 ? '...' : ''}"` : '';
+            const previewText = item.text ? `"${item.text.substring(0, 30)}${item.text.length > 30 ? '...' : ''}"` : '';    
             const shortId = item.id?.substring(0, 4) || '----';
 
             let avatarHtml = '';
             if (item.characterId && this.availableCharacters.length > 0) {
                 const charObj = this.availableCharacters.find(c => c._id === item.characterId);
                 if (charObj && charObj.image) {
-                    avatarHtml = `<img src="${charObj.image}" class="char-avatar-mini">`;
+                    avatarHtml = `<img src="${charObj.image}" class="char-avatar-mini">`;    
                 }
             }
 
-            li.innerHTML = `
+            li.innerHTML = `   
                 <div class="item-main">
                     <div class="item-header">
                         <span class="item-type">${type}</span>
                         <div style="display:flex; align-items:center;">
                             ${avatarHtml}
                             ${char ? `<span class="item-char">${char}</span>` : ''}
-                        </div>
-                    </div>
-                    ${previewText ? `<div class="item-text">${previewText}</div>` : ''}
+                        </div> 
+                    </div>     
+                    ${previewText ? `<div class="item-text">${previewText}</div>` : ''}      
                 </div>
-                <div class="item-meta" style="display:flex; align-items:center; gap:5px;">
+                <div class="item-meta" style="display:flex; align-items:center; gap:5px;">   
                     ID: ${shortId}
                 </div>
             `;
 
-            li.onclick = () => this.onSelect(index);
-            
-            li.oncontextmenu = (e) => {
-                e.preventDefault();
-                this.showContextMenu(e.clientX, e.clientY, index);
-            };
-
-            li.addEventListener('dragstart', e => { 
-                this.dragSrcIndex = index; 
-                e.dataTransfer.effectAllowed = 'move'; 
-                li.style.opacity = '0.4'; 
+            li.addEventListener('dragstart', e => {
+                this.dragSrcIndex = index;
+                e.dataTransfer.effectAllowed = 'move';        
+                li.style.opacity = '0.4';
             });
-            li.addEventListener('dragover', e => { 
-                e.preventDefault(); 
-                e.dataTransfer.dropEffect = 'move'; 
+            li.addEventListener('dragover', e => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
             });
             li.addEventListener('drop', (e) => this.handleDrop(e, index));
-            li.addEventListener('dragend', () => { 
-                li.style.opacity = '1'; 
-                document.querySelectorAll('.scene-item').forEach(i => i.classList.remove('over')); 
+            li.addEventListener('dragend', () => {
+                li.style.opacity = '1';
+                this.list.querySelectorAll('.scene-item').forEach(i => i.classList.remove('over'));
             });
 
             fragment.appendChild(li);
         });
+
+        this.list.appendChild(fragment);
     }
 
     handleDrop(e, destIndex) {
