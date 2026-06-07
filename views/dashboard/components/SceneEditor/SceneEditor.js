@@ -17,6 +17,7 @@ import { updateUrlState } from '../../studio/js/Navigation.js';
 import { TimelineManager } from './TimelineManager.js';
 import { PropertyManager } from './PropertyManager.js';
 import { VisualEditorManager } from './VisualEditorManager.js';
+import { pushSceneUpdate } from './VisualEditorSync.js';
 
 let timeline, properties, visual;
 
@@ -42,8 +43,8 @@ async function handleSceneSave(btn, volume, chapter, pageId, seriesId) {
             
             // Notify preview iframe to refresh scene if it's visible
             const iframe = document.getElementById('pagePreviewFrame');
-            if (iframe && iframe.contentWindow) {
-                iframe.contentWindow.postMessage({ type: 'refreshScene' }, '*');
+            if (iframe) {
+                pushSceneUpdate(iframe, currentSceneData, visual.currentVisualMediaData, pageId);
             }
 
             setTimeout(() => {
@@ -138,8 +139,8 @@ async function handleSceneDelete(item, volume, chapter, pageId, seriesId) {
 
             // Notify preview iframe
             const iframe = document.getElementById('pagePreviewFrame');
-            if (iframe && iframe.contentWindow) {
-                iframe.contentWindow.postMessage({ type: 'refreshScene' }, '*');
+            if (iframe) {
+                pushSceneUpdate(iframe, currentSceneData, visual.currentVisualMediaData, pageId);
             }
         } else {
             throw new Error(res.message);
@@ -439,8 +440,8 @@ export function initSceneEditor() {
 
             // Notify preview iframe to refresh scene
             const iframe = document.getElementById('pagePreviewFrame');
-            if (iframe && iframe.contentWindow) {
-                iframe.contentWindow.postMessage({ type: 'refreshScene' }, '*');
+            if (iframe) {
+                pushSceneUpdate(iframe, currentSceneData, visual.currentVisualMediaData, currentSceneInfo.pageId);
             }
         };
     }

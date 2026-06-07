@@ -11,7 +11,7 @@ const INTERNAL_SECRET = 'sequential_internal_export_key_2026';
 class ExportController {
     static async exportVolume(req, res) {
         const { series: seriesTitle, volume: volumeFolderName } = req.params;
-        const { portrait, landscape, pdf, preset } = req.query;
+        const { portrait, pdf, preset } = req.query;
 
         try {
             const series = await Series.findOne({
@@ -60,7 +60,7 @@ class ExportController {
                         const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
                         if ((!data.media || data.media.length === 0) && (!data.scene || data.scene.length === 0)) continue;
                         
-                        const layoutId = data.header?.layouts?.portrait || data.header?.layouts?.landscape || data.layouts?.portrait || data.layouts?.landscape;
+                        const layoutId = data.header?.layout?.id || data.header?.portraitLayout?.id || data.header?.layouts?.portrait?.id || data.header?.layouts?.landscape?.id;
                         if (layoutId === 'Standard_Page_Spread') {
                             isLegacyWide = true;
                         }
@@ -77,7 +77,6 @@ class ExportController {
 
             const options = {
                 portrait: portrait === 'true',
-                landscape: landscape === 'true',
                 pdf: pdf === 'true',
                 preset: activePreset,
                 io: req.app.locals.io,

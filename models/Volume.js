@@ -5,9 +5,10 @@ const Schema = mongoose.Schema;
 const pageSchema = new Schema({
     index: Number,
     path: String, // e.g. "views/Volumes/volume-1/chapter-1/page0/page0.html"
-    layouts: {
-        landscape: { type: String, default: "Standard_Page" },
-        portrait: { type: String, default: "Standard_Page" }
+    layout: {
+        id: { type: String, default: "Standard_Page" },
+        html: { type: String, default: "Standard_Page.html" },
+        css: { type: String, default: "" }
     },
     header: { type: Object, default: {} },   // Cache of page.json header
     mediaData: { type: Object, default: {} }, // Cache of consolidated media config

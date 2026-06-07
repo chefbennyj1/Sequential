@@ -173,7 +173,7 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
         // 2. PARSE ATOMIC DATA FOR CACHE
         let mediaData = { media: [] };
         let sceneData = [];
-        let layouts = { landscape: "Standard_Page", portrait: "Standard_Page" };
+        let layout = { id: "Standard_Page", html: "Standard_Page.html", css: "" };
         let header = {};
 
         try {
@@ -181,14 +181,9 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
             const atomic = JSON.parse(raw);
             header = atomic.header || {};
             
-            // Handle legacy or new structure
-            if (atomic.header?.layouts) {
-                layouts.landscape = atomic.header.layouts.landscape?.id || "Standard_Page";
-                layouts.portrait = atomic.header.layouts.portrait?.id || "Standard_Page";
-            } else {
-                layouts.landscape = atomic.header?.layout?.id || "Standard_Page";
-                layouts.portrait = atomic.header?.portraitLayout?.id || layouts.landscape;
-            }
+            // Resolve layout from flat or legacy nested structure
+            const layoutId = atomic.header?.layout?.id || atomic.header?.portraitLayout?.id || atomic.header?.layouts?.portrait?.id || atomic.header?.layouts?.landscape?.id || "Standard_Page";
+            layout = { id: layoutId, html: `${layoutId}.html`, css: "" };
 
             mediaData = { media: (atomic.media || []).map(m => {
                 // If it's an image and has no description/alt, mark it as needing update
@@ -204,7 +199,7 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
         const urlPath = `${volume.volumePath}/${chapFolder}/${pageFolder}/page.json`.replace(/\\/g, '/');
 
         // Note: We always recalculate urlPath here to ensure it matches the current volume.volumePath
-        pages.push({ index: pageIndex, path: urlPath, layouts, header, mediaData, sceneData });
+        pages.push({ index: pageIndex, path: urlPath, layout, header, mediaData, sceneData });
       }
       chapter.pages = pages;
     }
@@ -269,17 +264,14 @@ async function syncSinglePage(volumeId, chapterId, pageId, seriesFolderName = nu
         
         if (pageEntry) {
             pageEntry.header = atomic.header || {};
-            if (atomic.header?.layouts) {
-                pageEntry.layouts = {
-                    landscape: atomic.header.layouts.landscape?.id || "Standard_Page",
-                    portrait: atomic.header.layouts.portrait?.id || "Standard_Page"
-                };
-            } else {
-                pageEntry.layouts = {
-                    landscape: atomic.header?.layout?.id || "Standard_Page",
-                    portrait: atomic.header?.portraitLayout?.id || (atomic.header?.layout?.id || "Standard_Page")
-                };
-            }
+            
+            // Resolve layout from flat or legacy nested structure
+            const layoutId = atomic.header?.layout?.id || atomic.header?.portraitLayout?.id || atomic.header?.layouts?.portrait?.id || atomic.header?.layouts?.landscape?.id || "Standard_Page";
+            pageEntry.layout = { id: layoutId, html: `${layoutId}.html`, css: "" };
+            
+            // Clean up legacy keys from the DB entry
+            if (pageEntry.layouts) delete pageEntry.layouts;
+
             pageEntry.mediaData = { media: (atomic.media || []).map(m => {
                 if (m.type === 'image' && m.fileName && (!m.alt || !m.description)) {
                     m.DescriptionUpdateRequired = true;

@@ -90,9 +90,15 @@ class ScriptService {
         output += `${slugline || 'INT. OSHIMA CITY - NIGHT'}\n`;
         
         // Layout Info
-        const layoutId = data.header && data.header.layouts && data.header.layouts.landscape 
-            ? data.header.layouts.landscape.id 
-            : 'Unknown Layout';
+        let layoutId = 'Unknown Layout';
+        if (data.header?.layout) {
+            layoutId = data.header.layout.id;
+        } else if (data.header?.portraitLayout) {
+            layoutId = data.header.portraitLayout.id;
+        } else if (data.header?.layouts?.portrait) {
+            layoutId = typeof data.header.layouts.portrait === 'string' ? data.header.layouts.portrait : data.header.layouts.portrait.id;
+        }
+        
         output += `LAYOUT: ${layoutId}\n`;
         output += `................................................................................\n`;
 
