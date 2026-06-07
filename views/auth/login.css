@@ -119,6 +119,7 @@ input:-webkit-autofill:active {
 .register-form-container input:focus {
   outline: none;
   background-color: rgba(255, 255, 255, 0.95) !important;
+  background-image: none !important;
   border-color: #000 !important;
   color: #000 !important;
   box-shadow: 3px 3px 5px #000; /* slightly pressed in */
