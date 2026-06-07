@@ -113,9 +113,9 @@ async function showNextImage() {
     _heroImage.src = imageUrl;
     
     if (container) {
-        await imageMaskReveal([container], gifUrl, 2000);
+        await imageMaskReveal([container], gifUrl, 3000);
     } else {
-        await imageMaskReveal([_heroImage.parentElement], gifUrl, 2000);
+        await imageMaskReveal([_heroImage.parentElement], gifUrl, 3000);
     }
     
     // Update index only after successful transition
