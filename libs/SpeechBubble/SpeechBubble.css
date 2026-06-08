@@ -203,7 +203,7 @@
     box-shadow: 0.25em 0.25em 0px rgba(0,0,0,0.2);
 }
 .page .speech-text {
-    font-size: var(--bubble-font-size, 0.875em);
+    font-size: var(--bubble-font-size, 1em);
 }
 .page .super-bubble::before { inset: -0.18em; }
 .page .super-bubble::after { inset: -0.06em; border-width: 0.12em; }

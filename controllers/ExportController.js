@@ -303,9 +303,9 @@ class ExportController {
                 .speech-bubble-container { width: auto !important; min-width: 100px !important; }
                 .super-bubble { font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; padding: ${(10 * scaleFactor).toFixed(2)}px ${(15 * scaleFactor).toFixed(2)}px !important; border-width: ${(3 * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; }
                 .speech-text { font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; -webkit-text-stroke: 0px transparent !important; }
-                .text-block { font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; padding: ${(15 * scaleFactor).toFixed(2)}px !important; }
+                .text-block { font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; padding: ${(15 * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; }
                 .tail-container::before, .tail-container::after { border-width: ${(15 * scaleFactor).toFixed(2)}px !important; }
-                .page .super-bubble, .page .speech-text { font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; }
+                .page .super-bubble, .page .speech-text, .page .text-block { font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; }
                 .panel img { transform: translateZ(0); backface-visibility: hidden; }
             `;
             document.head.appendChild(overrideStyle);

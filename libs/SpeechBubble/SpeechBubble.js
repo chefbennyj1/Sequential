@@ -173,13 +173,13 @@ class SpeechBubble {
     if (this.options.tailScale) speechBubbleContainer.style.setProperty('--tail-scale', this.options.tailScale);
     if (this.options.color) speechBubbleContainer.style.setProperty('--speech-text', this.options.color);
     
-    // 4. Apply Font Size (Standardized to 0.875rem)
-    let fs = this.options.fontSize || '0.875rem';
+    // 4. Apply Font Size (Standardized to 1rem)
+    let fs = this.options.fontSize || '1rem';
     if (!isNaN(fs) && fs !== '') fs = fs + 'rem';
     
     speechBubbleContainer.style.setProperty('--bubble-font-size', fs);
     const bubbleText = speechBubbleContainer.querySelector('.speech-text') || speechBubbleContainer.querySelector('.super-bubble');
-    if (bubbleText) bubbleText.style.setProperty('font-size', fs, 'important');
+    if (bubbleText) bubbleText.style.setProperty('font-size', fs);
     
     if (this.options.outlineEnabled) {
         const size = this.options.outlineSize || '1.0';
