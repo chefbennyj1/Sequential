@@ -8,9 +8,23 @@
             :root {
                 --bubble-font-size: <%= volume.series.settings?.bubbleFontSize || '0.8rem' %>;
                 --text-block-font-size: <%= volume.series.settings?.textBlockFontSize || '0.8em' %>;
+                --action-font-size: <%= volume.series.settings?.actionTextFontSize || '2.5rem' %>;
+                --bubble-font: <%= volume.series.settings?.primaryFontFamily || 'inherit' %>;
+                --action-font: <%= volume.series.settings?.actionFontFamily || 'inherit' %>;
+
+                /* TextBlock Colors */
+                --narrator-bg: <%= volume.series.settings?.narratorBg || '#000000' %>;
+                --narrator-color: <%= volume.series.settings?.narratorColor || '#ffffff' %>;
+                --narrator-border: <%= volume.series.settings?.narratorBorder || '#ffffff' %>;
+                
+                --monologue-bg: <%= volume.series.settings?.monologueBg || '#ffffff' %>;
+                --monologue-color: <%= volume.series.settings?.monologueColor || '#000000' %>;
+                --monologue-border: <%= volume.series.settings?.monologueBorder || '#000000' %>;
+                --monologue-dot: <%= volume.series.settings?.monologueDot || '#ffff00' %>;
             }
             .page .text-block-container, .page .text-block {
                 font-size: var(--text-block-font-size) !important;
+                font-family: var(--bubble-font);
             }
         </style>
         <% if (volume.series.settings?.customCssFiles) { %>

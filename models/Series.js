@@ -38,6 +38,17 @@ const seriesSchema = new Schema({
         actionTextFontSize: { type: String, default: "2.5rem" },
         primaryFontFamily: { type: String, default: "" },
         actionFontFamily: { type: String, default: "" },
+        
+        // TextBlock Colors
+        narratorBg: { type: String, default: "#000000" },
+        narratorColor: { type: String, default: "#ffffff" },
+        narratorBorder: { type: String, default: "#ffffff" },
+        
+        monologueBg: { type: String, default: "#ffffff" },
+        monologueColor: { type: String, default: "#000000" },
+        monologueBorder: { type: String, default: "#000000" },
+        monologueDot: { type: String, default: "#ffff00" },
+
         customCssFiles: [{ type: String }]
     }
 }, { timestamps: true });

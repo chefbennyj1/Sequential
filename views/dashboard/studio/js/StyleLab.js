@@ -11,7 +11,16 @@ let currentSettings = {
     textBlockFontSize: "0.8em",
     actionTextFontSize: "2.5rem",
     primaryFontFamily: "",
-    actionFontFamily: ""
+    actionFontFamily: "",
+    
+    narratorBg: "#000000",
+    narratorColor: "#ffffff",
+    narratorBorder: "#ffffff",
+    
+    monologueBg: "#ffffff",
+    monologueColor: "#000000",
+    monologueBorder: "#000000",
+    monologueDot: "#ffff00"
 };
 
 const DEFAULTS = {
@@ -19,7 +28,16 @@ const DEFAULTS = {
     textBlockFontSize: "0.8em",
     actionTextFontSize: "2.5rem",
     primaryFontFamily: "",
-    actionFontFamily: ""
+    actionFontFamily: "",
+    
+    narratorBg: "#000000",
+    narratorColor: "#ffffff",
+    narratorBorder: "#ffffff",
+    
+    monologueBg: "#ffffff",
+    monologueColor: "#000000",
+    monologueBorder: "#000000",
+    monologueDot: "#ffff00"
 };
 
 export function initStyleLab(container) {
@@ -34,6 +52,15 @@ export function initStyleLab(container) {
     const textBlockValueDisplay = document.getElementById('textBlockFontSizeValue');
     const actionSlider = document.getElementById('actionTextFontSizeSlider');
     const actionValueDisplay = document.getElementById('actionTextFontSizeValue');
+
+    const nBg = document.getElementById('narratorBgPicker');
+    const nColor = document.getElementById('narratorColorPicker');
+    const nBorder = document.getElementById('narratorBorderPicker');
+    
+    const mBg = document.getElementById('monologueBgPicker');
+    const mColor = document.getElementById('monologueColorPicker');
+    const mBorder = document.getElementById('monologueBorderPicker');
+    const mDot = document.getElementById('monologueDotPicker');
 
     const saveBtn = document.getElementById('saveStyleSettingsBtn');
     const resetBtn = document.getElementById('resetStyleSettingsBtn');
@@ -85,6 +112,15 @@ export function initStyleLab(container) {
         updatePreviewStyles();
     });
 
+    // Color Listeners
+    [nBg, nColor, nBorder, mBg, mColor, mBorder, mDot].forEach(picker => {
+        picker.addEventListener('input', (e) => {
+            const prop = e.target.id.replace('Picker', '');
+            currentSettings[prop] = e.target.value;
+            updatePreviewStyles();
+        });
+    });
+
     saveBtn.addEventListener('click', saveSettings);
     resetBtn.addEventListener('click', resetToDefaults);
 
@@ -129,6 +165,15 @@ function updateUIFromSettings() {
     const fontSelect = document.getElementById('styleLabFontSelect');
     const actionFontSelect = document.getElementById('styleLabActionFontSelect');
 
+    const nBg = document.getElementById('narratorBgPicker');
+    const nColor = document.getElementById('narratorColorPicker');
+    const nBorder = document.getElementById('narratorBorderPicker');
+    
+    const mBg = document.getElementById('monologueBgPicker');
+    const mColor = document.getElementById('monologueColorPicker');
+    const mBorder = document.getElementById('monologueBorderPicker');
+    const mDot = document.getElementById('monologueDotPicker');
+
     bubbleSlider.value = parseFloat(currentSettings.bubbleFontSize);
     bubbleValueDisplay.textContent = currentSettings.bubbleFontSize;
 
@@ -140,6 +185,15 @@ function updateUIFromSettings() {
 
     fontSelect.value = currentSettings.primaryFontFamily || "";
     actionFontSelect.value = currentSettings.actionFontFamily || "";
+
+    nBg.value = currentSettings.narratorBg;
+    nColor.value = currentSettings.narratorColor;
+    nBorder.value = currentSettings.narratorBorder;
+    
+    mBg.value = currentSettings.monologueBg;
+    mColor.value = currentSettings.monologueColor;
+    mBorder.value = currentSettings.monologueBorder;
+    mDot.value = currentSettings.monologueDot;
 
     renderCustomCssList();
 }
@@ -181,23 +235,33 @@ function renderPreview() {
     const narrator = new TextBlock(previewPane, {
         text: "NARRATOR: System initialization in progress...",
         textBlockType: "Narrator",
-        top: "10%",
+        top: "5%",
         left: "5%",
         width: "90%"
     });
     narrator.render().then(() => narrator.play());
 
-    // 2. Speech Bubble
+    // 2. Internal Monologue
+    const monologue = new TextBlock(previewPane, {
+        text: "INTERNAL: I wonder if they can hear my thoughts?",
+        textBlockType: "InternalMonologue",
+        top: "25%",
+        left: "5%",
+        width: "90%"
+    });
+    monologue.render().then(() => monologue.play());
+
+    // 3. Speech Bubble
     const bubble = new SpeechBubble(previewPane, {
         text: "VIGIL: I can see everything now.",
-        top: "40%",
+        top: "50%",
         left: "50%",
         tailPosition: "top-left",
         width: "250px"
     });
     bubble.render().then(() => bubble.show());
 
-    // 3. Action Text
+    // 4. Action Text
     const action = new ActionText(previewPane, {
         text: "GLITCH",
         top: "85%",
@@ -223,6 +287,16 @@ function updatePreviewStyles() {
     // Independent Font Families
     previewPane.style.setProperty('--bubble-font', uiFont);
     previewPane.style.setProperty('--action-font', actionFont);
+
+    // TextBlock Colors
+    previewPane.style.setProperty('--narrator-bg', currentSettings.narratorBg);
+    previewPane.style.setProperty('--narrator-color', currentSettings.narratorColor);
+    previewPane.style.setProperty('--narrator-border', currentSettings.narratorBorder);
+
+    previewPane.style.setProperty('--monologue-bg', currentSettings.monologueBg);
+    previewPane.style.setProperty('--monologue-color', currentSettings.monologueColor);
+    previewPane.style.setProperty('--monologue-border', currentSettings.monologueBorder);
+    previewPane.style.setProperty('--monologue-dot', currentSettings.monologueDot);
     
     // Text Blocks (NARRATOR)
     const textBlocks = previewPane.querySelectorAll('.text-block-container');

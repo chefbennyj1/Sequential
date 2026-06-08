@@ -64,18 +64,18 @@
   font-family: "Comic Book", cursive;
   font-weight: 500;
   font-style: normal;
-  background: #000;
-  color: white;
+  background: var(--narrator-bg, #000);
+  color: var(--narrator-color, white);
   border-radius: var(--text-block-border-radius);
-  border: var(--text-block-border-width) solid white;
+  border: var(--text-block-border-width) solid var(--narrator-border, white);
 }
 
 .text-block.label {
   font-family: "Comic Book Bold", cursive;
   font-weight: bold;
   font-style: normal;
-  background: gold;
-  color: black;
+  background: var(--label-bg, gold);
+  color: var(--label-color, black);
   /* border: 2px solid white; */
 }
 
@@ -83,13 +83,13 @@
   font-family: "Comic Book Italic", cursive;
   font-weight: 500;
   font-style: italic;
-  background-image: radial-gradient(yellow 33%, transparent 34%), radial-gradient(yellow 33%, transparent 34%) !important;
-  background: #fff;
+  background-image: radial-gradient(var(--monologue-dot, yellow) 33%, transparent 34%), radial-gradient(var(--monologue-dot, yellow) 33%, transparent 34%) !important;
+  background: var(--monologue-bg, #fff);
   background-size: 0.3rem 0.3rem;
   background-position: 0 0, 0.15rem 0.15rem;
-  color: black;
+  color: var(--monologue-color, black);
   border-radius: var(--text-block-border-radius);
-  border: var(--text-block-border-width) solid #000;
+  border: var(--text-block-border-width) solid var(--monologue-border, #000);
   /* border: solid 2px black; */
 }
 
