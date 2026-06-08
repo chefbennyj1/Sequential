@@ -316,9 +316,19 @@ class ExportController {
                 .page .text-block { font-size: ${scaledFontSize} !important; padding: ${(15 * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; }
                 .page .tail-container::before, .page .tail-container::after { border-width: ${(15 * scaleFactor).toFixed(2)}px !important; }
                 
-                /* Catch-all for any text elements */
-                .page .speech-text, .page .text-block, .page .monologue-bubble, .page .system-header { 
+                /* Catch-all for any text elements and custom system bubbles */
+                .page .speech-text, 
+                .page .text-block, 
+                .page .monologue-bubble, 
+                .page .system-header,
+                .page .system-bubble .speech-text { 
                     font-size: ${scaledFontSize} !important; 
+                }
+
+                /* Force custom system bubbles to obey the scaled padding and border */
+                .page .system-bubble .super-bubble {
+                    padding-top: ${(25 * scaleFactor).toFixed(2)}px !important;
+                    border-width: ${(3 * scaleFactor).toFixed(2)}px !important;
                 }
 
                 .panel img { transform: translateZ(0); backface-visibility: hidden; }
