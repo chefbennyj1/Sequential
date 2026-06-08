@@ -169,7 +169,7 @@ function renderPreview() {
         width: "90%"
     });
     narrator.render();
-    narrator.show(); // Ensure it gets the 'visible' class
+    narrator.play(); // TextBlock uses .play() to become visible
 
     // 2. Speech Bubble
     const bubble = new SpeechBubble(previewPane, {
