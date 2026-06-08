@@ -5,6 +5,7 @@ import SpeechBubble from '/libs/SpeechBubble/SpeechBubble.js';
 import TextBlock from '/libs/TextBlock/TextBlock.js';
 import ActionText from '/libs/ActionText/ActionText.js';
 
+let activeSeriesId = null;
 let currentSettings = {
     bubbleFontSize: "0.8rem",
     textBlockFontSize: "0.8em",
@@ -19,7 +20,7 @@ let currentSettings = {
     monologueBg: "#ffffff",
     monologueColor: "#000000",
     monologueBorder: "#000000",
-    monologueDot: "#ffff00"
+    benDayDotColor: "#ffff00"
 };
 
 const DEFAULTS = {
@@ -36,7 +37,7 @@ const DEFAULTS = {
     monologueBg: "#ffffff",
     monologueColor: "#000000",
     monologueBorder: "#000000",
-    monologueDot: "#ffff00"
+    benDayDotColor: "#ffff00"
 };
 
 export function initStyleLab(container) {
