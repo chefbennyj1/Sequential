@@ -123,9 +123,9 @@
   background-position: 0 0, 2.5px 2.5px;
 }
 /* --- PORTRAIT SCALING OVERRIDES --- */
-.portrait-page .text-block-container {
-    font-size: 0.875em; /* Inherits from portrait-page clamp */
+.page .text-block-container {
+    font-size: 0.875em; /* Inherits from page clamp */
 }
-.portrait-page .text-block {
+.page .text-block {
     font-size: 0.875em; /* Do not scale down further in portrait */
 }

@@ -1,8 +1,3 @@
-/* 
-  Oshima City - Comic Reader Layouts
-  Focus: Portrait-only engine with Spread Support
-*/
-
 /* 1. Spread Orchestration */
 .spread-wrapper {
   display: flex;
@@ -33,14 +28,15 @@
 
 /* Cover Alignment (Page 1) */
 .cover-section .spread-wrapper {
-  justify-content: flex-end; /* Push cover to the right */
+  justify-content: flex-end;
+  /* Push cover to the right */
 }
 
 /* 2. Portrait Page Shell 
    Dimensions and aspect ratio are mirrored here to provide 
    structural stability before page-specific CSS loads.
 */
-.portrait-page {
+.page {
   position: relative;
   height: 94vh;
   aspect-ratio: 6.625 / 10.25;
@@ -49,12 +45,13 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  /* Visuals (shadow/border) are handled by base-comic-layout-portrait.css */
+  /* Visuals (shadow/border) are handled by base-comic-layout.css */
 }
 
 @media (min-width: 1025px) {
+
   /* On desktop, enforce strict max-width for portrait layouts */
-  .spread-mode .portrait-page {
+  .spread-mode .page {
     max-width: calc(94vh * (6.625 / 10.25));
   }
 }

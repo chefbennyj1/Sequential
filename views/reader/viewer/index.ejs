@@ -3,7 +3,7 @@
     bodyClass: 'viewer-page',
     extraStyles: `
         <link rel="stylesheet" href="/views/reader/viewer/viewer.css">
-        <link rel="stylesheet" href="/views/reader/viewer/comic.css">
+        <link rel="stylesheet" href="/views/reader/viewer/page.css">
     `,
     headerButtons: `
         <div class="page-nav-buttons">
@@ -100,7 +100,7 @@
 
                     const section = document.createElement("section");
                     section.id = 'section-' + index;
-                    section.className = 'section-' + index + ' scroll-section page-container ' + (isDualSpread ? 'spread-mode' : '');
+                    section.className = 'section-' + index + ' scroll-section page ' + (isDualSpread ? 'spread-mode' : '');
                     
                     // Cover page logic
                     if (group.length === 1 && group[0].index === 1) {
@@ -149,7 +149,7 @@
                 window.pageManager = pageManager;
 
                 document.addEventListener("view_visible", (e) => {
-                    if (!e.target.classList.contains('page-container')) return;
+                    if (!e.target.classList.contains('page')) return;
                     const storageKey = volumeId + "_" + chapterNumber;
                     setLastVisitedPage(storageKey, e.detail.index);
                     

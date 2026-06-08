@@ -4,18 +4,20 @@
   --speech-bubble-white: rgba(255, 255, 255, 0.7);
 }
 
-.section-container {
+.section-container.page {
   position: relative;
   background: #fdfdfd;
-  margin: 0 auto;
+  margin: 0;
+  /* Reset margin, rely on flexbox for centering */
+  top: 0;
+  /* Reset inherited top offset */
 
-  /* --- US COMIC BOOK ASPECT RATIO BOX --- */
-  height: 96vh;
-  /* Slightly shorter for clearance */
+  /* --- US COMIC BOOK ASPECT RATIO --- */
+  height: 94vh;
   aspect-ratio: 6.625 / 10.25;
-  /* Classic US Comic Page Ratio (Tall) */
-  width: auto;
-  /* max-width: calc(96vh * (6.625 / 10.25)); */
+  /* Force the width to obey the aspect ratio rather than expanding to fill space */
+  max-width: calc(94vh * (6.625 / 10.25));
+
   box-shadow: 0 30px 60px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.2);
   border: 1px solid rgba(0, 0, 0, 0.1);
   /* ---------------------------- */
@@ -23,23 +25,22 @@
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  opacity: 0;
-  /* top: 2vh; -- REMOVED TO PREVENT VIEWPORT OVERFLOW */
+  opacity: 1;
+  /* Animation handles opacity on section */
 }
 
 /* GLOBAL STYLE */
-.page-layout {
+.section-container.page.page-layout {
   display: grid;
   gap: var(--panel-gap, 10px);
   padding: var(--panel-padding, 10px);
   background: #fff;
   position: relative;
-  /* height: 100%;  -- REMOVED TO PREVENT VIEWPORT OVERFLOW */
-  width: 100%;
+  /* Removed width: 100% and height: 100% to allow 94vh and aspect-ratio to rule */
   flex-grow: 1;
-  /* Force grid to fill flex parent */
   margin-top: 0;
   font-family: var(--font-family-comic);
+  /* Scaled comic book lettering size */
   font-size: 1rem;
   box-sizing: border-box;
 }
@@ -52,8 +53,8 @@
   box-shadow: 0 6px 6px -6px #000, inset 5px 5px 10px rgba(0, 0, 0, 0.5);
   position: relative;
   perspective: 80vmin;
-  transform: translateZ(0);
-  backface-visibility: hidden;
+  /* filter: grayscale(1); */
+  /* filter: grayscale(0.5) sepia(10%) hue-rotate(20deg) saturate(120%); */
 }
 
 .panel.floating-panel {
@@ -65,7 +66,6 @@
 
 .panel img,
 .panel video {
-  /* filter: sepia(55%) grayscale(10%) contrast(110%) brightness(95%);   */
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -74,55 +74,4 @@
   position: absolute;
   image-rendering: auto;
   /* Reverted to default to prevent graininess */
-}
-
-/* .speech-bubble-container {
-  position:absolute;
-} */
-
-
-
-@keyframes fadeOut {
-  from {
-    opacity: 1;
-  }
-
-  to {
-    opacity: 0;
-  }
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-
-  to {
-    opacity: 1;
-  }
-}
-
-.fade-out {
-  animation: fadeOut 0.5s ease-out forwards;
-}
-
-.fade-in {
-  animation: fadeIn 0.5s ease-in forwards;
-}
-
-@media (max-width: 480px) {
-
-  /* Adjust breakpoint as needed for tablets and phones */
-  .page-layout {
-    display: block;
-    /* Stack panels vertically */
-  }
-
-  .page-layout .panel {
-    margin-bottom: 10px;
-    /* Add some space between stacked panels */
-    /* You might want to define a min-height or aspect-ratio for panels here */
-    height: auto;
-    /* Allow content to define height, or set a minimum */
-  }
 }
