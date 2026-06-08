@@ -159,6 +159,11 @@ function renderPreview() {
 
     // Force context for components
     previewPane.classList.add('page');
+    
+    // Ensure basic variables for preview visibility
+    previewPane.style.setProperty('--speech-text-color', '#000000');
+    previewPane.style.setProperty('--bubble-border', '#000000');
+    previewPane.style.setProperty('--bubble-bg-one', '#ffffff');
 
     // 1. Narrator Block
     const narrator = new TextBlock(previewPane, {
@@ -168,19 +173,17 @@ function renderPreview() {
         left: "5%",
         width: "90%"
     });
-    narrator.render();
-    narrator.play(); // TextBlock uses .play() to become visible
+    narrator.render().then(() => narrator.play());
 
     // 2. Speech Bubble
     const bubble = new SpeechBubble(previewPane, {
         text: "VIGIL: I can see everything now.",
         top: "40%",
         left: "50%",
-        tail: "top-left",
-        width: "250px" // Give it a base width to show wrapping
+        tailPosition: "top-left",
+        width: "250px"
     });
-    bubble.render();
-    bubble.show();
+    bubble.render().then(() => bubble.show());
 
     // 3. Action Text
     const action = new ActionText(previewPane, {
@@ -190,8 +193,7 @@ function renderPreview() {
         rotation: -5,
         color: "#00ccff"
     });
-    action.render();
-    action.show();
+    action.render().then(() => action.show());
 
     updatePreviewStyles();
 }
@@ -211,6 +213,12 @@ function updatePreviewStyles() {
     textBlocks.forEach(tb => {
         tb.style.fontSize = currentSettings.textBlockFontSize;
         tb.style.fontFamily = font;
+    });
+
+    // Action Text specifically needs to update its internal container size sometimes
+    const actionTexts = previewPane.querySelectorAll('.action-text-content');
+    actionTexts.forEach(at => {
+        at.style.fontSize = currentSettings.actionTextFontSize;
     });
 }
 
