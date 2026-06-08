@@ -32,11 +32,11 @@
   /* Push cover to the right */
 }
 
-/* 2. Portrait Page Shell 
+/* 2. Page Shell 
    Dimensions and aspect ratio are mirrored here to provide 
    structural stability before page-specific CSS loads.
 */
-.page {
+.section-container.page {
   position: relative;
   height: 94vh;
   aspect-ratio: 6.625 / 10.25;
@@ -49,9 +49,8 @@
 }
 
 @media (min-width: 1025px) {
-
-  /* On desktop, enforce strict max-width for portrait layouts */
-  .spread-mode .page {
+  /* On desktop, ensure individual pages in a spread don't exceed their bounds */
+  .spread-mode .section-container.page {
     max-width: calc(94vh * (6.625 / 10.25));
   }
 }

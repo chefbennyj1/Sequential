@@ -100,7 +100,7 @@
 
                     const section = document.createElement("section");
                     section.id = 'section-' + index;
-                    section.className = 'section-' + index + ' scroll-section page ' + (isDualSpread ? 'spread-mode' : '');
+                    section.className = 'section-' + index + ' scroll-section page-section ' + (isDualSpread ? 'spread-mode' : '');
                     
                     // Cover page logic
                     if (group.length === 1 && group[0].index === 1) {
@@ -149,7 +149,7 @@
                 window.pageManager = pageManager;
 
                 document.addEventListener("view_visible", (e) => {
-                    if (!e.target.classList.contains('page')) return;
+                    if (!e.target.classList.contains('page-section')) return;
                     const storageKey = volumeId + "_" + chapterNumber;
                     setLastVisitedPage(storageKey, e.detail.index);
                     
