@@ -186,11 +186,15 @@ class ActionText {
         }
     }
 
+    play() { this.show(); }
+
     hide() {
         if (this.container) {
             this.container.classList.remove('visible');
         }
     }
+
+    pause() { this.hide(); }
 
     destroy() {
         if (this.container && this.container.parentElement) {
