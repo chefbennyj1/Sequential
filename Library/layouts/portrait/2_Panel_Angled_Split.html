@@ -3,34 +3,39 @@
 
 /* 
     Layout: Angled Split 2-Panel (Portrait)
-    Two panels divided by a diagonal cut.
+    Two panels divided by a diagonal cut with proper content alignment.
 */
 .page-layout.layout-angled-split-2-panel {
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: 1fr;
+    display: flex;
+    flex-direction: column;
     gap: 0;
     padding: 0;
     background: #000;
+    overflow: hidden;
 }
 
 .layout-angled-split-2-panel .panel {
-    grid-column: 1 / -1;
-    grid-row: 1 / -1;
+    width: 100%;
     border: none;
     border-radius: 0;
     box-shadow: none;
+    position: relative;
 }
 
 .layout-angled-split-2-panel .panel-A {
-    clip-path: polygon(0 0, 100% 0, 100% 40%, 0 60%);
+    height: 55%;
+    clip-path: polygon(0 0, 100% 0, 100% 80%, 0 100%);
+    z-index: 1;
 }
 
 .layout-angled-split-2-panel .panel-B {
-    clip-path: polygon(0 61.5%, 100% 41.5%, 100% 100%, 0 100%);
+    height: 55%;
+    margin-top: -10%; /* Overlap the diagonal cut */
+    clip-path: polygon(0 20%, 100% 0, 100% 100%, 0 100%);
+    z-index: 2; /* Bring bottom panel forward */
 }
 </style>
-<div class="section-container page-layout layout-angled-split-2-panel">
+<div class="section-container page page-layout layout-angled-split-2-panel">
     <div class="panel panel-A"></div>
     <div class="panel panel-B"></div>
 </div>
