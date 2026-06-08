@@ -8,6 +8,7 @@
     --bubble-font: "Comic Book", "Bangers", cursive;
     --bubble-border-width: 0.18rem;
     --tail-size: 1.85rem;
+    --bubble-font-size: 1rem;
 }
 
 .speech-bubble-container {

@@ -290,7 +290,11 @@ class ExportController {
             const baseFontSize = 16; 
             const baseHeight = 1080;
             const scaleFactor = viewportH / baseHeight;
-            document.documentElement.style.fontSize = (baseFontSize * scaleFactor) + 'px'; 
+            const scaledFontSize = (baseFontSize * scaleFactor).toFixed(2) + 'px';
+            
+            document.documentElement.style.fontSize = scaledFontSize; 
+            document.body.style.setProperty('--bubble-font-size', scaledFontSize);
+            document.body.style.setProperty('--action-font-size', (3 * scaleFactor).toFixed(2) + 'rem');
             
             masterStage.style.setProperty('--speech-bubble-scale', scaleFactor.toFixed(2));
             masterStage.style.setProperty('--text-block-scale', scaleFactor.toFixed(2));
@@ -301,14 +305,14 @@ class ExportController {
             const overrideStyle = document.createElement('style');
             overrideStyle.textContent = `
                 .speech-bubble-container { width: auto !important; min-width: 100px !important; }
-                .super-bubble { font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; padding: ${(10 * scaleFactor).toFixed(2)}px ${(15 * scaleFactor).toFixed(2)}px !important; border-width: ${(3 * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; }
-                .speech-text { font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; -webkit-text-stroke: 0px transparent !important; }
-                .text-block { font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; padding: ${(15 * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; }
-                .tail-container::before, .tail-container::after { border-width: ${(15 * scaleFactor).toFixed(2)}px !important; }
+                .page .super-bubble { font-size: ${scaledFontSize} !important; padding: ${(10 * scaleFactor).toFixed(2)}px ${(15 * scaleFactor).toFixed(2)}px !important; border-width: ${(3 * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; }
+                .page .speech-text { font-size: ${scaledFontSize} !important; line-height: 1.1 !important; -webkit-text-stroke: 0px transparent !important; }
+                .page .text-block { font-size: ${scaledFontSize} !important; padding: ${(15 * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; }
+                .page .tail-container::before, .page .tail-container::after { border-width: ${(15 * scaleFactor).toFixed(2)}px !important; }
                 
-                /* Explicitly target all text elements within bubbles and blocks */
-                .super-bubble, .speech-text, .text-block, .monologue-bubble { 
-                    font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; 
+                /* Catch-all for any text elements */
+                .page .speech-text, .page .text-block, .page .monologue-bubble, .page .system-header { 
+                    font-size: ${scaledFontSize} !important; 
                 }
 
                 .panel img { transform: translateZ(0); backface-visibility: hidden; }
