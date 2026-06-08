@@ -1,10 +1,16 @@
 // views/dashboard/components/SceneEditor/VisualEditorManager.js
-import { saveMediaAPI, fetchMedia, fetchNextPanelId } from '../../studio/api/StudioClient.js';
+import { fetchMedia } from '../../studio/api/StudioClient.js';
 import { openFileBrowser } from '../FileBrowser/FileBrowser.js';
-import { extractPalette } from '/libs/Utility.js';
 import { renderPanelSettings, renderAllPanelsTemplate } from './VisualEditorUI.js';
-import { pushSceneUpdate, pushPanelSelect, pushMediaPersisted, syncPreviewLive } from './VisualEditorSync.js';
+import { renderDialogueProperties } from './VisualEditorDialogueUI.js';
+import { pushPanelSelect, syncPreviewLive, pushMediaPersisted } from './VisualEditorSync.js';
+import { VisualEditorAssetManager } from './VisualEditorAssetManager.js';
 
+/**
+ * VisualEditorManager
+ * The central orchestrator for the Visual Editor Studio sub-system.
+ * Orchestrates communication between Socket.io, the Preview Iframe, and specialized Managers.
+ */
 export class VisualEditorManager {
     constructor(container, getActiveAssets, activeSeriesId, activeSeriesFolder, getActiveSceneData) {
         this.container = container;
@@ -12,12 +18,14 @@ export class VisualEditorManager {
         this.activeSeriesId = activeSeriesId;
         this.activeSeriesFolder = activeSeriesFolder;
         this.getActiveSceneData = getActiveSceneData; 
+        
         this.currentVisualMediaData = [];
-        this.currentVisualContext = {};
+        this.currentVisualContext = {}; // { volume, chapter, pageId }
         this.selectedPanelSelector = null;
-        this.activeMode = 'landscape';
-        this.activeDialogueId = null;
-        this.isSpread = false; // Add isSpread to state
+        this.isSpread = false;
+
+        // Initialize Asset Manager
+        this.assetManager = new VisualEditorAssetManager(this.currentVisualContext, this.currentVisualMediaData, this.activeSeriesId);
 
         this.initSocketListeners();
         this.initMessageListeners();
@@ -25,14 +33,13 @@ export class VisualEditorManager {
 
     initSocketListeners() {
         if (!window.socket) return;
-        
         window.socket.on('panel_ai_updated', (data) => this.handleAiUpdated(data));
         window.socket.on('panel_ai_error', (data) => this.handleAiError(data));
     }
 
     initMessageListeners() {
         window.addEventListener('message', (e) => {
-            const { type, pageId, panel, assetType, fileName, id, placement } = e.data;
+            const { type, panel, assetType, fileName } = e.data;
 
             if (type === 'assetUploaded') {
                 this.updateCache(panel, assetType, fileName);
@@ -109,17 +116,20 @@ export class VisualEditorManager {
         this.selectedPanelSelector = panel;
         this.activeSeriesId = seriesId;
 
+        // Update Asset Manager Context
+        this.assetManager.setContext(this.currentVisualContext, seriesId);
+
         const iframe = document.getElementById('pagePreviewFrame');
         let panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
 
         const res = await fetchMedia(volume, chapter, pageId, seriesId);
         this.currentVisualMediaData = Array.isArray(res) ? res : (res.media || []);
-        
-        // Sync isSpread state from the API response
         this.isSpread = !!res.isSpread;
 
+        // Sync media data to asset manager
+        this.assetManager.setMediaData(this.currentVisualMediaData);
+
         const container = document.querySelector('.layout-editor .tools-pane');
-        // CRITICAL FIX: Reset any inline styles (like overflow: hidden) applied by other views
         if (container) container.removeAttribute('style');
 
         if (!panel) {
@@ -142,13 +152,17 @@ export class VisualEditorManager {
             this.isSpread
         );
 
-        // Bind Add Floating
+        // Bind Actions
         const addBtn = document.getElementById('addFloatingPanelBtn');
-        if (addBtn) addBtn.onclick = () => this.createFloatingPanel();
+        if (addBtn) addBtn.onclick = async () => {
+            try {
+                const panelSelector = await this.assetManager.createFloatingPanel();
+                document.getElementById('pagePreviewFrame').contentWindow.location.reload();
+                this.loadPanel({ ...this.currentVisualContext, panel: panelSelector }, this.activeSeriesId);
+            } catch (err) { alert(err.message); }
+        };
 
-        // Bind Geometry Items
-        const geoItems = toolsPane.querySelectorAll('.geometry-item');
-        geoItems.forEach(item => {
+        toolsPane.querySelectorAll('.geometry-item').forEach(item => {
             item.onclick = (e) => {
                 if (e.target.closest('.delete-geom-btn')) return;
                 const panel = item.dataset.panel;
@@ -157,72 +171,39 @@ export class VisualEditorManager {
             };
 
             const delBtn = item.querySelector('.delete-geom-btn');
-            if (delBtn) {
-                delBtn.onclick = (e) => {
-                    e.stopPropagation();
-                    this.handleDeletePanel(item.dataset.panel);
-                };
-            }
+            if (delBtn) delBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.handleDeletePanel(item.dataset.panel);
+            };
         });
 
-        // Bind Spread Toggle
+        // Spread Toggle
         const spreadToggle = document.getElementById('toggleSpreadMode');
         if (spreadToggle) {
             spreadToggle.onchange = async (e) => {
                 const enabled = e.target.checked;
-                const { volume, chapter, pageId } = this.currentVisualContext;
-                
-                // Show loading state
                 spreadToggle.disabled = true;
-                
                 try {
-                    const res = await fetch('/api/editor/toggle-spread', {
+                    await fetch('/api/editor/toggle-spread', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            volumeId: this.currentVisualContext.volumeId || '', // We may need volume ID here
-                            chapterId: chapter,
-                            pageId: pageId,
+                            volumeId: this.currentVisualContext.volumeId || '', 
+                            chapterId: this.currentVisualContext.chapter,
+                            pageId: this.currentVisualContext.pageId,
                             enabled
                         })
                     });
-                    
-                    // Note: If volumeId is missing from context, we need to find it
-                    if (!this.currentVisualContext.volumeId) {
-                        const volumeModelRes = await fetch(`/api/series/${this.activeSeriesId}/volumes`);
-                        const volumes = await volumeModelRes.json();
-                        const activeVol = volumes.find(v => v.title.toLowerCase() === volume.toLowerCase() || v.volumePath.endsWith(volume));
-                        if (activeVol) {
-                            await fetch('/api/editor/toggle-spread', {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({
-                                    volumeId: activeVol._id,
-                                    chapterId: chapter,
-                                    pageId: pageId,
-                                    enabled
-                                })
-                            });
-                        }
-                    }
-
-                    // HARD REFRESH PREVIEW: This will trigger the new spread logic and resize the iframe
                     const iframe = document.getElementById('pagePreviewFrame');
                     if (iframe) {
-                        // Reset is-spread class on layout-editor immediately for smooth transition
                         const layoutEditor = document.querySelector('.layout-editor');
                         if (layoutEditor) layoutEditor.classList.toggle('is-spread', enabled);
-                        
                         iframe.contentWindow.location.reload();
                     }
-
                 } catch (err) {
-                    console.error("Spread toggle failed", err);
                     alert("Failed to toggle spread mode.");
                     spreadToggle.checked = !enabled;
-                } finally {
-                    spreadToggle.disabled = false;
-                }
+                } finally { spreadToggle.disabled = false; }
             };
         }
     }
@@ -243,11 +224,10 @@ export class VisualEditorManager {
         };
 
         const parseScale = (trans) => (trans?.match(/scale\(([^)]+)\)/)?.[1] || 1);
-        const isLsCustom = entry.style?.objectPosition && !['center', 'top center', 'bottom center', 'left center', 'right center'].includes(entry.style.objectPosition);
         const isPtCustom = entry.portraitStyle?.objectPosition && !['center', 'top center', 'bottom center', 'left center', 'right center'].includes(entry.portraitStyle.objectPosition);
         const getNum = (val) => (typeof val === 'number' ? val : parseFloat(val) || 0);
 
-        container.innerHTML = renderPanelSettings(panelSelector, entry, isLsCustom, isPtCustom, parsePos(entry.style?.objectPosition), parsePos(entry.portraitStyle?.objectPosition), parseScale(entry.style?.transform), parseScale(entry.portraitStyle?.transform), getNum);
+        container.innerHTML = renderPanelSettings(panelSelector, entry, false, isPtCustom, {x:50,y:50}, parsePos(entry.portraitStyle?.objectPosition), 1, parseScale(entry.portraitStyle?.transform), getNum);
 
         this.bindEvents(entry, panelSelector);
     }
@@ -263,9 +243,7 @@ export class VisualEditorManager {
         ['visual-portrait-style-object-position', 'visual-asset-name', 'visual-overlay-name'].forEach(id => {
             const el = getEl(id);
             if (el) el.oninput = el.onchange = () => {
-                if (id.includes('position')) {
-                    getEl('pt-pan-wrapper').style.display = el.value === 'custom' ? 'block' : 'none';
-                }
+                if (id.includes('position')) getEl('pt-pan-wrapper').style.display = el.value === 'custom' ? 'block' : 'none';
                 sync();
             };
         });
@@ -306,57 +284,15 @@ export class VisualEditorManager {
     async handleFlip(panelSelector, direction) {
         const fileName = document.getElementById('visual-asset-name')?.value;
         if (!fileName) return alert("No image file specified to flip.");
-
         const btn = document.getElementById(`visual-flip-${direction === 'horizontal' ? 'h' : 'v'}`);
         const originalText = btn.innerHTML;
-        btn.disabled = true;
-        btn.innerText = 'Flipping...';
-
+        btn.disabled = true; btn.innerText = 'Flipping...';
         try {
-            const res = await fetch('/api/editor/flip-asset', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    series: this.activeSeriesId,
-                    volume: this.currentVisualContext.volume,
-                    chapter: this.currentVisualContext.chapter,
-                    pageId: this.currentVisualContext.pageId,
-                    panel: panelSelector,
-                    fileName,
-                    direction
-                })
-            });
-
-            const text = await res.text();
-            if (!res.ok) {
-                console.error(`Server Error ${res.status}:`, text);
-                throw new Error(`Server Error (${res.status}): ${text.substring(0, 100)}`);
-            }
-
-            let data;
-            try {
-                data = JSON.parse(text);
-            } catch (e) {
-                console.error("Server returned non-JSON:", text);
-                throw new Error(`Invalid Response from Server (Status ${res.status})`);
-            }
-            if (!data.ok) throw new Error(data.message || "Flip failed");
-
-            // Refresh the iframe to show the flipped image
+            await this.assetManager.flipAsset(panelSelector, fileName, direction);
             const iframe = document.getElementById('pagePreviewFrame');
-            if (iframe && iframe.contentWindow) {
-                // Hard reload the iframe content to bypass browser cache for the image
-                iframe.contentWindow.location.reload();
-            }
+            if (iframe?.contentWindow) iframe.contentWindow.location.reload();
             alert(`Image flipped ${direction} successfully.`);
-
-        } catch (err) {
-            console.error("[Flip Error]", err);
-            alert(err.message);
-        } finally {
-            btn.disabled = false;
-            btn.innerHTML = originalText;
-        }
+        } catch (err) { alert(err.message); } finally { btn.disabled = false; btn.innerHTML = originalText; }
     }
 
     async handleAiScan(panelSelector) {
@@ -367,33 +303,9 @@ export class VisualEditorManager {
             await this.handleSave(panelSelector);
             btn.innerHTML = '<ion-icon name="sync-outline" class="spin"></ion-icon> <span>Analyzing...</span>';
             const scope = { seriesId: this.activeSeriesId, volume: this.currentVisualContext.volume, chapter: this.currentVisualContext.chapter, pageId: this.currentVisualContext.pageId, panelId: panelSelector };
-            
-            const res = await fetch('/api/vision/scan', { 
-                method: 'POST', 
-                headers: { 'Content-Type': 'application/json' }, 
-                body: JSON.stringify({ force: true, scope }) 
-            });
-
-            if (!res.ok) {
-                const text = await res.text();
-                let msg = "AI Scan failed";
-                try {
-                    const json = JSON.parse(text);
-                    msg = json.message || msg;
-                } catch (e) {
-                    msg = `Server Error (${res.status}): ${text.substring(0, 100)}`;
-                }
-                throw new Error(msg);
-            }
-
-            const data = await res.json();
-            if (!data.ok) throw new Error(data.message || "AI Scan failed");
-
-        } catch (err) {
-            console.error("[AI Scan Error]", err);
-            alert(err.message);
-            this.resetAiButtonState();
-        }
+            const res = await fetch('/api/vision/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ force: true, scope }) });
+            if (!res.ok) throw new Error("AI Scan failed");
+        } catch (err) { alert(err.message); this.resetAiButtonState(); }
     }
 
     async handleSave(panelSelector) {
@@ -410,9 +322,9 @@ export class VisualEditorManager {
             overlayOpacity: parseFloat(getVal('visual-overlay-opacity')) || 1.0
         };
 
-        const style = { ...entry.style, position: entry.isFloating ? 'absolute' : entry.style?.position };
-
+        const style = { ...entry.style };
         if (entry.isFloating) {
+            style.position = 'absolute';
             style.left = getVal('float-left') + '%';
             style.top = getVal('float-top') + '%';
             style.width = getVal('float-width') + '%';
@@ -436,31 +348,25 @@ export class VisualEditorManager {
         const scale = getVal('visual-pt-scale'); 
         if (parseFloat(scale) !== 1) style.transform = `scale(${parseFloat(scale).toFixed(2)})`; else delete style.transform;
 
-        // In the new single-design architecture, we mirror 'style' and 'portraitStyle'
         updated.style = style; 
         updated.portraitStyle = JSON.parse(JSON.stringify(style));
-
         if (idx !== -1) this.currentVisualMediaData[idx] = updated; else this.currentVisualMediaData.push(updated);
 
         const btn = document.getElementById('saveVisualMediaBtn');
         btn.disabled = true; btn.textContent = "Saving...";
         try {
-            const res = await saveMediaAPI(this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, this.currentVisualMediaData, this.activeSeriesId);
-            if (res.ok) {
+            if ((await this.assetManager.saveMedia()).ok) {
                 btn.textContent = "Saved!";
                 setTimeout(() => { btn.disabled = false; btn.textContent = "Save Panel Asset"; }, 2000);
                 pushMediaPersisted(document.getElementById('pagePreviewFrame'), panelSelector, updated, this.currentVisualContext.pageId);
-            } else throw new Error(res.message);
+            }
         } catch (err) { alert(err.message); btn.disabled = false; btn.textContent = "Retry Save"; }
     }
 
     async handleDeletePanel(panelSelector) {
         if (!confirm(`Delete floating panel ${panelSelector}?`)) return;
-        const idx = this.currentVisualMediaData.findIndex(m => m.panel === panelSelector);
-        if (idx === -1) return;
-        this.currentVisualMediaData.splice(idx, 1);
         try {
-            if ((await saveMediaAPI(this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, this.currentVisualMediaData, this.activeSeriesId)).ok) {
+            if (await this.assetManager.deletePanel(panelSelector)) {
                 document.getElementById('pagePreviewFrame').contentWindow.location.reload();
                 this.loadPanel({ panel: null, ...this.currentVisualContext }, this.activeSeriesId);
             }
@@ -469,78 +375,8 @@ export class VisualEditorManager {
 
     showDialogueProperties(item, propertiesManager, onSaveCallback, onDeleteCallback) {
         const toolsPane = document.querySelector('.layout-editor .tools-pane');
-        toolsPane.innerHTML = '';
-        Object.assign(toolsPane.style, { display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', boxSizing: 'border-box' });
         this.selectedPanelSelector = null;
-
-        const header = document.createElement('div');
-        header.className = 'flex-row justify-between align-center margin-b-15 padding-x-10';
-        header.innerHTML = `<h4>Dialogue Properties</h4><button class="small">&larr; Layout Tools</button>`;
-        
-        const originalOnUpdate = propertiesManager.onUpdate;
-        const originalContainer = propertiesManager.container;
-        const originalForm = propertiesManager.form;
-        
-        const cleanupAndClose = () => {
-            propertiesManager.onUpdate = originalOnUpdate;
-            propertiesManager.container = originalContainer;
-            propertiesManager.form = originalForm;
-            this.loadPanel({ panel: null }, this.activeSeriesId);
-        };
-
-        header.querySelector('button').onclick = cleanupAndClose;
-        toolsPane.appendChild(header);
-
-        const scroll = document.createElement('div');
-        Object.assign(scroll.style, { overflowY: 'auto', padding: '0 10px', flex: '1' });
-        toolsPane.appendChild(scroll);
-
-        const originalFormEl = document.getElementById('sceneItemEditor');
-        if (originalFormEl) {
-            const clone = originalFormEl.cloneNode(true);
-            clone.id = 'visual-dialogue-editor';
-            clone.classList.remove('hidden');
-            scroll.appendChild(clone);
-            
-            propertiesManager.container = scroll;
-            propertiesManager.form = clone.querySelector('#sceneItemForm');
-            
-            // Re-initialize UI components for the new container
-            propertiesManager.setupFontInputUI();
-            propertiesManager.setupCharacterInputUI();
-            
-            propertiesManager.onUpdate = () => {
-                propertiesManager.updateItem(item);
-                pushSceneUpdate(document.getElementById('pagePreviewFrame'), this.getActiveSceneData(), this.currentVisualMediaData, this.currentVisualContext.pageId);
-            };
-
-            propertiesManager.populate(item);
-            clone.querySelectorAll('input, select, textarea').forEach(i => i.addEventListener('input', () => propertiesManager.onUpdate()));
-
-            // Handle Delete Button in Clone
-            const deleteBtn = clone.querySelector('#deleteItemBtn');
-            if (deleteBtn) {
-                deleteBtn.onclick = async () => {
-                    if (confirm("Delete this dialogue item?")) {
-                        await onDeleteCallback(item);
-                        cleanupAndClose();
-                    }
-                };
-            }
-
-            const footer = document.createElement('div');
-            footer.className = 'tools-footer-sticky margin-t-20';
-            footer.style.padding = '10px';
-            footer.innerHTML = `<button class="update__btn w-full">Save Dialogue Changes</button>`;
-            footer.querySelector('button').onclick = async (e) => {
-                const b = e.target; b.disabled = true; b.textContent = 'Saving...';
-                propertiesManager.updateItem(item);
-                await onSaveCallback();
-                b.textContent = 'Saved!';
-                setTimeout(() => { b.textContent = 'Save Dialogue Changes'; b.disabled = false; }, 2000);
-            };
-            scroll.appendChild(footer);
-        }
+        renderDialogueProperties(toolsPane, item, propertiesManager, this.getActiveSceneData, this.currentVisualMediaData, this.currentVisualContext, onSaveCallback, onDeleteCallback, () => this.loadPanel({ panel: null }, this.activeSeriesId));
     }
 
     updatePosition(data) {
@@ -561,27 +397,11 @@ export class VisualEditorManager {
         const idx = this.currentVisualMediaData.findIndex(m => m.panel === panel);
         if (idx !== -1) this.currentVisualMediaData[idx] = { ...this.currentVisualMediaData[idx], type, fileName };
         else this.currentVisualMediaData.push({ panel, type, fileName });
-        
-        if (this.selectedPanelSelector === panel) {
-            this.render(panel);
-        } else if (!this.selectedPanelSelector) {
-            // Refresh directory view if we are currently looking at it
+        if (this.selectedPanelSelector === panel) this.render(panel);
+        else if (!this.selectedPanelSelector) {
             const iframe = document.getElementById('pagePreviewFrame');
             let panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
             this.renderAllPanels(panelNames);
         }
-    }
-
-    async createFloatingPanel() {
-        const { volume, chapter, pageId } = this.currentVisualContext;
-        const mode = document.querySelector('.layout-editor .preview-pane-flex').classList.contains('portrait-mode') ? 'portrait' : 'landscape';
-        const nextId = await fetchNextPanelId(this.activeSeriesId, volume, chapter, pageId, mode);
-        if (!nextId) return;
-
-        const panelSelector = `.panel-${nextId}`;
-        this.currentVisualMediaData.push({ panel: panelSelector, isFloating: true, type: 'image', fileName: '', style: { position: 'absolute', top: '10%', left: '10%', width: '30%', height: 'auto', 'aspect-ratio': '1 / 1', 'z-index': '10' } });
-        await saveMediaAPI(volume, chapter, pageId, this.currentVisualMediaData, this.activeSeriesId);
-        document.getElementById('pagePreviewFrame').contentWindow.location.reload();
-        this.loadPanel({ ...this.currentVisualContext, panel: panelSelector }, this.activeSeriesId);
     }
 }

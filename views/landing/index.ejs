@@ -15,7 +15,7 @@
       padding: 0;
     }
   </style>
-  <title>My Website</title>
+  <title>Sequential Comic Studio</title>
 </head>
 
 <body>
@@ -47,6 +47,7 @@
     import { init as landingPageInit } from '/views/landing/landingPage.js';
     import { imageMaskReveal, loadCSS, loadScript } from '/libs/Utility.js';
 
+
     (async () => {
       await loadSection('landing-page', '/views/landing/landingPage.html', false);
 
@@ -59,6 +60,8 @@
       // loading page elements
       let loader = document.getElementById("loading-page");
       let enterBtn = loader.querySelector('#enter-btn');
+
+
 
       window.audioEnabled = true;
       localStorage.setItem('globalAudioEnabled', 'true');

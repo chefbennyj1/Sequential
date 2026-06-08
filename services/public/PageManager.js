@@ -40,12 +40,23 @@ class PageManager {
         this.currentPageContainer = null;
         this.currentPageIndex = -1;
         this.activeAbortControllers = new Map();
+        
+        // Initialize transition sound
+        this.transitionSound = new Audio('/resources/audio/transition_audio.mp3');
+        this.transitionSound.volume = 0.4; // Subtle volume
     }
 
     async goToPage(index) {
         if (index < 0 || index >= this.pages.length) return;
 
         console.log(`PageManager: Transitioning to page ${index}`);
+
+        // Play transition sound if enabled
+        const soundEnabled = localStorage.getItem('viewerSoundEffects') !== 'false';
+        if (soundEnabled && this.currentPageIndex !== -1 && this.currentPageIndex !== index) {
+            this.transitionSound.currentTime = 0;
+            this.transitionSound.play().catch(e => console.warn("Transition sound blocked by browser policy. User must interact first.", e));
+        }
 
         // Handle horizontal scroll if Lenis is active
         if (window.lenis) {

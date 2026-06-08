@@ -64,10 +64,10 @@ async function handleSceneSave(btn, volume, chapter, pageId, seriesId) {
 /**
  * Internal helper to load scene data and sync UI.
  */
-async function loadScene(volume, chapter, pageId, seriesId, mode = 'landscape') {
+async function loadScene(volume, chapter, pageId, seriesId) {
     currentSceneInfo = { volume, chapter, pageId };
     const titleEl = document.getElementById('sceneEditorPageTitle');
-    if (titleEl) titleEl.textContent = `${volume} / ${chapter} / ${pageId} (${mode.toUpperCase()})`;
+    if (titleEl) titleEl.textContent = `${volume} / ${chapter} / ${pageId} (PORTRAIT)`;
 
     // Resolve Series Context if needed
     if (!activeSeriesId || activeSeriesId !== seriesId) {

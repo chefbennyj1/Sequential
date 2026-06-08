@@ -55,3 +55,13 @@
 .mono-input {
   font-family: 'Consolas', monospace;
 }
+
+.checkbox-container {
+  display: flex;
+}
+
+.checkbox-container input {
+  transform: scale(1.2);
+  cursor: pointer;
+  margin-right: 1em;
+}

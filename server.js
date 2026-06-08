@@ -165,6 +165,10 @@ app.use(express.static(path.join(__dirname, "views/public")));
 
 // --- ROUTES ---
 
+app.get('/test-swarm', (req, res) => {
+  res.render('test-swarm');
+});
+
 app.use("/api", apiRoutes);
 app.use("/authentication", authRoutes);
 

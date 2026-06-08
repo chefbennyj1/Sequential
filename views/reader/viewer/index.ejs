@@ -1,6 +1,10 @@
 <%- include('../../shared/main', { 
     title: 'Viewer - ' + (volume.series ? volume.series.title : 'No Overflow'), 
     bodyClass: 'viewer-page',
+    extraStyles: `
+        <link rel="stylesheet" href="/views/reader/viewer/viewer.css">
+        <link rel="stylesheet" href="/views/reader/viewer/comic.css">
+    `,
     headerButtons: `
         <div class="page-nav-buttons">
             <a href="/library/series/${volume.series._id}/volume/${volume._id}" class="nav-button btn">
@@ -15,6 +19,9 @@
             <button id="reload-page-btn" class="nav-button btn">
                 Reload page <ion-icon name="reload-circle"></ion-icon>
             </button>
+            <button id="toggle-sound-btn" class="nav-button btn">
+                <span id="sound-status-text">Sound FX</span> <ion-icon name="volume-high-outline"></ion-icon>
+            </button>
             <button id="toggle-gutter-btn" class="nav-button btn">
                 Gutter Guide <ion-icon name="cut-outline"></ion-icon>
             </button>
@@ -25,31 +32,6 @@
             <div class="scroll-wrapper" data-volume-id="${volume._id}" data-current-page="0" data-total-pages=""></div>
             <div id="gutter-guide"></div>
         </main>
-        <style>
-            #gutter-guide {
-                position: fixed;
-                top: 0;
-                left: 50%;
-                width: 2px;
-                height: 100vh;
-                background: repeating-linear-gradient(to bottom, rgba(255, 0, 0, 0.6), rgba(255, 0, 0, 0.6) 10px, transparent 10px, transparent 20px);
-                z-index: 9999;
-                pointer-events: none;
-                display: none;
-                transform: translateX(-50%);
-            }
-            #gutter-guide.visible {
-                display: block;
-            }
-            #toggle-gutter-btn.active {
-                background: rgba(255, 0, 0, 0.2);
-                border-color: rgba(255, 0, 0, 0.5);
-            }
-            #toggle-mode-btn.portrait-active {
-                background: var(--cyber-primary, #00ff41);
-                color: #000;
-            }
-        </style>
     `,
     extraScripts: `
         <script type="module">
@@ -217,6 +199,23 @@
                         toggleGutterBtn.classList.toggle("active", isVisible);
                     });
                 }
+
+                // --- SOUND FX TOGGLE ---
+                const toggleSoundBtn = document.getElementById("toggle-sound-btn");
+                const soundStatusText = document.getElementById("sound-status-text");
+                const updateSoundUI = () => {
+                    const enabled = localStorage.getItem('viewerSoundEffects') !== 'false';
+                    if (toggleSoundBtn) toggleSoundBtn.classList.toggle('active', enabled);
+                    if (soundStatusText) soundStatusText.textContent = enabled ? 'Sound: ON' : 'Sound: OFF';
+                };
+                if (toggleSoundBtn) {
+                    toggleSoundBtn.addEventListener("click", () => {
+                        const currentlyEnabled = localStorage.getItem('viewerSoundEffects') !== 'false';
+                        localStorage.setItem('viewerSoundEffects', !currentlyEnabled);
+                        updateSoundUI();
+                    });
+                }
+                updateSoundUI();
 
                 let initialIdx = 0;
                 const pageParam = params.get("page");
