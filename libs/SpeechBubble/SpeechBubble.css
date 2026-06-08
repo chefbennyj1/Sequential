@@ -15,12 +15,18 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    width: fit-content;
+    width: var(--bubble-width, fit-content);
     z-index: 10000;
     opacity: 0;
     visibility: hidden;
     transition: opacity 0.4s ease-in-out, transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     transform: scale(0.8) translateY(10px);
+
+    /* Positioning Overrides */
+    top: var(--bubble-top, auto);
+    bottom: var(--bubble-bottom, auto);
+    left: var(--bubble-left, auto);
+    right: var(--bubble-right, auto);
 
     /* Dynamic Tail Overrides */
     --tail-skew: 0deg;
@@ -53,10 +59,10 @@
     position: relative;
     z-index: 20;
     font-family: var(--bubble-font);
-    font-size: var(--bubble-font-size, 0.875rem);
+    font-size: var(--bubble-font-size, 1rem);
     line-height: 1.1;
     letter-spacing: -0.02em;
-    color: var(--speech-text);
+    color: var(--speech-text-color, var(--bubble-text));
     word-wrap: break-word;
     -webkit-text-stroke: var(--speech-text-stroke, 0px transparent);
 }

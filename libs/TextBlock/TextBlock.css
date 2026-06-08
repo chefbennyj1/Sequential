@@ -56,7 +56,7 @@
   line-height: 1.1;
   letter-spacing: -0.02em;
   /* Default to normal, specific types can override */
-  padding: 0.625rem;
+  padding: var(--text-block-padding-override, 0.625rem);
   /* box-shadow: rgba(0, 0, 0, 0.9) 6px 6px 10px; */
 }
 
@@ -108,12 +108,18 @@
   z-index: 20000;
   display: inline-block;
   overflow: visible;
-  width: auto;
+  width: var(--text-block-width, auto);
   /* ensure it shrinks to text */
   box-sizing: border-box;
   text-wrap: pretty;
   font-family: "Comic Book", cursive;
   font-size: 1rem;
+
+  /* Positioning Overrides */
+  top: var(--text-block-top, auto);
+  bottom: var(--text-block-bottom, auto);
+  left: var(--text-block-left, auto);
+  right: var(--text-block-right, auto);
 }
 
 .yellow {

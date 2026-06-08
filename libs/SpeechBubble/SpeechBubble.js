@@ -161,25 +161,26 @@ class SpeechBubble {
     this.container = speechBubbleContainer;
     this.container.setAttribute('data-id', this.options.id || '');
 
-    // 2. Apply positioning
-    if (this.options.top) speechBubbleContainer.style.top = this.options.top;
-    if (this.options.bottom) speechBubbleContainer.style.bottom = this.options.bottom;
-    if (this.options.left) speechBubbleContainer.style.left = this.options.left;
-    if (this.options.right) speechBubbleContainer.style.right = this.options.right;
-    if (this.options.width) speechBubbleContainer.style.width = this.options.width;
+    // 2. Apply positioning via CSS Variables
+    if (this.options.top) speechBubbleContainer.style.setProperty('--bubble-top', this.options.top);
+    if (this.options.bottom) speechBubbleContainer.style.setProperty('--bubble-bottom', this.options.bottom);
+    if (this.options.left) speechBubbleContainer.style.setProperty('--bubble-left', this.options.left);
+    if (this.options.right) speechBubbleContainer.style.setProperty('--bubble-right', this.options.right);
+    if (this.options.width) speechBubbleContainer.style.setProperty('--bubble-width', this.options.width);
     
-    // 3. Apply CSS Variables
+    // 3. Apply Visual Variables
     if (this.options.tailSkew) speechBubbleContainer.style.setProperty('--tail-skew', this.options.tailSkew);
     if (this.options.tailScale) speechBubbleContainer.style.setProperty('--tail-scale', this.options.tailScale);
-    if (this.options.color) speechBubbleContainer.style.setProperty('--speech-text', this.options.color);
+    if (this.options.color) speechBubbleContainer.style.setProperty('--speech-text-color', this.options.color);
     
     // 4. Apply Font Size (Standardized to 1rem)
-    let fs = this.options.fontSize || '1rem';
-    if (!isNaN(fs) && fs !== '') fs = fs + 'rem';
-    
-    speechBubbleContainer.style.setProperty('--bubble-font-size', fs);
-    const bubbleText = speechBubbleContainer.querySelector('.speech-text') || speechBubbleContainer.querySelector('.super-bubble');
-    if (bubbleText) bubbleText.style.setProperty('font-size', fs);
+    let fs = this.options.fontSize;
+    if (fs) {
+        if (!isNaN(fs) && fs !== '') fs = fs + 'rem';
+        speechBubbleContainer.style.setProperty('--bubble-font-size', fs);
+        const bubbleText = speechBubbleContainer.querySelector('.speech-text') || speechBubbleContainer.querySelector('.super-bubble');
+        if (bubbleText) bubbleText.style.setProperty('font-size', fs);
+    }
     
     if (this.options.outlineEnabled) {
         const size = this.options.outlineSize || '1.0';

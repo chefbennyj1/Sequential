@@ -37,18 +37,18 @@ class TextBlock {
     const textBlockContainer = document.createElement('div');
     textBlockContainer.className = `text-block-container text-block-story-line-${this.options.pageIndex}-${this.options.dialogueIndex}`;
 
-    // Apply positioning
-    if (this.options.top) textBlockContainer.style.top = this.options.top;
-    if (this.options.bottom) textBlockContainer.style.bottom = this.options.bottom;
-    if (this.options.left) textBlockContainer.style.left = this.options.left;
-    if (this.options.right) textBlockContainer.style.right = this.options.right;
-    if (this.options.width) textBlockContainer.style.width = this.options.width;
+    // Apply positioning via CSS Variables
+    if (this.options.top) textBlockContainer.style.setProperty('--text-block-top', this.options.top);
+    if (this.options.bottom) textBlockContainer.style.setProperty('--text-block-bottom', this.options.bottom);
+    if (this.options.left) textBlockContainer.style.setProperty('--text-block-left', this.options.left);
+    if (this.options.right) textBlockContainer.style.setProperty('--text-block-right', this.options.right);
+    if (this.options.width) textBlockContainer.style.setProperty('--text-block-width', this.options.width);
 
     // Construct DOM elements programmatically
     const type = this.options.textBlockType || 'Narrator';
     const textBlock = document.createElement('div');
     textBlock.className = `text-block ${type.toLowerCase()}`;
-    textBlock.style.padding = `${this.options.padding}px`;
+    if (this.options.padding) textBlockContainer.style.setProperty('--text-block-padding-override', `${this.options.padding}px`);
     textBlock.innerHTML = this._getCleanText().toUpperCase();
 
     textBlockContainer.appendChild(textBlock);

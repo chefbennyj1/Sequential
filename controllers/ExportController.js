@@ -305,7 +305,12 @@ class ExportController {
                 .speech-text { font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; -webkit-text-stroke: 0px transparent !important; }
                 .text-block { font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; padding: ${(15 * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; }
                 .tail-container::before, .tail-container::after { border-width: ${(15 * scaleFactor).toFixed(2)}px !important; }
-                .page .super-bubble, .page .speech-text, .page .text-block { font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; }
+                
+                /* Explicitly target all text elements within bubbles and blocks */
+                .super-bubble, .speech-text, .text-block, .monologue-bubble { 
+                    font-size: ${(baseFontSize * scaleFactor).toFixed(2)}px !important; 
+                }
+
                 .panel img { transform: translateZ(0); backface-visibility: hidden; }
             `;
             document.head.appendChild(overrideStyle);
