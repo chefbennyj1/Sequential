@@ -86,57 +86,56 @@ export function initExportManager(container) {
             const presetText = presetSelect ? presetSelect.options[presetSelect.selectedIndex].text : 'UK Table';
             const targetPage = targetPageInput ? targetPageInput.value.trim() : '';
 
-            // Standardize on Portrait, remove Landscape option as requested.
-            const portrait = true; 
-            const landscape = false;
-            const pdf = document.getElementById('exportPdfOption').checked;   
+                // Standardize on Portrait, remove Landscape option as requested.
+                const portrait = true; 
+                const pdf = document.getElementById('exportPdfOption').checked;   
 
-            let confirmMsg = 'Are you sure you want to export ' + optionText + ' (' + presetText + ') to High-Res PNGs?';
-            if (targetPage) {
-                confirmMsg = 'Are you sure you want to export ONLY page ' + targetPage + ' from ' + optionText + ' (' + presetText + ')?';
-            }
-
-            const finalConfirm = confirm(
-                confirmMsg + 
-                '\n\nIMPORTANT: Please double-check your two-page spread positions (left/right alignment) before proceeding. ' +
-                'Page shifts can occasionally displace spreads.' +
-                '\n\nThis will take a few minutes in the background.'
-            );
-
-            if(!finalConfirm) return;
-
-            const btn = e.currentTarget;
-            const originalText = btn.innerHTML;
-            const statusMsg = document.getElementById('exportStatusMsg');     
-
-            // Reset and Show Progress UI
-            if (progressContainer) progressContainer.classList.remove('hidden');
-            const progressBar = document.getElementById('export-progress-bar');
-            if (progressBar) progressBar.style.width = '0%';
-            document.getElementById('exportProgressPercent').textContent = '0%';
-            document.getElementById('exportProgressLabel').textContent = 'Initializing...';
-
-            btn.innerHTML = 'Exporting... <ion-icon size="small" name="hourglass"></ion-icon>';
-            btn.style.pointerEvents = 'none';
-            statusMsg.textContent = "Connecting to headless engine...";
-
-            try {
-                // Resolve series and volume folder from dropdown attributes
-                const seriesSelect = document.getElementById('exportSeriesSelect');
-                const cleanSeries = seriesSelect.options[seriesSelect.selectedIndex]?.getAttribute('data-folder');
-                const cleanVolume = volumeSelect.options[volumeSelect.selectedIndex]?.getAttribute('data-folder');
-
-                if (!cleanSeries || !cleanVolume) {
-                    console.error("Could not determine series or volume folder from selection.");
-                    statusMsg.textContent = "Error: Invalid series or volume selection.";
-                    statusMsg.style.color = "red";
-                    btn.innerHTML = originalText;
-                    btn.style.pointerEvents = 'auto';
-                    return;
+                let confirmMsg = 'Are you sure you want to export ' + optionText + ' (' + presetText + ') to High-Res PNGs?';
+                if (targetPage) {
+                    confirmMsg = 'Are you sure you want to export ONLY page ' + targetPage + ' from ' + optionText + ' (' + presetText + ')?';
                 }
 
-                let fetchUrl = '/api/editor/export-volume/' + cleanSeries + '/' + cleanVolume + '?portrait=' + portrait + '&landscape=' + landscape + '&pdf=' + pdf + '&preset=' + preset;
-                if (targetPage) fetchUrl += '&targetPage=' + encodeURIComponent(targetPage);
+                const finalConfirm = confirm(
+                    confirmMsg + 
+                    '\n\nIMPORTANT: Please double-check your two-page spread positions (left/right alignment) before proceeding. ' +
+                    'Page shifts can occasionally displace spreads.' +
+                    '\n\nThis will take a few minutes in the background.'
+                );
+
+                if(!finalConfirm) return;
+
+                const btn = e.currentTarget;
+                const originalText = btn.innerHTML;
+                const statusMsg = document.getElementById('exportStatusMsg');     
+
+                // Reset and Show Progress UI
+                if (progressContainer) progressContainer.classList.remove('hidden');
+                const progressBar = document.getElementById('export-progress-bar');
+                if (progressBar) progressBar.style.width = '0%';
+                document.getElementById('exportProgressPercent').textContent = '0%';
+                document.getElementById('exportProgressLabel').textContent = 'Initializing...';
+
+                btn.innerHTML = 'Exporting... <ion-icon size="small" name="hourglass"></ion-icon>';
+                btn.style.pointerEvents = 'none';
+                statusMsg.textContent = "Connecting to headless engine...";
+
+                try {
+                    // Resolve series and volume folder from dropdown attributes
+                    const seriesSelect = document.getElementById('exportSeriesSelect');
+                    const cleanSeries = seriesSelect.options[seriesSelect.selectedIndex]?.getAttribute('data-folder');
+                    const cleanVolume = volumeSelect.options[volumeSelect.selectedIndex]?.getAttribute('data-folder');
+
+                    if (!cleanSeries || !cleanVolume) {
+                        console.error("Could not determine series or volume folder from selection.");
+                        statusMsg.textContent = "Error: Invalid series or volume selection.";
+                        statusMsg.style.color = "red";
+                        btn.innerHTML = originalText;
+                        btn.style.pointerEvents = 'auto';
+                        return;
+                    }
+
+                    let fetchUrl = '/api/editor/export-volume/' + cleanSeries + '/' + cleanVolume + '?portrait=' + portrait + '&pdf=' + pdf + '&preset=' + preset;
+                    if (targetPage) fetchUrl += '&targetPage=' + encodeURIComponent(targetPage);
 
                 const res = await fetch(fetchUrl, { method: 'POST' });        
                 const result = await res.json();

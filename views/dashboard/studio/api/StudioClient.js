@@ -39,7 +39,7 @@ export async function reorderPagesAPI(reorderData) {
     }
 }
 
-export async function fetchNextPanelId(seriesId, volumeFolder, chapterFolder, pageId, mode = 'landscape') {
+export async function fetchNextPanelId(seriesId, volumeFolder, chapterFolder, pageId, mode = 'portrait') {
     try {
         const res = await fetch(`/api/editor/next-panel-id?series=${seriesId}&volume=${volumeFolder}&chapter=${chapterFolder}&pageId=${pageId}&mode=${mode}`);
         const data = await res.json();
@@ -233,7 +233,7 @@ export async function uploadAsset(formData) {
     }
 }
 
-export async function fetchLayouts(mode = 'landscape') {
+export async function fetchLayouts(mode = 'portrait') {
     try {
         const res = await fetch(`/api/editor/layouts?mode=${mode}`);
         return await res.json();
