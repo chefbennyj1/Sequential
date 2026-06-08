@@ -130,8 +130,8 @@
 }
 /* --- PORTRAIT SCALING OVERRIDES --- */
 .page .text-block-container {
-    font-size: 1em; /* Inherits from page clamp */
+    font-size: 0.875em; /* Inherits from page clamp */
 }
 .page .text-block {
-    font-size: 1em; /* Do not scale down further in portrait */
+    font-size: 0.875em; /* Do not scale down further in portrait */
 }
