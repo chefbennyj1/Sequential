@@ -1,7 +1,8 @@
 /* views/dashboard/styles/StyleLab.css */
 
 .style-preview-stage {
-    background: #000 !important; /* Cyberpunk background */
+    background: #000 url('/views/public/images/placeholders/style-lab-bg.png') no-repeat center center !important;
+    background-size: cover !important;
     border: 2px solid var(--border-dim);
     box-shadow: 0 10px 30px rgba(0,0,0,0.5);
     display: flex;
