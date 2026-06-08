@@ -157,22 +157,27 @@ function renderPreview() {
     const previewPane = document.getElementById('style-lab-preview');
     previewPane.innerHTML = ''; // Clear
 
+    // Force context for components
+    previewPane.classList.add('page');
+
     // 1. Narrator Block
     const narrator = new TextBlock(previewPane, {
         text: "NARRATOR: System initialization in progress...",
         textBlockType: "Narrator",
         top: "10%",
-        left: "10%",
-        width: "80%"
+        left: "5%",
+        width: "90%"
     });
     narrator.render();
+    narrator.show(); // Ensure it gets the 'visible' class
 
     // 2. Speech Bubble
     const bubble = new SpeechBubble(previewPane, {
         text: "VIGIL: I can see everything now.",
         top: "40%",
         left: "50%",
-        tail: "top-left"
+        tail: "top-left",
+        width: "250px" // Give it a base width to show wrapping
     });
     bubble.render();
     bubble.show();
@@ -180,7 +185,7 @@ function renderPreview() {
     // 3. Action Text
     const action = new ActionText(previewPane, {
         text: "GLITCH",
-        top: "80%",
+        top: "85%",
         left: "50%",
         rotation: -5,
         color: "#00ccff"

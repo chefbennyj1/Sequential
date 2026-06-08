@@ -18,6 +18,11 @@
                 // Studio specific styles
                 await loadCSS('/views/dashboard/studio/studio-common.css');
                 
+                // Load Component CSS for Style Lab & Editor
+                await loadCSS('/libs/SpeechBubble/SpeechBubble.css');
+                await loadCSS('/libs/TextBlock/TextBlock.css');
+                await loadCSS('/libs/ActionText/ActionText.css');
+                
                 await loadCSS('/views/dashboard/components/CardBuilder/CardBuilder.css');
                 await loadCSS('/views/dashboard/components/SceneEditor/SceneEditor.css');
                 await loadCSS('/views/dashboard/components/CharacterLab/CharacterLab.css');
