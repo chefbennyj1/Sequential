@@ -121,18 +121,18 @@ export function initExportManager(container) {
             statusMsg.textContent = "Connecting to headless engine...";
 
             try {
-                // Parse series and volume folder from the select text (e.g. "No_Overflow - Volume 1")
-                const [seriesPart, volumePart] = optionText.split(' - ');
-                const cleanSeries = seriesPart ? seriesPart.trim() : null;    
-                if (!cleanSeries) {
-                    console.error("Could not determine series from volume title:", optionText);
-                    return;
-                }
+                // Resolve series and volume folder from dropdown attributes
+                const seriesSelect = document.getElementById('exportSeriesSelect');
+                const cleanSeries = seriesSelect.options[seriesSelect.selectedIndex]?.getAttribute('data-folder');
+                const cleanVolume = volumeSelect.options[volumeSelect.selectedIndex]?.getAttribute('data-folder');
 
-                // Convert "Volume 1" to "volume-1"
-                let cleanVolume = 'volume-1';
-                if (volumePart) {
-                    cleanVolume = volumePart.trim().toLowerCase().replace(/\s+/g, '-');
+                if (!cleanSeries || !cleanVolume) {
+                    console.error("Could not determine series or volume folder from selection.");
+                    statusMsg.textContent = "Error: Invalid series or volume selection.";
+                    statusMsg.style.color = "red";
+                    btn.innerHTML = originalText;
+                    btn.style.pointerEvents = 'auto';
+                    return;
                 }
 
                 let fetchUrl = '/api/editor/export-volume/' + cleanSeries + '/' + cleanVolume + '?portrait=' + portrait + '&landscape=' + landscape + '&pdf=' + pdf + '&preset=' + preset;

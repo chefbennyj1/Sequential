@@ -13,12 +13,30 @@ class ExportController {
         const { series: seriesTitle, volume: volumeFolderName } = req.params;
         const { portrait, pdf, preset } = req.query;
 
-        try {
-            const series = await Series.findOne({
-                $or: [{ folderName: seriesTitle }, { title: seriesTitle }]
-            }).populate('libraryRoot');
+        console.log(`[EXPORT] Request received for Series: "${seriesTitle}", Volume: "${volumeFolderName}"`);
 
-            if (!series) return res.status(404).json({ ok: false, message: 'Series not found' });
+        try {
+            const mongoose = require('mongoose');
+            const query = {
+                $or: [
+                    { folderName: seriesTitle },
+                    { title: seriesTitle }
+                ]
+            };
+
+            // If seriesTitle is a valid MongoDB ID, add it to the query
+            if (mongoose.Types.ObjectId.isValid(seriesTitle)) {
+                query.$or.push({ _id: seriesTitle });
+            }
+
+            console.log(`[EXPORT] Searching Series with query:`, JSON.stringify(query));
+            const series = await Series.findOne(query).populate('libraryRoot');
+
+            if (!series) {
+                console.warn(`[EXPORT] Series not found for: "${seriesTitle}"`);
+                return res.status(404).json({ ok: false, message: 'Series not found' });
+            }
+            console.log(`[EXPORT] Series found: ${series.title} (${series._id})`);
 
             let rootPath = series.sourcePath || path.join(series.libraryRoot.path, series.folderName);
             const volumePath = path.join(rootPath, 'Volumes', volumeFolderName);
