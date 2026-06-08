@@ -4,6 +4,20 @@
     extraStyles: `
         <link rel="stylesheet" href="/views/reader/viewer/viewer.css">
         <link rel="stylesheet" href="/views/reader/viewer/page.css">
+        <style>
+            :root {
+                --bubble-font-size: <%= volume.series.settings?.bubbleFontSize || '0.8rem' %>;
+                --text-block-font-size: <%= volume.series.settings?.textBlockFontSize || '0.8em' %>;
+            }
+            .page .text-block-container, .page .text-block {
+                font-size: var(--text-block-font-size) !important;
+            }
+        </style>
+        <% if (volume.series.settings?.customCssFiles) { %>
+            <% volume.series.settings.customCssFiles.forEach(file => { %>
+                <link rel="stylesheet" href="/Library/<%= volume.series.folderName %>/custom/styles/<%= file %>">
+            <% }) %>
+        <% } %>
     `,
     headerButtons: `
         <div class="page-nav-buttons">

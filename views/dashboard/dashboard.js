@@ -18,6 +18,7 @@ import CharacterEditor from './components/CharacterLab/CharacterLab.js';
 import ScheduledTaskView from './components/ScheduledTasks/ScheduledTasks.js';
 import { initPlotLab } from './components/PlotLab/PlotLab.js';
 import { initStoryCritic } from './components/StoryCritic/StoryCritic.js';
+import { initStyleLab } from './studio/js/StyleLab.js';
 
 // Imported Refactored Modules
 import { initEventHandlers } from './studio/js/EventHandlers.js';
@@ -74,6 +75,7 @@ export async function init(container) {
     try { new ScheduledTaskView(); } catch (e) { console.error("ScheduledTaskView init failed", e); }
     try { initPlotLab(container); } catch (e) { console.error("PlotLab init failed", e); }
     try { initStoryCritic(container); } catch (e) { console.error("StoryCritic init failed", e); }
+    try { initStyleLab(container); } catch (e) { console.error("StyleLab init failed", e); }
 
     // Inject PlotLab CSS
     if (!document.querySelector(`link[href="/views/dashboard/components/PlotLab/PlotLab.css"]`)) {

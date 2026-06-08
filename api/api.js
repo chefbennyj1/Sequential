@@ -19,6 +19,7 @@ const PageDataController = require('../controllers/PageDataController.js');
 const PageStructureController = require('../controllers/PageStructureController.js');
 const SystemSettingsController = require('../controllers/SystemSettingsController.js');
 const VisionController = require('../controllers/VisionController.js');
+const StyleLabController = require('../controllers/StyleLabController.js');
 
 const { isAuthApi: isAuth, isModerator, isAdmin } = require('../middleware/auth.js');
 
@@ -71,6 +72,12 @@ router.post('/editor/export-script/:series/:volume', isModerator, ExportControll
 router.post("/user/register", UserController.registerUser);
 router.get('/user', isAuth, UserController.getUser);
 router.post('/user/update', isAdmin, UserController.updateUser); 
+
+// --- STYLE LAB ROUTES ---
+router.get('/style-lab/:seriesId', isModerator, StyleLabController.getSettings);
+router.put('/style-lab/:seriesId', isModerator, StyleLabController.updateSettings);
+router.post('/style-lab/upload-css', isModerator, StyleLabController.uploadMiddleware, StyleLabController.uploadCss);
+router.post('/style-lab/delete-css', isModerator, StyleLabController.deleteCss);
 
 // --- LIBRARY & VOLUME ROUTES ---
 router.get('/library/series', isAuth, LibraryController.getSeries);

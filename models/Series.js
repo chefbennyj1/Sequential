@@ -31,7 +31,12 @@ const seriesSchema = new Schema({
     volumes: [{
         type: Schema.Types.ObjectId,
         ref: 'Volume'
-    }]
+    }],
+    settings: {
+        bubbleFontSize: { type: String, default: "0.8rem" },
+        textBlockFontSize: { type: String, default: "0.8em" },
+        customCssFiles: [{ type: String }]
+    }
 }, { timestamps: true });
 
 module.exports = mongoose.model('Series', seriesSchema);

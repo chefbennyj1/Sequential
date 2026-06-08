@@ -119,6 +119,12 @@
                         <p>Render and export high-res PNG files.</p>
                     </div>
 
+                    <div class="mode-card" data-target="style-lab">
+                        <ion-icon name="color-palette-outline"></ion-icon>
+                        <h4>Style Lab</h4>
+                        <p>Customize global font sizes and CSS.</p>
+                    </div>
+
                     <div class="mode-card disabled opacity-50 cursor-not-allowed">
                         <ion-icon name="library-outline"></ion-icon>
                         <h4>New Series</h4>
@@ -798,6 +804,67 @@
             <h4 class="margin-b-15 text-accent">Narrative Analysis</h4>
             <div id="critic-log" class="critic-log">
                 <div class="text-muted italic">Awaiting analysis...</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- STYLE LAB SECTION -->
+    <div class="style-lab dashboard-section hidden">
+        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+        <h3>Style Lab</h3>
+        <p class="text-muted margin-b-20">Customize global typography and CSS.</p>
+
+        <div class="flex-row gap-30">
+            <!-- Left Side: Controls -->
+            <div class="flex-1 bg-dark padding-30 border-radius-12 border-dim">
+                <div class="form-group">
+                    <label>Select Series</label>
+                    <select id="styleLabSeriesSelect" class="gov-select"><option value="">Select a Series</option></select>
+                </div>
+
+                <div id="style-lab-controls" class="hidden margin-t-20">
+                    <div class="form-group">
+                        <label>Speech Bubble Font Size</label>
+                        <div class="flex-row align-center gap-10">
+                            <input type="range" id="bubbleFontSizeSlider" min="0.5" max="2.0" step="0.05" value="0.8" class="flex-1">
+                            <span id="bubbleFontSizeValue" class="mono text-accent">0.8rem</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Text Block Font Size</label>
+                        <div class="flex-row align-center gap-10">
+                            <input type="range" id="textBlockFontSizeSlider" min="0.5" max="2.0" step="0.05" value="0.8" class="flex-1">
+                            <span id="textBlockFontSizeValue" class="mono text-accent">0.8em</span>
+                        </div>
+                    </div>
+
+                    <hr class="margin-y-20 border-dim">
+
+                    <div class="form-group">
+                        <label>Custom CSS Files</label>
+                        <div id="custom-css-list" class="margin-b-10 flex-column gap-5">
+                            <!-- Injected filenames -->
+                        </div>
+                        <label class="small btn-browse text-center cursor-pointer">
+                            + Upload CSS File
+                            <input type="file" id="styleLabCssInput" accept=".css" class="hidden">
+                        </label>
+                    </div>
+
+                    <div class="margin-t-30 flex-row gap-15">
+                        <button id="saveStyleSettingsBtn" class="update__btn flex-2">Save Styles</button>
+                        <button id="resetStyleSettingsBtn" class="small flex-1">Reset Defaults</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Side: Live Preview -->
+            <div class="flex-1 bg-dark padding-30 border-radius-12 border-dim">
+                <h4 class="margin-b-20 text-accent">Live Preview</h4>
+                <div id="style-lab-preview" class="style-preview-stage page" style="position: relative; height: 500px; background: #fff; border: 1px solid #ccc; overflow: hidden; border-radius: 8px;">
+                    <!-- Preview components will be injected here -->
+                </div>
             </div>
         </div>
     </div>
