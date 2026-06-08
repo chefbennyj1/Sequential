@@ -35,6 +35,8 @@ const seriesSchema = new Schema({
     settings: {
         bubbleFontSize: { type: String, default: "0.8rem" },
         textBlockFontSize: { type: String, default: "0.8em" },
+        actionTextFontSize: { type: String, default: "2.5rem" },
+        primaryFontFamily: { type: String, default: "" },
         customCssFiles: [{ type: String }]
     }
 }, { timestamps: true });

@@ -1,34 +1,43 @@
 // views/dashboard/studio/js/StyleLab.js
 import { populateSeriesSelect } from './LibraryManager.js';
+import { fetchFontsAPI } from '../api/StudioClient.js';
 import SpeechBubble from '/libs/SpeechBubble/SpeechBubble.js';
 import TextBlock from '/libs/TextBlock/TextBlock.js';
+import ActionText from '/libs/ActionText/ActionText.js';
 
 let activeSeriesId = null;
 let currentSettings = {
     bubbleFontSize: "0.8rem",
-    textBlockFontSize: "0.8em"
+    textBlockFontSize: "0.8em",
+    actionTextFontSize: "2.5rem",
+    primaryFontFamily: ""
 };
 
 const DEFAULTS = {
     bubbleFontSize: "0.8rem",
-    textBlockFontSize: "0.8em"
+    textBlockFontSize: "0.8em",
+    actionTextFontSize: "2.5rem",
+    primaryFontFamily: ""
 };
 
 export function initStyleLab(container) {
     const seriesSelect = document.getElementById('styleLabSeriesSelect');
+    const fontSelect = document.getElementById('styleLabFontSelect');
     const controls = document.getElementById('style-lab-controls');
-    const previewPane = document.getElementById('style-lab-preview');
 
     const bubbleSlider = document.getElementById('bubbleFontSizeSlider');
     const bubbleValueDisplay = document.getElementById('bubbleFontSizeValue');
     const textBlockSlider = document.getElementById('textBlockFontSizeSlider');
     const textBlockValueDisplay = document.getElementById('textBlockFontSizeValue');
+    const actionSlider = document.getElementById('actionTextFontSizeSlider');
+    const actionValueDisplay = document.getElementById('actionTextFontSizeValue');
 
     const saveBtn = document.getElementById('saveStyleSettingsBtn');
     const resetBtn = document.getElementById('resetStyleSettingsBtn');
     const cssInput = document.getElementById('styleLabCssInput');
 
     populateSeriesSelect('styleLabSeriesSelect');
+    loadFonts(fontSelect);
 
     seriesSelect.addEventListener('change', async (e) => {
         activeSeriesId = e.target.value;
@@ -56,10 +65,35 @@ export function initStyleLab(container) {
         updatePreviewStyles();
     });
 
+    actionSlider.addEventListener('input', (e) => {
+        const val = e.target.value + 'rem';
+        currentSettings.actionTextFontSize = val;
+        actionValueDisplay.textContent = val;
+        updatePreviewStyles();
+    });
+
+    fontSelect.addEventListener('change', (e) => {
+        currentSettings.primaryFontFamily = e.target.value;
+        updatePreviewStyles();
+    });
+
     saveBtn.addEventListener('click', saveSettings);
     resetBtn.addEventListener('click', resetToDefaults);
 
     cssInput.addEventListener('change', uploadCss);
+}
+
+async function loadFonts(select) {
+    const data = await fetchFontsAPI();
+    if (data && data.files) {
+        data.files.forEach(f => {
+            const fontName = f.replace(/\.(ttf|otf|woff2|woff)$/i, '');
+            const opt = document.createElement('option');
+            opt.value = fontName;
+            opt.textContent = fontName;
+            select.appendChild(opt);
+        });
+    }
 }
 
 async function loadSeriesSettings() {
@@ -80,14 +114,20 @@ function updateUIFromSettings() {
     const bubbleValueDisplay = document.getElementById('bubbleFontSizeValue');
     const textBlockSlider = document.getElementById('textBlockFontSizeSlider');
     const textBlockValueDisplay = document.getElementById('textBlockFontSizeValue');
+    const actionSlider = document.getElementById('actionTextFontSizeSlider');
+    const actionValueDisplay = document.getElementById('actionTextFontSizeValue');
+    const fontSelect = document.getElementById('styleLabFontSelect');
 
-    const bVal = parseFloat(currentSettings.bubbleFontSize);
-    bubbleSlider.value = bVal;
+    bubbleSlider.value = parseFloat(currentSettings.bubbleFontSize);
     bubbleValueDisplay.textContent = currentSettings.bubbleFontSize;
 
-    const tVal = parseFloat(currentSettings.textBlockFontSize);
-    textBlockSlider.value = tVal;
+    textBlockSlider.value = parseFloat(currentSettings.textBlockFontSize);
     textBlockValueDisplay.textContent = currentSettings.textBlockFontSize;
+
+    actionSlider.value = parseFloat(currentSettings.actionTextFontSize);
+    actionValueDisplay.textContent = currentSettings.actionTextFontSize;
+
+    fontSelect.value = currentSettings.primaryFontFamily || "";
 
     renderCustomCssList();
 }
@@ -117,39 +157,55 @@ function renderPreview() {
     const previewPane = document.getElementById('style-lab-preview');
     previewPane.innerHTML = ''; // Clear
 
-    // 1. Create a dummy Narrator Block
+    // 1. Narrator Block
     const narrator = new TextBlock(previewPane, {
-        text: "This is a narrator block preview. Adjust the slider to see it change.",
+        text: "NARRATOR: System initialization in progress...",
         textBlockType: "Narrator",
-        top: "20%",
+        top: "10%",
         left: "10%",
         width: "80%"
     });
     narrator.render();
 
-    // 2. Create a dummy Speech Bubble
+    // 2. Speech Bubble
     const bubble = new SpeechBubble(previewPane, {
-        text: "System check complete. Vigil is watching.",
-        top: "60%",
+        text: "VIGIL: I can see everything now.",
+        top: "40%",
         left: "50%",
         tail: "top-left"
     });
     bubble.render();
     bubble.show();
 
+    // 3. Action Text
+    const action = new ActionText(previewPane, {
+        text: "GLITCH",
+        top: "80%",
+        left: "50%",
+        rotation: -5,
+        color: "#00ccff"
+    });
+    action.render();
+    action.show();
+
     updatePreviewStyles();
 }
 
 function updatePreviewStyles() {
     const previewPane = document.getElementById('style-lab-preview');
-    // Apply variables directly to the preview pane (which has the .page class)
+    const font = currentSettings.primaryFontFamily || 'inherit';
+
+    // Apply Variables
     previewPane.style.setProperty('--bubble-font-size', currentSettings.bubbleFontSize);
-    previewPane.style.setProperty('--text-block-scale', '1'); // Force 1:1 scale for preview
+    previewPane.style.setProperty('--action-font-size', currentSettings.actionTextFontSize);
+    previewPane.style.setProperty('--bubble-font', font);
+    previewPane.style.setProperty('--action-font', font);
     
-    // For text blocks, since they use em in .page context, we can set the container font size
+    // Text Blocks
     const textBlocks = previewPane.querySelectorAll('.text-block-container');
     textBlocks.forEach(tb => {
         tb.style.fontSize = currentSettings.textBlockFontSize;
+        tb.style.fontFamily = font;
     });
 }
 
@@ -182,8 +238,7 @@ async function saveSettings() {
 
 async function resetToDefaults() {
     if (!confirm("Reset all styles for this series to factory defaults?")) return;
-    currentSettings.bubbleFontSize = DEFAULTS.bubbleFontSize;
-    currentSettings.textBlockFontSize = DEFAULTS.textBlockFontSize;
+    currentSettings = { ...DEFAULTS };
     updateUIFromSettings();
     updatePreviewStyles();
 }
