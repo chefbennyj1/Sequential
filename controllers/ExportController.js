@@ -272,14 +272,20 @@ class ExportController {
 
             // Clean up any inner layouts to ensure they fill the new box perfectly
             const layout = masterStage.querySelector('.page-layout');
+            const safePadding = Math.round(50 * scaleFactor); // Enforce a 50px (at 1080p) safe zone
+
             if (layout) {
                 layout.style.setProperty('height', '100%', 'important');
                 layout.style.setProperty('width', '100%', 'important');
-                layout.style.setProperty('padding', '30px', 'important'); 
-                layout.style.setProperty('gap', '30px', 'important'); 
+                layout.style.setProperty('padding', safePadding + 'px', 'important'); 
+                layout.style.setProperty('gap', (10 * scaleFactor) + 'px', 'important'); 
                 layout.style.setProperty('margin', '0', 'important');
                 layout.style.setProperty('box-sizing', 'border-box', 'important');
+                layout.style.setProperty('overflow', 'hidden', 'important'); // Prevent bleed into gutters
             }
+
+            // Also ensure the masterStage itself clips any absolute orphans
+            masterStage.style.setProperty('overflow', 'hidden', 'important');
 
             // Apply box-sizing globally for print
             const style = document.createElement('style');
