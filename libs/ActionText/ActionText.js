@@ -46,15 +46,14 @@ class ActionText {
         container.className = 'action-text-container';
         
         // Position & Random Rotation
-        if (this.options.top) container.style.top = this.options.top;
-        if (this.options.bottom) container.style.bottom = this.options.bottom;
-        if (this.options.left) container.style.left = this.options.left;
-        if (this.options.right) container.style.right = this.options.right;
+        if (this.options.top) container.style.setProperty('--action-top', this.options.top);
+        if (this.options.bottom) container.style.setProperty('--action-bottom', this.options.bottom);
+        if (this.options.left) container.style.setProperty('--action-left', this.options.left);
+        if (this.options.right) container.style.setProperty('--action-right', this.options.right);
         
         const rot = parseFloat(this.options.rotation);
         const rotationValue = isNaN(rot) ? -20 : rot;
         
-        container.style.transform = `translate(-50%, -50%) scale(0.8) rotate(${rotationValue}deg)`;
         container.style.setProperty('--action-rotation', `${rotationValue}deg`);
         
         // Set Font Variable
@@ -86,8 +85,8 @@ class ActionText {
         // Normalize font size
         let fs = this.options.fontSize || '1.8rem';
         if (!isNaN(fs) && fs !== '') fs = fs + 'rem';
-        container.style.fontSize = fs;
-        container.style.color = this.options.color;
+        container.style.setProperty('--action-font-size', fs);
+        if (this.options.color) container.style.setProperty('--action-text-color', this.options.color);
 
         // Apply outline if enabled
         if (this.options.outlineEnabled) {

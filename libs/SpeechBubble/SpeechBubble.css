@@ -204,21 +204,21 @@
 
 /* --- PORTRAIT OVERRIDES --- */
 .page .super-bubble {
-    padding: 0.625em 0.925em;
-    border-width: 0.18em;
-    box-shadow: 0.25em 0.25em 0px rgba(0,0,0,0.2);
+    padding: 0.625rem 0.925rem;
+    border-width: 0.18rem;
+    box-shadow: 0.25rem 0.25rem 0px rgba(0,0,0,0.2);
 }
 .page .speech-text {
-    font-size: var(--bubble-font-size, 1em);
+    font-size: var(--bubble-font-size, 1rem);
 }
-.page .super-bubble::before { inset: -0.18em; }
-.page .super-bubble::after { inset: -0.06em; border-width: 0.12em; }
-.page .tail-container::before, .page .tail-container::after { border-width: 0.95em; }
-.page .tail-bottom-left::before { top: -0.6em; }
-.page .tail-bottom-left::after { top: -0.75em; left: 0.12em; border-width: 0.75em; }
-.page .tail-bottom-right::before { top: -0.6em; right: 0.12em; }
-.page .tail-bottom-right::after { top: -0.75em; right: 0.25em; border-width: 0.75em; }
-.page .tail-top-left::before { bottom: -0.6em; }
-.page .tail-top-left::after { bottom: -0.75em; left: 0.12em; border-width: 0.75em; }
-.page .tail-top-right::before { bottom: -0.6em; right: 0.12em; }
-.page .tail-top-right::after { bottom: -0.75em; right: 0.25em; border-width: 0.75em; }
+.page .super-bubble::before { inset: -0.18rem; }
+.page .super-bubble::after { inset: -0.06rem; border-width: 0.12rem; }
+.page .tail-container::before, .page .tail-container::after { border-width: 0.95rem; }
+.page .tail-bottom-left::before { top: -0.6rem; }
+.page .tail-bottom-left::after { top: -0.75rem; left: 0.12rem; border-width: 0.75rem; }
+.page .tail-bottom-right::before { top: -0.6rem; right: 0.12rem; }
+.page .tail-bottom-right::after { top: -0.75rem; right: 0.25rem; border-width: 0.75rem; }
+.page .tail-top-left::before { bottom: -0.6rem; }
+.page .tail-top-left::after { bottom: -0.75rem; left: 0.12rem; border-width: 0.75rem; }
+.page .tail-top-right::before { bottom: -0.6rem; right: 0.12rem; }
+.page .tail-top-right::after { bottom: -0.75rem; right: 0.25rem; border-width: 0.75rem; }

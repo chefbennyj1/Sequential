@@ -10,6 +10,12 @@
     transform: translate(-50%, -50%) scale(0.8) rotate(var(--action-rotation, 0deg));
     transition: opacity 0.3s ease-out, transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), visibility 0s linear 0.3s;
 
+    /* Positioning Overrides */
+    top: var(--action-top, 50%);
+    bottom: var(--action-bottom, auto);
+    left: var(--action-left, 50%);
+    right: var(--action-right, auto);
+
     /* Default variables */
     --action-font: var(--font-family-mangat-bold, "Mangat Bold", sans-serif);
     --action-rotation: 0deg;
@@ -24,6 +30,8 @@
 
 .action-text-content {
     font-family: var(--action-font);
+    font-size: var(--action-font-size, 3rem);
+    color: var(--action-text-color, #ffffff);
     letter-spacing: 0.05em;
     text-transform: uppercase;
     white-space: nowrap;

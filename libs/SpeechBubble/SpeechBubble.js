@@ -178,8 +178,6 @@ class SpeechBubble {
     if (fs) {
         if (!isNaN(fs) && fs !== '') fs = fs + 'rem';
         speechBubbleContainer.style.setProperty('--bubble-font-size', fs);
-        const bubbleText = speechBubbleContainer.querySelector('.speech-text') || speechBubbleContainer.querySelector('.super-bubble');
-        if (bubbleText) bubbleText.style.setProperty('font-size', fs);
     }
     
     if (this.options.outlineEnabled) {
