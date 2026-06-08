@@ -37,7 +37,7 @@ const seriesSchema = new Schema({
         textBlockFontSize: { type: String, default: "0.8em" },
         actionTextFontSize: { type: String, default: "2.5rem" },
         primaryFontFamily: { type: String, default: "" },
-        actionFontFamily: { type: String, default: "" },
+        actionFontFamily: { type: String, default: "Ka Blam" },
         
         // TextBlock Colors
         narratorBg: { type: String, default: "#000000" },

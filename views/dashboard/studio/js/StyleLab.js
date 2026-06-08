@@ -5,13 +5,12 @@ import SpeechBubble from '/libs/SpeechBubble/SpeechBubble.js';
 import TextBlock from '/libs/TextBlock/TextBlock.js';
 import ActionText from '/libs/ActionText/ActionText.js';
 
-let activeSeriesId = null;
 let currentSettings = {
     bubbleFontSize: "0.8rem",
     textBlockFontSize: "0.8em",
     actionTextFontSize: "2.5rem",
     primaryFontFamily: "",
-    actionFontFamily: "",
+    actionFontFamily: "Ka Blam",
     
     narratorBg: "#000000",
     narratorColor: "#ffffff",
@@ -28,7 +27,7 @@ const DEFAULTS = {
     textBlockFontSize: "0.8em",
     actionTextFontSize: "2.5rem",
     primaryFontFamily: "",
-    actionFontFamily: "",
+    actionFontFamily: "Ka Blam",
     
     narratorBg: "#000000",
     narratorColor: "#ffffff",
