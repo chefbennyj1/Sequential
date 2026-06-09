@@ -155,7 +155,8 @@ class ArrangeManager {
             if (res.ok) {
                 this.statusMsg.textContent = "Order saved successfully! Chapter re-indexed.";
                 this.statusMsg.style.color = "#00ff41";
-                setTimeout(() => this.loadPages(), 1500);
+                // Reload immediately to sync UI
+                this.loadPages();
             } else {
                 throw new Error(res.message);
             }

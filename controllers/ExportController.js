@@ -340,6 +340,9 @@ class ExportController {
             `;
             document.head.appendChild(overrideStyle);
 
+            // Signal that print styles are applied and settled
+            window.printReady = true;
+
             return { ok: true };
         }, BLEED_WIDTH, BLEED_HEIGHT, preset);
     }
@@ -395,7 +398,9 @@ class ExportController {
                     }
 
                     await page.evaluateHandle('document.fonts.ready');
-                    await new Promise(r => setTimeout(r, 4000)); 
+                    
+                    // Wait for definitive signal that print styles are applied and settled
+                    await page.waitForFunction(() => window.printReady === true, { timeout: 10000 });
 
                     const pageNumPadded = target.page.replace('page', '').padStart(3, '0');
                     const fileName = options.preset === 'us-portrait' ? `page${pageNumPadded}_PORTRAIT.png` : `page${pageNumPadded}_FULL.png`;

@@ -80,9 +80,9 @@ class PageManager {
                 oldContainer.classList.remove('active');
                 oldContainer.classList.add('leaving');
 
-                setTimeout(() => {
+                oldContainer.addEventListener('animationend', () => {
                     oldContainer.classList.remove('leaving');
-                }, 800);
+                }, { once: true });
             }
         }
 
@@ -160,10 +160,12 @@ class PageManager {
         const pageContainer = document.getElementById(pageGroup.containerId);
         if (!pageContainer || pageContainer.dataset.loaded !== 'true') return;
 
-        // If the page is currently animating out, defer the purge
-        if (pageContainer.classList.contains('leaving')) {
+        // If the page is currently animating out, defer the purge until it's done
+        if (pageContainer.classList.contains('leaving') || pageContainer.classList.contains('exiting')) {
             console.log(`PageManager: Deferring purge of page ${index} until animation ends.`);
-            setTimeout(() => this.unloadPage(index), 900); // 800ms animation + 100ms buffer
+            pageContainer.addEventListener('animationend', () => {
+                this.unloadPage(index);
+            }, { once: true });
             return;
         }
 
