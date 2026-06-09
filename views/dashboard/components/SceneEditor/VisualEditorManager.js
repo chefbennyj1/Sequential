@@ -198,7 +198,11 @@ export class VisualEditorManager {
                     if (iframe) {
                         const layoutEditor = document.querySelector('.layout-editor');
                         if (layoutEditor) layoutEditor.classList.toggle('is-spread', enabled);
-                        iframe.contentWindow.location.reload();
+                        
+                        // Add cache-busting timestamp to prevent layout loading glitches
+                        const currentUrl = new URL(iframe.contentWindow.location.href);
+                        currentUrl.searchParams.set('t', Date.now());
+                        iframe.src = currentUrl.toString();
                     }
                 } catch (err) {
                     alert("Failed to toggle spread mode.");
