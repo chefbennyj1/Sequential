@@ -12,11 +12,11 @@ let currentSettings = {
     actionTextFontSize: "2.5rem",
     primaryFontFamily: "",
     actionFontFamily: "Ka Blam",
-    
+
     narratorBg: "#000000",
     narratorColor: "#ffffff",
     narratorBorder: "#ffffff",
-    
+
     monologueBg: "#ffffff",
     monologueColor: "#000000",
     monologueBorder: "#000000",
@@ -29,11 +29,11 @@ const DEFAULTS = {
     actionTextFontSize: "2.5rem",
     primaryFontFamily: "",
     actionFontFamily: "Ka Blam",
-    
+
     narratorBg: "#000000",
     narratorColor: "#ffffff",
     narratorBorder: "#ffffff",
-    
+
     monologueBg: "#ffffff",
     monologueColor: "#000000",
     monologueBorder: "#000000",
@@ -56,7 +56,7 @@ export function initStyleLab(container) {
     const nBg = document.getElementById('narratorBgPicker');
     const nColor = document.getElementById('narratorColorPicker');
     const nBorder = document.getElementById('narratorBorderPicker');
-    
+
     const mBg = document.getElementById('monologueBgPicker');
     const mColor = document.getElementById('monologueColorPicker');
     const mBorder = document.getElementById('monologueBorderPicker');
@@ -168,7 +168,7 @@ function updateUIFromSettings() {
     const nBg = document.getElementById('narratorBgPicker');
     const nColor = document.getElementById('narratorColorPicker');
     const nBorder = document.getElementById('narratorBorderPicker');
-    
+
     const mBg = document.getElementById('monologueBgPicker');
     const mColor = document.getElementById('monologueColorPicker');
     const mBorder = document.getElementById('monologueBorderPicker');
@@ -189,7 +189,7 @@ function updateUIFromSettings() {
     nBg.value = currentSettings.narratorBg;
     nColor.value = currentSettings.narratorColor;
     nBorder.value = currentSettings.narratorBorder;
-    
+
     mBg.value = currentSettings.monologueBg;
     mColor.value = currentSettings.monologueColor;
     mBorder.value = currentSettings.monologueBorder;
@@ -201,7 +201,7 @@ function updateUIFromSettings() {
 function renderCustomCssList() {
     const list = document.getElementById('custom-css-list');
     list.innerHTML = '';
-    
+
     if (!currentSettings.customCssFiles || currentSettings.customCssFiles.length === 0) {
         list.innerHTML = '<div class="text-muted italic font-size-07">No custom CSS files uploaded.</div>';
         return;
@@ -225,7 +225,7 @@ function renderPreview() {
 
     // Force context for components
     previewPane.classList.add('page');
-    
+
     // Ensure basic variables for preview visibility
     previewPane.style.setProperty('--speech-text-color', '#000000');
     previewPane.style.setProperty('--bubble-border', '#000000');
@@ -236,8 +236,7 @@ function renderPreview() {
         text: "NARRATOR: System initialization in progress...",
         textBlockType: "Narrator",
         top: "5%",
-        left: "5%",
-        width: "90%"
+        left: "5%"
     });
     narrator.render().then(() => narrator.play());
 
@@ -246,14 +245,13 @@ function renderPreview() {
         text: "INTERNAL: I wonder if they can hear my thoughts?",
         textBlockType: "InternalMonologue",
         top: "25%",
-        left: "5%",
-        width: "90%"
+        left: "5%"
     });
     monologue.render().then(() => monologue.play());
 
     // 3. Speech Bubble
     const bubble = new SpeechBubble(previewPane, {
-        text: "VIGIL: I can see everything now.",
+        text: "Oh! Look at that! I can see everything now.",
         top: "50%",
         left: "50%",
         tailPosition: "top-left",
@@ -263,9 +261,10 @@ function renderPreview() {
 
     // 4. Action Text
     const action = new ActionText(previewPane, {
-        text: "GLITCH",
+        text: "BOOM! Style Lab Activated!",
         top: "85%",
         left: "50%",
+        width: "90%",
         rotation: -5,
         color: "#00ccff"
     });
@@ -276,14 +275,14 @@ function renderPreview() {
 
 function updatePreviewStyles() {
     const previewPane = document.getElementById('style-lab-preview');
-    
+
     const uiFont = currentSettings.primaryFontFamily || 'inherit';
     const actionFont = currentSettings.actionFontFamily || 'inherit';
 
     // Apply Variables to the whole preview pane
     previewPane.style.setProperty('--bubble-font-size', currentSettings.bubbleFontSize);
     previewPane.style.setProperty('--action-font-size', currentSettings.actionTextFontSize);
-    
+
     // Independent Font Families
     previewPane.style.setProperty('--bubble-font', uiFont);
     previewPane.style.setProperty('--action-font', actionFont);
@@ -297,7 +296,7 @@ function updatePreviewStyles() {
     previewPane.style.setProperty('--monologue-color', currentSettings.monologueColor);
     previewPane.style.setProperty('--monologue-border', currentSettings.monologueBorder);
     previewPane.style.setProperty('--monologue-dot', currentSettings.monologueDot);
-    
+
     // Text Blocks (NARRATOR)
     const textBlocks = previewPane.querySelectorAll('.text-block-container');
     textBlocks.forEach(tb => {
