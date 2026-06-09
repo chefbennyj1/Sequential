@@ -313,7 +313,12 @@ class ExportController {
                 .speech-bubble-container { width: var(--bubble-width, auto) !important; min-width: 100px !important; }
                 .page .super-bubble { font-size: ${scaledFontSize} !important; padding: ${(10 * scaleFactor).toFixed(2)}px ${(15 * scaleFactor).toFixed(2)}px !important; border-width: ${(3 * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; }
                 .page .speech-text { font-size: ${scaledFontSize} !important; line-height: 1.1 !important; -webkit-text-stroke: 0px transparent !important; }
-                .page .text-block { font-size: ${scaledFontSize} !important; padding: ${(15 * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; }
+                .page .text-block { 
+                    font-size: ${scaledFontSize} !important; 
+                    padding: ${(15 * scaleFactor).toFixed(2)}px !important; 
+                    line-height: 1.1 !important; 
+                    border-width: ${(4 * scaleFactor).toFixed(2)}px !important; 
+                }
                 .page .tail-container::before, .page .tail-container::after { border-width: ${(15 * scaleFactor).toFixed(2)}px !important; }
                 
                 /* Catch-all for any text elements and custom system bubbles */
