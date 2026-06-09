@@ -418,7 +418,13 @@ export async function init(container, params) {
     }
 
     window.addEventListener('resize', fitContainer);
-    setTimeout(fitContainer, 100);
+    
+    // Final check for fit once everything is loaded
+    if (document.readyState === 'complete') {
+        fitContainer();
+    } else {
+        window.addEventListener('load', fitContainer);
+    }
 
     window.addEventListener('message', (e) => {
         const targetPage = pages.find(p => p.pageId === e.data.pageId);
