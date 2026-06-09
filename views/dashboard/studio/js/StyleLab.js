@@ -125,6 +125,23 @@ export function initStyleLab(container) {
     resetBtn.addEventListener('click', resetToDefaults);
 
     cssInput.addEventListener('change', uploadCss);
+
+    // Precision Step Buttons (+/-)
+    container.addEventListener('click', (e) => {
+        const btn = e.target.closest('.slider-step-btn');
+        if (!btn) return;
+
+        const targetId = btn.dataset.target;
+        const step = parseFloat(btn.dataset.step);
+        const slider = document.getElementById(targetId);
+
+        if (slider) {
+            const newVal = parseFloat(slider.value) + step;
+            slider.value = newVal;
+            // Trigger the input event to update settings and preview
+            slider.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+    });
 }
 
 async function loadFonts(selects) {
