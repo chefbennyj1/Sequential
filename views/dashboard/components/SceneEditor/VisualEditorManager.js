@@ -157,7 +157,12 @@ export class VisualEditorManager {
         if (addBtn) addBtn.onclick = async () => {
             try {
                 const panelSelector = await this.assetManager.createFloatingPanel();
-                document.getElementById('pagePreviewFrame').contentWindow.location.reload();
+                const iframe = document.getElementById('pagePreviewFrame');
+                if (iframe) {
+                    const currentUrl = new URL(iframe.contentWindow.location.href);
+                    currentUrl.searchParams.set('t', Date.now());
+                    iframe.src = currentUrl.toString();
+                }
                 this.loadPanel({ ...this.currentVisualContext, panel: panelSelector }, this.activeSeriesId);
             } catch (err) { alert(err.message); }
         };
