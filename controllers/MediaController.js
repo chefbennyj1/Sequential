@@ -68,6 +68,10 @@ exports.servePageImage = async (req, res) => {
             res.type(type);
             res.sendFile(targetPath, (err) => {
                 if (err) {
+                    // Suppress benign client-side abort errors
+                    if (err.code === 'ECONNABORTED' || err.code === 'ECANCELED' || err.message.includes('Request aborted')) {
+                        return; // Ignore silently
+                    }
                     console.error(`Error streaming file: ${targetPath}`, err);
                     if (!res.headersSent) {
                         res.status(500).send('Error sending file');
