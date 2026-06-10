@@ -75,11 +75,11 @@ export function initEventHandlers(container, allSections) {
             console.log(`[Dashboard] Mode Card Clicked: ${targetPage}`);
             if (!targetPage) return;
 
-            const studio = container.querySelector('.studio');
             const targetSection = container.querySelector('.' + targetPage);
             
             if (targetSection) {
-                if (studio) studio.classList.add('hidden');
+                // EXCLUSIVE VISIBILITY: Hide all sections before showing the new one
+                allSections.forEach(s => s.classList.add('hidden'));
                 targetSection.classList.remove('hidden');
 
                 if (targetPage === 'create-new-volume') populateSeriesSelect('createVolumeSeriesSelect');
