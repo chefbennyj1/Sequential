@@ -302,8 +302,8 @@ export async function openVisualEditor(volume, chapter, pageId, mode = 'landscap
  * Syncs all manager data (Scene, Media, Characters) for a specific page.
  * Used during initial load and context switching (spreads).
  */
-async function syncEditorContext(volume, chapter, pageId, mode) {
-    console.log(`[SceneEditor] Syncing context for ${pageId}...`);
+async function syncEditorContext(volume, chapter, pageId, mode, silent = false) {
+    console.log(`[SceneEditor] Syncing context for ${pageId}... (Silent: ${silent})`);
     try {
         const [panelData, scene, characters, mediaRes] = await Promise.all([
             fetchPagePanels(volume, chapter, pageId, activeSeriesId),
@@ -328,7 +328,7 @@ async function syncEditorContext(volume, chapter, pageId, mode) {
         if (timeline) timeline.setData(currentSceneData, characters || []);
 
         const layoutEditor = document.querySelector('.layout-editor');
-        if (layoutEditor) {
+        if (layoutEditor && !silent) {
             // Use the isSpread boolean from the API response
             const isSpread = !!panelData.isSpread;
             console.log(`[SceneEditor] syncEditorContext: Is Spread: ${isSpread}`);
@@ -508,7 +508,9 @@ export function initSceneEditor() {
             const needsSwitch = ['panelSelected', 'dialogueSelected', 'assetUploaded', 'panelDragged', 'dialogueDragged'].includes(e.data.type);
             if (needsSwitch) {
                 console.log(`[SceneEditor] Context switch detected: ${currentSceneInfo.pageId} -> ${pageId}`);
-                await syncEditorContext(volume || currentSceneInfo.volume, chapter || currentSceneInfo.chapter, pageId);
+                
+                // Pass true for 'silent' to prevent the UI from reloading and breaking the spread view
+                await syncEditorContext(volume || currentSceneInfo.volume, chapter || currentSceneInfo.chapter, pageId, null, true);
             }
         }
 
