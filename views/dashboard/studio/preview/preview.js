@@ -416,7 +416,19 @@ export async function init(container, params) {
         if (e.data.type === 'styleUpdate' || e.data.type === 'mediaPersisted') {
             const controller = targetPage || pages[0];
             const { panel: selector, styles, fileName, overlayImage, overlayOpacity, entry } = e.data;
-            const panel = controller.container.querySelector(selector);
+            let panel = controller.container.querySelector(selector);
+
+            // DYNAMIC CREATION: If panel doesn't exist and it's a floating panel, create it now
+            if (!panel && (entry?.isFloating || styles?.position === 'absolute')) {
+                console.log(`[Preview] Dynamically creating floating panel: ${selector}`);
+                panel = document.createElement('div');
+                const panelClass = selector.startsWith('.') ? selector.substring(1) : selector;
+                panel.className = `panel ${panelClass} floating-panel`;
+                const layoutCont = controller.container.querySelector('.section-container') || controller.container.querySelector('.page-layout') || controller.container;
+                layoutCont.appendChild(panel);
+                controller.initPanels(); // Re-bind drag/click listeners to the new panel
+            }
+
             if (panel) {
                 const targetFileName = fileName || entry?.fileName;
                 const targetOverlay = overlayImage || entry?.overlayImage;

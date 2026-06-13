@@ -111,11 +111,12 @@ export class VisualEditorManager {
         const selector = panel;
         this.selectedPanelSelector = selector;
 
+        // Context Switch Logic: If a specific pageId is provided in the message, 
+        // we must update our internal context to match that page (essential for spreads)
         if (volume && chapter && pageId) {
             this.currentVisualContext = { volume, chapter, pageId };
-            this.assetManager.context = this.currentVisualContext;
             this.activeSeriesId = seriesId;
-            this.assetManager.activeSeriesId = seriesId;
+            this.assetManager.setContext(this.currentVisualContext, seriesId);
 
             const res = await fetchMedia(volume, chapter, pageId, seriesId);
             this.currentVisualMediaData = res.media || [];
@@ -225,7 +226,7 @@ export class VisualEditorManager {
 
         const addFloatingBtn = document.getElementById('addFloatingPanelBtn');
         if (addFloatingBtn) {
-            addFloatingBtn.onclick = () => {
+            addFloatingBtn.onclick = async () => {
                 const name = prompt("Floating Panel ID (e.g. .panel-FX):", ".panel-new");
                 if (name) {
                     const newEntry = { 
@@ -235,7 +236,14 @@ export class VisualEditorManager {
                         style: { position: 'absolute', top: '10%', left: '10%', width: '30%', 'z-index': 100 } 
                     };
                     this.currentVisualMediaData.push(newEntry);
-                    this.renderPanelEditor(name);
+                    
+                    // Persist immediately so it appears in the iframe and is saved
+                    try {
+                        await this.assetManager.saveMedia();
+                        this.renderPanelEditor(name);
+                    } catch (err) {
+                        alert("Failed to create floating panel: " + err.message);
+                    }
                 }
             };
         }
@@ -249,7 +257,7 @@ export class VisualEditorManager {
                     await fetch('/api/editor/toggle-spread', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ volumeId: volume, chapterId: chapter, pageId, isSpread: this.isSpread })
+                        body: JSON.stringify({ volumeId: volume, chapterId: chapter, pageId, enabled: this.isSpread })
                     });
                     // Reload iframe to show/hide partner page
                     document.getElementById('pagePreviewFrame').contentWindow.location.reload();
@@ -275,20 +283,22 @@ export class VisualEditorManager {
         const browseBtn = document.getElementById('visual-asset-browse');
         if (browseBtn) {
             browseBtn.onclick = () => {
-                openFileBrowser((file) => {
+                const { volume, chapter, pageId } = this.currentVisualContext;
+                openFileBrowser('image', volume, chapter, pageId, (file) => {
                     document.getElementById('visual-asset-name').value = file;
                     this.handleLiveSync(panelSelector);
-                }, 'page', this.currentVisualContext);
+                }, 'page', this.activeSeriesId);
             };
         }
 
         const overlayBrowseBtn = document.getElementById('visual-overlay-browse');
         if (overlayBrowseBtn) {
             overlayBrowseBtn.onclick = () => {
-                openFileBrowser((file) => {
+                const { volume, chapter, pageId } = this.currentVisualContext;
+                openFileBrowser('image', volume, chapter, pageId, (file) => {
                     document.getElementById('visual-overlay-name').value = file;
                     this.handleLiveSync(panelSelector);
-                }, 'page', this.currentVisualContext);
+                }, 'page', this.activeSeriesId);
             };
         }
 
@@ -373,10 +383,13 @@ export class VisualEditorManager {
         syncPreviewLive(
             document.getElementById('pagePreviewFrame'),
             panelSelector,
-            getVal('visual-asset-name'),
-            style,
-            getVal('visual-overlay-name'),
-            getVal('visual-overlay-opacity')
+            {
+                styles: style,
+                fileName: getVal('visual-asset-name'),
+                overlayImage: getVal('visual-overlay-name'),
+                overlayOpacity: getVal('visual-overlay-opacity'),
+                pageId: this.currentVisualContext.pageId
+            }
         );
     }
 

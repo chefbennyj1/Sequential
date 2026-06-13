@@ -518,6 +518,11 @@ export function initSceneEditor() {
         }
 
         if (e.data.type === 'panelSelected') {
+            const { pageId, volume, chapter } = e.data;
+            if (pageId && pageId !== currentSceneInfo.pageId) {
+                console.log(`[SceneEditor] Panel context switch: ${currentSceneInfo.pageId} -> ${pageId}`);
+                await syncEditorContext(volume || currentSceneInfo.volume, chapter || currentSceneInfo.chapter, pageId, null, true);
+            }
             visual.loadPanel(e.data, activeSeriesId);
         }
 

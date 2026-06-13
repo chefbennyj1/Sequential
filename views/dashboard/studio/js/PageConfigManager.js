@@ -90,15 +90,16 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
     });
 
     const alertsContainer = document.getElementById('pageBuilderAlerts');
-    if (alertsContainer) alertsContainer.innerHTML = ''; // Clear all on start
+    if (alertsContainer) {
+        alertsContainer.innerHTML = ''; // Clear all on start
+        alertsContainer.classList.add('hidden');
+    }
 
     // Run orphan check
-    if (seriesId) await checkOrphanDialogue(vol, chap, page, seriesId);
-
-    // --- SPREAD OPPORTUNITY ALERT ---
-    const pageMatch = page.match(/page(\d+)/i);
-    const pageNum = pageMatch ? parseInt(pageMatch[1], 10) : 0;
-    const isEven = pageNum % 2 === 0; // Page 2, 4, 6... are Left-hand pages
+    if (seriesId) {
+        const orphanCount = await checkOrphanDialogue(vol, chap, page, seriesId);
+        if (orphanCount > 0 && alertsContainer) alertsContainer.classList.remove('hidden');
+    }
 
     const refreshLayoutDisplay = async (pageEntry) => {
         let lid = "";
@@ -113,68 +114,7 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
         if (seriesId) await checkOrphanDialogue(vol, chap, page, seriesId);
 
         // --- SPREAD STATUS & TOGGLE ---
-        const spreadData = pageEntry?.header?.spread || { type: 'none', isBroken: false };
-        const isSpreadEnabled = spreadData.type !== 'none';
-
-        if ((isEven || isSpreadEnabled) && alertsContainer) {
-            const spreadAlert = document.createElement('div');
-            spreadAlert.className = `alert border-dim padding-15 border-radius-8 bg-black-10 flex-row align-center gap-15 margin-t-10`;
-            spreadAlert.innerHTML = `
-                <ion-icon name="bulb-outline" class="text-accent font-size-2"></ion-icon>
-                <div class="flex-1">
-                    <h5 class="text-accent margin-b-5">Two-Page Spread</h5>
-                    <p class="text-muted font-size-08">
-                        Page ${pageNum} is a <strong>${isEven ? 'Left-Hand' : 'Right-Hand'}</strong> page. Spreads pair even pages with the following odd page.
-                    </p>
-                </div>
-                <div class="flex-row align-center gap-15">
-                    <label class="glass-switch-label">
-                        <input type="checkbox" id="pageSpreadToggle" ${isSpreadEnabled ? 'checked' : ''}>
-                        <span class="glass-switch-track"><span class="glass-switch-thumb"></span></span>
-                        <span class="text-muted font-size-07" style="margin-left: 10px;">${isSpreadEnabled ? 'Spread Active' : 'Enable Spread'}</span>
-                    </label>
-                </div>
-            `;
-            alertsContainer.appendChild(spreadAlert);
-
-            const toggle = document.getElementById('pageSpreadToggle');
-            toggle.onclick = async () => {
-                const enabled = toggle.checked;
-                try {
-                    const volumeObj = await fetchSingleVolumeWithChapters(vol, seriesId);
-                    const res = await fetch('/api/editor/toggle-spread', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            volumeId: volumeObj._id,
-                            chapterId: chap,
-                            pageId: page,
-                            enabled
-                        })
-                    });
-                    
-                    const text = await res.text();
-                    let result;
-                    try {
-                        result = JSON.parse(text);
-                    } catch (e) {
-                        console.error("Server returned non-JSON:", text);
-                        throw new Error(`Server Error (${res.status}): Invalid Response Format`);
-                    }
-
-                    if (result.ok) {
-                        // Refresh to show updated state
-                        await setActivePage(vol, chap, page, seriesId, seriesFolder);
-                    } else {
-                        alert("Error: " + result.message);
-                        toggle.checked = !enabled;
-                    }
-                } catch (err) {
-                    console.error(err);
-                    toggle.checked = !enabled;
-                }
-            };
-        }
+        // (Removed redundant dashboard alert. Spread mode is managed in the Visual Editor.)
     };
 
     // 1. --- LAYOUT CONFIG ---

@@ -25,7 +25,7 @@ export async function openFileBrowser(type, volume, chapter, pageId, callback, i
     const searchInput = document.getElementById('fbSearchInput');
 
     if (modal) {
-        modal.classList.add('active');
+        modal.classList.add('is-open');
         uploadInput.accept = 'image/*';
         
         // Reset filters
