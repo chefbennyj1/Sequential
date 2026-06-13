@@ -142,10 +142,12 @@ body {
     display: block !important;
 }
 
-/* Ensure Studio Hub and Scene Editor use flex when active */
+/* Ensure Studio Hub, Scene Editor, and Layout Editor use flex when active */
 .studio.dashboard-section.is-active,
-.scene-editor.dashboard-section.is-active {
+.scene-editor.dashboard-section.is-active,
+.layout-editor.dashboard-section.is-active {
     display: flex !important;
+    flex-direction: column;
 }
 
 /* Ensure sections have enough room and are visible */
@@ -205,7 +207,8 @@ body {
 .editor-container-flex {
     display: flex;
     gap: 20px;
-    height: calc(100vh - 190px);
+    flex: 1;
+    min-height: 0;
     max-width: 100%;
     box-sizing: border-box;
     position: relative; /* Ensure children can absolute-position correctly */
