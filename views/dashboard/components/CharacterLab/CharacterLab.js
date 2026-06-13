@@ -120,7 +120,7 @@ export default class CharacterLab {
         }
         chars.forEach(char => {
             const card = document.createElement('div');
-            card.className = 'char-card';
+            card.className = 'char-card glass glass--bright glass-card';
             card.innerHTML = `
                 <img src="${char.image || '/views/public/images/avatar.png'}" class="char-avatar" style="border-color: ${char.color}">
                 <div class="char-info">
@@ -339,6 +339,9 @@ export default class CharacterLab {
 
             const data = await res.json();
             if (data.ok) {
+                if (window.GlassToast) {
+                    window.GlassToast.show('success', 'Saved', `Character '${name}' successfully updated.`);
+                }
                 this.hideForm();
                 this.loadCharacters();
             } else {

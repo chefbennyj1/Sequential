@@ -1,6 +1,7 @@
 <%- include('../shared/main', { 
     title: 'Dashboard', 
     bodyClass: 'dashboard-shell',
+    hideHeader: true,
     body: `
         <section id="dashboard" class="dashboard active"></section>
     `,
@@ -11,10 +12,16 @@
             import { init as initDashboard } from '/views/dashboard/dashboard.js?v=2.1';
 
             (async () => {
+                // Set theme to light by default
+                document.documentElement.setAttribute('data-theme', 'light');
+                localStorage.setItem('glass-theme', 'light');
+
+                // 1. Load Liquid Glass Design System (The Foundation)
+                await loadCSS('/views/dashboard/ui-kit/glass-system/glass_components.css');
+                
                 await loadSection('dashboard', '/views/dashboard/dashboard.html', false);
                 
                 await loadCSS('/views/dashboard/dashboard.css');
-                await loadCSS('/views/dashboard/components/components.css');
                 // Studio specific styles
                 await loadCSS('/views/dashboard/studio/studio-common.css');
                 
@@ -29,8 +36,13 @@
                 await loadCSS('/views/dashboard/components/ScheduledTasks/ScheduledTasks.css');
                 await loadCSS('/views/dashboard/components/FileBrowser/FileBrowser.css');
                 await loadCSS('/views/dashboard/components/LayoutBrowser/LayoutBrowser.css');
-                await loadCSS('/views/dashboard/styles/StyleLab.css');
+                await loadCSS('/views/dashboard/ui-kit/StyleLab.css');
                 
+                // 3. Load Glass System Script
+                const glassScript = document.createElement('script');
+                glassScript.src = '/views/dashboard/ui-kit/glass-system/glass_component.js';
+                document.body.appendChild(glassScript);
+
                 const dashboardContainer = document.getElementById('dashboard');
                 if (dashboardContainer) {
                     await initDashboard(dashboardContainer);

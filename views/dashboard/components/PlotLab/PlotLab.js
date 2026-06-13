@@ -81,7 +81,7 @@ function renderBoard() {
 
     plotBeats.forEach((beat, index) => {
         const el = document.createElement('div');
-        el.className = 'plot-beat-card';
+        el.className = 'plot-beat-card glass glass--bright glass-card';
         el.draggable = true;
         el.dataset.index = index;
 
@@ -92,8 +92,8 @@ function renderBoard() {
             </div>
             <p class="plot-beat-desc">${beat.description || ''}</p>
             <div class="plot-beat-controls">
-                <button class="edit-btn">Edit</button>
-                <button class="delete-btn">Delete</button>
+                <button class="glass glass-btn glass-btn--sm glass-btn--ghost edit-btn">Edit</button>
+                <button class="glass glass-btn glass-btn--sm glass-btn--danger delete-btn">Delete</button>
             </div>
         `;
 
@@ -166,15 +166,15 @@ function openBeatForm(editIndex = null) {
     const modal = document.createElement('div');
     modal.className = 'plot-form-modal';
     modal.innerHTML = `
-        <div class="plot-form-content">
+        <div class="plot-form-content glass glass--bright glass-card">
             <h3>${isEdit ? 'Edit Story Beat' : 'New Story Beat'}</h3>
             <div class="input-field">
                 <label>Title</label>
-                <input type="text" id="beat-title" class="gov-input" value="${beat.title}">
+                <input type="text" id="beat-title" class="glass-input" value="${beat.title}">
             </div>
             <div class="input-field">
                 <label>Type</label>
-                <select id="beat-type" class="gov-select width-100">
+                <select id="beat-type" class="glass-select width-100">
                     <option value="Plot" ${beat.type === 'Plot' ? 'selected' : ''}>Plot / Action</option>
                     <option value="Lore" ${beat.type === 'Lore' ? 'selected' : ''}>Lore / Rule</option>
                     <option value="Character" ${beat.type === 'Character' ? 'selected' : ''}>Character Arc</option>
@@ -182,11 +182,11 @@ function openBeatForm(editIndex = null) {
             </div>
             <div class="input-field">
                 <label>Description</label>
-                <textarea id="beat-desc" class="gov-textarea" rows="6">${beat.description}</textarea>
+                <textarea id="beat-desc" class="glass-input" rows="6">${beat.description}</textarea>
             </div>
             <div class="flex-row gap-10 margin-t-20">
-                <button id="save-beat-btn" class="update__btn flex-1">Save Beat</button>
-                <button id="cancel-beat-btn" class="gov-btn-cancel flex-1">Cancel</button>
+                <button id="save-beat-btn" class="glass glass-btn glass-btn--primary flex-1">Save Beat</button>
+                <button id="cancel-beat-btn" class="glass glass-btn glass-btn--ghost flex-1">Cancel</button>
             </div>
         </div>
     `;

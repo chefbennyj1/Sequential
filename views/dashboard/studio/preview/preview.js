@@ -395,36 +395,8 @@ export async function init(container, params) {
         pages.push(controller);
     }
 
-    function fitContainer() {
-        const padding = 20;
-        const gap = params.isSpread ? 20 : 0; // Matches CSS gutter gap
-        const availableWidth = window.innerWidth - padding - gap;
-        const availableHeight = window.innerHeight - padding;
-        
-        pageContainers.forEach(pageCont => {
-            const sectionContainer = pageCont.querySelector('.section-container') || pageCont.querySelector('.page-layout');
-            if (!sectionContainer) return;
-            sectionContainer.style.transform = 'none';
-            const rect = sectionContainer.getBoundingClientRect();
-            const naturalWidth = rect.width;
-            const naturalHeight = rect.height;
-            if (naturalWidth === 0 || naturalHeight === 0) return;
-            
-            const scaleX = (availableWidth / (params.isSpread ? 2 : 1)) / naturalWidth;
-            const scaleY = availableHeight / naturalHeight;
-            const scale = Math.min(scaleX, scaleY);
-            sectionContainer.style.transform = `scale(${scale})`;
-        });
-    }
-
-    window.addEventListener('resize', fitContainer);
-    
-    // Final check for fit once everything is loaded
-    if (document.readyState === 'complete') {
-        fitContainer();
-    } else {
-        window.addEventListener('load', fitContainer);
-    }
+    // CSS aspect-ratio and max-constraints now handle fitting.
+    // Logic-based scaling removed to prevent fighting with responsive layout.
 
     window.addEventListener('message', (e) => {
         const targetPage = pages.find(p => p.pageId === e.data.pageId);

@@ -1,0 +1,45 @@
+@import url('/views/shared/styles/vars.css');
+
+* {
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+html,
+body {
+  scroll-behavior: smooth;
+  scroll-snap-type: y proximity;
+}
+
+html {
+  font-family: var(--font-family-comic-bold);
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  background: #0a0a0a;
+}
+
+body.cursor-hidden {
+  cursor: none;
+}
+
+.logo-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.scroll-wrapper {
+  position: relative;
+  width: 100dvw;
+}
+
+.section-container {
+  position: relative;
+  background: transparent;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}

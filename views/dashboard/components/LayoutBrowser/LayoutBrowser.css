@@ -2,9 +2,9 @@
 
 .layout-browser-grid {
     margin-top: 15px;
-    background: #111;
+    background: var(--glass-dark);
     border-radius: 8px;
-    border: 1px solid #333;
+    border: 1px solid var(--border);
     padding: 15px 5px;
 }
 
@@ -18,8 +18,8 @@
 }
 
 .layout-preview-card {
-    background: #1a1a1a;
-    border: 2px solid #333;
+    background: var(--glass-white);
+    border: 2px solid var(--border);
     border-radius: 8px;
     padding: 10px;
     cursor: pointer;
@@ -31,20 +31,20 @@
 }
 
 .layout-preview-card.portrait-mode {
-    width: 140px; /* Constrain width for portrait items in grid */
+    width: 140px;
     min-height: 200px;
 }
 
 .layout-preview-card:hover {
-    border-color: var(--accent, #007bff);
-    background: #222;
+    border-color: var(--accent);
+    background: var(--glass-white-md);
     transform: translateY(-2px);
 }
 
 .layout-preview-card.selected {
-    border-color: var(--accent, #007bff);
-    box-shadow: 0 0 15px rgba(0, 123, 255, 0.3);
-    background: #252525;
+    border-color: var(--accent);
+    box-shadow: var(--shadow-float);
+    background: var(--glass-white-lg);
 }
 
 /* The scaled-down container */
@@ -54,11 +54,11 @@
     position: relative;
     overflow: hidden;
     background: #000;
-    border: 1px solid #444;
-    pointer-events: none; /* Don't let users interact with the mini-map internal divs */
+    border: 1px solid var(--border);
+    pointer-events: none;
 }
 
-/* Force the layout inside to be tiny */
+/* Force the layout inside to be tiny (0.1 scale) */
 .mini-map-container .section-container,
 .mini-map-container .page-layout {
     width: 1400px !important; /* 10x scale target */
@@ -108,13 +108,13 @@
 
 .layout-card-name {
     font-size: 0.7rem;
-    color: #aaa;
+    color: var(--text);
     text-align: center;
     word-break: break-all;
     font-family: 'Consolas', monospace;
 }
 
 .layout-preview-card.selected .layout-card-name {
-    color: var(--accent, #007bff);
+    color: var(--accent);
     font-weight: bold;
 }

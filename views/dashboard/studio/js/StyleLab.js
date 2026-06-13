@@ -343,9 +343,15 @@ async function saveSettings() {
         });
         const data = await res.json();
         if (data.ok) {
-            alert("Styles saved successfully!");
+            if (window.GlassToast) {
+                window.GlassToast.show('success', 'Styles Saved', 'Global typography and CSS updated.');
+            }
         } else {
-            alert("Error: " + data.message);
+            if (window.GlassToast) {
+                window.GlassToast.show('error', 'Save Failed', data.message);
+            } else {
+                alert("Error: " + data.message);
+            }
         }
     } catch (err) {
         console.error(err);

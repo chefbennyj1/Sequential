@@ -101,3 +101,11 @@ section.active .section-container {
   border-color: rgba(255, 0, 0, 0.5);
 }
 
+.master-stage {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center !important;
+}
+

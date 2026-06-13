@@ -1,0 +1,225 @@
+/* Dashboard UI Components - Modern & Core */
+
+@import url('./cards.css');
+
+/* --- Studio Hub Mode Cards --- */
+.mode-card {
+    cursor: pointer;
+    text-align: center;
+    min-height: 220px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.mode-card ion-icon {
+    font-size: 3rem;
+    color: var(--accent-aqua);
+    margin-bottom: var(--space-md);
+    transition: transform var(--dur-fast) var(--ease-liquid);
+}
+
+.mode-card:hover ion-icon {
+    transform: scale(1.1) rotate(5deg);
+    color: var(--accent-violet);
+}
+
+.mode-card .glass-card__title {
+    margin-bottom: var(--space-xs);
+    font-size: 1.25rem;
+}
+
+.mode-card .glass-card__body {
+    font-size: 0.85rem;
+    max-width: 200px;
+}
+
+/* --- Chapter & Grid Styling --- */
+.chapters-display {
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+    display: none;
+}
+
+.chapters-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+    justify-content: center;
+    align-items: start;
+    padding: 20px;
+}
+
+.chapter-card {
+    padding: 15px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.chapter-card:hover {
+    transform: translateY(-5px);
+}
+
+.chapter-card h3 {
+    color: var(--text);
+    font-size: 1.1em;
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+/* Remaining User Specific Dashboard Components */
+.logo {
+  font-weight: 700;
+  margin-bottom: 20px;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 2px;
+}
+
+/* User profile base styling without the heavy background box */
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.user-info .name {
+  font-weight: 600;
+  font-size: 0.9rem;
+  display: block;
+}
+
+.user-info .role {
+  font-size: 0.75rem;
+  color: var(--muted);
+}
+
+/* Utility Header for Panels */
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* Negative margin to account for parent padding */
+  background: var(--panel);
+  padding: 10px 15px;
+  margin-bottom: 15px;
+  z-index: 10;
+  width: calc(100% + 30px);
+  margin-left: -15px;
+  box-sizing: border-box;
+  border-bottom: 1px solid var(--border);
+}
+
+
+/* --- Insert Point Input Override --- */
+#insertPoint {
+  font-family: 'Consolas', monospace;
+  font-size: 1.2rem;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.1);
+  border: 1px solid var(--accent);
+  color: var(--accent);
+  padding: 10px;
+  border-radius: 8px;
+  width: 100%;
+}
+
+#insertPoint:focus {
+  box-shadow: 0 0 10px rgba(0, 204, 255, 0.3);
+}
+
+/* --- Small Utility Buttons (Circular/Icon based) --- */
+.action-btn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--accent);
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  padding: 0;
+}
+
+.action-btn:hover {
+  background-color: var(--glass-white-md);
+  color: var(--accent);
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(0, 170, 255, 0.2);
+}
+
+.action-btn:active {
+  transform: translateY(1px);
+}
+
+.action-btn.small {
+  width: 28px;
+  height: 28px;
+  font-size: 0.8rem;
+}
+
+.action-btn ion-icon {
+  font-size: 1.2rem;
+  pointer-events: none;
+}
+
+.action-btn.small ion-icon {
+  font-size: 1rem;
+}
+
+.action-btn.refresh,
+.action-btn[id*="refresh"], 
+.action-btn[id*="sync"] {
+    color: var(--accent);
+}
+
+.action-btn.refresh:hover,
+.action-btn[id*="refresh"]:hover,
+.action-btn[id*="sync"]:hover {
+    border-color: var(--accent);
+}
+
+/* --- Toggle Style --- */
+.toggle-btn {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  padding: 5px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.toggle-btn.active {
+  background: var(--cyber-primary);
+  color: var(--color-text, #fff);
+  border-color: var(--cyber-primary);
+}
+
+[data-theme="light"] .toggle-btn.active {
+    color: #fff;
+}
+
+/* --- Destructive Actions --- */
+.btn-danger-outline {
+  background: transparent;
+  border: 1px solid #ff4d4d;
+  color: #ff4d4d;
+}
+
+.btn-danger-outline:hover {
+  background: #ff4d4d;
+  color: var(--color-text, #fff);
+}

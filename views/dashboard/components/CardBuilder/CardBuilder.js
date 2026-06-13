@@ -27,7 +27,7 @@ export function renderChapterCard({ title, chapterNumber, pages, volumeId }) {
     const lastPageIndex = pages.length > 0 ? pages[pages.length - 1].index : 'N/A';
 
     return `
-    <div class="chapter-card" data-volume-id="${volumeId}" data-chapter-number="${chapterNumber}">
+    <div class="glass glass-card chapter-card" data-volume-id="${volumeId}" data-chapter-number="${chapterNumber}">
         <div class="chapter-info">
             <h3>${title || `Chapter ${chapterNumber}`}</h3>
             <p>Pages: ${firstPageIndex} - ${lastPageIndex}</p>

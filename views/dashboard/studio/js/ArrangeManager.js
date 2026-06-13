@@ -90,7 +90,7 @@ class ArrangeManager {
         this.currentPages.forEach(page => {
             const pageId = this.extractPageId(page.path);
             const item = document.createElement('div');
-            item.className = 'arrange-page-item';
+            item.className = 'arrange-page-item glass glass--bright padding-10 border-radius-8 margin-b-10';
             item.setAttribute('data-id', pageId);
 
             // 1. Drag Handle

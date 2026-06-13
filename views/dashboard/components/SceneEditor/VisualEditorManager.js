@@ -1,7 +1,7 @@
 // views/dashboard/components/SceneEditor/VisualEditorManager.js
 import { fetchMedia } from '../../studio/api/StudioClient.js';
 import { openFileBrowser } from '../FileBrowser/FileBrowser.js';
-import { renderPanelSettings, renderAllPanelsTemplate } from './VisualEditorUI.js';
+import { renderPanelSettings, renderAllPanelsTemplate, renderReadinessStepperTemplate } from './VisualEditorUI.js';
 import { renderDialogueProperties } from './VisualEditorDialogueUI.js';
 import { pushPanelSelect, syncPreviewLive, pushMediaPersisted } from './VisualEditorSync.js';
 import { VisualEditorAssetManager } from './VisualEditorAssetManager.js';
@@ -71,6 +71,11 @@ export class VisualEditorManager {
                 setTimeout(() => descInput.style.borderColor = '#333', 1500);
             }
             this.resetAiButtonState();
+        } else {
+            // Re-render directory to update AI step in stepper
+            const iframe = document.getElementById('pagePreviewFrame');
+            let panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
+            if (!this.selectedPanelSelector) this.renderDirectory(panelNames);
         }
     }
 
@@ -98,52 +103,73 @@ export class VisualEditorManager {
         }
         if (aiBtn && aiBtn.disabled) {
             aiBtn.disabled = false;
-            aiBtn.innerHTML = '<ion-icon name="sparkles-outline"></ion-icon> <span>AI Analyze Image</span>';
         }
     }
 
-    async loadPanel(data, seriesId, propertiesManager = null) {
-        if (propertiesManager) {
-             const scenePropsPane = document.querySelector('.scene-props-pane');
-             if (scenePropsPane) {
-                 propertiesManager.container = scenePropsPane;
-                 propertiesManager.form = scenePropsPane.querySelector('#sceneItemForm');
-             }
+    async loadPanel(data, seriesId) {
+        const { volume, chapter, pageId, panel } = data;
+        const selector = panel;
+        this.selectedPanelSelector = selector;
+
+        if (volume && chapter && pageId) {
+            this.currentVisualContext = { volume, chapter, pageId };
+            this.assetManager.context = this.currentVisualContext;
+            this.activeSeriesId = seriesId;
+            this.assetManager.activeSeriesId = seriesId;
+
+            const res = await fetchMedia(volume, chapter, pageId, seriesId);
+            this.currentVisualMediaData = res.media || [];
+            this.assetManager.mediaData = this.currentVisualMediaData;
+            this.isSpread = !!res.isSpread;
         }
-
-        const { panel, volume, chapter, pageId } = data;
-        this.currentVisualContext = { volume, chapter, pageId };
-        this.selectedPanelSelector = panel;
-        this.activeSeriesId = seriesId;
-
-        // Update Asset Manager Context
-        this.assetManager.setContext(this.currentVisualContext, seriesId);
 
         const iframe = document.getElementById('pagePreviewFrame');
         let panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
-
-        const res = await fetchMedia(volume, chapter, pageId, seriesId);
-        this.currentVisualMediaData = Array.isArray(res) ? res : (res.media || []);
-        this.isSpread = !!res.isSpread;
-
-        // Sync media data to asset manager
-        this.assetManager.setMediaData(this.currentVisualMediaData);
-
-        const container = document.querySelector('.layout-editor .tools-pane');
-        if (container) container.removeAttribute('style');
-
-        if (!panel) {
-            this.renderAllPanels(panelNames);
-            return;
-        }
-
-        container.innerHTML = `<h4 style="margin-top:0;">Panel Settings</h4><div id="visualEditorContainer">Loading...</div>`;
-        this.render(panel);
+        
+        await this.render(panelNames);
+        if (selector) pushPanelSelect(iframe, selector, pageId);
     }
 
-    renderAllPanels(panelNames = []) {
-        const toolsPane = document.querySelector('.layout-editor .tools-pane');
-        toolsPane.innerHTML = renderAllPanelsTemplate(
+    async render(panelNames) {
+        if (this.selectedPanelSelector) {
+            this.renderPanelEditor(this.selectedPanelSelector);
+        } else {
+            this.renderDirectory(panelNames);
+        }
+    }
+
+    renderReadinessStepper(panelNames) {
+        const stats = {
+            assets: { count: 0, total: panelNames.length, complete: false },
+            ai: { count: 0, total: panelNames.length, complete: false },
+            continuity: { hasScene: false, complete: false }
+        };
+
+        // 1. Assets Check
+        panelNames.forEach(p => {
+            const entry = this.currentVisualMediaData.find(m => m.panel === p);
+            if (entry && entry.fileName) stats.assets.count++;
+        });
+        stats.assets.complete = stats.assets.count >= stats.assets.total && stats.assets.total > 0;
+
+        // 2. AI Check
+        panelNames.forEach(p => {
+            const entry = this.currentVisualMediaData.find(m => m.panel === p);
+            if (entry && entry.description && entry.description.trim().length > 10) stats.ai.count++;
+        });
+        stats.ai.complete = stats.ai.count >= stats.ai.total && stats.ai.total > 0;
+
+        // 3. Continuity Check
+        const sceneData = this.getActiveSceneData ? this.getActiveSceneData() : [];
+        stats.continuity.hasScene = sceneData.length > 0;
+        stats.continuity.complete = stats.continuity.hasScene && stats.assets.complete && stats.ai.complete;
+
+        return renderReadinessStepperTemplate(stats);
+    }
+
+    renderDirectory(panelNames) {
+        const stepperHtml = this.renderReadinessStepper(panelNames);
+        const panelsHtml = renderAllPanelsTemplate(
             panelNames, 
             this.currentVisualMediaData, 
             this.activeSeriesFolder, 
@@ -152,150 +178,217 @@ export class VisualEditorManager {
             this.isSpread
         );
 
-        // Bind Actions
-        const addBtn = document.getElementById('addFloatingPanelBtn');
-        if (addBtn) addBtn.onclick = async () => {
-            try {
-                const panelSelector = await this.assetManager.createFloatingPanel();
-                const iframe = document.getElementById('pagePreviewFrame');
-                if (iframe) {
-                    const currentUrl = new URL(iframe.contentWindow.location.href);
-                    currentUrl.searchParams.set('t', Date.now());
-                    iframe.src = currentUrl.toString();
-                }
-                this.loadPanel({ ...this.currentVisualContext, panel: panelSelector }, this.activeSeriesId);
-            } catch (err) { alert(err.message); }
-        };
+        this.toolsPane.innerHTML = stepperHtml + panelsHtml;
+        this.bindDirectoryEvents();
+    }
 
-        toolsPane.querySelectorAll('.geometry-item').forEach(item => {
-            item.onclick = (e) => {
+    get toolsPane() {
+        return document.querySelector('.layout-editor .tools-pane');
+    }
+
+    renderPanelEditor(panelSelector) {
+        const entry = this.currentVisualMediaData.find(m => m.panel === panelSelector) || { panel: panelSelector, type: 'image' };
+        
+        // Determine object-fit and position for display in UI
+        const isLsCustom = !!(entry.landscapeStyle && entry.landscapeStyle.objectPosition && entry.landscapeStyle.objectPosition !== 'center');
+        const isPtCustom = !!(entry.portraitStyle && entry.portraitStyle.objectPosition && entry.portraitStyle.objectPosition !== 'center');
+
+        const getNum = (val) => val ? parseFloat(val.replace('%', '')) : 50;
+        const ptPos = { x: 50, y: 50 };
+        if (isPtCustom) {
+            const parts = entry.portraitStyle.objectPosition.split(' ');
+            ptPos.x = getNum(parts[0]);
+            ptPos.y = getNum(parts[1]);
+        }
+
+        const ptScale = entry.portraitStyle?.transform ? parseFloat(entry.portraitStyle.transform.match(/scale\((.*?)\)/)?.[1] || 1) : 1;
+
+        this.toolsPane.innerHTML = renderPanelSettings(panelSelector, entry, false, isPtCustom, {}, ptPos, 1, ptScale, getNum);
+        this.bindEditorEvents(panelSelector);
+    }
+
+    bindDirectoryEvents() {
+        const pane = this.toolsPane;
+        pane.querySelectorAll('.geometry-item').forEach(el => {
+            el.onclick = (e) => {
                 if (e.target.closest('.delete-geom-btn')) return;
-                const panel = item.dataset.panel;
-                this.loadPanel({ ...this.currentVisualContext, panel }, this.activeSeriesId);
-                pushPanelSelect(document.getElementById('pagePreviewFrame'), panel, this.currentVisualContext.pageId);
-            };
-
-            const delBtn = item.querySelector('.delete-geom-btn');
-            if (delBtn) delBtn.onclick = (e) => {
-                e.stopPropagation();
-                this.handleDeletePanel(item.dataset.panel);
+                this.renderPanelEditor(el.dataset.panel);
             };
         });
 
-        // Spread Toggle
+        pane.querySelectorAll('.delete-geom-btn').forEach(btn => {
+            btn.onclick = (e) => {
+                e.stopPropagation();
+                this.handleDeletePanel(btn.closest('.geometry-item').dataset.panel);
+            };
+        });
+
+        const addFloatingBtn = document.getElementById('addFloatingPanelBtn');
+        if (addFloatingBtn) {
+            addFloatingBtn.onclick = () => {
+                const name = prompt("Floating Panel ID (e.g. .panel-FX):", ".panel-new");
+                if (name) {
+                    const newEntry = { 
+                        panel: name, 
+                        type: 'image', 
+                        isFloating: true, 
+                        style: { position: 'absolute', top: '10%', left: '10%', width: '30%', 'z-index': 100 } 
+                    };
+                    this.currentVisualMediaData.push(newEntry);
+                    this.renderPanelEditor(name);
+                }
+            };
+        }
+
         const spreadToggle = document.getElementById('toggleSpreadMode');
         if (spreadToggle) {
-            spreadToggle.onchange = async (e) => {
-                const enabled = e.target.checked;
-                spreadToggle.disabled = true;
+            spreadToggle.onchange = async () => {
+                this.isSpread = spreadToggle.checked;
+                const { volume, chapter, pageId } = this.currentVisualContext;
                 try {
                     await fetch('/api/editor/toggle-spread', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({
-                            volumeId: this.currentVisualContext.volumeId || '', 
-                            chapterId: this.currentVisualContext.chapter,
-                            pageId: this.currentVisualContext.pageId,
-                            enabled
-                        })
+                        body: JSON.stringify({ volumeId: volume, chapterId: chapter, pageId, isSpread: this.isSpread })
                     });
-                    const iframe = document.getElementById('pagePreviewFrame');
-                    if (iframe) {
-                        const layoutEditor = document.querySelector('.layout-editor');
-                        if (layoutEditor) layoutEditor.classList.toggle('is-spread', enabled);
-                        
-                        // Add cache-busting timestamp to prevent layout loading glitches
-                        const currentUrl = new URL(iframe.contentWindow.location.href);
-                        currentUrl.searchParams.set('t', Date.now());
-                        iframe.src = currentUrl.toString();
-                    }
-                } catch (err) {
-                    alert("Failed to toggle spread mode.");
-                    spreadToggle.checked = !enabled;
-                } finally { spreadToggle.disabled = false; }
+                    // Reload iframe to show/hide partner page
+                    document.getElementById('pagePreviewFrame').contentWindow.location.reload();
+                } catch (e) { console.error(e); }
             };
         }
     }
 
-    render(panelSelector) {
-        const container = document.getElementById('visualEditorContainer');
-        if (!container) return;
-
-        let entry = this.currentVisualMediaData.find(m => m.panel === panelSelector) || { panel: panelSelector, type: 'image', fileName: '' };
-
-        const parsePos = (posStr) => {
-            if (!posStr || ['center', 'top center', 'bottom center', 'left center', 'right center'].includes(posStr)) {
-                const map = { 'top center': { x: 50, y: 0 }, 'bottom center': { x: 50, y: 100 }, 'left center': { x: 0, y: 50 }, 'right center': { x: 100, y: 50 } };
-                return map[posStr] || { x: 50, y: 50 };
-            }
-            const parts = posStr.split(' ');
-            return { x: parseFloat(parts[0]) || 50, y: parseFloat(parts[1]) || 50 };
-        };
-
-        const parseScale = (trans) => (trans?.match(/scale\(([^)]+)\)/)?.[1] || 1);
-        const isPtCustom = entry.portraitStyle?.objectPosition && !['center', 'top center', 'bottom center', 'left center', 'right center'].includes(entry.portraitStyle.objectPosition);
-        const getNum = (val) => (typeof val === 'number' ? val : parseFloat(val) || 0);
-
-        container.innerHTML = renderPanelSettings(panelSelector, entry, false, isPtCustom, {x:50,y:50}, parsePos(entry.portraitStyle?.objectPosition), 1, parseScale(entry.portraitStyle?.transform), getNum);
-
-        this.bindEvents(entry, panelSelector);
-    }
-
-    bindEvents(entry, panelSelector) {
-        const getEl = (id) => document.getElementById(id);
-        const iframe = getEl('pagePreviewFrame');
-
-        getEl('backToDirectoryBtn').onclick = () => this.loadPanel({ ...this.currentVisualContext, panel: null }, this.activeSeriesId);
-
-        const sync = () => syncPreviewLive(iframe, panelSelector, 'portrait', this.currentVisualMediaData, this.currentVisualContext.pageId);
+    bindEditorEvents(panelSelector) {
+        const pane = this.toolsPane;
         
-        ['visual-portrait-style-object-position', 'visual-asset-name', 'visual-overlay-name'].forEach(id => {
-            const el = getEl(id);
-            if (el) el.oninput = el.onchange = () => {
-                if (id.includes('position')) getEl('pt-pan-wrapper').style.display = el.value === 'custom' ? 'block' : 'none';
-                sync();
+        const backBtn = document.getElementById('backToDirectoryBtn');
+        if (backBtn) {
+            backBtn.onclick = () => {
+                this.selectedPanelSelector = null;
+                const iframe = document.getElementById('pagePreviewFrame');
+                let panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
+                this.renderDirectory(panelNames);
+                if (iframe) pushPanelSelect(iframe, null, this.currentVisualContext.pageId);
             };
+        }
+
+        const browseBtn = document.getElementById('visual-asset-browse');
+        if (browseBtn) {
+            browseBtn.onclick = () => {
+                openFileBrowser((file) => {
+                    document.getElementById('visual-asset-name').value = file;
+                    this.handleLiveSync(panelSelector);
+                }, 'page', this.currentVisualContext);
+            };
+        }
+
+        const overlayBrowseBtn = document.getElementById('visual-overlay-browse');
+        if (overlayBrowseBtn) {
+            overlayBrowseBtn.onclick = () => {
+                openFileBrowser((file) => {
+                    document.getElementById('visual-overlay-name').value = file;
+                    this.handleLiveSync(panelSelector);
+                }, 'page', this.currentVisualContext);
+            };
+        }
+
+        const aiBtn = document.getElementById('visual-ai-analyze-btn');
+        if (aiBtn) aiBtn.onclick = () => this.handleAiScan(panelSelector);
+
+        const saveBtn = document.getElementById('saveVisualMediaBtn');
+        if (saveBtn) saveBtn.onclick = () => this.handleSave(panelSelector);
+
+        const flipHBtn = document.getElementById('visual-flip-h');
+        if (flipHBtn) flipHBtn.onclick = () => this.handleFlip(panelSelector, 'horizontal');
+
+        const flipVBtn = document.getElementById('visual-flip-v');
+        if (flipVBtn) flipVBtn.onclick = () => this.handleFlip(panelSelector, 'vertical');
+
+        const delBtn = document.getElementById('deleteFloatingPanelBtn');
+        if (delBtn) delBtn.onclick = () => this.handleDeletePanel(panelSelector);
+
+        // Inputs for live sync
+        ['visual-asset-name', 'visual-overlay-name', 'visual-overlay-opacity', 'visual-portrait-style-object-position', 'visual-pt-scale', 'pt-x-slider', 'pt-y-slider', 'float-left', 'float-top', 'float-width', 'float-height', 'float-aspect', 'float-z'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.oninput = () => this.handleLiveSync(panelSelector);
         });
 
-        ['visual-pt-scale', 'pt-x-slider', 'pt-y-slider', 
-         'float-left', 'float-top', 'float-width', 'float-height', 'float-z', 'float-aspect', 'visual-overlay-opacity'].forEach(id => {
-            if (getEl(id)) getEl(id).oninput = sync;
-        });
+        // Object Position Toggle
+        const objPosSelect = document.getElementById('visual-portrait-style-object-position');
+        if (objPosSelect) {
+            objPosSelect.onchange = () => {
+                document.getElementById('pt-pan-wrapper').style.display = (objPosSelect.value === 'custom') ? 'block' : 'none';
+                this.handleLiveSync(panelSelector);
+            };
+        }
 
-        const assetBrowse = getEl('visual-asset-browse');
-        if (assetBrowse) assetBrowse.onclick = () => openFileBrowser('image', this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, (f) => { getEl('visual-asset-name').value = f; sync(); }, 'page', this.activeSeriesId, this.getActiveAssets());
-        
-        const overlayBrowse = getEl('visual-overlay-browse');
-        if (overlayBrowse) overlayBrowse.onclick = () => openFileBrowser('image', this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, (f) => { getEl('visual-overlay-name').value = f; sync(); }, 'page', this.activeSeriesId, this.getActiveAssets());
-
-        document.querySelectorAll('.panel-editor-ui .btn-nudge').forEach(btn => {
-            btn.onclick = (e) => {
-                e.preventDefault();
-                const el = getEl(btn.dataset.target.includes('scale') ? 'visual-' + btn.dataset.target : btn.dataset.target + '-slider');
-                if (el) {
-                    let val = parseFloat(el.value) + parseFloat(btn.dataset.dir);
-                    val = btn.dataset.target.includes('scale') ? Math.max(1, val).toFixed(1) : Math.min(120, Math.max(-20, Math.round(val)));
-                    el.value = val; sync();
+        // Nudge Buttons
+        pane.querySelectorAll('.btn-nudge').forEach(btn => {
+            btn.onclick = () => {
+                const targetId = btn.dataset.target;
+                const dir = parseFloat(btn.dataset.dir);
+                let input;
+                if (targetId === 'pt-scale') input = document.getElementById('visual-pt-scale');
+                if (targetId === 'pt-x') input = document.getElementById('pt-x-slider');
+                if (targetId === 'pt-y') input = document.getElementById('pt-y-slider');
+                
+                if (input) {
+                    input.value = parseFloat(input.value) + dir;
+                    this.handleLiveSync(panelSelector);
                 }
             };
         });
+    }
 
-        getEl('saveVisualMediaBtn').onclick = () => this.handleSave(panelSelector);
-        if (getEl('deleteFloatingPanelBtn')) getEl('deleteFloatingPanelBtn').onclick = () => this.handleDeletePanel(panelSelector);
-        if (getEl('visual-ai-analyze-btn')) getEl('visual-ai-analyze-btn').onclick = () => this.handleAiScan(panelSelector);
+    handleLiveSync(panelSelector) {
+        const getVal = (id) => document.getElementById(id)?.value;
+        const alignVal = getVal('visual-portrait-style-object-position');
+        const scale = getVal('visual-pt-scale');
+        
+        const style = {};
+        if (alignVal === 'custom') {
+            style.objectPosition = `${getVal('pt-x-slider')}% ${getVal('pt-y-slider')}%`;
+            style.objectFit = 'cover';
+        } else {
+            style.objectFit = (alignVal === 'contain') ? 'contain' : 'cover';
+            if (alignVal !== 'contain' && alignVal !== 'cover') style.objectPosition = alignVal;
+        }
 
-        const flipH = getEl('visual-flip-h');
-        const flipV = getEl('visual-flip-v');
-        if (flipH) flipH.onclick = () => this.handleFlip(panelSelector, 'horizontal');
-        if (flipV) flipV.onclick = () => this.handleFlip(panelSelector, 'vertical');
+        if (parseFloat(scale) !== 1) style.transform = `scale(${scale})`;
+
+        // Floating specific
+        const isFloating = !!document.getElementById('float-left');
+        if (isFloating) {
+            style.position = 'absolute';
+            style.left = getVal('float-left') + '%';
+            style.top = getVal('float-top') + '%';
+            style.width = getVal('float-width') + '%';
+            const h = getVal('float-height');
+            style.height = (h.includes('%') || h === 'auto') ? h : (parseFloat(h) ? h + '%' : 'auto');
+            const aspect = getVal('float-aspect');
+            if (aspect && aspect !== 'none') style.aspectRatio = aspect;
+            style.zIndex = getVal('float-z');
+        }
+
+        syncPreviewLive(
+            document.getElementById('pagePreviewFrame'),
+            panelSelector,
+            getVal('visual-asset-name'),
+            style,
+            getVal('visual-overlay-name'),
+            getVal('visual-overlay-opacity')
+        );
     }
 
     async handleFlip(panelSelector, direction) {
-        const fileName = document.getElementById('visual-asset-name')?.value;
-        if (!fileName) return alert("No image file specified to flip.");
         const btn = document.getElementById(`visual-flip-${direction === 'horizontal' ? 'h' : 'v'}`);
         const originalText = btn.innerHTML;
-        btn.disabled = true; btn.innerText = 'Flipping...';
+        btn.disabled = true;
+        btn.innerHTML = '<ion-icon name="sync-outline" class="spin"></ion-icon>';
+
+        const fileName = document.getElementById('visual-asset-name').value;
+        if (!fileName) { alert("Assign an image first."); btn.disabled = false; btn.innerHTML = originalText; return; }
+
         try {
             await this.assetManager.flipAsset(panelSelector, fileName, direction);
             const iframe = document.getElementById('pagePreviewFrame');
@@ -404,13 +497,18 @@ export class VisualEditorManager {
 
     updateCache(panel, type, fileName) {
         const idx = this.currentVisualMediaData.findIndex(m => m.panel === panel);
-        if (idx !== -1) this.currentVisualMediaData[idx] = { ...this.currentVisualMediaData[idx], type, fileName };
-        else this.currentVisualMediaData.push({ panel, type, fileName });
-        if (this.selectedPanelSelector === panel) this.render(panel);
-        else if (!this.selectedPanelSelector) {
+        if (idx !== -1) {
+            this.currentVisualMediaData[idx] = { ...this.currentVisualMediaData[idx], type, fileName };
+        } else {
+            this.currentVisualMediaData.push({ panel, type, fileName });
+        }
+        
+        if (this.selectedPanelSelector === panel) {
+            this.render(panel);
+        } else if (!this.selectedPanelSelector) {
             const iframe = document.getElementById('pagePreviewFrame');
             let panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
-            this.renderAllPanels(panelNames);
+            this.renderDirectory(panelNames);
         }
     }
 }

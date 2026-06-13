@@ -41,6 +41,11 @@ async function handleSceneSave(btn, volume, chapter, pageId, seriesId) {
         if (res.ok) {
             btn.textContent = 'Saved!';
             
+            // Show Success Toast
+            if (window.GlassToast) {
+                window.GlassToast.show('success', 'Saved', 'Scene changes successfully updated.');
+            }
+
             // Notify preview iframe to refresh scene if it's visible
             const iframe = document.getElementById('pagePreviewFrame');
             if (iframe) {
@@ -153,59 +158,54 @@ async function handleSceneDelete(item, volume, chapter, pageId, seriesId) {
 /**
  * Shared helper to return from any editor view back to the active page tools.
  */
-function returnToPageEdit() {
+async function returnToPageEdit() {
     console.log("[Navigation] Returning to Page Edit...");
-    const sections = document.querySelectorAll('main.main-content .dashboard-section');
-    const builder = document.querySelector('main.main-content .page-builder');
-    
-    // Hide all major dashboard sections
-    sections.forEach(s => s.classList.add('hidden'));
+    const container = document.getElementById('dashboard');
+    if (!container) return;
+
+    // Use the centralized switcher to handle .is-active and .hidden correctly
+    await switchToSection('page-builder', container);
 
     // Clean up spread state
     document.querySelector('.layout-editor')?.classList.remove('is-spread');
     
-    if (builder) {
-        console.log("[Navigation] Page Builder section identified. Restoring view.");
-        builder.classList.remove('hidden');
-        
-        // Show specific sub-containers for the "Edit" context
-        document.getElementById('editPageContainer')?.classList.remove('hidden');
-        document.getElementById('activePageToolbar')?.classList.remove('hidden');
-        
-        // Hide the top-level mode selection if it's visible
-        document.getElementById('pageBuilderModeSelection')?.classList.add('hidden');
-        
-        // Restore URL state
-        if (currentSceneInfo.volume) {
-            updateUrlState({ 
-                tab: 'page-builder', 
-                vol: currentSceneInfo.volume, 
-                chap: currentSceneInfo.chapter, 
-                page: currentSceneInfo.pageId,
-                series: activeSeriesId,
-                seriesFolder: activeSeriesFolder
-            });
-        }
-    } else {
-        console.error("[Navigation] CRITICAL: .page-builder section not found in main-content!");
-        // Only show studio if we have absolutely nothing else to show
-        document.querySelector('.studio')?.classList.remove('hidden');
+    // Show specific sub-containers for the "Edit" context within Page Builder
+    document.getElementById('editPageContainer')?.classList.remove('hidden');
+    document.getElementById('activePageToolbar')?.classList.remove('hidden');
+    
+    // Hide the top-level mode selection if it's visible
+    document.getElementById('pageBuilderModeSelection')?.classList.add('hidden');
+    
+    // Restore URL state
+    if (currentSceneInfo.volume) {
+        updateUrlState({ 
+            tab: 'page-builder', 
+            vol: currentSceneInfo.volume, 
+            chap: currentSceneInfo.chapter, 
+            page: currentSceneInfo.pageId,
+            series: activeSeriesId,
+            seriesFolder: activeSeriesFolder
+        });
     }
 }
 
+import { switchToSection } from '../../studio/js/EventHandlers.js';
+
 /**
- * Main entry point to open the Scene/Dialogue editor.
+ * Main entry point to open the Dialogue/Scene editor.
  */
 export async function openSceneEditor(volume, chapter, pageId, mode = 'landscape', seriesId = null) {
     updateUrlState({ tab: 'scene-editor', vol: volume, chap: chapter, page: pageId });
-    document.querySelector('.sidebar')?.classList.remove('open');
-    document.querySelectorAll('main.main-content .dashboard-section').forEach(s => s.classList.add('hidden'));
+
+    const container = document.getElementById('dashboard');
+    if (container) {
+        await switchToSection('scene-editor', container);
+    }
 
     const sceneEditor = document.querySelector('.scene-editor');
     if (sceneEditor) {
-        sceneEditor.classList.remove('hidden');
-
         // CRITICAL FIX: Ensure properties manager is pointing to the correct DOM elements
+
         // in case it was detached by the Visual Editor.
         if (properties) {
             properties.container = sceneEditor;
@@ -227,8 +227,8 @@ export async function openSceneEditor(volume, chapter, pageId, mode = 'landscape
                     <span class="text-muted font-size-08 uppercase border-dim padding-x-5 border-radius-4">${pageId}</span>
                 </div>
                 <div class="flex-row gap-10">
-                    <button id="saveSceneBtn" class="update__btn small">Save Page Scene</button>
-                    <button id="closeSceneEditorBtn" class="small">Close &rarr;</button>
+                    <button id="saveSceneBtn" class="glass glass-btn glass-btn--primary glass-btn--sm">Save Page Scene</button>
+                    <button id="closeSceneEditorBtn" class="glass glass-btn glass-btn--sm glass-btn--ghost">Close &rarr;</button>
                 </div>
             `;
 
@@ -257,13 +257,16 @@ export async function openVisualEditor(volume, chapter, pageId, mode = 'landscap
         visual.activeSeriesFolder = activeSeriesFolder;
     }
 
-    document.querySelectorAll('.dashboard-section').forEach(s => s.classList.add('hidden'));
+    const container = document.getElementById('dashboard');
+    if (container) {
+        await switchToSection('layout-editor', container);
+    }
+
     const layoutEditor = document.querySelector('.layout-editor');
     if (!layoutEditor) {
         console.error("[SceneEditor] CRITICAL: .layout-editor section not found in the DOM!");
         return;
     }
-    layoutEditor.classList.remove('hidden');
 
     const previewPane = layoutEditor.querySelector('.preview-pane-flex');
     if (previewPane) {
@@ -289,8 +292,8 @@ export async function openVisualEditor(volume, chapter, pageId, mode = 'landscap
     // Use URL object for robust construction
     const targetUrl = new URL(`${window.location.origin}/api/editor/preview/${folder}/${vol}/${chap}/${pid}`);
     targetUrl.searchParams.set('mode', mode);
-    const targetSrc = targetUrl.pathname + targetUrl.search;
     
+    const targetSrc = targetUrl.href;
     console.log(`[VisualEditor] Loading Preview: ${targetSrc}`);
     iframe.src = targetSrc;
 
@@ -405,13 +408,13 @@ export function initSceneEditor() {
     // 2. Global Button Handlers
     const closeSceneBtn = document.getElementById('closeSceneEditorBtn');
     if (closeSceneBtn) {
-        closeSceneBtn.onclick = returnToPageEdit;
+        closeSceneBtn.onclick = async () => await returnToPageEdit();
     }
 
     const closeEditorBtn = document.getElementById('closeEditorBtn');
     if (closeEditorBtn) {
-        closeEditorBtn.onclick = () => {
-            returnToPageEdit();
+        closeEditorBtn.onclick = async () => {
+            await returnToPageEdit();
             
             // Clean up the tools pane to destroy any cloned dialogue forms and prevent ID conflicts
             const toolsPane = document.querySelector('.layout-editor .tools-pane');

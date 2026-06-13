@@ -13,8 +13,8 @@ import {
     openSceneEditor,
     openVisualEditor
 } from './components/SceneEditor/SceneEditor.js';
-import { initFileBrowser } from './components/FileBrowser/FileBrowser.js';    
-import CharacterEditor from './components/CharacterLab/CharacterLab.js';      
+import { initFileBrowser } from './components/FileBrowser/FileBrowser.js';
+import CharacterEditor from './components/CharacterLab/CharacterLab.js';
 import ScheduledTaskView from './components/ScheduledTasks/ScheduledTasks.js';
 import { initPlotLab } from './components/PlotLab/PlotLab.js';
 import { initStoryCritic } from './components/StoryCritic/StoryCritic.js';
@@ -35,25 +35,25 @@ export async function init(container) {
             console.log(`[WebSocket] Connected with ID: ${window.socket.id}`);
         });
     } else {
-        console.warn("[WebSocket] Socket.io client script not found.");       
+        console.warn("[WebSocket] Socket.io client script not found.");
     }
 
     // Initialize Global Selects
     populateSeriesSelect('globalSeriesSelect').then(() => {
         const savedSeries = localStorage.getItem('globalSeries');
         if (savedSeries) {
-            const sSel = document.getElementById('globalSeriesSelect');       
+            const sSel = document.getElementById('globalSeriesSelect');
             if (sSel) {
                 sSel.value = savedSeries;
                 // Dispatch change so globalVolumeSelect populates
-                sSel.dispatchEvent(new Event('change', { bubbles: true }));   
+                sSel.dispatchEvent(new Event('change', { bubbles: true }));
             }
         }
     });
 
     populateSeriesSelect('settingsSeriesSelect');
 
-    const allSections = container.querySelectorAll('.dashboard-section');     
+    const allSections = container.querySelectorAll('.dashboard-section');
 
     // --- Register Navigation Handlers ---
     registerNavigationHandlers({
@@ -110,8 +110,8 @@ export async function init(container) {
                 svg.style.filter = 'none';
                 indicator.title = 'AI Vision: Disabled';
             }
-        } catch (e) { 
-            console.warn("[Dashboard] AI Status indicator check failed (likely permissions)."); 
+        } catch (e) {
+            console.warn("[Dashboard] AI Status indicator check failed (likely permissions).");
         }
     };
     updateAIIndicator();
@@ -125,7 +125,15 @@ export async function init(container) {
         return;
     }
 
-    document.getElementById('user-name').textContent = user.username;
+    const userNameEl = document.getElementById('user-name');
+    if (userNameEl) {
+        userNameEl.textContent = user.username;
+
+        // Show Welcome Toast (Liquid Glass style)
+        if (window.GlassToast) {
+            window.GlassToast.show('info', 'Welcome back, ' + user.username);
+        }
+    }
 
     // --- Role-Based UI Filtering ---
     const role = user.role || 'basic';
@@ -137,11 +145,11 @@ export async function init(container) {
 
     const hiddenTargets = role === 'admin' ? [] : (role === 'moderator' ? moderatorHidden : basicHidden);
 
-    // Sidebar items
-    const sidebarItems = container.querySelectorAll('.sidebar li');
-    sidebarItems.forEach(li => {
-        if (hiddenTargets.includes(li.dataset.page)) {
-            li.style.display = 'none';
+    // Navigation items
+    const navItems = container.querySelectorAll('.glass-tab');
+    navItems.forEach(item => {
+        if (hiddenTargets.includes(item.dataset.page)) {
+            item.style.display = 'none';
         }
     });
 
@@ -164,11 +172,17 @@ export async function init(container) {
 
     // Default view for basic users (who don't have 'studio' active)
     if (role === 'basic') {
-        const studioTab = container.querySelector('.sidebar li[data-page="studio"]');
-        if (studioTab) studioTab.classList.remove('active');
-        
-        const settingsTab = container.querySelector('.sidebar li[data-page="library-settings"]');
-        if (settingsTab) settingsTab.classList.add('active');
+        const studioTab = container.querySelector('.glass-tab[data-page="studio"]');
+        if (studioTab) {
+            studioTab.setAttribute('aria-selected', 'false');
+            studioTab.classList.remove('glass-nav__item--active');
+        }
+
+        const settingsTab = container.querySelector('.glass-tab[data-page="library-settings"]');
+        if (settingsTab) {
+            settingsTab.setAttribute('aria-selected', 'true');
+            settingsTab.classList.add('glass-nav__item--active');
+        }
 
         container.querySelector('.studio').classList.add('hidden');
         container.querySelector('.library-settings').classList.remove('hidden');
@@ -177,5 +191,5 @@ export async function init(container) {
     // Admins see everything (default state of dashboard.html)
 
     // Restore State
-    restoreStateFromUrl(container);
+    await restoreStateFromUrl(container);
 }

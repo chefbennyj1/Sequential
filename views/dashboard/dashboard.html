@@ -1,135 +1,130 @@
-<!-- 1. SIDEBAR NAVIGATION -->
-<aside class="sidebar">
-    <div class="logo">SEQUENTIAL</div>
-    <nav>
-        <ul>
-            <li data-page="studio" class="active"><span>Studio</span><ion-icon name="construct"></ion-icon></li>
-            <li data-page="scheduled-tasks"><span>Scanner</span><ion-icon name="time-outline"></ion-icon></li>
-            <li data-page="library-settings"><span>Settings</span><ion-icon name="settings-outline"></ion-icon></li>
-            <li data-page="user-settings"><span>User</span><ion-icon name="person-circle"></ion-icon></li>
-        </ul>
-    </nav>
-    <div class="user">
-        <span id="user-name" class="text-accent font-weight-bold"></span>
-        <img src="/views/public/images/avatar.png" alt="Profile" class="avatar" />
-        <div class="dropdown" id="userMenu">
-            <a href="#" id="accountSettingsBtn">Account</a>
-            <form action="/authentication/logout" method="POST">
-                <button type="submit" id="logoutBtn">Logout</button>
-            </form>
+<!-- BACKGROUND SCENE -->
+<div class="scene">
+    <div class="scene__blob scene__blob--1"></div>
+    <div class="scene__blob scene__blob--2"></div>
+    <div class="scene__blob scene__blob--3"></div>
+</div>
+
+<!-- TOAST NOTIFICATIONS -->
+<div id="toast-region" class="glass-toast-region"></div>
+
+<!-- 1. INTEGRATED TOPBAR NAVIGATION -->
+<header class="topbar glass glass--frosted">
+    <div class="topbar-left" style="gap: 40px;">
+        <div class="logo">SEQUENTIAL</div>
+        
+        <div class="glass-tabs">
+            <nav class="glass-tab-list" id="main-navigation" role="tablist" aria-label="Main navigation">
+                <button class="glass-tab" role="tab" aria-selected="true" data-page="studio" tabindex="0">Studio</button>
+                <button class="glass-tab" role="tab" aria-selected="false" data-page="scheduled-tasks" tabindex="-1">Scanner</button>
+                <button class="glass-tab" role="tab" aria-selected="false" data-page="library-settings" tabindex="-1">Settings</button>
+                <div class="divider-v" style="height: 20px; margin: 0 10px;"></div>
+                <a href="/library" class="glass-tab" style="text-decoration: none; display: inline-flex; align-items: center; gap: 5px;" title="Go to Library">
+                    <ion-icon name="library-outline"></ion-icon> Library
+                </a>
+            </nav>
         </div>
     </div>
-</aside>
+
+    <div class="topbar-right" style="gap: 25px;">
+        <!-- AI Status Indicator -->
+        <div id="dashboard-ai-indicator" title="AI Status (Checking...)" style="display: flex; align-items: center; cursor: help;">
+            <svg id="dashboard-ai-brain-svg" version="1.1" width="28" height="28" viewBox="0 0 311 309" xmlns="http://www.w3.org/2000/svg" style="transition: all 0.3s ease; fill: #555;">
+                <g id="svgg-dashboard" transform="scale(0.7) translate(20, 20)">
+                    <path d="M270.897 5.145 C 270.480 6.206,269.281 9.551,268.232 12.578 C 262.568 28.927,246.726 43.717,229.303 48.922 C 223.984 50.511,222.966 52.733,227.556 52.733 C 241.149 52.733,263.767 74.910,270.097 94.443 L 271.734 99.496 274.623 91.519 C 281.170 73.437,302.999 52.733,315.516 52.733 C 319.171 52.733,319.149 50.254,315.487 49.370 C 297.106 44.936,283.117 30.802,272.991 6.431 C 271.982 4.002,271.469 3.687,270.897 5.145 M360.892 18.513 C 358.009 26.061,349.924 34.267,341.865 37.824 L 335.419 40.669 340.436 42.172 C 347.876 44.401,356.078 52.095,360.115 60.633 L 363.618 68.039 365.374 62.637 C 367.764 55.285,378.649 44.450,385.795 42.309 L 391.269 40.669 385.024 37.901 C 375.921 33.868,370.954 29.108,366.788 20.429 L 363.097 12.739 360.892 18.513 M47.588 37.425 C 27.036 41.439,8.337 60.033,3.998 80.771 C 1.527 92.582,2.041 344.673,4.556 354.392 C 8.664 370.267,20.341 384.047,36.013 391.515 L 44.373 395.498 182.637 395.498 L 320.900 395.498 329.548 391.402 C 344.865 384.146,355.272 372.194,360.278 356.109 C 362.524 348.892,362.701 343.299,362.701 279.500 L 362.701 210.675 358.328 206.302 C 351.724 199.699,340.957 200.483,336.080 207.923 C 333.941 211.186,333.712 216.790,333.119 280.540 L 332.476 349.621 328.617 355.098 C 326.495 358.110,322.208 361.921,319.090 363.567 L 313.422 366.559 182.950 366.559 C 39.948 366.559,48.437 367.007,40.385 359.043 C 31.714 350.467,32.213 359.102,32.190 217.363 C 32.167 76.944,31.850 82.547,40.289 74.120 C 48.859 65.564,48.562 65.595,121.494 65.595 C 180.124 65.595,187.110 65.377,190.376 63.448 C 199.834 57.861,199.604 44.408,189.950 38.521 C 185.468 35.788,60.882 34.829,47.588 37.425 M345.412 99.990 C 341.188 112.490,330.113 123.499,316.518 128.713 C 311.572 130.609,311.029 131.128,313.183 131.900 C 330.522 138.118,340.965 148.323,346.577 164.533 L 348.150 169.079 350.393 162.326 C 354.617 149.609,367.080 137.344,380.386 132.810 L 386.402 130.760 379.617 128.454 C 371.913 125.835,362.080 119.057,358.048 113.585 C 354.365 108.587,349.839 99.572,349.839 97.233 C 349.839 92.769,347.323 94.336,345.412 99.990 M114.469 211.102 C 102.090 245.160,91.774 273.814,91.546 274.777 C 91.213 276.176,94.109 276.527,105.998 276.527 L 120.865 276.527 124.999 263.023 L 129.132 249.518 152.991 249.542 L 176.849 249.567 181.080 263.047 L 185.311 276.527 200.051 276.527 C 211.017 276.527,214.776 276.116,214.733 274.920 C 214.701 274.035,204.704 245.531,192.517 211.576 L 170.360 149.839 153.669 149.508 L 136.977 149.178 114.469 211.102 M233.107 212.540 L 233.441 275.884 247.267 276.249 L 261.093 276.614 261.093 212.905 L 261.093 149.196 L 246.933 149.196 L 232.773 149.196 L 233.107 212.540 M160.878 199.399 C 165.252 213.170,169.105 225.161,169.441 226.045 C 169.909 227.280,166.146 227.653,153.192 227.653 C 142.941 227.653,136.334 227.154,136.334 226.381 C 136.334 225.682,139.807 214.342,144.051 201.181 C 148.296 188.020,151.768 176.341,151.768 175.228 C 151.768 171.325,152.990 174.566,160.878 199.399 " />
+                </g>
+            </svg>
+        </div>
+
+        <div class="user-profile" id="userProfileToggle" style="display: flex; align-items: center; gap: 12px; cursor: pointer; position: relative;">
+            <span id="user-name" class="font-weight-bold" style="font-size: var(--text-sm); opacity: 0.8;"></span>
+            <img src="/views/public/images/avatar.png" alt="Profile" class="avatar" />
+            <div class="glass glass--dark dropdown" id="userMenu">
+                <button type="button" id="accountSettingsBtn" class="glass-dropdown-item">Account Settings</button>
+                <form action="/authentication/logout" method="POST">
+                    <button type="submit" id="logoutBtn" class="glass-dropdown-item">Logout</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</header>
 
 <!-- 2. MAIN CONTENT AREA -->
 <main id="main-content" class="main-content">
 
-    <!-- 2.1 TOPBAR -->
-    <div class="topbar">
-        <!-- Search, profile pic, settings -->
-        <a href="/library" class="library-link">
-            <ion-icon name="library-outline"></ion-icon>
-            <span>LIBRARY VIEW</span>
-        </a>
-
-        <!-- AI Status Indicator (Dashboard Specific) -->
-        <div id="dashboard-ai-indicator" title="AI Status (Checking...)" style="display: flex; align-items: center; cursor: help; margin-right: 10px;">
-            <svg id="dashboard-ai-brain-svg" version="1.1" width="32" height="32" viewBox="0 0 311 309" xmlns="http://www.w3.org/2000/svg" style="transition: all 0.3s ease; fill: #555;">
-                <g id="svgg-dashboard" transform="scale(0.7) translate(20, 20)">
-                    <path d="M270.897 5.145 C 270.480 6.206,269.281 9.551,268.232 12.578 C 262.568 28.927,246.726 43.717,229.303 48.922 C 223.984 50.511,222.966 52.733,227.556 52.733 C 241.149 52.733,263.767 74.910,270.097 94.443 L 271.734 99.496 274.623 91.519 C 281.170 73.437,302.999 52.733,315.516 52.733 C 319.171 52.733,319.149 50.254,315.487 49.370 C 297.106 44.936,283.117 30.802,272.991 6.431 C 271.982 4.002,271.469 3.687,270.897 5.145 M360.892 18.513 C 358.009 26.061,349.924 34.267,341.865 37.824 L 335.419 40.669 340.436 42.172 C 347.876 44.401,356.078 52.095,360.115 60.633 L 363.618 68.039 365.374 62.637 C 367.764 55.285,378.649 44.450,385.795 42.309 L 391.269 40.669 385.024 37.901 C 375.921 33.868,370.954 29.108,366.788 20.429 L 363.097 12.739 360.892 18.513 M47.588 37.425 C 27.036 41.439,8.337 60.033,3.998 80.771 C 1.527 92.582,2.041 344.673,4.556 354.392 C 8.664 370.267,20.341 384.047,36.013 391.515 L 44.373 395.498 182.637 395.498 L 320.900 395.498 329.548 391.402 C 344.865 384.146,355.272 372.194,360.278 356.109 C 362.524 348.892,362.701 343.299,362.701 279.500 L 362.701 210.675 358.328 206.302 C 351.724 199.699,340.957 200.483,336.080 207.923 C 333.941 211.186,333.712 216.790,333.119 280.540 L 332.476 349.621 328.617 355.098 C 326.495 358.110,322.208 361.921,319.090 363.567 L 313.422 366.559 182.950 366.559 C 39.948 366.559,48.437 367.007,40.385 359.043 C 31.714 350.467,32.213 359.102,32.190 217.363 C 32.167 76.944,31.850 82.547,40.289 74.120 C 48.859 65.564,48.562 65.595,121.494 65.595 C 180.124 65.595,187.110 65.377,190.376 63.448 C 199.834 57.861,199.604 44.408,189.950 38.521 C 185.468 35.788,60.882 34.829,47.588 37.425 M345.412 99.990 C 341.188 112.490,330.113 123.499,316.518 128.713 C 311.572 130.609,311.029 131.128,313.183 131.900 C 330.522 138.118,340.965 148.323,346.577 164.533 L 348.150 169.079 350.393 162.326 C 354.617 149.609,367.080 137.344,380.386 132.810 L 386.402 130.760 379.617 128.454 C 371.913 125.835,362.080 119.057,358.048 113.585 C 354.365 108.587,349.839 99.572,349.839 97.233 C 349.839 92.769,347.323 94.336,345.412 99.990 M114.469 211.102 C 102.090 245.160,91.774 273.814,91.546 274.777 C 91.213 276.176,94.109 276.527,105.998 276.527 L 120.865 276.527 124.999 263.023 L 129.132 249.518 152.991 249.542 L 176.849 249.567 181.080 263.047 L 185.311 276.527 200.051 276.527 C 211.017 276.527,214.776 276.116,214.733 274.920 C 214.701 274.035,204.704 245.531,192.517 211.576 L 170.360 149.839 153.669 149.508 L 136.977 149.178 114.469 211.102 M233.107 212.540 L 233.441 275.884 247.267 276.249 L 261.093 276.614 261.093 212.905 L 261.093 149.196 246.933 149.196 L 232.773 149.196 233.107 212.540 M160.878 199.399 C 165.252 213.170,169.105 225.161,169.441 226.045 C 169.909 227.280,166.146 227.653,153.192 227.653 C 142.941 227.653,136.334 227.154,136.334 226.381 C 136.334 225.682,139.807 214.342,144.051 201.181 C 148.296 188.020,151.768 176.341,151.768 175.228 C 151.768 171.325,152.990 174.566,160.878 199.399 " />
-                </g>
-            </svg>
-        </div>
-    </div>
-
     <!-- 2.2 STUDIO HUB (Tool Selection) -->
-    <div class="studio dashboard-section hidden">
+    <div class="studio dashboard-section hidden glass glass--frosted glass-card">
         <div class="medium-container">
             <div class="studio-header text-center padding-b-40">
                 <h3>Sequential Studio</h3>
                 <p class="text-muted margin-b-40">Select a tool to begin.</p>
-            
-                <div class="global-settings bg-dark padding-20 border-radius-12 border-dim margin-b-30">
-                    <h4 class="margin-b-15">Active Workspace</h4>
-                    <div class="flex-row gap-15">
-                        <div class="form-group flex-1">
-                            <label>Global Series</label>
-                            <select id="globalSeriesSelect" class="gov-select"><option value="">Select a Series</option></select>
-                        </div>
-                        <div class="form-group flex-1">
-                            <label>Global Volume</label>
-                            <select id="globalVolumeSelect" class="gov-select" disabled><option value="">Select a Series first</option></select>
-                        </div>
-                    </div>
-                    <p class="font-size-07 text-muted margin-t-10">Setting these will auto-populate series/volume dropdowns across the studio.</p>
-                </div>
 
                 <div class="flex-row gap-20 justify-center flex-wrap">
-                    <div class="mode-card" data-target="library-settings">
-                        <ion-icon name="settings-outline"></ion-icon>
-                        <h4>Library Settings</h4>
-                        <p>Global defaults and series-wide preferences.</p>
-                    </div>
+                    <div class="glass glass-card mode-card" data-target="library-settings">
+        <ion-icon name="settings-outline"></ion-icon>
+        <h3 class="glass-card__title">Library Settings</h3>
+        <p class="glass-card__body">Global defaults and series-wide preferences.</p>
+    </div>
 
-                    <div class="mode-card" data-target="create-new-volume">
-                        <ion-icon name="book-outline"></ion-icon>
-                        <h4>Create Volume</h4>
-                        <p>Start a new volume in the current series.</p>
-                    </div>
+                    <div class="glass glass-card mode-card" data-target="create-new-volume">
+        <ion-icon name="book-outline"></ion-icon>
+        <h3 class="glass-card__title">Create Volume</h3>
+        <p class="glass-card__body">Start a new volume in the current series.</p>
+    </div>
 
-                    <div class="mode-card" data-target="edit-volume">
-                        <ion-icon name="create-outline"></ion-icon>
-                        <h4>Edit Volume</h4>
-                        <p>Manage chapters and metadata.</p>
-                    </div>
+                    <div class="glass glass-card mode-card" data-target="edit-volume">
+        <ion-icon name="create-outline"></ion-icon>
+        <h3 class="glass-card__title">Edit Volume</h3>
+        <p class="glass-card__body">Manage chapters and metadata.</p>
+    </div>
 
-                    <div class="mode-card" data-target="create-new-chapter">
-                        <ion-icon name="bookmarks-outline"></ion-icon>
-                        <h4>New Chapter</h4>
-                        <p>Append a new chapter and initialize the next page.</p>
-                    </div>
+                    <div class="glass glass-card mode-card" data-target="create-new-chapter">
+        <ion-icon name="bookmarks-outline"></ion-icon>
+        <h3 class="glass-card__title">New Chapter</h3>
+        <p class="glass-card__body">Append a new chapter and initialize the next page.</p>
+    </div>
 
-                    <div class="mode-card" data-target="page-builder">
-                        <ion-icon name="layers-outline"></ion-icon>
-                        <h4>Page Builder</h4>
-                        <p>Scaffold, edit, and arrange comic pages.</p>
-                    </div>
+                    <div class="glass glass-card mode-card" data-target="page-builder">
+        <ion-icon name="layers-outline"></ion-icon>
+        <h3 class="glass-card__title">Page Builder</h3>
+        <p class="glass-card__body">Scaffold, edit, and arrange comic pages.</p>
+    </div>
 
-                    <div class="mode-card" data-target="characters">
-                        <ion-icon name="people-outline"></ion-icon>
-                        <h4>Character Lab</h4>
-                        <p>Create and manage character profiles.</p>
-                    </div>
+                    <div class="glass glass-card mode-card" data-target="characters">
+        <ion-icon name="people-outline"></ion-icon>
+        <h3 class="glass-card__title">Character Lab</h3>
+        <p class="glass-card__body">Create and manage character profiles.</p>
+    </div>
 
-                    <div class="mode-card" data-target="plot-lab">
-                        <ion-icon name="bulb-outline"></ion-icon>
-                        <h4>Plot Lab</h4>
-                        <p>Brainstorm and storyboard your ideas.</p>
-                    </div>
+                    <div class="glass glass-card mode-card" data-target="plot-lab">
+        <ion-icon name="bulb-outline"></ion-icon>
+        <h3 class="glass-card__title">Plot Lab</h3>
+        <p class="glass-card__body">Brainstorm and storyboard your ideas.</p>
+    </div>
 
-                    <div class="mode-card" data-target="story-critic">
-                        <ion-icon name="analytics-outline"></ion-icon>
-                        <h4>Story Critic</h4>
-                        <p>AI-powered narrative analysis and overview.</p>
-                    </div>
+                    <div class="glass glass-card mode-card" data-target="story-critic">
+        <ion-icon name="analytics-outline"></ion-icon>
+        <h3 class="glass-card__title">Story Critic</h3>
+        <p class="glass-card__body">AI-powered narrative analysis and overview.</p>
+    </div>
 
-                    <div class="mode-card" data-target="export-tool">
-                        <ion-icon name="print-outline"></ion-icon>
-                        <h4>Print Exporter</h4>
-                        <p>Render and export high-res PNG files.</p>
-                    </div>
+                    <div class="glass glass-card mode-card" data-target="export-tool">
+        <ion-icon name="print-outline"></ion-icon>
+        <h3 class="glass-card__title">Print Exporter</h3>
+        <p class="glass-card__body">Render and export high-res PNG files.</p>
+    </div>
 
-                    <div class="mode-card" data-target="style-lab">
-                        <ion-icon name="color-palette-outline"></ion-icon>
-                        <h4>Style Lab</h4>
-                        <p>Customize global font sizes and CSS.</p>
-                    </div>
+                    <div class="glass glass-card mode-card" data-target="style-lab">
+        <ion-icon name="color-palette-outline"></ion-icon>
+        <h3 class="glass-card__title">Style Lab</h3>
+        <p class="glass-card__body">Customize global font sizes and CSS.</p>
+    </div>
 
-                    <div class="mode-card disabled opacity-50 cursor-not-allowed">
-                        <ion-icon name="library-outline"></ion-icon>
-                        <h4>New Series</h4>
-                        <p>Coming Soon</p>
-                    </div>
+                    <div class="glass glass-card mode-card disabled opacity-50 cursor-not-allowed">
+        <ion-icon name="library-outline"></ion-icon>
+        <h3 class="glass-card__title">New Series</h3>
+        <p class="glass-card__body">Coming Soon</p>
+    </div>
                 </div> <!-- Closes flex-row gap-20 (grid) -->
             </div> <!-- Closes studio-header -->
         </div> <!-- Closes medium-container -->
@@ -137,7 +132,7 @@
 
 
     <!-- USER / ACCOUNT SETTINGS -->
-    <div class="user-settings dashboard-section hidden">
+    <div class="user-settings dashboard-section hidden glass glass--frosted glass-card">
         <h3>User Settings</h3>
         <form id="credentials" action="/api/user/update" method="POST">
             <div class="input-field">
@@ -160,14 +155,14 @@
                 <input type="password" id="confirmPassword" name="confirmPassword" required />
                 <span class="error-message"></span>
             </div>
-            <button class="update__btn" type="submit">Update</button>
+            <button class="glass glass-btn glass-btn--primary" type="submit">Update</button>
         </form>
     </div>
 
     <!-- SUB-SECTIONS (Hidden by default, accessed via Studio) -->
 
-    <div class="create-new-volume dashboard-section hidden">
-        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+    <div class="create-new-volume dashboard-section hidden glass glass--frosted glass-card">
+        <button class="glass glass-btn glass-btn--sm glass-btn--ghost back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
         <h3>Create New Volume</h3>
         <form id="volume-info">
             <div class="form-group">
@@ -186,13 +181,13 @@
                 <label for="firstChapterTitle">First Chapter Title</label>
                 <input type="text" id="firstChapterTitle" name="firstChapterTitle" placeholder="e.g. Arrival" required />
             </div>
-            <button class="update__btn w-full" type="submit" id="createVolumeBtn">Create Volume Structure</button>
+            <button class="glass glass-btn glass-btn--primary w-full" type="submit" id="createVolumeBtn">Create Volume Structure</button>
         </form>
         <div id="volumeStatus" class="builder-status"></div>
     </div>
 
-    <div class="create-new-chapter dashboard-section hidden">
-        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+    <div class="create-new-chapter dashboard-section hidden glass glass--frosted glass-card">
+        <button class="glass glass-btn glass-btn--sm glass-btn--ghost back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
         <h3>Create New Chapter</h3>
         <p class="text-muted margin-b-20">This will create the next chapter folder and the first page within it.</p>
         <form id="chapter-info">
@@ -212,13 +207,13 @@
                 <label for="chapterTitle">Chapter Title</label>
                 <input type="text" id="chapterTitle" name="title" placeholder="e.g. The Neon Rain" />
             </div>
-            <button class="update__btn w-full" type="submit" id="createChapterBtn">Initialize Chapter</button>
+            <button class="glass glass-btn glass-btn--primary w-full" type="submit" id="createChapterBtn">Initialize Chapter</button>
         </form>
         <div id="chapterStatus" class="builder-status"></div>
     </div>
 
-    <div class="edit-volume dashboard-section hidden">
-        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+    <div class="edit-volume dashboard-section hidden glass glass--frosted glass-card">
+        <button class="glass glass-btn glass-btn--sm glass-btn--ghost back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
         <h3>Edit Volume Metadata</h3>
         <div class="form-group">
             <label for="volumeSeriesSelect">Select Series:</label>
@@ -231,23 +226,23 @@
         <div id="editVolumeContainer"></div> 
     </div>
 
-    <div class="library-settings dashboard-section hidden">
-        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+    <div class="library-settings dashboard-section hidden glass glass--frosted glass-card">
+        <button class="glass glass-btn glass-btn--sm glass-btn--ghost back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
         <h3>Library Settings</h3>
         <p class="text-muted margin-b-20">Configure global defaults for your series.</p>
         
         <div class="form-group">
             <label>Select Series to Configure</label>
-            <select id="settingsSeriesSelect" class="gov-select">
+            <select id="settingsSeriesSelect" class="glass-select">
                 <option value="">Select a Series</option>
             </select>
         </div>
 
-        <div id="series-settings-form-container" class="hidden margin-t-20 bg-dark padding-30 border-radius-12 border-dim">
+        <div id="series-settings-form-container" class="hidden margin-t-20 glass glass--dark glass-card padding-30 border-radius-12 border-dim">
             <form id="library-settings-form">
                 <input type="hidden" id="settings-series-id">
 
-                <button type="submit" class="update__btn w-full margin-t-20">Save Library Settings</button>
+                <button type="submit" class="glass glass-btn glass-btn--primary w-full margin-t-20">Save Library Settings</button>
             </form>
         </div>
 
@@ -256,7 +251,7 @@
         <h3>AI Settings</h3>
         <p class="text-muted margin-b-20">Configure global Gemini AI integration.</p>
 
-        <div id="global-settings-form-container" class="bg-dark padding-30 border-radius-12 border-dim">
+        <div id="global-settings-form-container" class="glass glass--dark glass-card">
             <form id="global-settings-form">
                 <div class="form-group">
                     <label class="flex-row align-center gap-10">
@@ -270,14 +265,14 @@
                     <div class="form-group">
                         <label>Gemini API Key</label>
                         <div class="flex-row gap-10 align-center">
-                            <input type="password" id="global-api-key" class="gov-input flex-1" placeholder="Paste your API key here">
+                            <input type="password" id="global-api-key" class="glass-input flex-1" placeholder="Paste your API key here">
                             <a href="https://aistudio.google.com/app/apikey" target="_blank" class="small btn-browse text-center" style="text-decoration: none; display: inline-block; padding: 10px;">Get API Key</a>
                         </div>
                     </div>
 
                     <div class="form-group">
                         <label>Gemini Model Version</label>
-                        <select id="global-model-name" class="gov-select width-100">
+                        <select id="global-model-name" class="glass-select width-100">
                             <option value="gemini-1.5-flash">Gemini 1.5 Flash (Fast, Stable)</option>
                             <option value="gemini-1.5-pro">Gemini 1.5 Pro (Detailed, Slower)</option>
                             <option value="gemini-flash-latest">Gemini Flash Latest (2026 Standard)</option>
@@ -288,16 +283,16 @@
 
                     <div class="form-group">
                         <label>Vision System Prompt</label>
-                        <textarea id="global-system-prompt" class="gov-input width-100" rows="3"></textarea>
+                        <textarea id="global-system-prompt" class="glass-input width-100" rows="3"></textarea>
                     </div>
                     <div class="flex-row gap-15">
                         <div class="form-group flex-1">
                             <label>Max Tokens</label>
-                            <input type="number" id="global-max-tokens" class="gov-input width-100" value="100">
+                            <input type="number" id="global-max-tokens" class="glass-input width-100" value="100">
                         </div>
                         <div class="form-group flex-1">
                             <label>Temperature</label>
-                            <input type="number" id="global-temperature" class="gov-input width-100" step="0.1" value="0.2">
+                            <input type="number" id="global-temperature" class="glass-input width-100" step="0.1" value="0.2">
                         </div>
                     </div>
                     <div class="form-group">
@@ -309,30 +304,30 @@
                 </div>
 
                 <div class="margin-t-30 flex-row gap-15">
-                    <button type="submit" class="update__btn flex-2" id="saveGlobalSettingsBtn">Save AI Settings</button>
+                    <button type="submit" class="glass glass-btn glass-btn--primary flex-2" id="saveGlobalSettingsBtn">Save AI Settings</button>
                 </div>
             </form>
         </div>
     </div>
 
 
-    <div class="characters dashboard-section hidden">
-        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+    <div class="characters dashboard-section hidden glass glass--frosted glass-card">
+        <button class="glass glass-btn glass-btn--sm glass-btn--ghost back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
         
         <div class="flex-between margin-b-20">
             <div class="flex-row-center gap-15">
                 <h3>Character Manager</h3>
-                <select id="char-series-select" class="gov-select">
+                <select id="char-series-select" class="glass-select">
                     <option value="">Select Series</option>
                 </select>
             </div>
-            <button id="create-character-btn" class="update__btn" disabled>+ New Character</button>
+            <button id="create-character-btn" class="glass glass-btn glass-btn--primary" disabled>+ New Character</button>
         </div>
 
         <div id="character-editor-container" class="flex-row gap-20 flex-start">
             <div id="character-list" class="flex-1 grid-chars"></div>
 
-            <div id="character-form-container" class="character-gov-form hidden">
+            <div id="character-form-container" class="character-gov-form glass glass--frosted glass-card hidden">
                 <div class="gov-header">
                     <h4 id="form-title">IDENTIFICATION</h4>
                     <span class="gov-stamp">CLASSIFIED</span>
@@ -342,7 +337,7 @@
                     <div class="gov-main-info">
                         <div class="gov-field-group">
                             <label>Designation (Name)</label>
-                            <input type="text" id="char-name" class="gov-input mono" placeholder="e.g. NOVA">
+                            <input type="text" id="char-name" class="glass-input mono" placeholder="e.g. NOVA">
                         </div>
                         <div class="gov-field-group">
                             <label>Color Signature</label>
@@ -354,11 +349,11 @@
                         <div class="photo-frame">
                             <img id="char-avatar-preview" src="/views/public/images/avatar.png" alt="Subject">
                         </div>
-                        <label class="gov-btn-small">
+                        <label class="glass glass-btn glass-btn--sm glass-btn--ghost">
                             Upload Photo
                             <input type="file" id="char-avatar-input" accept="image/*" class="hidden">
                         </label>
-                        <button id="ai-analyze-char-btn" class="gov-btn-small margin-t-5" style="background: #1a2a3a; border-color: #00ccff; color: #00ccff;">
+                        <button id="ai-analyze-char-btn" class="glass glass-btn glass-btn--sm glass-btn--ghost margin-t-5" style="background: #1a2a3a; border-color: #00ccff; color: #00ccff;">
                             AI Scan Profile
                         </button>
                     </div>
@@ -366,7 +361,7 @@
 
                 <div class="gov-full-width">
                     <label>Profile / Description (Prompt)</label>
-                    <textarea id="char-description" class="gov-textarea" rows="4" placeholder="Subject details..."></textarea>
+                    <textarea id="char-description" class="glass-input" style="min-height: 100px;"" rows="4" placeholder="Subject details..."></textarea>
                 </div>
 
                 <div class="gov-full-width">
@@ -374,39 +369,39 @@
                     <div class="reference-grid" id="char-references-grid"></div>
                 </div>
                 
-                <label class="gov-btn-small text-center margin-t-5 cursor-pointer">
+                <label class="glass glass-btn glass-btn--sm glass-btn--ghost text-center margin-t-5 cursor-pointer">
                     + Add Reference Image
                     <input type="file" id="char-reference-input" accept="image/*" style="display: none;">
                 </label>
 
                 <div class="gov-footer margin-t-20">
-                    <button id="save-character-btn" class="gov-btn-action">Save Record</button>
-                    <button id="cancel-character-btn" class="gov-btn-cancel">Cancel</button>
+                    <button id="save-character-btn" class="glass glass-btn glass-btn--primary">Save Record</button>
+                    <button id="cancel-character-btn" class="glass glass-btn glass-btn--ghost">Cancel</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="scheduled-tasks dashboard-section hidden">
+    <div class="scheduled-tasks dashboard-section hidden glass glass--frosted glass-card">
         <div class="scheduled-tasks-container">
-            <div class="task-panel">
+            <div class="task-panel glass glass--dark border-radius-12 border-dim">
                 <h3>Library Source Manager</h3>
                 <div id="library-roots-list" class="roots-list">
                     <div class="text-muted italic">Loading roots...</div>
                 </div>
-                <div class="add-root-form margin-t-20">
+                <div class="add-root-form margin-t-20 glass glass--dark border-radius-8 border-dim">
                     <h4>Add New Watch Folder</h4>
-                    <div class="input-field"><input type="text" id="new-root-name" placeholder="Name" class="mono-input"></div>
-                    <div class="input-field"><input type="text" id="new-root-path" placeholder="Absolute Path" class="mono-input"></div>
-                    <button id="add-root-btn" class="small w-full">+ Add Root</button>
+                    <div class="input-field"><input type="text" id="new-root-name" placeholder="Name" class="glass-input mono-input"></div>
+                    <div class="input-field"><input type="text" id="new-root-path" placeholder="Absolute Path" class="glass-input mono-input"></div>
+                    <button id="add-root-btn" class="glass glass-btn glass-btn--sm glass-btn--ghost w-full">+ Add Root</button>
                 </div>
             </div>
 
-            <div class="task-panel">
+            <div class="task-panel glass glass--dark border-radius-12 border-dim">
                 <div class="scanner-group margin-b-30 border-dim-bottom padding-b-20">
                     <div class="scanner-header flex-between">
                         <h3 class="system-scanner-header">Library Synchronization</h3>
-                        <button id="run-sync-btn" class="update__btn">Sync Library</button>
+                        <button id="run-sync-btn" class="glass glass-btn glass-btn--primary">Sync Library</button>
                     </div>
                 </div>
 
@@ -414,15 +409,15 @@
                     <div class="scanner-header flex-between">
                         <h3 class="system-scanner-header text-accent">Vision AI Management</h3>
                         <div class="flex-row gap-10">
-                            <button id="run-vision-scan-btn" class="update__btn">Analyze with AI</button>
-                            <button id="stop-vision-btn" class="small btn-danger-outline">Stop</button>
+                            <button id="run-vision-scan-btn" class="glass glass-btn glass-btn--primary">Analyze with AI</button>
+                            <button id="stop-vision-btn" class="glass glass-btn glass-btn--sm glass-btn--danger">Stop</button>
                         </div>
                     </div>
-                    <div class="targeted-scan-options margin-t-15 border-dim padding-10 border-radius-4 bg-black-10">
+                    <div class="targeted-scan-options margin-t-15 glass glass--dark padding-10 border-radius-8 border-dim">
                         <div class="flex-row gap-5">
-                            <select id="visionSeriesSelect" class="gov-select flex-1 font-size-07"><option value="">All Series</option></select>
-                            <select id="visionVolumeSelect" class="gov-select flex-1 font-size-07" disabled><option value="">All Volumes</option></select>
-                            <select id="visionChapterSelect" class="gov-select flex-1 font-size-07" disabled><option value="">All Chapters</option></select>
+                            <select id="visionSeriesSelect" class="glass-select flex-1 font-size-07"><option value="">All Series</option></select>
+                            <select id="visionVolumeSelect" class="glass-select flex-1 font-size-07" disabled><option value="">All Volumes</option></select>
+                            <select id="visionChapterSelect" class="glass-select flex-1 font-size-07" disabled><option value="">All Chapters</option></select>
                         </div>
                     </div>
                 </div>
@@ -431,32 +426,47 @@
                     <div class="scanner-progress-bar" id="scanner-progress-bar"></div>
                 </div>
 
-                <div id="scanner-log" class="scanner-log margin-t-20">
+                <div id="scanner-log" class="scanner-log margin-t-20 glass glass--dark border-radius-8 border-dim">
                     <span class="log-placeholder">> System ready.</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="page-builder dashboard-section hidden">
+    <div class="page-builder dashboard-section hidden glass glass--frosted glass-card">
         <div class="narrow-container padding-20">
-            <button class="small back-to-studio-btn margin-b-20">&larr; Back to Studio</button>
+            <button class="glass glass-btn glass-btn--sm glass-btn--ghost back-to-studio-btn margin-b-20">&larr; Back to Studio</button>
             <div id="pageBuilderAlerts" class="margin-b-20"></div>
 
             <div id="pageBuilderModeSelection" class="page-builder-selection">
                 <h3>Page Management</h3>
                 <div class="flex-row gap-20 justify-center">
-                    <div class="mode-card width-200 padding-30" id="modeCreateBtn"><ion-icon name="add-circle-outline"></ion-icon><h4>New Page</h4></div>
-                    <div class="mode-card width-200 padding-30" id="modeInsertBtn"><ion-icon name="git-branch-outline"></ion-icon><h4>Insert Page</h4></div>
-                    <div class="mode-card width-200 padding-30" id="modeEditBtn"><ion-icon name="create-outline"></ion-icon><h4>Edit Page</h4></div>
-                    <div class="mode-card width-200 padding-30" id="modeArrangeBtn"><ion-icon name="swap-horizontal-outline"></ion-icon><h4>Arrange Pages</h4></div>
-                    <div class="mode-card width-200 padding-30" id="modeScriptBtn"><ion-icon name="document-text-outline"></ion-icon><h4>Export Script</h4></div>
+                    <div class="glass glass-card mode-card" id="modeCreateBtn">
+        <ion-icon name="add-circle-outline"></ion-icon>
+        <h3 class="glass-card__title">New Page</h3>
+    </div>
+                    <div class="glass glass-card mode-card" id="modeInsertBtn">
+        <ion-icon name="git-branch-outline"></ion-icon>
+        <h3 class="glass-card__title">Insert Page</h3>
+    </div>
+                    <div class="glass glass-card mode-card" id="modeEditBtn">
+        <ion-icon name="create-outline"></ion-icon>
+        <h3 class="glass-card__title">Edit Page</h3>
+    </div>
+                    <div class="glass glass-card mode-card" id="modeArrangeBtn">
+        <ion-icon name="swap-horizontal-outline"></ion-icon>
+        <h3 class="glass-card__title">Arrange Pages</h3>
+    </div>
+                    <div class="glass glass-card mode-card" id="modeScriptBtn">
+        <ion-icon name="document-text-outline"></ion-icon>
+        <h3 class="glass-card__title">Export Script</h3>
+    </div>
                 </div>
             </div>
 
             <!-- CREATE PAGE -->
-            <div id="createPageContainer" class="bg-dark padding-30 border-radius-12 border-dim hidden">
-                <button class="small mode-back-btn margin-b-15">&larr; Back</button>
+            <div id="createPageContainer" class="glass glass--dark glass-card hidden">
+                <button class="glass glass-btn glass-btn--sm glass-btn--ghost mode-back-btn margin-b-15">&larr; Back</button>
                 <div class="form-group"><label>Select Series</label><select id="builderSeriesSelect"></select></div>
                 <div class="form-group"><label>Select Volume</label><select id="builderVolumeSelect" disabled><option value="">Select a Series first</option></select></div>
                 <div class="form-group"><label>Select Chapter</label><select id="builderChapterSelect" disabled><option value="">Select a Volume first</option></select></div>
@@ -465,31 +475,31 @@
                        <label>Page ID</label>
                        <div class="flex-row gap-10">
                            <input type="text" id="builderPageId" name="pageId" placeholder="page17" required />
-                           <button type="button" id="getNextPageIdBtn" class="update__btn small">Next Consecutive</button>
+                           <button type="button" id="getNextPageIdBtn" class="glass glass-btn glass-btn--sm glass-btn--primary">Next Consecutive</button>
                        </div>
                    </div>
                    <div class="form-group"><label>Select Layout Template</label><select id="builderLayoutSelect" required><option value="">Loading Layouts...</option></select></div>
-                   <button class="update__btn w-full" type="submit" id="createPageBtn">Create Page Structure</button>
+                   <button class="glass glass-btn glass-btn--primary w-full" type="submit" id="createPageBtn">Create Page Structure</button>
                 </form>
                 <div id="builderStatus" class="builder-status"></div>
             </div>
 
             <!-- INSERT PAGE -->
-            <div id="insertPageContainer" class="bg-dark padding-30 border-radius-12 border-dim hidden">
-                <button class="small mode-back-btn margin-b-15">&larr; Back</button>
+            <div id="insertPageContainer" class="glass glass--dark glass-card hidden">
+                <button class="glass glass-btn glass-btn--sm glass-btn--ghost mode-back-btn margin-b-15">&larr; Back</button>
                 <div class="form-group"><label>Select Series</label><select id="insertSeriesSelect"></select></div>
                 <div class="form-group"><label>Select Volume</label><select id="insertVolumeSelect" disabled><option value="">Select a Series first</option></select></div>
                 <div class="form-group"><label>Select Chapter</label><select id="insertChapterSelect" disabled><option value="">Select a Volume first</option></select></div>
                 <form id="insert-page-form">
                     <div class="input-field"><label>Insert At Index</label><input type="number" id="insertPoint" name="insertPoint" required /></div>
-                    <button class="update__btn w-full" type="submit" id="insertPageBtn">Insert & Shift Pages</button>
+                    <button class="glass glass-btn glass-btn--primary w-full" type="submit" id="insertPageBtn">Insert & Shift Pages</button>
                 </form>
                 <div id="insertStatus" class="builder-status"></div>
             </div>
 
             <!-- ARRANGE PAGES -->
-            <div id="arrangePagesContainer" class="bg-dark padding-30 border-radius-12 border-dim hidden">
-                <button class="small mode-back-btn margin-b-15">&larr; Back</button>
+            <div id="arrangePagesContainer" class="glass glass--dark glass-card hidden">
+                <button class="glass glass-btn glass-btn--sm glass-btn--ghost mode-back-btn margin-b-15">&larr; Back</button>
                 <div class="flex-row gap-15 margin-b-20">
                     <div class="form-group flex-1"><label>Series</label><select id="arrangeSeriesSelect"></select></div>
                     <div class="form-group flex-1"><label>Volume</label><select id="arrangeVolumeSelect" disabled><option value="">Select a Series first</option></select></div>
@@ -497,47 +507,47 @@
                 </div>
                 <div id="arrangePagesList" class="arrange-pages-list margin-t-20"></div>
                 <div class="margin-t-30 flex-row gap-15">
-                    <button id="savePageOrderBtn" class="update__btn flex-1" disabled>Save New Order</button>
-                    <button id="resetPageOrderBtn" class="small flex-1" disabled>Reset</button>
+                    <button id="savePageOrderBtn" class="glass glass-btn glass-btn--primary flex-1" disabled>Save New Order</button>
+                    <button id="resetPageOrderBtn" class="glass glass-btn glass-btn--sm glass-btn--ghost flex-1" disabled>Reset</button>
                 </div>
             </div>
 
             <!-- EXPORT SCRIPT -->
-            <div id="exportScriptContainer" class="bg-dark padding-30 border-radius-12 border-dim hidden">
-                <button class="small mode-back-btn margin-b-15">&larr; Back</button>
-                <div class="form-group"><label>Select Series</label><select id="scriptSeriesSelect" class="gov-select"></select></div>
-                <div class="form-group"><label>Select Volume</label><select id="scriptVolumeSelect" class="gov-select" disabled><option value="">Select a Series first</option></select></div>
-                <button class="update__btn w-full margin-t-20" id="generateScriptBtn">Generate Script File</button>
+            <div id="exportScriptContainer" class="glass glass--dark glass-card hidden">
+                <button class="glass glass-btn glass-btn--sm glass-btn--ghost mode-back-btn margin-b-15">&larr; Back</button>
+                <div class="form-group"><label>Select Series</label><select id="scriptSeriesSelect" class="glass-select"></select></div>
+                <div class="form-group"><label>Select Volume</label><select id="scriptVolumeSelect" class="glass-select" disabled><option value="">Select a Series first</option></select></div>
+                <button class="glass glass-btn glass-btn--primary w-full margin-t-20" id="generateScriptBtn">Generate Script File</button>
                 <div id="scriptStatus" class="builder-status"></div>
             </div>
 
             <!-- EDIT PAGE -->
             <div id="editPageContainer" class="hidden">
-                <button class="small mode-back-btn margin-b-15">&larr; Back</button>
-                <div class="bg-select padding-25 border-radius-12 border-bright margin-b-30">
+                <button class="glass glass-btn glass-btn--sm glass-btn--ghost mode-back-btn margin-b-15">&larr; Back</button>
+                <div class="glass glass--bright glass-card margin-b-30">
                     <div class="flex-row gap-15 margin-b-20">
                         <div class="form-group flex-1"><label>Series</label><select id="editSeriesSelect"></select></div>
                         <div class="form-group flex-1"><label>Volume</label><select id="editVolumeSelect" disabled><option value="">Select a Series first</option></select></div>
                         <div class="form-group flex-1"><label>Chapter</label><select id="editChapterSelect" disabled><option value="">Select a Volume first</option></select></div>
                         <div class="form-group flex-1"><label>Page</label><select id="editPageSelect" disabled><option value="">Select a Page</option></select></div>
                     </div>
-                    <button id="loadPageBtn" class="update__btn width-100 font-size-1-1">Load Page Tools</button>
+                    <button id="loadPageBtn" class="glass glass-btn glass-btn--primary width-100 font-size-1-1">Load Page Tools</button>
                 </div>
 
                 <div id="activePageToolbar" class="hidden">
-                    <div class="flex-between bg-dark padding-20 border-radius-12 border-accent margin-b-30">
+                    <div class="flex-between glass glass--bright border-radius-12 border-accent margin-b-30 padding-20">
                         <div><span class="text-muted font-size-07 uppercase">Active Page</span><h4 id="activePageDisplay" class="text-accent font-size-1-4">None</h4></div>
                         <div class="flex-row gap-15">
-                            <button id="openLayoutEditorBtn" class="update__btn">Visual Editor</button>
-                            <button id="openSceneEditorBtn" class="update__btn">Scene Editor</button>
+                            <button id="openLayoutEditorBtn" class="glass glass-btn glass-btn--primary">Visual Editor</button>
+                            <button id="openSceneEditorBtn" class="glass glass-btn glass-btn--primary">Scene Editor</button>
                         </div>
                     </div>
-                    <div class="bg-panel padding-25 border-radius-12 border-dim margin-b-30">
+                    <div class="glass glass--bright glass-card margin-b-30">
                         <div class="form-group">
                             <label>Structural Layout</label>
                             <input type="hidden" id="activePageLayoutValue">
                             <div id="activePageLayoutBrowser" class="layout-browser-grid"></div>
-                            <button id="applyLayoutBtn" class="small btn-apply width-100 margin-t-15">Apply Selected Layout</button>
+                            <button id="applyLayoutBtn" class="glass glass-btn glass-btn--sm glass-btn--primary width-100 margin-t-15">Apply Selected Layout</button>
                         </div>
                     </div>
                 </div>
@@ -545,10 +555,10 @@
         </div>
     </div>
 
-    <div class="layout-editor dashboard-section hidden h-full">
+    <div class="layout-editor dashboard-section hidden h-full glass glass--frosted glass-card">
         <div class="editor-header editor-header-flex">
             <h3>Visual Editor: <span id="editorPageTitle"></span></h3>
-            <button id="closeEditorBtn">Close &rarr;</button>
+            <button id="closeEditorBtn" class="glass glass-btn glass-btn--sm glass-btn--ghost">Close &rarr;</button>
         </div>
         <div class="editor-container editor-container-flex">
             <div class="preview-pane preview-pane-flex"><iframe id="pagePreviewFrame" class="preview-iframe"></iframe></div>
@@ -560,10 +570,10 @@
         </div>
     </div>
 
-    <div class="scene-editor dashboard-section hidden h-full">
+    <div class="scene-editor dashboard-section hidden h-full glass glass--frosted glass-card">
         <div class="scene-tree-pane timeline-pane-flex">
             <h4 class="timeline-header">Timeline</h4>
-            <button class="small w-full margin-b-10" id="addItemBtn">+ Add Item</button>
+            <button class="glass glass-btn glass-btn--sm glass-btn--ghost w-full margin-b-10" id="addItemBtn">+ Add Item</button>
             <ul id="sceneTreeList" class="scene-list timeline-list"></ul>
         </div>
         <div class="scene-props-pane props-pane-flex">
@@ -572,7 +582,7 @@
                     <div class="input-field"><label>ID</label><input type="text" id="prop-id" readonly></div>
                     <div class="input-field">
                         <label>Display Type</label>
-                        <select id="prop-type" class="gov-select width-100">
+                        <select id="prop-type" class="glass-select width-100">
                             <option value="SpeechBubble">Speech Bubble</option>
                             <option value="Narrator">TextBlock: Narrator</option>
                             <option value="InternalMonologue">TextBlock: Internal Monologue</option>
@@ -594,7 +604,7 @@
 
                         <div class="input-field">
                             <label>Tail Position</label>
-                            <select id="prop-tail" class="gov-select width-100">
+                            <select id="prop-tail" class="glass-select width-100">
                                 <option value="">None</option>
                                 <option value="top-left">Top Left</option>
                                 <option value="top-right">Top Right</option>
@@ -611,7 +621,7 @@
                         </div>
                         <div class="input-field prop-group-font">
                             <label>Action Font</label>
-                            <select id="prop-font-family" class="gov-select width-100">
+                            <select id="prop-font-family" class="glass-select width-100">
                                 <option value="">Default</option>
                             </select>
                         </div>
@@ -622,7 +632,7 @@
 
                         <!-- AI Color Extraction Tool -->
                         <div class="palette-extraction-row flex-row align-center gap-10 margin-b-15">
-                            <button type="button" id="prop-gen-palette" class="small btn-secondary flex-row align-center gap-5" style="white-space: nowrap;">
+                            <button type="button" id="prop-gen-palette" class="glass glass-btn glass-btn--sm glass-btn--ghost flex-row align-center gap-5" style="white-space: nowrap;">
                                 <ion-icon name="color-palette-outline"></ion-icon>
                                 <span>Image color extraction</span>
                             </button>
@@ -653,38 +663,40 @@
                     </div>
                     
                     <div class="prop-group-duration hidden"><div class="input-field"><label>Duration (ms)</label><input type="number" id="prop-duration"></div></div>
-                    <button type="button" id="deleteItemBtn" class="delete-item-btn">Delete Item</button>
+                    <button type="button" id="deleteItemBtn" class="glass glass-btn glass-btn--sm glass-btn--danger delete-item-btn">Delete Item</button>
                 </form>
             </div>
             <div id="sceneItemPlaceholder" class="item-placeholder text-muted italic">Select an item to edit.</div>
         </div>
     </div>
 
-    <div id="fileBrowserModal" class="modal modal-overlay">
-        <div class="modal-content modal-content-large">
-            <div class="modal-header padding-15 border-dim modal-header-flex">
-                <h3 class="props-header">Select Asset</h3>
-                <button id="closeFileBrowserBtn" class="small">Close</button>
+    <div id="fileBrowserModal" class="glass-modal-backdrop">
+        <div class="glass-modal" style="width: 90vw; max-width: 1200px; height: 90vh;">
+            <div class="glass-modal__header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border); padding-bottom: 10px;">
+                <h3 class="props-header" style="margin: 0;">Select Asset</h3>
+                <button id="closeFileBrowserBtn" class="glass-modal__close" aria-label="Close modal">×</button>
             </div>
-            <div class="modal-toolbar padding-10 bg-panel modal-toolbar-flex" style="display: flex; gap: 10px; align-items: center; border-bottom: 1px solid var(--border);">
-                 <select id="fbScopeSelect" class="gov-select">
+            <div class="modal-toolbar padding-10 glass glass--dark modal-toolbar-flex" style="display: flex; gap: 10px; align-items: center; border-bottom: 1px solid var(--border);">
+                 <select id="fbScopeSelect" class="glass-select">
                     <option value="page">Page Assets</option>
                     <option value="volume">Volume Assets</option>
                     <option value="series">Series Assets</option>
                  </select>
-                 <input type="text" id="fbSearchInput" placeholder="Search..." class="flex-1 gov-select">
-                 <select id="fbSortSelect" class="gov-select">
+                 <input type="text" id="fbSearchInput" placeholder="Search..." class="flex-1 gov-input">
+                 <select id="fbSortSelect" class="glass-select">
                     <option value="date">Newest First</option>
                     <option value="name">Name (A-Z)</option>
                  </select>
                  <div class="divider-v margin-b-0"></div>
-                 <label class="small modal-file-label" style="cursor: pointer;">
+                 <label class="glass glass-btn glass-btn--sm glass-btn--ghost" style="cursor: pointer;">
                     Upload New
                     <input type="file" id="fileBrowserUploadInput" class="hidden" style="display: none;">
                  </label>
                  <span id="fileBrowserStatus" class="text-muted font-size-09 align-self-center"></span>
             </div>
-            <div id="fileBrowserGrid" class="flex-1 padding-20 file-browser-grid"></div>
+            <div class="glass-modal__body" style="padding: 0; display: flex; flex-direction: column; flex: 1; overflow: hidden;">
+                <div id="fileBrowserGrid" class="flex-1 padding-20 file-browser-grid" style="overflow-y: auto;"></div>
+            </div>
         </div>
     </div>
 
@@ -694,37 +706,37 @@
     </div>
 
     <!-- PLOT LAB SECTION -->
-    <div class="plot-lab dashboard-section hidden">
-        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+    <div class="plot-lab dashboard-section hidden glass glass--frosted glass-card">
+        <button class="glass glass-btn glass-btn--sm glass-btn--ghost back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
         <div class="flex-between margin-b-20">
             <div class="flex-row-center gap-15">
                 <h3>Plot Lab</h3>
-                <select id="plot-series-select" class="gov-select"><option value="">Select Series</option></select>
+                <select id="plot-series-select" class="glass-select"><option value="">Select Series</option></select>
             </div>
-            <button id="add-plot-beat-btn" class="update__btn">+ Add Beat</button>
+            <button id="add-plot-beat-btn" class="glass glass-btn glass-btn--primary">+ Add Beat</button>
         </div>
         <div class="plot-board-container" id="plot-board-container"></div>
     </div>
 
     <!-- EXPORT TOOL SECTION -->
-    <div class="export-tool dashboard-section hidden">
-        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+    <div class="export-tool dashboard-section hidden glass glass--frosted glass-card">
+        <button class="glass glass-btn glass-btn--sm glass-btn--ghost back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
         <h3>Print Exporter</h3>
         <p>Render high-resolution PNGs of an entire volume.</p>
 
         <div class="form-group margin-t-20">
             <label for="exportSeriesSelect">Select Series:</label>
-            <select id="exportSeriesSelect" class="gov-select"></select>
+            <select id="exportSeriesSelect" class="glass-select"></select>
         </div>
 
         <div class="form-group margin-t-20">
             <label for="exportVolumeSelect">Select Volume to Export:</label>
-            <select id="exportVolumeSelect" class="gov-select" disabled><option value="">Select a Series first</option></select>
+            <select id="exportVolumeSelect" class="glass-select" disabled><option value="">Select a Series first</option></select>
         </div>
 
         <div class="form-group margin-t-20">
             <label for="exportPresetSelect">Export Preset (Style):</label>
-            <select id="exportPresetSelect" class="gov-select">
+            <select id="exportPresetSelect" class="glass-select">
                 <option value="uk-table">UK Table Book (A3 Spread)</option>
                 <option value="us-landscape">US Comic Landscape (Spread)</option>
                 <option value="us-portrait">US Comic Portrait (Standard 6.625x10.25)</option>
@@ -749,7 +761,7 @@
             </div>
         </div>
 
-        <button id="startExportBtn" class="update__btn w-full margin-t-20">
+        <button id="startExportBtn" class="glass glass-btn glass-btn--primary w-full margin-t-20">
             Start Background Export <ion-icon size="small" name="print"></ion-icon>
         </button>
 
@@ -777,15 +789,15 @@
     </div>
 
     <!-- STORY CRITIC SECTION -->
-    <div class="story-critic dashboard-section hidden">
-        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+    <div class="story-critic dashboard-section hidden glass glass--frosted glass-card">
+        <button class="glass glass-btn glass-btn--sm glass-btn--ghost back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
         <div class="flex-between margin-b-20">
             <div class="flex-row-center gap-15">
                 <h3>Story Critic</h3>
-                <select id="critic-series-select" class="gov-select"><option value="">Select Series</option></select>
-                <select id="critic-volume-select" class="gov-select" disabled><option value="">Select Volume</option></select>
+                <select id="critic-series-select" class="glass-select"><option value="">Select Series</option></select>
+                <select id="critic-volume-select" class="glass-select" disabled><option value="">Select Volume</option></select>
             </div>
-            <button id="run-critic-btn" class="update__btn" disabled>
+            <button id="run-critic-btn" class="glass glass-btn glass-btn--primary" disabled>
                 <ion-icon name="sparkles-outline"></ion-icon> Run Gemini Critic
             </button>
         </div>
@@ -800,7 +812,7 @@
             </div>
         </div>
 
-        <div id="critic-output-container" class="critic-output bg-dark padding-30 border-radius-12 border-dim">
+        <div id="critic-output-container" class="critic-output glass glass--dark glass-card">
             <h4 class="margin-b-15 text-accent">Narrative Analysis</h4>
             <div id="critic-log" class="critic-log">
                 <div class="text-muted italic">Awaiting analysis...</div>
@@ -809,17 +821,17 @@
     </div>
 
     <!-- STYLE LAB SECTION -->
-    <div class="style-lab dashboard-section hidden">
-        <button class="small back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
+    <div class="style-lab dashboard-section hidden glass glass--frosted glass-card">
+        <button class="glass glass-btn glass-btn--sm glass-btn--ghost back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
         <h3>Style Lab</h3>
         <p class="text-muted margin-b-20">Customize global typography and CSS.</p>
 
         <div class="flex-row gap-30">
             <!-- Left Side: Controls -->
-            <div class="flex-1 bg-dark padding-30 border-radius-12 border-dim">
+            <div class="flex-1 glass glass--dark glass-card">
                 <div class="form-group">
                     <label>Select Series</label>
-                    <select id="styleLabSeriesSelect" class="gov-select"><option value="">Select a Series</option></select>
+                    <select id="styleLabSeriesSelect" class="glass-select"><option value="">Select a Series</option></select>
                 </div>
 
                 <div id="style-lab-controls" class="hidden margin-t-20">
@@ -855,14 +867,14 @@
 
                     <div class="form-group">
                         <label>Speech & UI Font</label>
-                        <select id="styleLabFontSelect" class="gov-select">
+                        <select id="styleLabFontSelect" class="glass-select">
                             <option value="">Default</option>
                         </select>
                     </div>
 
                     <div class="form-group">
                         <label>Action Text Font</label>
-                        <select id="styleLabActionFontSelect" class="gov-select">
+                        <select id="styleLabActionFontSelect" class="glass-select">
                             <option value="">Default</option>
                         </select>
                     </div>
@@ -895,21 +907,21 @@
                         <div id="custom-css-list" class="margin-b-10 flex-column gap-5">
                             <!-- Injected filenames -->
                         </div>
-                        <label class="small btn-browse text-center cursor-pointer">
+                        <label class="glass glass-btn glass-btn--sm glass-btn--ghost text-center cursor-pointer">
                             + Upload CSS File
                             <input type="file" id="styleLabCssInput" accept=".css" class="hidden">
                         </label>
                     </div>
 
                     <div class="margin-t-30 flex-row gap-15">
-                        <button id="saveStyleSettingsBtn" class="update__btn flex-2">Save Styles</button>
-                        <button id="resetStyleSettingsBtn" class="small flex-1">Reset Defaults</button>
+                        <button id="saveStyleSettingsBtn" class="glass glass-btn glass-btn--primary flex-2">Save Styles</button>
+                        <button id="resetStyleSettingsBtn" class="glass glass-btn glass-btn--sm glass-btn--ghost flex-1">Reset Defaults</button>
                     </div>
                 </div>
             </div>
 
             <!-- Right Side: Live Preview -->
-            <div class="flex-1 bg-dark padding-30 border-radius-12 border-dim">
+            <div class="flex-1 glass glass--dark glass-card">
                 <h4 class="margin-b-20 text-accent">Live Preview</h4>
                 <div id="style-lab-preview" class="style-preview-stage page" style="position: relative; height: 500px; background: #fff; border: 1px solid #ccc; overflow: hidden; border-radius: 8px;">
                     <!-- Preview components will be injected here -->

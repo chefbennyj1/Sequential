@@ -70,7 +70,7 @@ class ActionText {
                 style.textContent = `
                     @font-face {
                         font-family: "${fontName}";
-                        src: url("/views/public/styles/fonts/${fontValue}") format("${format}");
+                        src: url("/views/shared/styles/fonts/${fontValue}") format("${format}");
                     }
                 `;
                 document.head.appendChild(style);

@@ -1,6 +1,12 @@
 <%- include('../../shared/main', { 
     title: series.title + ' - Vol ' + volume.index, 
     bodyClass: 'library-page-shell',
+    headerPath: '../reader/ui-kit/header',
+    extraStyles: `
+        <link rel="stylesheet" href="/views/reader/ui-kit/header.css">
+        <link rel="stylesheet" href="/views/reader/ui-kit/buttons.css">
+        <link rel="stylesheet" href="/views/reader/browser/library.css">
+    `,
     body: `
         <main id="main-content">
             <div class="library-root">
@@ -25,8 +31,5 @@
             </div>
         </div>
         </main>
-    `,
-    extraStyles: `
-        <link rel="stylesheet" href="/views/reader/browser/library.css">
     `
 }) %>

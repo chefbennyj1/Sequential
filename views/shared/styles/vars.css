@@ -1,0 +1,13 @@
+:root {
+  --background-color: #11292a;
+  --background-light-color: #fff;
+  --text-color: hsl(0, 0%, 100%);
+  --color-one: #943A00;
+  --color-two: #FCBE5B;
+  --color-three: #3EA4DF;
+  --color-four: #FCF8EE;
+  --color-five: #033B64;
+  --lg-bg-color: rgba(255, 255, 255, 0.05);
+  --lg-bg-color-2: rgb(172, 70, 0, 0.2);
+  --lg-highlight: rgba(255, 255, 255, 0.75);
+}

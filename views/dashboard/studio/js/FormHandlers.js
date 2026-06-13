@@ -362,10 +362,16 @@ async function initGlobalSettings() {
             });
             const data = await res.json();
             if (data.ok) {
-                alert("Global settings saved successfully!");
+                if (window.GlassToast) {
+                    window.GlassToast.show('success', 'Settings Saved', 'Global AI configuration updated.');
+                }
             } else throw new Error(data.message);
         } catch (err) {
-            alert("Error: " + err.message);
+            if (window.GlassToast) {
+                window.GlassToast.show('error', 'Save Failed', err.message);
+            } else {
+                alert("Error: " + err.message);
+            }
         } finally {
             btn.disabled = false;
             btn.textContent = originalText;
@@ -419,9 +425,15 @@ function initLibrarySettings() {
                 });
                 const data = await res.json();
                 if (data.ok) { 
-                    alert("Library settings saved successfully!");
+                    if (window.GlassToast) {
+                        window.GlassToast.show('success', 'Settings Saved', 'Series configuration updated.');
+                    }
                 } else {       
-                    alert("Error saving settings: " + data.message);
+                    if (window.GlassToast) {
+                        window.GlassToast.show('error', 'Save Failed', data.message);
+                    } else {
+                        alert("Error saving settings: " + data.message);
+                    }
                 }
             } catch (err) {    
                 console.error("Failed to save series settings", err);

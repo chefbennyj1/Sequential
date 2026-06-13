@@ -1,6 +1,11 @@
 <%- include('../../shared/main', { 
     title: 'Library', 
     bodyClass: 'library-page-shell',
+    headerPath: '../reader/ui-kit/header',
+    extraStyles: `
+        <link rel="stylesheet" href="/views/reader/ui-kit/header.css">
+        <link rel="stylesheet" href="/views/reader/ui-kit/buttons.css">
+    `,
     body: `
         <main id="main-content">
             <section id="library-page" class="library-page scroll-section active"></section>

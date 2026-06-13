@@ -19,8 +19,8 @@ body {
 }
 
 .spread-view #preview-container {
-    gap: 20px; /* Space between pages in spread */
-    justify-content: center !important; /* Center the pair in the iframe */
+    gap: 0; /* Match Reader's joined spread look */
+    justify-content: center !important;
 }
 
 .page-container {
@@ -28,7 +28,7 @@ body {
     justify-content: center;
     align-items: center;
     height: 100%;
-    flex: 1 1 auto;
+    flex: 0 0 50%; /* Strictly 50% for spreads */
     position: relative;
 }
 

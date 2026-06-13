@@ -79,14 +79,14 @@ export default class ScheduledTaskView {
 
         roots.forEach(root => {
             const item = document.createElement('div');
-            item.className = 'root-item';
+            item.className = 'root-item glass glass--dark border-radius-8 border-dim padding-10';
             
             item.innerHTML = `
                 <div>
                     <div class="root-info-name">${root.name}</div>
                     <div class="root-info-path">${root.path}</div>
                 </div>
-                <button class="small root-delete-btn" data-id="${root._id}">X</button>
+                <button class="glass glass-btn glass-btn--sm glass-btn--danger root-delete-btn" data-id="${root._id}">X</button>
             `;
 
             item.querySelector('button').addEventListener('click', () => this.deleteRoot(root._id));

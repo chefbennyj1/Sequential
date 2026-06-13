@@ -1,14 +1,18 @@
-/* Sequential Comic Server - Dashboard Style Entry */
+/* Sequential Comic Server - Dashboard Modern Style Entry */
 
-@import url('./styles/vars.css');
-@import url('./styles/base.css');
-@import url('./styles/layout.css');
-@import url('./styles/components.css');
-@import url('./styles/utilities.css');
+/* 1. Foundational System */
+@import url('./ui-kit/vars.css');
+@import url('./ui-kit/base.css');
+@import url('./ui-kit/layout.css');
+@import url('./ui-kit/components.css');
+@import url('./ui-kit/utilities.css');
+@import url('./ui-kit/loader.css');
+
+/* 2. Core Feature Components */
 @import url('./components/SceneEditor/SceneEditor.css');
 @import url('./components/FileBrowser/FileBrowser.css');
 
-/* --- Specific Dashboard Feature Overrides --- */
+/* 3. Dashboard-Specific Polish */
 
 /* Account section specific meta */
 .meta {
@@ -19,102 +23,9 @@
   font-size: 0.9em;
 }
 
-/* User area dropdown styling */
-.user .dropdown {
-  position: absolute;
-  display: flex;
-  bottom: 60px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--bg);
-  border: 1px solid #e5e5e5;
-  border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  opacity: 0;
-  pointer-events: none;
-  flex-direction: column;
-  min-width: 160px;
-  padding: 8px 0;
-  z-index: 10;
-  overflow: hidden;
-}
-
-.user .dropdown a,
-.user .dropdown button {
-  background: none;
-  border: none;
-  width: 100%;
-  text-align: left;
-  padding: 10px 16px;
-  font-size: 14px;
-  color: #fff;
-  cursor: pointer;
-}
-
-.user .dropdown a:hover,
-.user .dropdown button:hover {
-  background: #f5f5f5;
-  color: #303030;
-}
-
-.user .dropdown.show {
-  opacity: 1;
-  transform: translateX(-50%) translateY(-10px);
-  pointer-events: all;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-
-/* Portrait Mode Constraint */
-.preview-pane-flex.portrait-mode {
-  background: #000;
-}
-
-.preview-pane-flex.portrait-mode .preview-iframe {
-  width: 450px;
-  height: 100%;
-  max-width: 95%;
-  border: none;
-}
-
-/* Modal sizing */
-.modal-content-large {
-  width: 80%;
-  max-width: 800px;
-  height: 80%;
-  display: flex;
-  flex-direction: column;
-}
-
-.modal-content-medium {
-  width: 600px;
-  height: 80%;
-  display: flex;
-  flex-direction: column;
-}
-
-/* List handling */
-.playlist-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-
 /* Range Input for Pan Sliders */
 input[type="range"] {
   accent-color: var(--accent);
 }
 
-/* --- Spread Mode Override (ULTRA Specificity) --- */
-/* Targeting the ID directly to ensure it wins all specificity battles */
-#pagePreviewFrame {
-    transition: width 0.3s ease, min-width 0.3s ease;
-}
-
-body .layout-editor.is-spread #pagePreviewFrame {
-  width: 960px !important;
-  min-width: 960px !important;
-  max-width: 98% !important;
-}
-
-
-
+/* Dashboard-Specific Polish */

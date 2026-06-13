@@ -1,6 +1,6 @@
 /* --- Studio Common Tool Styles --- */
 .tools-pane {
-    background: #222 !important;
+    background: transparent !important;
     border-left: 1px solid var(--border);
     color: var(--text) !important;
 }

@@ -7,7 +7,9 @@
     <% } %>
 </head>
 <body class="<%= typeof bodyClass !== 'undefined' ? bodyClass : '' %>">
-    <%- include('./header') %>
+    <% if (typeof headerPath !== 'undefined') { %>
+        <%- include(headerPath) %>
+    <% } %>
 
     <%- body %>
 

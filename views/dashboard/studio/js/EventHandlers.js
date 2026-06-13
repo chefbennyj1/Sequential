@@ -1,5 +1,3 @@
-// views/dashboard/studio/js/EventHandlers.js
-
 import { updateUrlState } from './Navigation.js';
 import {
     populateSeriesSelect,
@@ -17,22 +15,85 @@ import ArrangeManager from './ArrangeManager.js';
 let currentSceneInfo = {};
 let arrangeManager;
 
-export function initEventHandlers(container, allSections) {
-    if (!arrangeManager) arrangeManager = new ArrangeManager();
-    const sidebar = container.querySelector('.sidebar');
+/**
+ * Switches the visible dashboard section and triggers any necessary data population.
+ */
+export async function switchToSection(targetPage, container) {
+    console.log(`[Dashboard] Attempting switch to section: ${targetPage}`);
+    
+    const allSections = container.querySelectorAll('.dashboard-section, .glass-tab-panel');
+    const targetSection = container.querySelector('.' + targetPage);
+    
+    if (!targetSection) {
+        console.warn(`[Dashboard] Target section not found in container: .${targetPage}`);
+        return;
+    }
 
-    // Hover Nav
-    document.addEventListener('mousemove', e => {
-        if (e.clientX < 60) sidebar?.classList.add('open');
-        else if (sidebar?.classList.contains('open') && e.clientX > 250) sidebar.classList.remove('open');
+    // --- LIQUID GLASS TAB LOGIC ---
+    // 1. Update Tabs (if any)
+    const tabs = container.querySelectorAll('.glass-tab');
+    tabs.forEach(tab => {
+        const isActive = tab.dataset.page === targetPage;
+        tab.setAttribute('aria-selected', String(isActive));
+        tab.setAttribute('tabindex', isActive ? '0' : '-1');
     });
 
-    // User Menu Toggle
-    const userSection = container.querySelector('.user');
-    const userMenu = container.querySelector('#userMenu');
+    // 2. Update Panels (Exclusive Visibility)
+    console.log(`[Dashboard] Activating .${targetPage} and deactivating others.`);
 
-    if (userSection && userMenu) {
-        userSection.addEventListener('click', (e) => {
+    // Hide background blobs for scanner page to prevent circular artifacts
+    
+
+    allSections.forEach(s => {
+        s.classList.remove('is-active');
+        s.classList.add('hidden'); 
+    });
+    
+    targetSection.classList.add('is-active');
+    targetSection.classList.remove('hidden');
+
+    // Trigger Population Logic based on the section
+    const popTasks = [];
+    if (targetPage === 'create-new-volume') popTasks.push(populateSeriesSelect('createVolumeSeriesSelect'));
+    if (targetPage === 'edit-volume') popTasks.push(populateSeriesSelect('volumeSeriesSelect'));
+    if (targetPage === 'create-new-chapter') popTasks.push(populateSeriesSelect('chapterSeriesSelect'));
+    if (targetPage === 'export-tool') popTasks.push(populateSeriesSelect('exportSeriesSelect'));
+    if (targetPage === 'characters') popTasks.push(populateSeriesSelect('char-series-select'));
+    if (targetPage === 'page-builder') {
+        popTasks.push(populateSeriesSelect('builderSeriesSelect'));
+        popTasks.push(populateSeriesSelect('insertSeriesSelect'));
+        popTasks.push(populateSeriesSelect('scriptSeriesSelect'));
+        popTasks.push(populateSeriesSelect('editSeriesSelect'));
+        popTasks.push(populateLayoutSelect());
+
+        const modeSel = document.getElementById('pageBuilderModeSelection');
+        const createCont = document.getElementById('createPageContainer');
+        const editCont = document.getElementById('editPageContainer');
+        const insertCont = document.getElementById('insertPageContainer');
+        
+        if (modeSel && modeSel.classList.contains('hidden') &&    
+            createCont.classList.contains('hidden') &&
+            editCont.classList.contains('hidden') &&
+            insertCont.classList.contains('hidden')) {
+             modeSel.classList.remove('hidden');
+        }
+    }
+
+    await Promise.all(popTasks);
+    
+    // Dispatch completion event
+    container.dispatchEvent(new CustomEvent('sectionShown', { detail: { section: targetPage } }));
+}
+
+export function initEventHandlers(container, allSections) {
+    if (!arrangeManager) arrangeManager = new ArrangeManager();
+
+    // User Menu Toggle (Topbar)
+    const userProfileToggle = document.getElementById('userProfileToggle');
+    const userMenu = document.getElementById('userMenu');
+
+    if (userProfileToggle && userMenu) {
+        userProfileToggle.addEventListener('click', (e) => {
             e.stopPropagation();
             userMenu.classList.toggle('show');
         });
@@ -44,76 +105,46 @@ export function initEventHandlers(container, allSections) {
 
     // Global Event Delegation
     container.addEventListener('click', async (e) => {
-        const target = e.target.closest('button, li, .mode-card, .volume-card, .series-card, #accountSettingsBtn');
+        const target = e.target.closest('button, li, .glass-tab, .mode-card, .volume-card, .series-card, #accountSettingsBtn');
         if (!target) return;
 
-        // Sidebar Navigation
-        if (target.tagName === 'LI' && target.closest('nav')) {
+        // Topbar Navigation
+        if (target.classList.contains('glass-tab') && target.closest('#main-navigation')) {
             const page = target.dataset.page;
             if (!page) return;
             updateUrlState({ tab: page });
-
-            allSections.forEach(s => s.classList.add('hidden'));
-            container.querySelector('.sidebar li.active')?.classList.remove('active');
-            target.classList.add('active');
-
-            const sec = container.querySelector('.' + page);
-            if (sec) sec.classList.remove('hidden');
+            
+            // Note: active state handled inside switchToSection for glass-tabs
+            await switchToSection(page, container);
         }
 
         // Account Settings Link
         if (target.id === 'accountSettingsBtn') {
             e.preventDefault();
-            allSections.forEach(s => s.classList.add('hidden'));
-            container.querySelector('.user-settings.dashboard-section').classList.remove('hidden');
             updateUrlState({ tab: 'user-settings' });
+            await switchToSection('user-settings', container);
         }
 
         // STUDIO HUB: Mode Cards
         if (target.classList.contains('mode-card') && target.closest('.studio')) {
             const targetPage = target.dataset.target;
-            console.log(`[Dashboard] Mode Card Clicked: ${targetPage}`);
-            if (!targetPage) return;
-
-            const targetSection = container.querySelector('.' + targetPage);
-            
-            if (targetSection) {
-                // EXCLUSIVE VISIBILITY: Hide all sections before showing the new one
-                allSections.forEach(s => s.classList.add('hidden'));
-                targetSection.classList.remove('hidden');
-
-                if (targetPage === 'create-new-volume') populateSeriesSelect('createVolumeSeriesSelect');
-                if (targetPage === 'edit-volume') populateSeriesSelect('volumeSeriesSelect');
-                if (targetPage === 'create-new-chapter') populateSeriesSelect('chapterSeriesSelect');
-                if (targetPage === 'export-tool') populateSeriesSelect('exportSeriesSelect');
-                if (targetPage === 'characters') populateSeriesSelect('char-series-select');
-                if (targetPage === 'page-builder') {
-                    populateSeriesSelect('builderSeriesSelect');
-                    populateSeriesSelect('insertSeriesSelect');
-                    populateSeriesSelect('scriptSeriesSelect');
-                    populateSeriesSelect('editSeriesSelect');
-                    populateLayoutSelect();
-                    const modeSel = document.getElementById('pageBuilderModeSelection');
-                    const createCont = document.getElementById('createPageContainer');
-                    const editCont = document.getElementById('editPageContainer');
-                    const insertCont = document.getElementById('insertPageContainer');
-                    if (modeSel && modeSel.classList.contains('hidden') &&    
-                        createCont.classList.contains('hidden') &&
-                        editCont.classList.contains('hidden') &&
-                        insertCont.classList.contains('hidden')) {
-                         modeSel.classList.remove('hidden');
-                    }
-                }
-            } else {
-                console.warn(`[Dashboard] Target section not found: .${targetPage}`);
-            }
+            if (targetPage) await switchToSection(targetPage, container);
         }
 
         // BACK TO STUDIO Buttons
         if (target.classList.contains('back-to-studio-btn')) {
-            const currentSection = target.closest('.dashboard-section');      
-            if (currentSection) currentSection.classList.add('hidden');       
-            container.querySelector('.studio').classList.remove('hidden');    
+            await switchToSection('studio', container);
+        }
+
+        // --- Deep Link Openers (from Page Builder) ---
+        if (target.id === 'openLayoutEditorBtn') {
+            const { vol, chap, page, series, seriesFolder } = target.dataset;
+            openVisualEditor(vol, chap, page, 'portrait', series, seriesFolder);
+        }
+
+        if (target.id === 'openSceneEditorBtn') {
+            const { vol, chap, page, series } = target.dataset;
+            openSceneEditor(vol, chap, page, 'portrait', series);
         }
 
         // Page Builder Internal Mode Cards
@@ -207,10 +238,6 @@ export function initEventHandlers(container, allSections) {
             setActivePage(vol, chap, pageId, seriesId, seriesFolder);
             updateUrlState({ tab: 'page-builder', vol, chap, page: pageId, series: seriesId, seriesFolder });
         }
-
-        // Editor Openers
-        if (target.id === 'openLayoutEditorBtn') openVisualEditor(target.dataset.vol, target.dataset.chap, target.dataset.page, currentDesignMode, target.dataset.series, target.dataset.seriesFolder);
-        if (target.id === 'openSceneEditorBtn') openSceneEditor(target.dataset.vol, target.dataset.chap, target.dataset.page, currentDesignMode, target.dataset.series);
 
         // Library Cards
         if (target.closest('.series-card')) {

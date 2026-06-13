@@ -7,7 +7,7 @@ const Series = require('../models/Series');
  * Generates comprehensive screenplay-style documents from atomic page data.
  */
 class ScriptService {
-    
+
     /**
      * Generates a script for an entire volume.
      * @param {string} seriesId - The MongoDB ID of the series.
@@ -53,7 +53,7 @@ class ScriptService {
             for (const pageId of pages) {
                 const folderPath = path.join(chapterPath, pageId);
                 const jsonPath = path.join(folderPath, 'page.json');
-                
+
                 if (fs.existsSync(jsonPath)) {
                     const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
                     script += this.formatPage(pageId, data);
@@ -73,22 +73,22 @@ class ScriptService {
      */
     static formatPage(pageId, data) {
         let output = `\nPAGE: ${pageId.replace('page', '')}\n`;
-        
+
         // --- SLUGLINE GENERATION ---
         let slugline = data.header?.slugline || '';
-        
+
         if (!slugline && data.media && data.media.length > 0) {
             // Attempt to infer slugline from the first panel's description
             const firstDesc = data.media[0].description || '';
             const isExterior = /street|cityscape|skyline|alley|wasteland|outside|exterior|rooftop|sky/i.test(firstDesc);
-            const location = firstDesc.match(/(hallway|corridor|office|server room|laboratory|apartment|elevator|room|chamber|deck)/i)?.[0] || 'OSHIMA CITY';
+            const location = firstDesc.match(/(hallway|corridor|office|server room|laboratory|apartment|elevator|room|chamber|deck)/i)?.[0] || '';
             const timeOfDay = /night|dark|sunset|dusk/i.test(firstDesc) ? 'NIGHT' : 'DAY';
-            
+
             slugline = `${isExterior ? 'EXT.' : 'INT.'} ${location.toUpperCase()} - ${timeOfDay}`;
         }
 
-        output += `${slugline || 'INT. OSHIMA CITY - NIGHT'}\n`;
-        
+        output += `${slugline || ''}\n`;
+
         // Layout Info
         let layoutId = 'Unknown Layout';
         if (data.header?.layout) {
@@ -98,7 +98,7 @@ class ScriptService {
         } else if (data.header?.layouts?.portrait) {
             layoutId = typeof data.header.layouts.portrait === 'string' ? data.header.layouts.portrait : data.header.layouts.portrait.id;
         }
-        
+
         output += `LAYOUT: ${layoutId}\n`;
         output += `................................................................................\n`;
 
@@ -120,7 +120,7 @@ class ScriptService {
             data.scene.forEach((item, index) => {
                 const type = item.displayType ? item.displayType.type : 'Unknown';
                 const speaker = item.character ? item.character.toUpperCase() : '???';
-                
+
                 if (type === 'SpeechBubble' || type === 'Dialogue' || type === 'InternalMonologue') {
                     const prefix = type === 'InternalMonologue' ? '(Internal) ' : '';
                     output += `\n  ${speaker}\n  ${prefix}${this.cleanText(item.text)}\n`;

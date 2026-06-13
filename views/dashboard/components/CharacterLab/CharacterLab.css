@@ -1,20 +1,24 @@
-
 /* --- Government Form Style (Character Lab) --- */
 .character-gov-form {
     flex: 1 !important;
     width: 100%;
-    background: #0f1215 !important;
-    border: 1px solid #333 !important;
+    /* Background and border handled by glass classes if present */
     font-family: 'Courier New', Courier, monospace;
-    color: #ccc;
+    color: var(--text);
     display: flex;
     flex-direction: column;
     gap: 15px;
-    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+}
+
+/* Fallback for when glass isn't applied */
+.character-gov-form:not(.glass) {
+    background: #0f1215 !important;
+    border: 1px solid #333 !important;
+    color: #ccc;
 }
 
 .gov-header {
-    border-bottom: 2px solid #444;
+    border-bottom: 2px solid var(--border);
     padding-bottom: 10px;
     margin-bottom: 10px;
     display: flex;
@@ -61,49 +65,18 @@
 .gov-field-group label, 
 .gov-full-width label {
     font-size: 0.7rem;
-    color: #666;
+    color: var(--muted);
     text-transform: uppercase;
     letter-spacing: 1px;
 }
 
-.gov-input, .gov-textarea {
-    background: #1a1e22;
-    border: 1px solid #333;
-    color: #eee;
-    padding: 8px;
-    font-family: inherit;
-    font-size: 0.9rem;
-}
-
-.gov-input:focus, .gov-textarea:focus {
-    border-color: var(--accent);
-    outline: none;
-    background: #222;
-}
-
-.gov-textarea {
-    resize: vertical;
-    line-height: 1.4;
-}
-
-.gov-input.mono, .gov-textarea.mono {
-    font-family: 'Consolas', 'Monaco', monospace;
-}
-
-.gov-photo-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 10px;
-}
-
+/* Photo frame should remain dark for aesthetic, but respect theme if needed */
 .photo-frame {
     width: 120px;
     height: 140px;
-    border: 1px solid #444;
+    border: 1px solid var(--border);
     padding: 5px;
-    background: #111;
+    background: rgba(0,0,0,0.2);
 }
 
 .photo-frame img {
@@ -111,22 +84,6 @@
     height: 100%;
     object-fit: cover;
     filter: grayscale(20%) contrast(1.1);
-}
-
-.gov-btn-small {
-    background: #333;
-    color: #aaa;
-    border: 1px solid #444;
-    padding: 4px 8px;
-    font-size: 0.7rem;
-    cursor: pointer;
-    text-transform: uppercase;
-    width: 100%;
-}
-
-.gov-btn-small:hover {
-    background: #444;
-    color: white;
 }
 
 .gov-full-width {
@@ -140,9 +97,9 @@
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(60px, 1fr));
     gap: 5px;
-    background: #111;
+    background: rgba(0,0,0,0.1);
     padding: 5px;
-    border: 1px solid #222;
+    border: 1px solid var(--border);
     min-height: 40px;
     max-height: 120px;
     overflow-y: auto;
@@ -152,7 +109,7 @@
     width: 100%;
     aspect-ratio: 1;
     object-fit: cover;
-    border: 1px solid #333;
+    border: 1px solid var(--border);
     cursor: pointer;
     opacity: 0.7;
     transition: opacity 0.2s;
@@ -164,43 +121,16 @@
 }
 
 .gov-footer {
-    border-top: 1px solid #333;
+    border-top: 1px solid var(--border);
     padding-top: 15px;
     margin-top: 10px;
     display: flex;
     gap: 10px;
 }
 
-.gov-btn-action {
-    flex: 2;
-    background: var(--accent);
-    color: white;
-    border: none;
-    padding: 10px;
-    text-transform: uppercase;
-    font-weight: bold;
-    cursor: pointer;
-    letter-spacing: 1px;
-}
-
-.gov-btn-cancel {
-    flex: 1;
-    background: transparent;
-    border: 1px solid #444;
-    color: #888;
-    text-transform: uppercase;
-    cursor: pointer;
-}
-
-.gov-btn-cancel:hover {
-    border-color: #666;
-    color: #ccc;
-}
-
-/* --- Character List Items (Consolidated) --- */
+/* --- Character List Items --- */
 .character-item, .char-card {
-    background: #222;
-    border: 1px solid #333;
+    /* Background handled by glass if present */
     border-radius: 8px;
     padding: 15px;
     display: flex;
@@ -210,9 +140,12 @@
     cursor: pointer;
 }
 
+.character-item:not(.glass), .char-card:not(.glass) {
+    background: #222;
+    border: 1px solid #333;
+}
+
 .character-item:hover, .char-card:hover {
-    border-color: var(--accent, #00ccff);
-    background: #2a2a2a;
     transform: translateY(-2px);
 }
 
@@ -220,7 +153,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    border: 2px solid #444;
+    border: 2px solid var(--border);
 }
 
 .char-info {
@@ -231,7 +164,7 @@
 
 .char-name {
     font-weight: bold;
-    color: white;
+    color: var(--text);
 }
 
 .char-desc {
@@ -241,17 +174,4 @@
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 150px;
-}
-
-.character-item .edit-btn {
-    background: transparent;
-    border: 1px solid #555;
-    padding: 4px 8px;
-    font-size: 0.7rem;
-}
-
-.character-item .edit-btn:hover {
-    background: var(--accent);
-    color: white;
-    border-color: var(--accent);
 }

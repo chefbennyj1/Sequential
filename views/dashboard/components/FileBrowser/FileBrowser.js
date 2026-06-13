@@ -147,7 +147,7 @@ function renderFileBrowserGrid(files) {
 
 export function closeFileBrowser() {
     const modal = document.getElementById('fileBrowserModal');
-    if (modal) modal.classList.remove('active');
+    if (modal) modal.classList.remove('is-open');
     fileBrowserCallback = null;
 }
 

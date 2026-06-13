@@ -1,7 +1,7 @@
 /* views/dashboard/components/StoryCritic/StoryCritic.css */
 
-/* Carousel styles moved to /views/public/styles/ui-kit/cards.css */
-@import url('/views/public/styles/ui-kit/cards.css');
+/* Carousel styles moved to dashboard ui-kit */
+@import url('../../ui-kit/cards.css');
 
 .critic-output {
     min-height: 300px;

@@ -1,5 +1,7 @@
 /* Sequential UI Kit - Forms */
 
+@import url('/views/reader/ui-kit/buttons.css');
+
 .input-field,
 .form-group {
   display: flex;

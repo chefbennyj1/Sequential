@@ -1,8 +1,8 @@
 /* views/dashboard/components/PlotLab/PlotLab.css */
 
 .plot-board-container {
-    background: #111;
-    border: 1px solid #333;
+    background: rgba(0,0,0,0.1);
+    border: 1px solid var(--border);
     border-radius: 8px;
     padding: 20px;
     min-height: 500px;
@@ -13,8 +13,7 @@
 }
 
 .plot-beat-card {
-    background: #1e1e1e;
-    border: 1px solid #444;
+    /* Base styles handled by glass system if added in JS, otherwise use fallback */
     border-radius: 6px;
     padding: 15px;
     display: flex;
@@ -23,6 +22,11 @@
     cursor: grab;
     transition: border-color 0.2s, box-shadow 0.2s;
     position: relative;
+}
+
+.plot-beat-card:not(.glass) {
+    background: #1e1e1e;
+    border: 1px solid #444;
 }
 
 .plot-beat-card:active {
@@ -39,14 +43,14 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    border-bottom: 1px solid #333;
+    border-bottom: 1px solid var(--border);
     padding-bottom: 8px;
 }
 
 .plot-beat-title {
     font-size: 1.1em;
     font-weight: bold;
-    color: #fff;
+    color: var(--text);
     margin: 0;
 }
 
@@ -59,13 +63,13 @@
     font-weight: bold;
 }
 
-/* Colors for specific beat types */
-.type-lore { background: rgba(0, 255, 255, 0.1); color: #0ff; border: 1px solid #0ff; }
-.type-plot { background: rgba(0, 255, 65, 0.1); color: #00ff41; border: 1px solid #00ff41; }
-.type-character { background: rgba(255, 0, 255, 0.1); color: #f0f; border: 1px solid #f0f; }
+/* Colors for specific beat types - updated for visibility on light/dark */
+.type-lore { background: rgba(0, 204, 255, 0.1); color: #0891b2; border: 1px solid #0891b2; }
+.type-plot { background: rgba(21, 128, 61, 0.1); color: #15803d; border: 1px solid #15803d; }
+.type-character { background: rgba(190, 24, 93, 0.1); color: #be185d; border: 1px solid #be185d; }
 
 .plot-beat-desc {
-    color: #ccc;
+    color: var(--muted);
     font-size: 0.9em;
     line-height: 1.5;
     margin: 0;
@@ -82,14 +86,14 @@
 .plot-beat-controls button {
     background: none;
     border: none;
-    color: #888;
+    color: var(--muted);
     cursor: pointer;
     font-size: 0.8em;
     transition: color 0.2s;
 }
 
 .plot-beat-controls button:hover {
-    color: var(--cyber-primary, #00ff41);
+    color: var(--accent);
 }
 
 .plot-beat-controls .delete-btn:hover {
@@ -100,7 +104,8 @@
 .plot-form-modal {
     position: fixed;
     top: 0; left: 0; right: 0; bottom: 0;
-    background: rgba(0,0,0,0.8);
+    background: rgba(0,0,0,0.7);
+    backdrop-filter: blur(5px);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -108,16 +113,20 @@
 }
 
 .plot-form-content {
-    background: #1a1a1a;
-    border: 1px solid var(--cyber-primary, #00ff41);
+    /* Handled by glass class in JS if updated, otherwise fallback */
     border-radius: 8px;
     padding: 30px;
     width: 500px;
     max-width: 90vw;
 }
 
+.plot-form-content:not(.glass) {
+    background: #1a1a1a;
+    border: 1px solid var(--accent);
+}
+
 .plot-form-content h3 {
     margin-top: 0;
     margin-bottom: 20px;
-    color: var(--cyber-primary, #00ff41);
+    color: var(--accent);
 }

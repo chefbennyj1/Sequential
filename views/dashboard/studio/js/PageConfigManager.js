@@ -127,11 +127,11 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
                         Page ${pageNum} is a <strong>${isEven ? 'Left-Hand' : 'Right-Hand'}</strong> page. Spreads pair even pages with the following odd page.
                     </p>
                 </div>
-                <div class="flex-row align-center gap-10">
-                    <span class="text-muted font-size-07">${isSpreadEnabled ? 'Spread Active' : 'Enable Spread'}</span>
-                    <label class="switch">
+                <div class="flex-row align-center gap-15">
+                    <label class="glass-switch-label">
                         <input type="checkbox" id="pageSpreadToggle" ${isSpreadEnabled ? 'checked' : ''}>
-                        <span class="slider round"></span>
+                        <span class="glass-switch-track"><span class="glass-switch-thumb"></span></span>
+                        <span class="text-muted font-size-07" style="margin-left: 10px;">${isSpreadEnabled ? 'Spread Active' : 'Enable Spread'}</span>
                     </label>
                 </div>
             `;
@@ -216,6 +216,9 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
                     const result = await res.json();
                     if (result.ok) {
                         applyLayoutBtn.textContent = "Applied!";
+                        if (window.GlassToast) {
+                            window.GlassToast.show('success', 'Layout Updated', `Page structure changed to ${newLayoutFile}.`);
+                        }
                         setTimeout(() => { applyLayoutBtn.textContent = oldText; applyLayoutBtn.disabled = false; }, 2000);
                     } else {
                         alert("Error: " + result.message);

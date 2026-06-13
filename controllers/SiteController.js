@@ -88,8 +88,8 @@ exports.getVolumeChapters = async (req, res) => {
 exports.getAvailableFonts = async (req, res) => {
     const fs = require('fs');
     const path = require('path');
-    const fontsDir = path.join(__dirname, '..', 'views', 'public', 'styles', 'fonts');
-    const fontsCssPath = path.join(__dirname, '..', 'views', 'public', 'styles', 'fonts.css');
+    const fontsDir = path.join(__dirname, '..', 'views', 'shared', 'styles', 'fonts');
+    const fontsCssPath = path.join(__dirname, '..', 'views', 'shared', 'styles', 'fonts.css');
 
     try {
         let files = [];
