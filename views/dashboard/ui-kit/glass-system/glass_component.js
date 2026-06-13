@@ -567,31 +567,7 @@
          ====================================================================== */
     var GlassParallax = {
         init: function () {
-            /* Skip on touch devices */
-            if (window.matchMedia("(hover: none)").matches) return;
-            /* Respect reduced motion */
-            if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-
-            document.querySelectorAll(".glass-card").forEach(function (card) {
-                card.addEventListener("mousemove", function (evt) {
-                    var rect = card.getBoundingClientRect();
-                    var dx =
-                        (evt.clientX - (rect.left + rect.width / 2)) / (rect.width / 2);
-                    var dy =
-                        (evt.clientY - (rect.top + rect.height / 2)) / (rect.height / 2);
-                    card.style.transform =
-                        "translateY(-6px) scale(1.01) rotateX(" +
-                        -dy * 4 +
-                        "deg) rotateY(" +
-                        dx * 4 +
-                        "deg)";
-                    card.style.transition = "none";
-                });
-                card.addEventListener("mouseleave", function () {
-                    card.style.transform = "";
-                    card.style.transition = "";
-                });
-            });
+            /* Programmatic parallax disabled to maintain UI stability */
         }
     };
 

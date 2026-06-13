@@ -23,9 +23,9 @@ body {
 #main-content, .main-content {
     margin-left: 0 !important;
     flex: 1 !important;
-    height: auto !important;
+    height: 100% !important;
     min-height: 0 !important;
-    overflow-y: auto !important;
+    overflow: hidden !important;
     display: flex !important;
     flex-direction: column !important;
     width: 100% !important;
@@ -148,6 +148,11 @@ body {
 .layout-editor.dashboard-section.is-active {
     display: flex !important;
     flex-direction: column;
+    max-width: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 0 !important; /* Remove internal padding to maximize space */
 }
 
 /* Ensure sections have enough room and are visible */
@@ -160,12 +165,9 @@ body {
     box-sizing: border-box;
 }
 
+/* Specific resets for editors that need full height */
 .layout-editor.dashboard-section.is-active,
 .scene-editor.dashboard-section.is-active {
-    max-width: none !important;
-    margin: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
     padding: 20px !important;
 }
 
@@ -220,8 +222,9 @@ body {
     position: relative;
     background: var(--glass-dark);
     display: flex;
-    justify-content: center;
-    align-items: center;
+    justify-content: flex-start;
+    align-items: flex-start;
+    padding: 20px;
     overflow: hidden;
     min-width: 0;
 }
@@ -256,18 +259,24 @@ body {
 
 body .layout-editor:not(.is-spread) #pagePreviewFrame {
     width: auto !important;
-    height: 98% !important;
-    max-width: 98% !important;
+    height: calc(100dvh - 200px) !important;
+    max-height: calc(100dvh - 200px) !important;
+    max-width: 95% !important;
     aspect-ratio: 6.625 / 10.25; /* US Standard Comic Page */
-    margin: auto;
+    margin: 0 2% 0 2%;
+    filter: drop-shadow(0 15px 40px rgba(0,0,0,0.6));
+    border-radius: 4px;
 }
 
 body .layout-editor.is-spread #pagePreviewFrame {
     width: auto !important;
-    height: 98% !important;
+    height: calc(100dvh - 200px) !important;
+    max-height: calc(100dvh - 200px) !important;
     max-width: 98% !important;
     aspect-ratio: 13.25 / 10.25; /* US Standard Comic Spread (2x Width) */
-    margin: auto;
+    margin: 0 2% 0 2%;
+    filter: drop-shadow(0 15px 40px rgba(0,0,0,0.6));
+    border-radius: 4px;
 }
 
 .layout-editor.is-spread .tools-pane-flex {
