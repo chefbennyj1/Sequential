@@ -191,10 +191,15 @@ export class VisualEditorManager {
         const entry = this.currentVisualMediaData.find(m => m.panel === panelSelector) || { panel: panelSelector, type: 'image' };
         
         // Determine object-fit and position for display in UI
-        const isLsCustom = !!(entry.landscapeStyle && entry.landscapeStyle.objectPosition && entry.landscapeStyle.objectPosition !== 'center');
-        const isPtCustom = !!(entry.portraitStyle && entry.portraitStyle.objectPosition && entry.portraitStyle.objectPosition !== 'center');
+        const isLsCustom = !!(entry.landscapeStyle && entry.landscapeStyle.objectPosition && entry.landscapeStyle.objectPosition.includes('%'));
+        const isPtCustom = !!(entry.portraitStyle && entry.portraitStyle.objectPosition && entry.portraitStyle.objectPosition.includes('%'));
 
-        const getNum = (val) => val ? parseFloat(val.replace('%', '')) : 50;
+        const getNum = (val) => {
+            if (!val) return 50;
+            const n = parseFloat(val.replace('%', ''));
+            return isNaN(n) ? 50 : n;
+        };
+
         const ptPos = { x: 50, y: 50 };
         if (isPtCustom) {
             const parts = entry.portraitStyle.objectPosition.split(' ');
@@ -204,7 +209,7 @@ export class VisualEditorManager {
 
         const ptScale = entry.portraitStyle?.transform ? parseFloat(entry.portraitStyle.transform.match(/scale\((.*?)\)/)?.[1] || 1) : 1;
 
-        this.toolsPane.innerHTML = renderPanelSettings(panelSelector, entry, false, isPtCustom, {}, ptPos, 1, ptScale, getNum);
+        this.toolsPane.innerHTML = renderPanelSettings(panelSelector, entry, isLsCustom, isPtCustom, {}, ptPos, 1, ptScale, getNum);
         this.bindEditorEvents(panelSelector);
     }
 
@@ -320,7 +325,15 @@ export class VisualEditorManager {
         // Inputs for live sync
         ['visual-asset-name', 'visual-overlay-name', 'visual-overlay-opacity', 'visual-portrait-style-object-position', 'visual-pt-scale', 'pt-x-slider', 'pt-y-slider', 'float-left', 'float-top', 'float-width', 'float-height', 'float-aspect', 'float-z'].forEach(id => {
             const el = document.getElementById(id);
-            if (el) el.oninput = () => this.handleLiveSync(panelSelector);
+            if (el) {
+                el.oninput = () => {
+                    if (id === 'pt-x-slider' || id === 'pt-y-slider') {
+                        const select = document.getElementById('visual-portrait-style-object-position');
+                        if (select) select.value = 'custom';
+                    }
+                    this.handleLiveSync(panelSelector);
+                };
+            }
         });
 
         // Object Position Toggle
@@ -339,8 +352,16 @@ export class VisualEditorManager {
                 const dir = parseFloat(btn.dataset.dir);
                 let input;
                 if (targetId === 'pt-scale') input = document.getElementById('visual-pt-scale');
-                if (targetId === 'pt-x') input = document.getElementById('pt-x-slider');
-                if (targetId === 'pt-y') input = document.getElementById('pt-y-slider');
+                if (targetId === 'pt-x') {
+                    input = document.getElementById('pt-x-slider');
+                    const select = document.getElementById('visual-portrait-style-object-position');
+                    if (select) select.value = 'custom';
+                }
+                if (targetId === 'pt-y') {
+                    input = document.getElementById('pt-y-slider');
+                    const select = document.getElementById('visual-portrait-style-object-position');
+                    if (select) select.value = 'custom';
+                }
                 
                 if (input) {
                     input.value = parseFloat(input.value) + dir;
@@ -357,11 +378,16 @@ export class VisualEditorManager {
         
         const style = {};
         if (alignVal === 'custom') {
-            style.objectPosition = `${getVal('pt-x-slider')}% ${getVal('pt-y-slider')}%`;
+            const pos = `${getVal('pt-x-slider')}% ${getVal('pt-y-slider')}%`;
+            style.objectPosition = pos;
+            style.transformOrigin = pos;
             style.objectFit = 'cover';
         } else {
             style.objectFit = (alignVal === 'contain') ? 'contain' : 'cover';
-            if (alignVal !== 'contain' && alignVal !== 'cover') style.objectPosition = alignVal;
+            if (alignVal !== 'contain' && alignVal !== 'cover') {
+                style.objectPosition = alignVal;
+                style.transformOrigin = alignVal;
+            }
         }
 
         if (parseFloat(scale) !== 1) style.transform = `scale(${scale})`;

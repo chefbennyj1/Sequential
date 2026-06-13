@@ -78,6 +78,9 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
     toolbar.classList.remove('hidden');
     display.textContent = `${vol} / ${chap} / ${page}`;
 
+    // PERSISTENCE: Save this context so we can restore it on reload
+    localStorage.setItem('sequential_last_active_page', JSON.stringify({ vol, chap, page, seriesId, seriesFolder }));
+
     // Link context to buttons
     [layoutBtn, sceneBtn].forEach(btn => {
         if (btn) {
@@ -112,9 +115,6 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
         await renderLayoutBrowser('activePageLayoutBrowser', 'activePageLayoutValue', lid);
 
         if (seriesId) await checkOrphanDialogue(vol, chap, page, seriesId);
-
-        // --- SPREAD STATUS & TOGGLE ---
-        // (Removed redundant dashboard alert. Spread mode is managed in the Visual Editor.)
     };
 
     // 1. --- LAYOUT CONFIG ---
@@ -172,5 +172,24 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
                 }
             };
         }
+    }
+}
+
+/**
+ * Restore the last active page from localStorage on dashboard load.
+ */
+export async function restoreLastActivePage() {
+    const saved = localStorage.getItem('sequential_last_active_page');
+    if (!saved) return;
+
+    try {
+        const { vol, chap, page, seriesId, seriesFolder } = JSON.parse(saved);
+        if (vol && chap && page) {
+            console.log(`[Persistence] Restoring last active page: ${vol}/${chap}/${page}`);
+            await setActivePage(vol, chap, page, seriesId, seriesFolder);
+        }
+    } catch (e) {
+        console.error("Failed to restore last active page", e);
+        localStorage.removeItem('sequential_last_active_page');
     }
 }

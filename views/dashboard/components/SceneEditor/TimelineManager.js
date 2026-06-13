@@ -110,17 +110,15 @@ export class TimelineManager {
 
             li.innerHTML = `   
                 <div class="item-main">
-                    <div class="item-header">
-                        <span class="item-type">${type}</span>
-                        <div style="display:flex; align-items:center;">
-                            ${avatarHtml}
-                            ${char ? `<span class="item-char">${char}</span>` : ''}
-                        </div> 
-                    </div>     
-                    ${previewText ? `<div class="item-text">${previewText}</div>` : ''}      
-                </div>
-                <div class="item-meta" style="display:flex; align-items:center; gap:5px;">   
-                    ID: ${shortId}
+                    <div class="item-header" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px;">
+                        <div class="glass-badge glass-badge--aqua" style="font-size: 0.65rem; padding: 2px 8px;">${type}</div>
+                        <div class="item-meta" style="font-size: 0.65rem; opacity: 0.5;">ID: ${shortId}</div>
+                    </div>
+                    <div style="display:flex; align-items:center; gap:8px;">
+                        ${avatarHtml}
+                        <span class="item-char">${char || '---'}</span>
+                    </div> 
+                    ${previewText ? `<div class="item-text" style="margin-top:5px;">${previewText}</div>` : ''}      
                 </div>
             `;
 

@@ -579,7 +579,7 @@
         <div class="scene-props-pane props-pane-flex">
             <div id="sceneItemEditor" class="hidden">
                 <form id="sceneItemForm">
-                    <div class="input-field"><label>ID</label><input type="text" id="prop-id" readonly></div>
+                    <div class="input-field"><label>ID</label><input type="text" id="prop-id" class="glass-input" readonly></div>
                     <div class="input-field">
                         <label>Display Type</label>
                         <select id="prop-type" class="glass-select width-100">
@@ -591,16 +591,16 @@
                             <option value="Pause">Pause</option>
                         </select>
                     </div>
-                    <div class="input-field prop-group-character"><label>Character</label><input type="text" id="prop-character"></div>
-                    <div class="input-field prop-group-text"><label>Dialogue</label><textarea id="prop-text" rows="4"></textarea></div>
+                    <div class="input-field prop-group-character"><label>Character</label><input type="text" id="prop-character" class="glass-input"></div>
+                    <div class="input-field prop-group-text"><label>Dialogue</label><textarea id="prop-text" rows="4" class="glass-textarea"></textarea></div>
                     <div class="props-group">
                         <h5>Placement</h5>
-                        <div class="input-field"><label>Panel Selector</label><input type="text" id="prop-panel" placeholder=".panel-A"></div>
-                        <div class="input-field"><label>Top (%)</label><input type="text" id="prop-top"></div>
-                        <div class="input-field"><label>Left (%)</label><input type="text" id="prop-left"></div>
-                        <div class="input-field"><label>Right (%)</label><input type="text" id="prop-right"></div>
-                        <div class="input-field"><label>Bottom (%)</label><input type="text" id="prop-bottom"></div>
-                        <div class="input-field"><label>Width (%)</label><input type="text" id="prop-width" placeholder="Auto"></div>
+                        <div class="input-field"><label>Panel Selector</label><input type="text" id="prop-panel" class="glass-input" placeholder=".panel-A"></div>
+                        <div class="input-field"><label>Top (%)</label><input type="text" id="prop-top" class="glass-input"></div>
+                        <div class="input-field"><label>Left (%)</label><input type="text" id="prop-left" class="glass-input"></div>
+                        <div class="input-field"><label>Right (%)</label><input type="text" id="prop-right" class="glass-input"></div>
+                        <div class="input-field"><label>Bottom (%)</label><input type="text" id="prop-bottom" class="glass-input"></div>
+                        <div class="input-field"><label>Width (%)</label><input type="text" id="prop-width" class="glass-input" placeholder="Auto"></div>
 
                         <div class="input-field">
                             <label>Tail Position</label>
@@ -612,12 +612,12 @@
                                 <option value="bottom-right">Bottom Right</option>
                             </select>
                         </div>
-                        <div class="input-field"><label>Tail Skew</label><input type="number" id="prop-tail-skew" placeholder="25"></div>
-                        <div class="input-field"><label>Tail Scale</label><input type="text" id="prop-tail-scale" placeholder="1.0"></div>
+                        <div class="input-field"><label>Tail Skew</label><input type="number" id="prop-tail-skew" class="glass-input" placeholder="25"></div>
+                        <div class="input-field"><label>Tail Scale</label><input type="text" id="prop-tail-scale" class="glass-input" placeholder="1.0"></div>
                         
                         <div class="input-field">
                             <label>Font Size</label>
-                            <input type="text" id="prop-font-size" placeholder="0.85rem">
+                            <input type="text" id="prop-font-size" class="glass-input" placeholder="0.85rem">
                         </div>
                         <div class="input-field prop-group-font">
                             <label>Action Font</label>
@@ -651,18 +651,18 @@
                         </div>
                         <div class="input-field">
                             <label>Thickness (px)</label>
-                            <input type="number" step="0.1" id="prop-outline-size" placeholder="1.0">
+                            <input type="number" step="0.1" id="prop-outline-size" class="glass-input" placeholder="1.0">
                         </div>
 
                         <div class="prop-group-curve">
-                            <div class="input-field"><label>SVG Curve Path</label><input type="text" id="prop-curve" placeholder="M 10,90 Q 150,10 290,90"></div>
-                            <div class="input-field"><label>Curve W</label><input type="number" id="prop-curve-w" placeholder="300"></div>
-                            <div class="input-field"><label>Curve H</label><input type="number" id="prop-curve-h" placeholder="100"></div>
-                            <div class="input-field"><label>Rotation</label><input type="number" step="0.1" id="prop-rotation" placeholder="-20"></div>
+                            <div class="input-field"><label>SVG Curve Path</label><input type="text" id="prop-curve" class="glass-input" placeholder="M 10,90 Q 150,10 290,90"></div>
+                            <div class="input-field"><label>Curve W</label><input type="number" id="prop-curve-w" class="glass-input" placeholder="300"></div>
+                            <div class="input-field"><label>Curve H</label><input type="number" id="prop-curve-h" class="glass-input" placeholder="100"></div>
+                            <div class="input-field"><label>Rotation</label><input type="number" step="0.1" id="prop-rotation" class="glass-input" placeholder="-20"></div>
                         </div>
                     </div>
                     
-                    <div class="prop-group-duration hidden"><div class="input-field"><label>Duration (ms)</label><input type="number" id="prop-duration"></div></div>
+                    <div class="prop-group-duration hidden"><div class="input-field"><label>Duration (ms)</label><input type="number" id="prop-duration" class="glass-input"></div></div>
                     <button type="button" id="deleteItemBtn" class="glass glass-btn glass-btn--sm glass-btn--danger delete-item-btn">Delete Item</button>
                 </form>
             </div>

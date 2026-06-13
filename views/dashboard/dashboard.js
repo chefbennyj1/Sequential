@@ -6,7 +6,7 @@ import {
     restoreStateFromUrl
 } from './studio/js/Navigation.js';
 import { populateSeriesSelect } from './studio/js/LibraryManager.js';
-import { setActivePage } from './studio/js/PageConfigManager.js';
+import { setActivePage, restoreLastActivePage } from './studio/js/PageConfigManager.js';
 import {
     initSceneEditor,
     initVisualEditor,
@@ -192,4 +192,5 @@ export async function init(container) {
 
     // Restore State
     await restoreStateFromUrl(container);
+    await restoreLastActivePage();
 }

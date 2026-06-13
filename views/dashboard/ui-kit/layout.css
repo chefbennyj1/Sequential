@@ -142,8 +142,9 @@ body {
     display: block !important;
 }
 
-/* Ensure Studio Hub uses flex when active */
-.studio.dashboard-section.is-active {
+/* Ensure Studio Hub and Scene Editor use flex when active */
+.studio.dashboard-section.is-active,
+.scene-editor.dashboard-section.is-active {
     display: flex !important;
 }
 
@@ -155,6 +156,15 @@ body {
     min-height: min-content;
     padding: 40px;
     box-sizing: border-box;
+}
+
+.layout-editor.dashboard-section.is-active,
+.scene-editor.dashboard-section.is-active {
+    max-width: none !important;
+    margin: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    padding: 20px !important;
 }
 
 /* Ensure sections stay stable and don't lift on hover like small cards */

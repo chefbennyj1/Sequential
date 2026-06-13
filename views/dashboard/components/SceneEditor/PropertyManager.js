@@ -77,10 +77,10 @@ export class PropertyManager {
             <label>Character</label>
             <div class="char-input-group">
                 <div class="flex-1">
-                    <select id="prop-character-select" class="char-select-custom hidden">
+                    <select id="prop-character-select" class="glass-select hidden">
                         <option value="">-- Select Character --</option>
                     </select>
-                    <input type="text" id="prop-character" placeholder="Character Name" class="width-100">
+                    <input type="text" id="prop-character" placeholder="Character Name" class="glass-input width-100">
                 </div>
                 <img id="prop-character-avatar" src="" class="char-avatar-small hidden">
             </div>
