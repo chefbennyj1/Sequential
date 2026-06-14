@@ -59,6 +59,7 @@
 #sceneItemPlaceholder {
     flex: 1 1 0% !important;
     height: 0; /* Force flex-grow to define height */
+    max-height: 90dvh !important; /* Failsafe height constraint for scrolling */
     overflow-y: auto !important;
     padding: var(--space-lg);
     box-sizing: border-box;
