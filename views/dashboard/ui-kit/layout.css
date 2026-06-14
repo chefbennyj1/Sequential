@@ -247,41 +247,37 @@ body {
 
 .tools-pane-flex {
     flex: 1;
-    padding: 0 !important; /* Move padding to inner child */
-    overflow: hidden !important; /* Parent is fixed */
+    padding: 0 !important;
+    overflow: hidden !important;
     position: relative;
     min-width: 320px;
     height: 100%;
+    max-height: 80dvh !important; /* Failsafe height constraint for scrolling */
     box-sizing: border-box;
     display: flex;
     flex-direction: column;
 }
 
 .panel-editor-ui {
-    flex: 1 1 0% !important;
-    height: 0;
+    flex: 1;
     overflow-y: auto !important;
-    padding: 15px;
+    padding: 0 20px 40px 20px; /* Padding for content */
     box-sizing: border-box;
-    display: flex;
-    flex-direction: column;
+    min-height: 0;
 }
 
 .tools-header-sticky {
-    position: sticky;
-    top: 0;
-    background: var(--glass-white-lg);
-    backdrop-filter: var(--blur-lg);
-    z-index: 100;
-    padding: 10px 0;
-    margin-bottom: 15px;
+    padding: 20px;
+    background: var(--glass-white-md);
+    backdrop-filter: var(--blur-md);
     border-bottom: 1px solid var(--glass-border);
+    z-index: 100;
+    flex-shrink: 0;
 }
 
 .tools-footer-sticky {
-    margin-top: auto;
-    padding-top: 20px;
-    padding-bottom: 40px; /* Buffer for scroll */
+    margin-top: 30px;
+    padding-bottom: 20px;
 }
 
 /* Spread Mode Editor Overrides */

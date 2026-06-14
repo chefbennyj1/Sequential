@@ -109,12 +109,14 @@ export function renderAllPanelsTemplate(panelNames, currentVisualMediaData, acti
 
 export function renderPanelSettings(panelSelector, entry, isLsCustom, isPtCustom, lsPos, ptPos, lsScale, ptScale, getNum) {
     return `
-        <div class="panel-editor-ui">
-            <div class="flex-between align-center tools-header-sticky">
+        <div class="tools-header-sticky">
+            <div class="flex-between align-center">
                 <h4 class="text-accent margin-0" style="text-transform: uppercase;">${panelSelector.replace('.', '')}</h4>
                 <button id="backToDirectoryBtn" class="glass glass-btn glass-btn--sm glass-btn--ghost">Close &rarr;</button>
             </div>
+        </div>
 
+        <div class="panel-editor-ui">
             ${entry.isFloating ? `
             <div class="floating-panel-settings glass glass--bright padding-10 margin-b-15 border-radius-8">
                 <div class="flex-row justify-between align-center margin-b-10">

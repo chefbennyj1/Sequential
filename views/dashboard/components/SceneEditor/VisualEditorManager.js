@@ -186,7 +186,13 @@ export class VisualEditorManager {
             this.isSpread
         );
 
-        this.toolsPane.innerHTML = stepperHtml + panelsHtml;
+        // Wrap both stepper and panel list in the scrollable UI container
+        this.toolsPane.innerHTML = `
+            <div class="panel-editor-ui">
+                ${stepperHtml}
+                ${panelsHtml}
+            </div>
+        `;
         this.bindDirectoryEvents();
     }
 
