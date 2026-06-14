@@ -234,6 +234,18 @@ export function initEventHandlers(container, allSections) {
             }
 
             const chap = 'chapter-' + chapNum;
+            
+            // MEMOIZATION: Store current working environment
+            window.EDITOR_SESSION = { 
+                volume: vol, 
+                volumeId: vS.value,
+                chapter: chap, 
+                chapterId: cS.value,
+                pageId: pageId, 
+                seriesId, 
+                seriesFolder 
+            };
+
             currentSceneInfo = { volume: vol, chapter: chap, pageId: pageId, seriesId, seriesFolder };
             setActivePage(vol, chap, pageId, seriesId, seriesFolder);
             updateUrlState({ tab: 'page-builder', vol, chap, page: pageId, series: seriesId, seriesFolder });
@@ -289,11 +301,33 @@ export function initEventHandlers(container, allSections) {
             const sId = document.getElementById('insertSeriesSelect').value;
             populateChapterSelect(e.target.value, 'insertChapterSelect', true, sId);
         }
-        if (e.target.id === 'editVolumeSelect') populateChapterSelect(e.target.value, 'editChapterSelect', false);
-        if (e.target.id === 'arrangeVolumeSelect') populateChapterSelect(e.target.value, 'arrangeChapterSelect', false);
-        if (e.target.id === 'editChapterSelect') populateEditPageSelect(document.getElementById('editVolumeSelect').value, e.target.value);
+        if (e.target.id === 'editChapterSelect') {
+            populateEditPageSelect(document.getElementById('editVolumeSelect').value, e.target.value);
+            // Sync session
+            if (window.EDITOR_SESSION) window.EDITOR_SESSION.chapterId = e.target.value;
+        }
         if (e.target.id === 'editPageSelect') {
             document.getElementById('loadPageBtn').disabled = !e.target.value;
+            // Sync session
+            if (window.EDITOR_SESSION) window.EDITOR_SESSION.pageId = e.target.value;
+        }
+        if (e.target.id === 'editVolumeSelect') {
+            populateChapterSelect(e.target.value, 'editChapterSelect', false);
+            // Sync session
+            if (window.EDITOR_SESSION) {
+                window.EDITOR_SESSION.volumeId = e.target.value;
+                const opt = e.target.options[e.target.selectedIndex];
+                window.EDITOR_SESSION.volume = opt?.getAttribute('data-folder');
+            }
+        }
+        if (e.target.id === 'editSeriesSelect') {
+            populateVolumeSelect('editVolumeSelect', e.target.value);
+            // Sync session
+            if (window.EDITOR_SESSION) {
+                window.EDITOR_SESSION.seriesId = e.target.value;
+                const opt = e.target.options[e.target.selectedIndex];
+                window.EDITOR_SESSION.seriesFolder = opt?.getAttribute('data-folder');
+            }
         }
     });
 }

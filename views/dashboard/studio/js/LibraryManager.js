@@ -30,12 +30,12 @@ export async function populateSeriesSelect(id) {
         });
 
         if (id !== 'globalSeriesSelect') {
-            const globalSeries = localStorage.getItem('globalSeries');
-            if (globalSeries) {
+            const savedSeries = window.EDITOR_SESSION?.seriesId || localStorage.getItem('globalSeries');
+            if (savedSeries) {
                 // Delay dispatching to allow UI render cycle to complete if needed
                 setTimeout(() => {
-                    if(Array.from(select.options).some(opt => opt.value === globalSeries)) {
-                        select.value = globalSeries;
+                    if(Array.from(select.options).some(opt => opt.value === savedSeries)) {
+                        select.value = savedSeries;
                         select.dispatchEvent(new Event('change', { bubbles: true }));
                     }
                 }, 50);
@@ -88,10 +88,12 @@ export async function populateVolumeSelect(id = 'volumeSelect', seriesId = null)
     select.disabled = false;
 
     if (id !== 'globalVolumeSelect') {
-        const globalVolumeFolder = localStorage.getItem('globalVolumeFolder');
-        const globalVolumeId = localStorage.getItem('globalVolumeId');
+        const savedVolume = (id === 'editVolumeSelect') ? window.EDITOR_SESSION?.volumeId : (localStorage.getItem('globalVolumeId') || window.EDITOR_SESSION?.volumeId);
+        const savedFolder = window.EDITOR_SESSION?.volume;
+
         const isFolderMode = (id === 'builderVolumeSelect' || id === 'insertVolumeSelect' || id === 'chapterVolumeSelect');
-        const targetVal = isFolderMode ? globalVolumeFolder : globalVolumeId;
+        const targetVal = isFolderMode ? (savedFolder || localStorage.getItem('globalVolumeFolder')) : savedVolume;
+        
         if (targetVal) {
             setTimeout(() => {
                 if(Array.from(select.options).some(opt => opt.value === targetVal)) {
@@ -139,6 +141,16 @@ export async function populateChapterSelect(volumeId, selectId = 'chapterSelect'
     
     select.appendChild(fragment);
     select.disabled = false;
+
+    // Restore from session
+    if (selectId === 'editChapterSelect' && window.EDITOR_SESSION?.chapterId) {
+        setTimeout(() => {
+            if(Array.from(select.options).some(opt => opt.value === window.EDITOR_SESSION.chapterId)) {
+                select.value = window.EDITOR_SESSION.chapterId;
+                select.dispatchEvent(new Event('change', { bubbles: true }));
+            }
+        }, 50);
+    }
 }
 
 /**
@@ -168,6 +180,16 @@ export async function populateEditPageSelect(volumeId, chapterId) {
             select.appendChild(option);
         });
         select.disabled = false;
+
+        // Restore from session
+        if (window.EDITOR_SESSION?.pageId) {
+            setTimeout(() => {
+                if(Array.from(select.options).some(opt => opt.value === window.EDITOR_SESSION.pageId)) {
+                    select.value = window.EDITOR_SESSION.pageId;
+                    select.dispatchEvent(new Event('change', { bubbles: true }));
+                }
+            }, 50);
+        }
     }
 }
 
