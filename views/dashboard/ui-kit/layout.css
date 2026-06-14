@@ -247,13 +247,41 @@ body {
 
 .tools-pane-flex {
     flex: 1;
-    padding: 15px;
-    overflow-y: auto !important;
-    overflow-x: hidden;
+    padding: 0 !important; /* Move padding to inner child */
+    overflow: hidden !important; /* Parent is fixed */
     position: relative;
     min-width: 320px;
     height: 100%;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-editor-ui {
+    flex: 1 1 0% !important;
+    height: 0;
+    overflow-y: auto !important;
+    padding: 15px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.tools-header-sticky {
+    position: sticky;
+    top: 0;
+    background: var(--glass-white-lg);
+    backdrop-filter: var(--blur-lg);
+    z-index: 100;
+    padding: 10px 0;
+    margin-bottom: 15px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.tools-footer-sticky {
+    margin-top: auto;
+    padding-top: 20px;
+    padding-bottom: 40px; /* Buffer for scroll */
 }
 
 /* Spread Mode Editor Overrides */

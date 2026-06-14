@@ -42,6 +42,7 @@
 
 .super-bubble {
     position: relative;
+    min-width: 115px;
     padding: 0.625rem 0.925rem;
     background-color: var(--bubble-bg-one);
     background-image: radial-gradient(var(--bubble-bg-two) 25%, transparent 26%),
