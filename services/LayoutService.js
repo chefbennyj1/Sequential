@@ -220,9 +220,22 @@ class LayoutService {
     /**
      * Toggles spread pairing between a left and right page by updating both page.jsons.
      */
-    static async toggleSpread(volumeId, chapterId, pageId, enabled) {
+    static async toggleSpread(seriesId, volumeId, chapterId, pageId, enabled) {
         const Volume = require('../models/Volume');
-        const volume = await Volume.findById(volumeId);
+        let volume;
+        if (mongoose.Types.ObjectId.isValid(volumeId)) {
+            volume = await Volume.findById(volumeId);
+        } else {
+            // Fallback: Resolve by name and series
+            volume = await Volume.findOne({ 
+                series: seriesId, 
+                $or: [
+                    { title: volumeId },
+                    { volumePath: { $regex: new RegExp(volumeId + '$', 'i') } }
+                ]
+            });
+        }
+        
         if (!volume) throw new Error("Volume not found");
 
         const normalizedPath = volume.volumePath.replace(/\\/g, '/');

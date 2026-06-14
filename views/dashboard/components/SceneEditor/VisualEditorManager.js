@@ -63,7 +63,11 @@ export class VisualEditorManager {
             this.currentVisualMediaData[mediaIdx].hashtags = data.hashtags;
         }
 
-        if (this.selectedPanelSelector === data.panelId || this.selectedPanelSelector === '.' + data.panelId) {
+        // Robust selector matching (strip dots for comparison)
+        const cleanSelected = this.selectedPanelSelector ? this.selectedPanelSelector.replace('.', '') : null;
+        const cleanIncoming = data.panelId ? data.panelId.replace('.', '') : null;
+
+        if (cleanSelected === cleanIncoming) {
             const descInput = document.getElementById('visual-asset-description');
             if (descInput) {
                 descInput.value = data.description;
@@ -81,7 +85,10 @@ export class VisualEditorManager {
 
     handleAiError(data) {
         if (!this.isCurrentContext(data)) return;
-        if (this.selectedPanelSelector === data.panelId || this.selectedPanelSelector === '.' + data.panelId) {
+        const cleanSelected = this.selectedPanelSelector ? this.selectedPanelSelector.replace('.', '') : null;
+        const cleanIncoming = data.panelId ? data.panelId.replace('.', '') : null;
+
+        if (cleanSelected === cleanIncoming) {
             alert("AI Analysis Failed: " + data.message);
             this.resetAiButtonState();
         }
@@ -253,16 +260,25 @@ export class VisualEditorManager {
             };
         }
 
-        const spreadToggle = document.getElementById('toggleSpreadMode');
-        if (spreadToggle) {
-            spreadToggle.onchange = async () => {
-                this.isSpread = spreadToggle.checked;
+        const spreadToggleGroup = document.getElementById('spreadToggleGroup');
+        if (spreadToggleGroup) {
+            spreadToggleGroup.onclick = async (e) => {
+                const opt = e.target.closest('.glass-toggle__opt');
+                if (!opt || opt.classList.contains('is-on')) return;
+
+                // UI Update
+                spreadToggleGroup.querySelectorAll('.glass-toggle__opt').forEach(el => el.classList.remove('is-on'));
+                opt.classList.add('is-on');
+
+                this.isSpread = (opt.dataset.value === 'spread');
                 const { volume, chapter, pageId } = this.currentVisualContext;
+                const seriesId = this.activeSeriesId;
+                
                 try {
                     await fetch('/api/editor/toggle-spread', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ volumeId: volume, chapterId: chapter, pageId, enabled: this.isSpread })
+                        body: JSON.stringify({ seriesId, volumeId: volume, chapterId: chapter, pageId, enabled: this.isSpread })
                     });
                     // Reload iframe to show/hide partner page
                     document.getElementById('pagePreviewFrame').contentWindow.location.reload();

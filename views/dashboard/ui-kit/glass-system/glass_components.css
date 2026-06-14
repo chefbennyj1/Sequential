@@ -380,7 +380,7 @@
 }
 
 .glass-card:hover {
-    transform: translateY(-6px) scale(1.01);
+    /* transform: scale(1.01); */
     box-shadow: var(--shadow-float);
     background: var(--glass-white-md);
 }
@@ -478,7 +478,6 @@
             rgba(94, 231, 223, 0.7) 0%,
             rgba(59, 130, 246, 0.7) 100%);
     box-shadow: 0 8px 36px rgba(94, 231, 223, 0.5), var(--reflection-inner);
-    transform: translateY(-2px);
 }
 
 .glass-btn--ghost {
@@ -489,7 +488,6 @@
 
 .glass-btn--ghost:hover {
     background: var(--glass-white-md);
-    transform: translateY(-2px);
 }
 
 .glass-btn--accent {
@@ -501,7 +499,6 @@
 }
 
 .glass-btn--accent:hover {
-    transform: translateY(-2px);
     box-shadow: 0 8px 40px rgba(180, 144, 245, 0.5), var(--reflection-inner);
 }
 
@@ -514,7 +511,6 @@
 }
 
 .glass-btn--danger:hover {
-    transform: translateY(-2px);
     box-shadow: 0 8px 36px rgba(239, 68, 68, 0.45), var(--reflection-inner);
 }
 
@@ -628,7 +624,6 @@
 
 .glass-tag:hover {
     background: var(--glass-white-md);
-    transform: translateY(-2px);
 }
 
 /* --------------------------------------------------------------------------
@@ -964,7 +959,6 @@
 
 .glass-nav__item:hover {
     opacity: 1;
-    transform: translateY(-1px);
 }
 
 .glass-nav__item--active {
@@ -1016,7 +1010,6 @@
 
 .glass-tab:hover {
     opacity: 1;
-    transform: translateY(-1px);
     background: var(--glass-white);
 }
 
@@ -1570,7 +1563,6 @@
 
 .glass-chip:hover {
     background: var(--glass-white-md);
-    transform: translateY(-2px);
 }
 
 .glass-chip.is-selected {
@@ -1781,7 +1773,7 @@
 }
 
 .glass-avatar:hover {
-    transform: translateY(-8px) scale(1.1);
+    transform: scale(1.1);
     z-index: 10;
     box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45),
         inset 0 1px 0 rgba(255, 255, 255, 0.45);
@@ -1927,7 +1919,6 @@
 
 .glass-breadcrumb__crumb:hover {
     background: rgba(255, 255, 255, 0.12);
-    transform: translateY(-1px);
 }
 
 .glass-breadcrumb__crumb--active {

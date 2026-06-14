@@ -53,10 +53,10 @@ exports.getPanels = async (req, res) => {
 };
 
 exports.toggleSpread = async (req, res) => {
-    const { volumeId, chapterId, pageId, enabled } = req.body;
+    const { seriesId, volumeId, chapterId, pageId, enabled } = req.body;
     console.log(`[PageLayoutController] Toggle Spread: ${pageId} (${enabled})`);
     try {
-        await LayoutService.toggleSpread(volumeId, chapterId, pageId, enabled);
+        await LayoutService.toggleSpread(seriesId, volumeId, chapterId, pageId, enabled);
         res.json({ ok: true, message: `Spread ${enabled ? 'enabled' : 'disabled'}` });
     } catch (e) {
         console.error("[PageLayoutController] Toggle Spread Error:", e);

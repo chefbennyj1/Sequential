@@ -1,18 +1,19 @@
 /* Scene Editor - Liquid Glass Integration */
 
 .scene-editor {
-    display: flex;
-    flex-direction: row;
-    height: 100%;
-    width: 100%;
+    display: flex !important;
+    flex-direction: row !important;
+    height: 100% !important;
+    width: 100% !important;
     background: transparent;
     overflow: hidden;
     gap: var(--space-md);
+    box-sizing: border-box;
 }
 
 /* Timeline Pane */
 .scene-tree-pane {
-    flex: 0 0 350px;
+    flex: 0 0 350px !important; /* Fixed width, no grow, no shrink */
     background: var(--glass-white) !important;
     backdrop-filter: var(--blur-md);
     -webkit-backdrop-filter: var(--blur-md);
@@ -27,7 +28,8 @@
 
 /* Props Pane */
 .scene-props-pane {
-    flex: 1;
+    flex: 1 1 0% !important; /* Use 0% basis to force flex-grow constraint */
+    min-width: 0;
     background: var(--glass-white) !important;
     backdrop-filter: var(--blur-md);
     -webkit-backdrop-filter: var(--blur-md);
@@ -50,15 +52,21 @@
     border-bottom: 1px solid var(--glass-border);
     background: var(--glass-white-md);
     z-index: 10;
-    flex-shrink: 0;
+    flex: 0 0 auto;
 }
 
 #sceneItemEditor, 
 #sceneItemPlaceholder {
-    flex: 1;
-    overflow-y: auto;
+    flex: 1 1 0% !important;
+    height: 0; /* Force flex-grow to define height */
+    overflow-y: auto !important;
     padding: var(--space-lg);
     box-sizing: border-box;
+}
+
+#sceneItemForm {
+    display: block;
+    padding-bottom: 100px; /* Massive buffer to ensure scroll to bottom */
 }
 
 /* Timeline Items */

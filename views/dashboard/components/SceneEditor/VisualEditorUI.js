@@ -10,10 +10,10 @@ export function renderReadinessStepperTemplate(stats) {
     const { assets, ai, continuity } = stats;
 
     return `
-        <div class="glass glass--bright padding-15 border-radius-12 margin-b-20 readiness-monitor">
-            <h5 class="text-accent uppercase font-size-07 margin-b-15 letter-spacing-1">Page Readiness Monitor</h5>
+        <div class="glass glass--bright padding-20 border-radius-12 margin-b-20 readiness-monitor">
+            <h5 class="text-accent uppercase font-size-07 margin-b-15 letter-spacing-1" style="margin-left: 5px;">Page Readiness Monitor</h5>
             
-            <div class="glass-stepper glass-stepper--vertical">
+            <div class="glass-stepper glass-stepper--vertical" style="padding: 0 5px;">
                 <!-- Step 1: Assets -->
                 <div class="glass-step ${assets.complete ? 'is-complete' : 'is-active'}">
                     <div class="glass-step__node">${assets.complete ? '✓' : '1'}</div>
@@ -91,13 +91,16 @@ export function renderAllPanelsTemplate(panelNames, currentVisualMediaData, acti
                 <h5 class="text-accent margin-0 uppercase">Page Settings</h5>
             </div>
 
-            <div class="form-group glass glass--bright padding-15 border-radius-8 border-dim">
-                <label class="flex-row align-center gap-10 cursor-pointer">
-                    <input type="checkbox" id="toggleSpreadMode" ${isSpread ? 'checked' : ''} style="width: 18px; height: 18px;">
-                    <span class="font-weight-bold">Enable Double-Page Spread</span>
-                </label>
-                <p class="text-muted font-size-08 margin-t-10">
-                    If enabled, this page will pair with its logical partner (e.g. page 2 & 3) to form a widescreen layout.
+            <div class="form-group glass glass--bright padding-20 border-radius-12 border-dim margin-b-30">
+                <div class="flex-row align-center justify-between margin-b-15">
+                    <span class="font-weight-bold font-size-09">Layout Mode</span>
+                    <div id="spreadToggleGroup" class="glass glass-toggle">
+                        <span class="glass-toggle__opt ${!isSpread ? 'is-on' : ''}" data-value="single" tabindex="0">Single</span>
+                        <span class="glass-toggle__opt ${isSpread ? 'is-on' : ''}" data-value="spread" tabindex="0">Spread</span>
+                    </div>
+                </div>
+                <p class="text-muted font-size-07">
+                    Spread mode pairs this page with its logical partner to form a widescreen layout.
                 </p>
             </div>
         </div>

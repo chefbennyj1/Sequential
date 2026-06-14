@@ -142,10 +142,11 @@ body {
     display: block !important;
 }
 
-/* Ensure Studio Hub, Scene Editor, and Layout Editor use flex when active */
+/* Ensure Studio Hub, Scene Editor, Layout Editor, and Page Builder use flex when active */
 .studio.dashboard-section.is-active,
 .scene-editor.dashboard-section.is-active,
-.layout-editor.dashboard-section.is-active {
+.layout-editor.dashboard-section.is-active,
+.page-builder.dashboard-section.is-active {
     display: flex !important;
     flex-direction: column;
     max-width: none !important;
@@ -167,8 +168,23 @@ body {
 
 /* Specific resets for editors that need full height */
 .layout-editor.dashboard-section.is-active,
-.scene-editor.dashboard-section.is-active {
+.scene-editor.dashboard-section.is-active,
+.page-builder.dashboard-section.is-active {
     padding: 20px !important;
+}
+
+.page-builder.dashboard-section.is-active {
+    overflow: hidden !important;
+}
+
+.page-builder.dashboard-section.is-active .narrow-container {
+    flex: 1;
+    overflow-y: auto !important;
+    max-height: calc(100vh - 120px); /* Failsafe height constraint */
+    min-height: 0;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
 }
 
 /* Ensure sections stay stable and don't lift on hover like small cards */
@@ -232,10 +248,12 @@ body {
 .tools-pane-flex {
     flex: 1;
     padding: 15px;
-    overflow-y: auto;
+    overflow-y: auto !important;
     overflow-x: hidden;
     position: relative;
     min-width: 320px;
+    height: 100%;
+    box-sizing: border-box;
 }
 
 /* Spread Mode Editor Overrides */
