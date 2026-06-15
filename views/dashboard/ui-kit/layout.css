@@ -43,6 +43,7 @@ body {
     box-sizing: border-box;
     position: relative;
     z-index: 1000;
+    overflow: visible !important; /* Override .glass overflow:hidden */
     border-bottom: 1px solid var(--glass-border) !important;
     background: var(--glass-white) !important;
     backdrop-filter: var(--blur-md) !important;
