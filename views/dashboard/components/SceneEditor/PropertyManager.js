@@ -64,9 +64,11 @@ export class PropertyManager {
     }
 
     setAvailableData(characters, panels) {
-        this.availableCharacters = characters;
-        this.availablePanels = panels;
+        this.availableCharacters = characters || [];
+        this.availablePanels = panels || [];
         this.setupCharacterInputUI();
+        this.updateDatalist();
+        this.setupPalettePanelUI();
     }
 
     setupCharacterInputUI() {
@@ -135,6 +137,27 @@ export class PropertyManager {
             }
             this.onUpdate();
         };
+    }
+
+    setupPalettePanelUI() {
+        const select = this.container.querySelector('#prop-palette-panel');
+        if (!select) return;
+        
+        const currentVal = select.value;
+        select.innerHTML = '<option value="">-- Select Panel --</option>';
+        this.availablePanels.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p;
+            opt.textContent = p.replace('.', '');
+            select.appendChild(opt);
+        });
+
+        if (this.availablePanels.includes(currentVal)) {
+            select.value = currentVal;
+        } else if (this.availablePanels.length > 0) {
+            // Auto-select first panel if nothing selected
+            select.value = this.availablePanels[0];
+        }
     }
 
     populate(item) {
@@ -212,13 +235,14 @@ export class PropertyManager {
     bindPaletteTool() {
         const palBtn = this.container.querySelector('#prop-gen-palette');
         const swatchesCont = this.container.querySelector('#prop-palette-swatches');
+        const panelSelect = this.container.querySelector('#prop-palette-panel');
         const textColorInput = this.container.querySelector('#prop-action-color');
         const outlineColorInput = this.container.querySelector('#prop-outline-color');
 
-        if (!palBtn || !swatchesCont) return;
+        if (!palBtn || !swatchesCont || !panelSelect) return;
 
         palBtn.onclick = async () => {
-            const panelSelector = this.container.querySelector('#prop-panel').value;
+            const panelSelector = panelSelect.value;
             if (!panelSelector) return alert("Please select a panel first.");
 
             const imgUrl = this.getPanelImageUrl(panelSelector);
@@ -232,17 +256,19 @@ export class PropertyManager {
                 swatchesCont.innerHTML = '';
                 colors.forEach(hex => {
                     const s = document.createElement('div');
-                    s.style.cssText = `width:24px; height:24px; background:${hex}; border-radius:4px; cursor:pointer; border:1px solid rgba(255,255,255,0.1);`;
-                    s.title = "Left click: Text Color | Right click: Outline Color";
+                    s.className = 'palette-swatch';
+                    s.style.cssText = `width:28px; height:28px; background:${hex}; border-radius:6px; cursor:pointer; border:1px solid rgba(255,255,255,0.2); box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.1s;`;
+                    s.title = "Left click: Text Color | Right click: Outline Color | Shift+Click: Both";
                     
+                    s.onmouseenter = () => s.style.transform = 'scale(1.1)';
+                    s.onmouseleave = () => s.style.transform = 'scale(1.0)';
+
                     s.onclick = (e) => {
                         if (e.shiftKey) {
-                            // Apply to BOTH
                             textColorInput.value = hex;
                             outlineColorInput.value = hex;
                             this.container.querySelector('#prop-outline-enabled').checked = true;
                         } else {
-                            // Just Text
                             textColorInput.value = hex;
                         }
                         this.onUpdate();
@@ -250,7 +276,6 @@ export class PropertyManager {
 
                     s.oncontextmenu = (e) => {
                         e.preventDefault();
-                        // Just Outline
                         outlineColorInput.value = hex;
                         this.container.querySelector('#prop-outline-enabled').checked = true;
                         this.onUpdate();
@@ -335,7 +360,8 @@ export class PropertyManager {
             dur: this.container.querySelector('.prop-group-duration'),
             place: this.container.querySelector('.props-group'),
             curve: this.container.querySelector('.prop-group-curve'),
-            font: this.container.querySelector('.prop-group-font')
+            font: this.container.querySelector('.prop-group-font'),
+            palette: this.container.querySelector('.palette-extraction-row')
         };
         const isPause = type === 'Pause';
         const isActionText = (type === 'ActionText' || type === 'SoundEffect');
@@ -346,5 +372,11 @@ export class PropertyManager {
         if (groups.dur) isPause ? groups.dur.classList.remove('hidden') : groups.dur.classList.add('hidden');
         if (groups.curve) isActionText ? groups.curve.classList.remove('hidden') : groups.curve.classList.add('hidden');
         if (groups.font) isActionText ? groups.font.classList.remove('hidden') : groups.font.classList.add('hidden');
+        
+        // AI Constraint
+        if (groups.palette) {
+            const aiEnabled = window.AI_CONFIG?.visionEnabled;
+            (aiEnabled && isActionText) ? groups.palette.classList.remove('hidden') : groups.palette.classList.add('hidden');
+        }
     }
 }

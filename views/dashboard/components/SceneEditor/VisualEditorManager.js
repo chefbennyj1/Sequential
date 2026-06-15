@@ -223,6 +223,13 @@ export class VisualEditorManager {
         const ptScale = entry.portraitStyle?.transform ? parseFloat(entry.portraitStyle.transform.match(/scale\((.*?)\)/)?.[1] || 1) : 1;
 
         this.toolsPane.innerHTML = renderPanelSettings(panelSelector, entry, isLsCustom, isPtCustom, {}, ptPos, 1, ptScale, getNum);
+        
+        // AI Constraint: Hide analysis tools if disabled in global settings
+        const aiBtn = document.getElementById('visual-ai-analyze-btn');
+        if (aiBtn && window.AI_CONFIG && !window.AI_CONFIG.visionEnabled) {
+            aiBtn.classList.add('hidden');
+        }
+
         this.bindEditorEvents(panelSelector);
     }
 

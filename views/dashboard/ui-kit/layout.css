@@ -93,7 +93,7 @@ body {
     flex-direction: column;
     padding: 10px;
     box-shadow: var(--shadow-float);
-    z-index: 1100;
+    z-index: 2000; /* Higher than topbar (1000) */
     margin-top: 10px;
 }
 
@@ -142,11 +142,16 @@ body {
     display: block !important;
 }
 
-/* Ensure Studio Hub, Scene Editor, Layout Editor, and Page Builder use flex when active */
+/* Ensure Studio Hub, Scene Editor, Layout Editor, Page Builder, Style Lab, Story Critic, Exporter, Characters, and Settings use flex when active */
 .studio.dashboard-section.is-active,
 .scene-editor.dashboard-section.is-active,
 .layout-editor.dashboard-section.is-active,
-.page-builder.dashboard-section.is-active {
+.page-builder.dashboard-section.is-active,
+.style-lab.dashboard-section.is-active,
+.story-critic.dashboard-section.is-active,
+.export-tool.dashboard-section.is-active,
+.characters.dashboard-section.is-active,
+.library-settings.dashboard-section.is-active {
     display: flex !important;
     flex-direction: column;
     max-width: none !important;
@@ -169,15 +174,30 @@ body {
 /* Specific resets for editors that need full height */
 .layout-editor.dashboard-section.is-active,
 .scene-editor.dashboard-section.is-active,
-.page-builder.dashboard-section.is-active {
+.page-builder.dashboard-section.is-active,
+.style-lab.dashboard-section.is-active,
+.story-critic.dashboard-section.is-active,
+.export-tool.dashboard-section.is-active,
+.characters.dashboard-section.is-active,
+.library-settings.dashboard-section.is-active {
     padding: 20px !important;
 }
 
-.page-builder.dashboard-section.is-active {
+.page-builder.dashboard-section.is-active,
+.style-lab.dashboard-section.is-active,
+.story-critic.dashboard-section.is-active,
+.export-tool.dashboard-section.is-active,
+.characters.dashboard-section.is-active,
+.library-settings.dashboard-section.is-active {
     overflow: hidden !important;
 }
 
-.page-builder.dashboard-section.is-active .narrow-container {
+.page-builder.dashboard-section.is-active .narrow-container,
+.library-settings.dashboard-section.is-active .narrow-container,
+.style-lab.dashboard-section.is-active .medium-container,
+.story-critic.dashboard-section.is-active .medium-container,
+.export-tool.dashboard-section.is-active .medium-container,
+.characters.dashboard-section.is-active .medium-container {
     flex: 1;
     overflow-y: auto !important;
     max-height: calc(100vh - 120px); /* Failsafe height constraint */

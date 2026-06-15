@@ -99,9 +99,15 @@ export async function init(container) {
             const res = await fetch('/api/settings/global');
             if (!res.ok) return;
             const data = await res.json();
+            
+            // Set Global AI Config
+            window.AI_CONFIG = {
+                visionEnabled: !!(data.ok && data.settings?.vision?.enabled)
+            };
+
             const indicator = document.getElementById('dashboard-ai-indicator');
             const svg = document.getElementById('dashboard-ai-brain-svg');
-            if (data.ok && data.settings && data.settings.vision && data.settings.vision.enabled) {
+            if (window.AI_CONFIG.visionEnabled) {
                 svg.style.fill = '#00ccff';
                 svg.style.filter = 'drop-shadow(0 0 5px rgba(0,204,255,0.5))';
                 indicator.title = 'AI Vision: Enabled';

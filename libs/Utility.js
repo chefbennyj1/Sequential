@@ -167,7 +167,8 @@ export function resolveMediaUrl(fileName, type, pageInfo, cacheBust = false) {
 }
 
 /**
- * Extracts a 5-color palette from an image URL using canvas sampling.
+ * Extracts a palette of interesting colors from an image URL using canvas sampling.
+ * Prioritizes "vibrant" or "accent" colors over purely frequent ones (like backgrounds).
  */
 export async function extractPalette(url) {
     return new Promise((resolve, reject) => {
@@ -176,32 +177,77 @@ export async function extractPalette(url) {
         img.onload = () => {
             const canvas = document.createElement('canvas');
             const ctx = canvas.getContext('2d');
-            canvas.width = 100; // Small for performance
+            canvas.width = 100;
             canvas.height = 100;
             ctx.drawImage(img, 0, 0, 100, 100);
 
             const data = ctx.getImageData(0, 0, 100, 100).data;
-            const counts = {};
+            const buckets = {};
             
-            // Sample pixels every 16 steps for speed
             for (let i = 0; i < data.length; i += 16) {
                 const r = data[i];
                 const g = data[i+1];
                 const b = data[i+2];
-                // Quantize to group similar colors (step of 10)
-                const qr = Math.round(r / 10) * 10;
-                const qg = Math.round(g / 10) * 10;
-                const qb = Math.round(b / 10) * 10;
-                const hex = "#" + ((1 << 24) + (qr << 16) + (qg << 8) + qb).toString(16).slice(1);
-                counts[hex] = (counts[hex] || 0) + 1;
+
+                // Convert to HSL to check "interestingness"
+                const [h, s, l] = rgbToHsl(r, g, b);
+
+                // Skip extremely dark, extremely light, or extremely dull (grays)
+                if (l < 0.1 || l > 0.9) continue; 
+                if (s < 0.15) continue;
+
+                // Group by hue (36 buckets) and moderate saturation/lightness
+                const hueBucket = Math.round(h / 10) * 10;
+                const satBucket = Math.round(s * 5) / 5;
+                const lightBucket = Math.round(l * 5) / 5;
+                const key = `${hueBucket}-${satBucket}-${lightBucket}`;
+
+                if (!buckets[key]) {
+                    buckets[key] = { r, g, b, count: 0, s };
+                }
+                buckets[key].count++;
             }
 
-            // Sort and pick top 5
-            const sorted = Object.entries(counts).sort((a, b) => b[1] - a[1]);
-            const top5 = sorted.slice(0, 5).map(c => c[0]);
-            resolve(top5);
+            // Sort by count but give a bonus to more saturated colors (accents)
+            const sorted = Object.values(buckets).sort((a, b) => {
+                const scoreA = a.count * (1 + a.s);
+                const scoreB = b.count * (1 + b.s);
+                return scoreB - scoreA;
+            });
+
+            // Convert back to hex and return top 8 unique-ish colors
+            const result = [];
+            for (const b of sorted) {
+                const hex = "#" + ((1 << 24) + (b.r << 16) + (b.g << 8) + b.b).toString(16).slice(1);
+                if (!result.includes(hex)) result.push(hex);
+                if (result.length >= 8) break;
+            }
+
+            // If we found nothing (e.g. image was all gray), just return default gray/black/white
+            if (result.length === 0) resolve(['#ffffff', '#888888', '#000000', '#ff0000', '#00ff00', '#0000ff']);
+            else resolve(result);
         };
-        img.onerror = (e) => reject(new Error("Failed to load image for palette extraction: " + url));
+        img.onerror = (e) => reject(new Error("Failed to load image for palette extraction"));
         img.src = url;
     });
+}
+
+function rgbToHsl(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    let h, s, l = (max + min) / 2;
+
+    if (max === min) {
+        h = s = 0; // achromatic
+    } else {
+        const d = max - min;
+        s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+        switch (max) {
+            case r: h = (g - b) / d + (g < b ? 6 : 0); break;
+            case g: h = (b - r) / d + 2; break;
+            case b: h = (r - g) / d + 4; break;
+        }
+        h /= 6;
+    }
+    return [h * 360, s, l];
 }

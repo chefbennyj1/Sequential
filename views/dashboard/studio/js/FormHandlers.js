@@ -389,7 +389,7 @@ function initLibrarySettings() {
         seriesSelect.onchange = async () => {
             const seriesId = seriesSelect.value;
             if (!seriesId) {   
-                formContainer.classList.add('hidden');        
+                if (form) form.classList.add('hidden');        
                 return;        
             }
 
@@ -398,7 +398,7 @@ function initLibrarySettings() {
                 const data = await res.json();
                 if (data.ok && data.series) {
                     seriesIdInput.value = data.series._id;    
-                    formContainer.classList.remove('hidden'); 
+                    if (form) form.classList.remove('hidden'); 
                 }
             } catch (err) {    
                 console.error("Failed to load series settings", err);
