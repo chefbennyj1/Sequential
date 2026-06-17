@@ -1,7 +1,9 @@
 const fs = require('fs');
 const path = require('path');
-const VolumeModel = require('../models/Volume');
 const mongoose = require('mongoose');
+const VolumeModel = require('../models/Volume');
+const Series = require('../models/Series');
+const { resolveSeriesPath } = require('./MediaService');
 
 const DEFAULT_JS = `export async function onPageLoad(container, pageInfo) {
     container.addEventListener('view_visible', async () => { console.log(\`Page \${pageInfo.pageId} is visible.\`); });
@@ -19,8 +21,7 @@ const DEFAULT_CSS = (pageId) => `@import url('/layouts/styles/base-comic-layout.
 }`;
 
 async function createVolume({ index, title, seriesId, firstChapterTitle }) {
-  const { resolveSeriesPath } = require('./MediaService');
-  const Series = require('../models/Series');
+
   
   const seriesDoc = await Series.findById(seriesId);
   if (!seriesDoc) throw new Error("Series not found");
@@ -111,7 +112,7 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
         
         if (!seriesFolderName) throw new Error("Could not determine series from volumePath: " + volume.volumePath);
         
-        const { resolveSeriesPath } = require('./MediaService');
+
         const seriesPath = await resolveSeriesPath(seriesFolderName);
         
         // Extract the volume subfolder (e.g., volume-1)
@@ -216,9 +217,7 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
 
 async function syncSinglePage(volumeId, chapterId, pageId, seriesFolderName = null) {
     try {
-        const Volume = require('../models/Volume');
-        const Series = require('../models/Series');
-        const { resolveSeriesPath } = require('./MediaService');
+
         
         let volume;
         if (seriesFolderName) {
@@ -350,9 +349,7 @@ async function tryRename(oldP, newP, retries = 5) {
 }
 
 async function insertPage({ series, volume: volumeFolderName, chapter: chapterFolderName, insertPoint }) {
-    const { resolveSeriesPath } = require('./MediaService');
-    const Series = require('../models/Series');
-    const VolumeModel = require('../models/Volume');
+
 
     const seriesFolderName = await (async () => {
         if (mongoose.Types.ObjectId.isValid(series)) {
@@ -489,7 +486,7 @@ async function insertPage({ series, volume: volumeFolderName, chapter: chapterFo
 }
 
 async function createChapter({ seriesFolderName, volumeFolderName, title, chapterIndex }) {
-    const { resolveSeriesPath } = require('./MediaService');
+
     const seriesPath = await resolveSeriesPath(seriesFolderName);
     const volumePath = path.join(seriesPath, 'Volumes', volumeFolderName);
     if (!fs.existsSync(volumePath)) throw new Error("Volume directory not found");
@@ -530,8 +527,7 @@ async function createChapter({ seriesFolderName, volumeFolderName, title, chapte
     await fs.promises.writeFile(path.join(firstPagePath, 'page.css'), DEFAULT_CSS(firstPageName));
     await fs.promises.mkdir(path.join(firstPagePath, "assets", "image"), { recursive: true });
 
-    const VolumeModel = require('../models/Volume');
-    const Series = require('../models/Series');
+
     const seriesDoc = await Series.findOne({ folderName: seriesFolderName });
     
     const volPathRegex = new RegExp(`${volumeFolderName}[\\\\/]?$`, 'i');
@@ -568,8 +564,7 @@ async function updateInternalFiles(dir, oldName, newName) {
 }
 
 async function getChapterRange({ series, volume: volumeFolderName, chapter: chapterFolderName }) {
-    const { resolveSeriesPath } = require('./MediaService');
-    const Series = require('../models/Series');
+
 
     const seriesFolderName = await (async () => {
         if (mongoose.Types.ObjectId.isValid(series)) {
@@ -606,9 +601,7 @@ async function getChapterRange({ series, volume: volumeFolderName, chapter: chap
 }
 
 async function reorderPages({ series, volume: volumeFolderName, chapter: chapterFolderName, newOrder }) {
-    const { resolveSeriesPath } = require('./MediaService');
-    const Series = require('../models/Series');
-    const VolumeModel = require('../models/Volume');
+
 
     const seriesFolderName = await (async () => {
         if (mongoose.Types.ObjectId.isValid(series)) {

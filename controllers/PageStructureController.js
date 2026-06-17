@@ -2,34 +2,10 @@ const path = require("path");
 const fs = require("fs");
 const mongoose = require("mongoose");
 const { resolveSeriesPath } = require("../services/MediaService");
+const { getSeriesFolderName, findVolumeId } = require("../services/SeriesLookupService");
 const Volume = require("../models/Volume");
 const Series = require("../models/Series");
 const VolumeService = require("../services/VolumeService");
-
-async function getSeriesFolderName(identifier) {
-  if (!identifier) return null;
-  if (mongoose.Types.ObjectId.isValid(identifier)) {
-    try {
-      const series = await Series.findById(identifier);
-      if (series) return series.folderName;
-    } catch (e) { console.error("Error resolving series ID:", e); }
-  }
-  try {
-    const seriesByFolder = await Series.findOne({ folderName: identifier });
-    if (seriesByFolder) return seriesByFolder.folderName;
-  } catch (e) { }
-  return identifier;
-}
-
-async function findVolumeId(volumeFolderName, seriesFolderName) {
-  if (!seriesFolderName) throw new Error("seriesFolderName is required for findVolumeId");
-  const seriesDoc = await Series.findOne({ folderName: seriesFolderName });
-  const query = { volumePath: new RegExp(`[\\/]${volumeFolderName}$`) };
-  if (seriesDoc) query.series = seriesDoc._id;
-  
-  const vol = await Volume.findOne(query);
-  return vol ? vol._id : null;
-}
 
 exports.createPage = async (req, res) => {
   const { series, volume, chapter, pageId, layout } = req.body;
