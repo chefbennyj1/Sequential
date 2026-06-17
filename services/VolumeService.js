@@ -181,8 +181,7 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
             const atomic = JSON.parse(raw);
             header = atomic.header || {};
             
-            // Resolve layout from flat or legacy nested structure
-            const layoutId = atomic.header?.layout?.id || atomic.header?.portraitLayout?.id || atomic.header?.layouts?.portrait?.id || atomic.header?.layouts?.landscape?.id || "Standard_Page";
+            const layoutId = atomic.header?.layout?.id ?? "Standard_Page";
             layout = { id: layoutId, html: `${layoutId}.html`, css: "" };
 
             mediaData = { media: (atomic.media || []).map(m => {
@@ -265,8 +264,7 @@ async function syncSinglePage(volumeId, chapterId, pageId, seriesFolderName = nu
         if (pageEntry) {
             pageEntry.header = atomic.header || {};
             
-            // Resolve layout from flat or legacy nested structure
-            const layoutId = atomic.header?.layout?.id || atomic.header?.portraitLayout?.id || atomic.header?.layouts?.portrait?.id || atomic.header?.layouts?.landscape?.id || "Standard_Page";
+            const layoutId = atomic.header?.layout?.id ?? "Standard_Page";
             pageEntry.layout = { id: layoutId, html: `${layoutId}.html`, css: "" };
             
             // Clean up legacy keys from the DB entry

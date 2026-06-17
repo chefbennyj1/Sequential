@@ -1,8 +1,11 @@
-//API ENDPOINTS
-const express = require("express");
+// API ENDPOINTS
+const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
 const router = express.Router();
 
-console.log("[API] Initializing specialized editor routes...");
+console.log('[API] Initializing API routes...');
 
 // Controllers
 const UserController = require('../controllers/UserController.js');
@@ -11,8 +14,11 @@ const MediaController = require('../controllers/MediaController.js');
 const ExportController = require('../controllers/ExportController.js');
 const LibraryController = require('../controllers/LibraryController.js');
 const ScheduledTaskController = require('../controllers/ScheduledTaskController.js');
+const CharacterController = require('../controllers/CharacterController.js');
+const CriticController = require('../controllers/CriticController.js');
+const SiteController = require('../controllers/SiteController.js');
 
-// New Specialized Editor Controllers
+// Editor Controllers
 const PageLayoutController = require('../controllers/PageLayoutController.js');
 const AssetUploadController = require('../controllers/AssetUploadController.js');
 const PageDataController = require('../controllers/PageDataController.js');
@@ -22,6 +28,34 @@ const VisionController = require('../controllers/VisionController.js');
 const StyleLabController = require('../controllers/StyleLabController.js');
 
 const { isAuthApi: isAuth, isModerator, isAdmin } = require('../middleware/auth.js');
+
+// --- Multer: Character Avatar Upload ---
+const avatarStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const charId = req.params.id;
+        if (!charId) return cb(new Error('Character ID is required for upload'));
+        const dir = path.join(__dirname, `../views/public/images/characters/${charId}/avatar`);
+        const refDir = path.join(__dirname, `../views/public/images/characters/${charId}/references`);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        if (!fs.existsSync(refDir)) fs.mkdirSync(refDir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => cb(null, `avatar-${Date.now()}${path.extname(file.originalname)}`)
+});
+const uploadAvatar = multer({ storage: avatarStorage });
+
+// --- Multer: Character Reference Image Upload ---
+const referenceStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const charId = req.params.id;
+        if (!charId) return cb(new Error('Character ID is required for upload'));
+        const dir = path.join(__dirname, `../views/public/images/characters/${charId}/references`);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => cb(null, `ref-${Date.now()}${path.extname(file.originalname)}`)
+});
+const uploadReference = multer({ storage: referenceStorage });
 
 // --- TEST ROUTE ---
 router.get('/test', (req, res) => res.json({ ok: true, message: "API is working" }));
@@ -56,6 +90,7 @@ router.post('/editor/sync-page/:volumeId/:chapter/:pageId', isModerator, PageDat
 router.get('/editor/plot-board/:series', isModerator, PageDataController.getPlotBoard);
 router.post('/editor/plot-board/:series', isModerator, PageDataController.savePlotBoard);
 
+
 // 4. Page Structure & Scaffolding (PageStructureController)
 router.get('/editor/next-page-id', isModerator, PageStructureController.getNextPageId);
 router.get('/editor/chapter-range', isModerator, PageStructureController.getChapterRange);
@@ -67,6 +102,22 @@ router.post('/editor/create-chapter', isAdmin, PageStructureController.createCha
 // --- EXPORT ROUTES ---
 router.post('/editor/export-volume/:series/:volume', isAdmin, ExportController.exportVolume);
 router.post('/editor/export-script/:series/:volume', isModerator, ExportController.exportScript);
+
+// --- CHARACTERS ---
+router.get('/characters', isAuth, CharacterController.getAll);
+router.get('/characters/:name', isAuth, CharacterController.getOne);
+router.post('/characters', isAuth, CharacterController.create);
+router.put('/characters/:id', isAuth, CharacterController.update);
+router.delete('/characters/:id', isAuth, CharacterController.delete);
+router.post('/characters/:id/avatar', isAuth, uploadAvatar.single('avatar'), (req, res) => CharacterController.uploadAvatar(req, res));
+router.post('/characters/:id/analyze-avatar', isAuth, (req, res) => CharacterController.analyzeAvatar(req, res));
+router.post('/characters/:id/reference', isAuth, uploadReference.single('image'), (req, res) => CharacterController.uploadReferenceImage(req, res));
+
+// --- FONTS ---
+router.get('/fonts', isAuth, SiteController.getAvailableFonts);
+
+// --- STORY CRITIC ---
+router.get('/critic/analyze/:series/:volumeId', isAuth, CriticController.analyzeVolume);
 
 // --- USER ROUTES ---
 router.post("/user/register", UserController.registerUser);

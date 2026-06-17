@@ -233,13 +233,8 @@ export async function loadSection(containerId, htmlPath, isComicPage = true, pag
 
         let layoutUrl = htmlPath;
         if (pageData) {
-            const lid = pageData.layout?.id || 
-                      pageData.header?.layout?.id || 
-                      pageData.portraitLayoutId || 
-                      pageData.layoutId || 
-                      pageData.header?.portraitLayout?.id ||
-                      pageData.header?.layouts?.portrait?.id || 
-                      pageData.layouts?.portrait?.id || 
+            const lid = pageData.layout?.id ||
+                      pageData.header?.layout?.id ||
                       "Standard_Page";
 
             layoutUrl = `/layouts/portrait/${lid}.html?t=${Date.now()}`;

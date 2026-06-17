@@ -1,7 +1,7 @@
 // Middleware to handle authentication checks for web and API routes
 
-// Hardcoded secret for internal tools (like PNG Exporter)
-const INTERNAL_SECRET = 'sequential_internal_export_key_2026';
+// Secret for internal tools (e.g., headless PNG Exporter). Set via INTERNAL_EXPORT_SECRET in .env.
+const INTERNAL_SECRET = process.env.INTERNAL_EXPORT_SECRET;
 
 /**
  * Redirects to /login if the user is not authenticated.

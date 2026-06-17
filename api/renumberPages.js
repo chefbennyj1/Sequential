@@ -1,13 +1,34 @@
+/**
+ * renumberPages.js
+ * Splits a page at a given index by shifting all subsequent pages up by 1,
+ * then clones the split page as the new blank at that index.
+ *
+ * Usage:
+ *   node api/renumberPages.js --series No_Overflow --volume volume-1 --chapter chapter-2 --at 13
+ */
 const fs = require('fs').promises;
 const path = require('path');
 
-async function splitPage12() {
-    const chapterPath = 'E:\\Comic Series\\No_Overflow\\Volumes\\volume-1\\chapter-2';
-    const splitPoint = 13; 
+const getArg = (flag) => {
+    const i = process.argv.indexOf(flag);
+    return i > -1 && process.argv[i + 1] ? process.argv[i + 1] : null;
+};
 
-    console.log(`Resuming Split Operation in: ${chapterPath}`);
+const seriesName = getArg('--series');
+const volumeName = getArg('--volume');
+const chapterName = getArg('--chapter');
+const splitPoint = parseInt(getArg('--at'), 10);
 
-    try {
+if (!seriesName || !volumeName || !chapterName || isNaN(splitPoint)) {
+    console.error('Usage: node api/renumberPages.js --series <name> --volume <volume-N> --chapter <chapter-N> --at <pageIndex>');
+    process.exit(1);
+}
+
+const chapterPath = path.join('E:\\Comic Series', seriesName, 'Volumes', volumeName, chapterName);
+
+async function splitPage() {
+    console.log(`Splitting at page ${splitPoint} in: ${chapterPath}`);
+
         const dirs = await fs.readdir(chapterPath, { withFileTypes: true });
         let existingPages = [];
 
@@ -104,15 +125,15 @@ async function splitPage12() {
             console.log(`  Page 13 initialized.`);
         }
 
-        console.log('Split Complete! Run the Library Scanner.');
+        console.log('Split Complete. Run the Library Scanner to sync the DB.');
 
     } catch (e) {
-        console.error("Split Failed:", e);
+        console.error('Split Failed:', e);
     }
 }
 
-async function fileExists(path) {
-    try { await fs.access(path); return true; } catch { return false; }
+async function fileExists(p) {
+    try { await fs.access(p); return true; } catch { return false; }
 }
 
 async function tryRename(oldP, newP, retries = 3) {
@@ -122,7 +143,7 @@ async function tryRename(oldP, newP, retries = 3) {
             return;
         } catch (e) {
             if (e.code === 'EPERM' && i < retries - 1) {
-                console.log(`    Locked... retrying ${path.basename(oldP)} (${i+1}/${retries})`);
+                console.log(`    Locked... retrying ${path.basename(oldP)} (${i + 1}/${retries})`);
                 await new Promise(r => setTimeout(r, 500));
             } else {
                 throw e;
@@ -131,4 +152,4 @@ async function tryRename(oldP, newP, retries = 3) {
     }
 }
 
-splitPage12();
+splitPage();

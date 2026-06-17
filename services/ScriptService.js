@@ -90,14 +90,7 @@ class ScriptService {
         output += `${slugline || ''}\n`;
 
         // Layout Info
-        let layoutId = 'Unknown Layout';
-        if (data.header?.layout) {
-            layoutId = data.header.layout.id;
-        } else if (data.header?.portraitLayout) {
-            layoutId = data.header.portraitLayout.id;
-        } else if (data.header?.layouts?.portrait) {
-            layoutId = typeof data.header.layouts.portrait === 'string' ? data.header.layouts.portrait : data.header.layouts.portrait.id;
-        }
+        const layoutId = data.header?.layout?.id ?? 'Unknown Layout';
 
         output += `LAYOUT: ${layoutId}\n`;
         output += `................................................................................\n`;

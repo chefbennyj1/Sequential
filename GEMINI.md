@@ -3,13 +3,22 @@
 ## Core Workflow: Vision & Image Hashing
 
 ### 1. Image Hashing Logic (Critical)
-To prevent redundant AI re-scans, the `imageHash` in `page.json` MUST match the server's internal hash. The server (`services/gemini/GeminiVisionService.js`) generates hashes using the following specific preprocessing:
-- **Resize:** 256x256 (fit: 'inside')
-- **Format:** Grayscale
+To prevent redundant AI re-scans, the `imageHash` in `page.json` MUST match the server's internal hash. The server (`services/gemini/GeminiVisionService.js`) generates hashes using the following method:
+- **Input:** Raw file bytes (no preprocessing)
 - **Algorithm:** MD5
-- **Library:** `sharp`
+- **Library:** Node.js built-in `crypto`
 
-**DO NOT** generate standard file hashes (like raw MD5/SHA) for `imageHash`. If you manually add images or update `page.json`, use the server-aligned hashing logic.
+To generate a matching hash manually:
+```js
+const crypto = require('crypto');
+const fs = require('fs');
+const hash = crypto.createHash('md5').update(fs.readFileSync(imagePath)).digest('hex');
+```
+
+> **Note:** An earlier version of this spec described a `sharp`-based approach (resize 256x256, grayscale, then MD5).
+> That was abandoned due to native segfaults on Windows during bulk scans. The implementation now uses a
+> direct raw-file MD5. If you manually set `imageHash` values in `page.json`, use the method above.
+
 
 ### 2. Vision Scanning Workflow
 - **Quick Scan:** Updates `imageHash` in `page.json` if missing or mismatched, but DOES NOT trigger AI analysis. Use this to sync the state after manual file changes.

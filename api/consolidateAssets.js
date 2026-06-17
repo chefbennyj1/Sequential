@@ -1,8 +1,30 @@
+/**
+ * consolidateAssets.js
+ * Moves unreferenced asset files out of page asset directories into a holding folder.
+ *
+ * Usage:
+ *   node api/consolidateAssets.js --series No_Overflow --output E:/stock_media
+ */
 const fs = require('fs');
 const path = require('path');
 
-const LIBRARY_ROOT = 'E:/Comic Series/No_Overflow/Volumes';
-const STOCK_MEDIA_ROOT = 'E:/stock_media';
+const getArg = (flag) => {
+    const i = process.argv.indexOf(flag);
+    return i > -1 && process.argv[i + 1] ? process.argv[i + 1] : null;
+};
+
+const seriesName = getArg('--series');
+const outputDir = getArg('--output');
+
+if (!seriesName || !outputDir) {
+    console.error('Usage: node api/consolidateAssets.js --series <folderName> --output <path>');
+    process.exit(1);
+}
+
+// Resolve series path the same way the engine does — check registered library roots first.
+// For CLI use we fall back to the E:\Comic Series convention.
+const LIBRARY_ROOT = path.join('E:\\Comic Series', seriesName, 'Volumes');
+const STOCK_MEDIA_ROOT = outputDir;
 
 if (!fs.existsSync(STOCK_MEDIA_ROOT)) {
     fs.mkdirSync(STOCK_MEDIA_ROOT, { recursive: true });

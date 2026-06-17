@@ -14,7 +14,7 @@ class PreviewService {
             if (!fs.existsSync(atomicPath)) return null;
             const atomic = JSON.parse(fs.readFileSync(atomicPath, 'utf8'));
             
-            const layoutId = atomic.header?.layout?.id || atomic.header?.portraitLayout?.id || atomic.header?.layouts?.portrait?.id || "Standard_Page";
+            const layoutId = atomic.header?.layout?.id ?? "Standard_Page";
             const templatePath = path.join(__dirname, '..', 'Library', 'layouts', 'portrait', `${layoutId}.html`);
             const html = fs.existsSync(templatePath) ? fs.readFileSync(templatePath, 'utf8') : `<div class="page-layout ${layoutId}">Layout Not Found</div>`;
             return { html, layoutId, spread: atomic.header?.spread };

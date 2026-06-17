@@ -50,7 +50,7 @@ class LayoutService {
         if (!fs.existsSync(atomicPath)) return 'panel-0';
 
         const pageJson = JSON.parse(fs.readFileSync(atomicPath, 'utf8'));
-        const layoutId = pageJson.header?.layout?.id || pageJson.header?.portraitLayout?.id || pageJson.header?.layouts?.portrait?.id || "Standard_Page";
+        const layoutId = pageJson.header?.layout?.id ?? "Standard_Page";
 
         const templatePath = path.join(layoutsDir, 'portrait', `${layoutId}.html`);
 
@@ -169,7 +169,7 @@ class LayoutService {
                 }
             }
             
-            layoutId = atomic.header?.layout?.id || atomic.header?.portraitLayout?.id || atomic.header?.layouts?.portrait?.id || layoutId;
+            layoutId = atomic.header?.layout?.id ?? layoutId;
         }
 
         // Include floating panels from metadata to prevent false positive orphan alerts

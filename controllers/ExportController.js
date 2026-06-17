@@ -6,7 +6,8 @@ const { convertToPdf } = require('../utils/screenplayToPdf');
 const Series = require('../models/Series');
 const ScriptService = require('../services/ScriptService');
 
-const INTERNAL_SECRET = 'sequential_internal_export_key_2026';
+const INTERNAL_SECRET = process.env.INTERNAL_EXPORT_SECRET;
+
 
 class ExportController {
     static async exportVolume(req, res) {
@@ -78,7 +79,7 @@ class ExportController {
                         const data = JSON.parse(fs.readFileSync(jsonPath, 'utf8'));
                         if ((!data.media || data.media.length === 0) && (!data.scene || data.scene.length === 0)) continue;
                         
-                        const layoutId = data.header?.layout?.id || data.header?.portraitLayout?.id || data.header?.layouts?.portrait?.id || data.header?.layouts?.landscape?.id;
+                        const layoutId = data.header?.layout?.id;
                         if (layoutId === 'Standard_Page_Spread') {
                             isLegacyWide = true;
                         }
