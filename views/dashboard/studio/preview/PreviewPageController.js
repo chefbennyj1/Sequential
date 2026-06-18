@@ -153,12 +153,7 @@ export class PreviewPageController {
                 if (file) this.handleUpload(file, panel, panelClass, label);
             });
 
-            panel.addEventListener('click', (e) => {
-                if (panel.dataset.wasDragged === 'true') {
-                    panel.dataset.wasDragged = 'false';
-                    return;
-                }
-
+            this._setupSelectEvent(panel, () => {
                 document.querySelectorAll('.panel').forEach(p => p.classList.remove('selected'));
                 panel.classList.add('selected');
 
@@ -227,26 +222,17 @@ export class PreviewPageController {
     }
 
     makeDraggable(el) {
-        let isDragging = false;
-        let startX, startY, initialLeft, initialTop;
+        let initialLeft, initialTop;
+        let parentRect;
 
-        el.addEventListener('mousedown', (e) => {
-            if (e.button !== 0) return;
-            isDragging = true;
-            el.classList.add('is-dragging');
-            const parent = el.offsetParent || this.container.querySelector('.section-container') || this.container;
-            const parentRect = parent.getBoundingClientRect();
-            startX = e.clientX;
-            startY = e.clientY;
-            initialLeft = parseFloat(el.style.left) || 0;
-            initialTop = parseFloat(el.style.top) || 0;
-
-            const onMouseMove = (e) => {
-                if (!isDragging) return;
-                const dx = e.clientX - startX;
-                const dy = e.clientY - startY;
-                if (Math.abs(dx) > 2 || Math.abs(dy) > 2) el.dataset.wasDragged = 'true';
-
+        this._setupDragEvents(el,
+            (e) => {
+                const parent = el.offsetParent || this.container.querySelector('.section-container') || this.container;
+                parentRect = parent.getBoundingClientRect();
+                initialLeft = parseFloat(el.style.left) || 0;
+                initialTop = parseFloat(el.style.top) || 0;
+            },
+            (e, dx, dy) => {
                 const pctX = (dx / parentRect.width) * 100;
                 const pctY = (dy / parentRect.height) * 100;
 
@@ -263,19 +249,8 @@ export class PreviewPageController {
                     left: newLeft.toFixed(2),
                     top: newTop.toFixed(2)
                 }, '*');
-            };
-
-            const onMouseUp = () => {
-                isDragging = false;
-                el.classList.remove('is-dragging');
-                document.removeEventListener('mousemove', onMouseMove);
-                document.removeEventListener('mouseup', onMouseUp);
-            };
-
-            document.addEventListener('mousemove', onMouseMove);
-            document.addEventListener('mouseup', onMouseUp);
-            e.preventDefault();
-        });
+            }
+        );
     }
 
     makeDialogueDraggable(item) {
@@ -285,29 +260,21 @@ export class PreviewPageController {
         const logicalAnchor = item.intendedPanelEl || targetParent;
         const isActionText = item.options?.displayType?.type === 'ActionText' || item.options?.displayType?.type === 'SoundEffect';
 
-        let isDragging = false;
-        let startX, startY, initialLeft, initialTop;
-
         if (!isActionText) {
-            el.addEventListener('mousedown', (e) => {
-                if (e.button !== 0) return;
-                e.stopPropagation();
-                isDragging = true;
-                el.classList.add('is-dragging');
-                const anchorRect = logicalAnchor.getBoundingClientRect();
-                const elRect = el.getBoundingClientRect();
-                startX = e.clientX;
-                startY = e.clientY;
-                const aWidth = anchorRect.width || 1;
-                const aHeight = anchorRect.height || 1;
-                initialLeft = ((elRect.left - anchorRect.left) / aWidth) * 100;
-                initialTop = ((elRect.top - anchorRect.top) / aHeight) * 100;
+            let initialLeft, initialTop;
+            let anchorRect, aWidth, aHeight;
 
-                const onMouseMove = (e) => {
-                    if (!isDragging) return;
-                    const dx = e.clientX - startX;
-                    const dy = e.clientY - startY;
-                    if (Math.abs(dx) > 2 || Math.abs(dy) > 2) el.dataset.wasDragged = 'true';
+            this._setupDragEvents(el,
+                (e) => {
+                    e.stopPropagation();
+                    anchorRect = logicalAnchor.getBoundingClientRect();
+                    const elRect = el.getBoundingClientRect();
+                    aWidth = anchorRect.width || 1;
+                    aHeight = anchorRect.height || 1;
+                    initialLeft = ((elRect.left - anchorRect.left) / aWidth) * 100;
+                    initialTop = ((elRect.top - anchorRect.top) / aHeight) * 100;
+                },
+                (e, dx, dy) => {
                     const pctX = (dx / aWidth) * 100;
                     const pctY = (dy / aHeight) * 100;
                     let newLeft = initialLeft + pctX;
@@ -330,29 +297,14 @@ export class PreviewPageController {
                         id: id,
                         placement: { left: `${newLeft.toFixed(2)}%`, top: `${newTop.toFixed(2)}%`, right: '', bottom: '' }
                     }, '*');
-                };
-
-                const onMouseUp = () => {
-                    isDragging = false;
-                    el.classList.remove('is-dragging');
-                    document.removeEventListener('mousemove', onMouseMove);
-                    document.removeEventListener('mouseup', onMouseUp);
-                };
-
-                document.addEventListener('mousemove', onMouseMove);
-                document.addEventListener('mouseup', onMouseUp);
-                e.preventDefault();
-            });
+                }
+            );
         } else {
             // ActionText shouldn't show a move cursor since dragging is disabled
             el.style.cursor = 'pointer';
         }
 
-        el.addEventListener('click', (e) => {
-            if (el.dataset.wasDragged === 'true') {
-                el.dataset.wasDragged = 'false';
-                return;
-            }
+        this._setupSelectEvent(el, (e) => {
             e.stopPropagation();
             document.querySelectorAll('.speech-bubble-container, .text-block-container, .action-text-container').forEach(item => item.classList.remove('selected-dialogue'));
             el.classList.add('selected-dialogue');
@@ -476,5 +428,51 @@ export class PreviewPageController {
             const jsProp = prop.includes('-') ? prop.replace(/-([a-z])/g, (g) => g[1].toUpperCase()) : prop;
             applyTarget.style[jsProp] = stylesObj[prop];
         }
+    }
+
+    // --- Shared Drag & Click Handlers ---
+
+    _setupDragEvents(el, onDragStart, onDragMove) {
+        let isDragging = false;
+        let startX, startY;
+
+        el.addEventListener('mousedown', (e) => {
+            if (e.button !== 0) return;
+            isDragging = true;
+            el.classList.add('is-dragging');
+            startX = e.clientX;
+            startY = e.clientY;
+
+            if (onDragStart) onDragStart(e);
+
+            const onMouseMove = (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - startX;
+                const dy = e.clientY - startY;
+                if (Math.abs(dx) > 2 || Math.abs(dy) > 2) el.dataset.wasDragged = 'true';
+                if (onDragMove) onDragMove(e, dx, dy);
+            };
+
+            const onMouseUp = () => {
+                isDragging = false;
+                el.classList.remove('is-dragging');
+                document.removeEventListener('mousemove', onMouseMove);
+                document.removeEventListener('mouseup', onMouseUp);
+            };
+
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+            e.preventDefault();
+        });
+    }
+
+    _setupSelectEvent(el, onSelect, useCapture = false) {
+        el.addEventListener('click', (e) => {
+            if (el.dataset.wasDragged === 'true') {
+                el.dataset.wasDragged = 'false';
+                return;
+            }
+            onSelect(e);
+        }, useCapture);
     }
 }

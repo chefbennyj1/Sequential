@@ -75,11 +75,17 @@ export class VisualEditorManager {
                 setTimeout(() => descInput.style.borderColor = '#333', 1500);
             }
             this.resetAiButtonState();
+            if (window.GlassToast) {
+                window.GlassToast.show('success', 'Analysis Complete', 'Image AI analysis finished successfully.');
+            }
         } else {
             // Re-render directory to update AI step in stepper
             const iframe = document.getElementById('pagePreviewFrame');
             let panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
             if (!this.selectedPanelSelector) this.renderDirectory(panelNames);
+            if (window.GlassToast) {
+                window.GlassToast.show('success', 'Analysis Complete', `Panel ${data.panelId} analysis finished.`);
+            }
         }
     }
 
@@ -89,14 +95,27 @@ export class VisualEditorManager {
         const cleanIncoming = data.panelId ? data.panelId.replace('.', '') : null;
 
         if (cleanSelected === cleanIncoming) {
-            alert("AI Analysis Failed: " + data.message);
             this.resetAiButtonState();
+            const msg = data.message ? data.message.toLowerCase() : "";
+            
+            if (msg.includes('apikey') || msg.includes('api key') || msg.includes('expired')) {
+                if (window.GlassToast) {
+                    window.GlassToast.show('error', 'API Key Required', 'Please add your APIKey in the AI settings of the application.');
+                } else {
+                    alert("Please add your APIKey in the AI settings of the application.");
+                }
+            } else {
+                if (window.GlassToast) {
+                    window.GlassToast.show('error', 'Analysis Failed', data.message);
+                } else {
+                    alert("AI Analysis Failed: " + data.message);
+                }
+            }
         }
     }
 
     isCurrentContext(data) {
         return this.currentVisualContext && 
-               this.currentVisualContext.volume === data.volume &&
                this.currentVisualContext.chapter === data.chapter &&
                this.currentVisualContext.pageId === data.pageId;
     }
@@ -110,6 +129,7 @@ export class VisualEditorManager {
         }
         if (aiBtn && aiBtn.disabled) {
             aiBtn.disabled = false;
+            aiBtn.innerHTML = '<ion-icon name="sparkles-outline"></ion-icon> <span>AI Scan</span>';
         }
     }
 
@@ -252,7 +272,7 @@ export class VisualEditorManager {
         const addFloatingBtn = document.getElementById('addFloatingPanelBtn');
         if (addFloatingBtn) {
             addFloatingBtn.onclick = async () => {
-                const name = prompt("Floating Panel ID (e.g. .panel-FX):", ".panel-new");
+                const name = await this.showGlassPrompt("Floating Panel ID (e.g. .panel-FX):", ".panel-new");
                 if (name) {
                     const newEntry = { 
                         panel: name, 
@@ -266,8 +286,9 @@ export class VisualEditorManager {
                     try {
                         await this.assetManager.saveMedia();
                         this.renderPanelEditor(name);
+                        if (window.GlassToast) window.GlassToast.show('success', 'Success', 'Floating panel created.');
                     } catch (err) {
-                        alert("Failed to create floating panel: " + err.message);
+                        if (window.GlassToast) window.GlassToast.show('error', 'Error', "Failed to create floating panel: " + err.message);
                     }
                 }
             };
@@ -455,14 +476,33 @@ export class VisualEditorManager {
         btn.innerHTML = '<ion-icon name="sync-outline" class="spin"></ion-icon>';
 
         const fileName = document.getElementById('visual-asset-name').value;
-        if (!fileName) { alert("Assign an image first."); btn.disabled = false; btn.innerHTML = originalText; return; }
+        if (!fileName) { 
+            if (window.GlassToast) window.GlassToast.show('error', 'Error', "Assign an image first.");
+            btn.disabled = false; 
+            btn.innerHTML = originalText; 
+            return; 
+        }
 
         try {
             await this.assetManager.flipAsset(panelSelector, fileName, direction);
             const iframe = document.getElementById('pagePreviewFrame');
-            if (iframe?.contentWindow) iframe.contentWindow.location.reload();
-            alert(`Image flipped ${direction} successfully.`);
-        } catch (err) { alert(err.message); } finally { btn.disabled = false; btn.innerHTML = originalText; }
+            if (iframe?.contentWindow) {
+                iframe.addEventListener('load', () => {
+                    if (window.GlassToast) window.GlassToast.show('success', 'Success', `Image flipped ${direction} successfully.`);
+                    btn.disabled = false;
+                    btn.innerHTML = originalText;
+                }, { once: true });
+                iframe.contentWindow.location.reload();
+            } else {
+                if (window.GlassToast) window.GlassToast.show('success', 'Success', `Image flipped ${direction} successfully.`);
+                btn.disabled = false;
+                btn.innerHTML = originalText;
+            }
+        } catch (err) { 
+            if (window.GlassToast) window.GlassToast.show('error', 'Error', err.message);
+            btn.disabled = false; 
+            btn.innerHTML = originalText; 
+        }
     }
 
     async handleAiScan(panelSelector) {
@@ -474,8 +514,27 @@ export class VisualEditorManager {
             btn.innerHTML = '<ion-icon name="sync-outline" class="spin"></ion-icon> <span>Analyzing...</span>';
             const scope = { seriesId: this.activeSeriesId, volume: this.currentVisualContext.volume, chapter: this.currentVisualContext.chapter, pageId: this.currentVisualContext.pageId, panelId: panelSelector };
             const res = await fetch('/api/vision/scan', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ force: true, scope }) });
-            if (!res.ok) throw new Error("AI Scan failed");
-        } catch (err) { alert(err.message); this.resetAiButtonState(); }
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || "AI Scan failed");
+            }
+        } catch (err) { 
+            const msg = err.message ? err.message.toLowerCase() : "";
+            if (msg.includes('apikey') || msg.includes('api key') || msg.includes('expired')) {
+                if (window.GlassToast) {
+                    window.GlassToast.show('error', 'API Key Required', 'Please add your APIKey in the AI settings of the application.');
+                } else {
+                    alert("Please add your APIKey in the AI settings of the application.");
+                }
+            } else {
+                if (window.GlassToast) {
+                    window.GlassToast.show('error', 'Scan Failed', err.message);
+                } else {
+                    alert(err.message); 
+                }
+            }
+            this.resetAiButtonState(); 
+        }
     }
 
     async handleSave(panelSelector) {
@@ -527,20 +586,35 @@ export class VisualEditorManager {
         try {
             if ((await this.assetManager.saveMedia()).ok) {
                 btn.textContent = "Saved!";
+                if (window.GlassToast) window.GlassToast.show('success', 'Saved', 'Panel media saved successfully.');
                 setTimeout(() => { btn.disabled = false; btn.textContent = "Save Panel Asset"; }, 2000);
                 pushMediaPersisted(document.getElementById('pagePreviewFrame'), panelSelector, updated, this.currentVisualContext.pageId);
             }
-        } catch (err) { alert(err.message); btn.disabled = false; btn.textContent = "Retry Save"; }
+        } catch (err) { 
+            if (window.GlassToast) window.GlassToast.show('error', 'Save Failed', err.message);
+            btn.disabled = false; btn.textContent = "Retry Save"; 
+        }
     }
 
     async handleDeletePanel(panelSelector) {
-        if (!confirm(`Delete floating panel ${panelSelector}?`)) return;
+        const confirmed = await this.showGlassConfirm('Delete Panel', `Are you sure you want to delete floating panel ${panelSelector}?`);
+        if (!confirmed) return;
         try {
             if (await this.assetManager.deletePanel(panelSelector)) {
-                document.getElementById('pagePreviewFrame').contentWindow.location.reload();
-                this.loadPanel({ panel: null, ...this.currentVisualContext }, this.activeSeriesId);
+                const iframe = document.getElementById('pagePreviewFrame');
+                if (iframe?.contentWindow) {
+                    iframe.addEventListener('load', () => {
+                        this.loadPanel({ panel: null, ...this.currentVisualContext }, this.activeSeriesId);
+                        if (window.GlassToast) window.GlassToast.show('success', 'Deleted', `Panel ${panelSelector} removed.`);
+                    }, { once: true });
+                    iframe.contentWindow.location.reload();
+                } else {
+                    this.loadPanel({ panel: null, ...this.currentVisualContext }, this.activeSeriesId);
+                }
             }
-        } catch (err) { alert(err.message); }
+        } catch (err) { 
+            if (window.GlassToast) window.GlassToast.show('error', 'Error', err.message);
+        }
     }
 
     showDialogueProperties(item, propertiesManager, onSaveCallback, onDeleteCallback) {
@@ -578,5 +652,110 @@ export class VisualEditorManager {
             let panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
             this.renderDirectory(panelNames);
         }
+    }
+
+    // --- Custom UI Overlays ---
+
+    showGlassPrompt(title, defaultValue = '') {
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.className = 'glass-modal-backdrop is-active';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0'; overlay.style.left = '0';
+            overlay.style.width = '100%'; overlay.style.height = '100%';
+            overlay.style.zIndex = '9999';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.2s ease-out';
+            
+            overlay.innerHTML = `
+                <div class="glass glass-card" style="min-width:300px; padding: 2rem; transform: translateY(20px); transition: transform 0.2s ease-out;">
+                    <h3 style="margin-top:0">${title}</h3>
+                    <input type="text" class="glass-input" value="${defaultValue}" style="width:100%; margin: 1rem 0; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.5rem; border-radius: 4px;" />
+                    <div style="display:flex; justify-content:flex-end; gap: 1rem;">
+                        <button class="glass glass-btn" id="gp-cancel">Cancel</button>
+                        <button class="glass glass-btn glass-btn--primary" id="gp-ok">OK</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            requestAnimationFrame(() => {
+                overlay.style.opacity = '1';
+                overlay.querySelector('.glass-card').style.transform = 'translateY(0)';
+            });
+            
+            const input = overlay.querySelector('input');
+            input.focus();
+            
+            const cleanup = (val) => {
+                overlay.style.opacity = '0';
+                overlay.querySelector('.glass-card').style.transform = 'translateY(20px)';
+                overlay.addEventListener('transitionend', (e) => {
+                    if (e.target === overlay && overlay.parentNode) {
+                        document.body.removeChild(overlay);
+                        resolve(val);
+                    }
+                });
+            };
+            
+            overlay.querySelector('#gp-cancel').onclick = () => cleanup(null);
+            overlay.querySelector('#gp-ok').onclick = () => cleanup(input.value);
+            input.onkeydown = (e) => {
+                if (e.key === 'Enter') cleanup(input.value);
+                if (e.key === 'Escape') cleanup(null);
+            };
+        });
+    }
+
+    showGlassConfirm(title, message) {
+        return new Promise(resolve => {
+            const overlay = document.createElement('div');
+            overlay.className = 'glass-modal-backdrop is-active';
+            overlay.style.position = 'fixed';
+            overlay.style.top = '0'; overlay.style.left = '0';
+            overlay.style.width = '100%'; overlay.style.height = '100%';
+            overlay.style.zIndex = '9999';
+            overlay.style.display = 'flex';
+            overlay.style.alignItems = 'center';
+            overlay.style.justifyContent = 'center';
+            overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
+            overlay.style.opacity = '0';
+            overlay.style.transition = 'opacity 0.2s ease-out';
+            
+            overlay.innerHTML = `
+                <div class="glass glass-card" style="min-width:300px; padding: 2rem; transform: translateY(20px); transition: transform 0.2s ease-out;">
+                    <h3 style="margin-top:0">${title}</h3>
+                    <p style="margin-bottom: 1.5rem; opacity: 0.8;">${message}</p>
+                    <div style="display:flex; justify-content:flex-end; gap: 1rem;">
+                        <button class="glass glass-btn" id="gc-cancel">Cancel</button>
+                        <button class="glass glass-btn glass-btn--primary" id="gc-ok">Confirm</button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(overlay);
+            requestAnimationFrame(() => {
+                overlay.style.opacity = '1';
+                overlay.querySelector('.glass-card').style.transform = 'translateY(0)';
+            });
+            
+            const cleanup = (val) => {
+                overlay.style.opacity = '0';
+                overlay.querySelector('.glass-card').style.transform = 'translateY(20px)';
+                overlay.addEventListener('transitionend', (e) => {
+                    if (e.target === overlay && overlay.parentNode) {
+                        document.body.removeChild(overlay);
+                        resolve(val);
+                    }
+                });
+            };
+            
+            overlay.querySelector('#gc-cancel').onclick = () => cleanup(false);
+            overlay.querySelector('#gc-ok').onclick = () => cleanup(true);
+        });
     }
 }

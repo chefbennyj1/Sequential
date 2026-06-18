@@ -12,6 +12,58 @@ function updateStatus(statusEl, message, type = 'error') {
     else if (type === 'loading') statusEl.className = "builder-status text-muted";
 }
 
+function getSelectionData(prefix) {
+    const volSelect = document.getElementById(`${prefix}VolumeSelect`);
+    const vol = volSelect ? volSelect.value : null;
+    const seriesId = volSelect ? volSelect.options[volSelect.selectedIndex]?.getAttribute('data-series-id') : null;
+    const chapSelect = document.getElementById(`${prefix}ChapterSelect`);
+    const chap = chapSelect ? chapSelect.value : null;
+    return { vol, seriesId, chap };
+}
+
+function redirectAfterSuccess(vol, chap, pageId, seriesId) {
+    setTimeout(() => {
+        setActivePage(vol, chap, pageId, seriesId);
+        updateUrlState({ tab: 'page-builder', vol, chap, page: pageId, series: seriesId });
+    }, 1000);
+}
+
+const apiPost = (url, bodyData) => fetch(url, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(bodyData)
+});
+
+async function saveSettings(url, settings, btn, successMsg) {
+    const originalText = btn.textContent;
+    btn.disabled = true;
+    btn.textContent = "Saving...";
+
+    try {
+        const res = await fetch(url, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ settings })
+        });
+        const data = await res.json();
+        if (data.ok) {
+            if (window.GlassToast) {
+                window.GlassToast.show('success', 'Settings Saved', successMsg);
+            }
+        } else throw new Error(data.message);
+    } catch (err) {
+        console.error("Settings save failed", err);
+        if (window.GlassToast) {
+            window.GlassToast.show('error', 'Save Failed', err.message || "Request failed.");
+        } else {
+            alert("Error: " + (err.message || "Request failed."));
+        }
+    } finally {
+        btn.disabled = false;
+        btn.textContent = originalText;
+    }
+}
+
 async function handleApiFormSubmit(options) {
     const { 
         btn, 
@@ -63,11 +115,7 @@ export function initFormHandlers(container) {
             const btn = document.getElementById('createPageBtn');
             const status = document.getElementById('builderStatus');
 
-            const volSelect = document.getElementById('builderVolumeSelect'); 
-            const vol = volSelect.value;
-            const seriesId = volSelect.options[volSelect.selectedIndex]?.getAttribute('data-series-id');
-            const chapSelect = document.getElementById('builderChapterSelect');
-            const chap = chapSelect.value;
+            const { vol, seriesId, chap } = getSelectionData('builder');
             const pageId = document.getElementById('builderPageId').value;    
             const layout = document.getElementById('builderLayoutSelect').value;
 
@@ -84,17 +132,8 @@ export function initFormHandlers(container) {
                 loadingStatusText: "Processing...",
                 originalBtnText: "Create Page Structure",
                 successMsg: "Success! Page created. Syncing...",
-                fetchCall: () => fetch('/api/editor/create-page', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ series: seriesId, volume: vol, chapter: chap, pageId, layout })
-                }),
-                onSuccess: () => {
-                    setTimeout(() => {
-                        setActivePage(vol, chap, pageId, seriesId);
-                        updateUrlState({ tab: 'page-builder', vol, chap, page: pageId, series: seriesId });
-                    }, 1000);
-                }
+                fetchCall: () => apiPost('/api/editor/create-page', { series: seriesId, volume: vol, chapter: chap, pageId, layout }),
+                onSuccess: () => redirectAfterSuccess(vol, chap, pageId, seriesId)
             });
         };
     }
@@ -103,11 +142,7 @@ export function initFormHandlers(container) {
     const getNextPageIdBtn = document.getElementById('getNextPageIdBtn');
     if (getNextPageIdBtn) {
         getNextPageIdBtn.onclick = async () => {
-            const volSelect = document.getElementById('builderVolumeSelect');
-            const vol = volSelect.value;
-            const seriesId = volSelect.options[volSelect.selectedIndex]?.getAttribute('data-series-id');
-            const chapSelect = document.getElementById('builderChapterSelect');
-            const chap = chapSelect.value;
+            const { vol, seriesId, chap } = getSelectionData('builder');
             const pageInput = document.getElementById('builderPageId');
             const status = document.getElementById('builderStatus');
 
@@ -140,11 +175,7 @@ export function initFormHandlers(container) {
             const btn = document.getElementById('insertPageBtn');
             const status = document.getElementById('insertStatus');
 
-            const volSelect = document.getElementById('insertVolumeSelect');  
-            const vol = volSelect.value;
-            const seriesId = volSelect.options[volSelect.selectedIndex]?.getAttribute('data-series-id');
-            const chapSelect = document.getElementById('insertChapterSelect');
-            const chap = chapSelect.value;
+            const { vol, seriesId, chap } = getSelectionData('insert');
             const insertPointStr = document.getElementById('insertPoint').value; 
             const insertPoint = parseInt(insertPointStr);
 
@@ -177,11 +208,7 @@ export function initFormHandlers(container) {
                 loadingStatusText: "Shifting folders and re-naming files...",
                 originalBtnText: "Insert & Shift Pages",
                 successMsg: "Success! Pages shifted and new page inserted.",
-                fetchCall: () => fetch('/api/editor/insert-page', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ series: seriesId, volume: vol, chapter: chap, insertPoint })
-                }),
+                fetchCall: () => apiPost('/api/editor/insert-page', { series: seriesId, volume: vol, chapter: chap, insertPoint }),
                 onSuccess: () => {
                     const newPageId = 'page' + insertPoint;
                     setActivePage(vol, chap, newPageId, seriesId);
@@ -219,11 +246,7 @@ export function initFormHandlers(container) {
                 loadingStatusText: "Processing...",
                 originalBtnText: "Create Volume Structure",
                 successMsg: "Success! Volume created. Redirecting...",
-                fetchCall: () => fetch('/api/volume/create', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ seriesId, index, title, firstChapterTitle })
-                }),
+                fetchCall: () => apiPost('/api/volume/create', { seriesId, index, title, firstChapterTitle }),
                 onSuccess: () => {
                     setTimeout(() => {
                         window.location.reload(); // Reload to refresh the library
@@ -244,9 +267,7 @@ export function initFormHandlers(container) {
             const btn = document.getElementById('createChapterBtn');
             const status = document.getElementById('chapterStatus');
 
-            const volSelect = document.getElementById('chapterVolumeSelect'); 
-            const vol = volSelect.value;
-            const seriesId = volSelect.options[volSelect.selectedIndex]?.getAttribute('data-series-id');
+            const { vol, seriesId } = getSelectionData('chapter');
             const chapterIndex = document.getElementById('chapterIndex').value;
             const title = document.getElementById('chapterTitle').value;      
 
@@ -263,17 +284,10 @@ export function initFormHandlers(container) {
                 loadingStatusText: "Checking for existence and creating chapter...",
                 originalBtnText: "Initialize Chapter",
                 successMsg: "Success! Chapter created. Syncing database...",
-                fetchCall: () => fetch('/api/editor/create-chapter', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({ series: seriesId, volume: vol, chapterIndex, title })
-                }),
+                fetchCall: () => apiPost('/api/editor/create-chapter', { series: seriesId, volume: vol, chapterIndex, title }),
                 onSuccess: (data) => {
                     updateStatus(status, "Success! " + data.message + ". Syncing database...", 'success');
-                    setTimeout(() => {
-                        setActivePage(vol, data.chapter, data.pageId, seriesId);
-                        updateUrlState({ tab: 'page-builder', vol, chap: data.chapter, page: data.pageId, series: seriesId });
-                    }, 1000);
+                    redirectAfterSuccess(vol, data.chapter, data.pageId, seriesId);
                 }
             });
         };
@@ -341,33 +355,7 @@ async function initGlobalSettings() {
 
         const btn = document.getElementById('saveGlobalSettingsBtn');
         if (!btn) return;
-        
-        const originalText = btn.textContent;
-        btn.disabled = true;
-        btn.textContent = "Saving...";
-
-        try {
-            const res = await fetch('/api/settings/global', {
-                method: 'PUT',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ settings })
-            });
-            const data = await res.json();
-            if (data.ok) {
-                if (window.GlassToast) {
-                    window.GlassToast.show('success', 'Settings Saved', 'Global AI configuration updated.');
-                }
-            } else throw new Error(data.message);
-        } catch (err) {
-            if (window.GlassToast) {
-                window.GlassToast.show('error', 'Save Failed', err.message);
-            } else {
-                alert("Error: " + err.message);
-            }
-        } finally {
-            btn.disabled = false;
-            btn.textContent = originalText;
-        }
+        await saveSettings('/api/settings/global', settings, btn, 'Global AI configuration updated.');
     };
 }
 
@@ -405,35 +393,7 @@ function initLibrarySettings() {
             const settings = {};
 
             const submitBtn = form.querySelector('button[type="submit"]');
-            const originalText = submitBtn.textContent;       
-            submitBtn.disabled = true;
-            submitBtn.textContent = "Saving...";
-
-            try {
-                const res = await fetch(`/api/library/series/${seriesId}/settings`, {        
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ settings })        
-                });
-                const data = await res.json();
-                if (data.ok) { 
-                    if (window.GlassToast) {
-                        window.GlassToast.show('success', 'Settings Saved', 'Series configuration updated.');
-                    }
-                } else {       
-                    if (window.GlassToast) {
-                        window.GlassToast.show('error', 'Save Failed', data.message);
-                    } else {
-                        alert("Error saving settings: " + data.message);
-                    }
-                }
-            } catch (err) {    
-                console.error("Failed to save series settings", err);
-                alert("Request failed.");
-            } finally {        
-                submitBtn.disabled = false;
-                submitBtn.textContent = originalText;
-            }
+            await saveSettings(`/api/library/series/${seriesId}/settings`, settings, submitBtn, 'Series configuration updated.');
         };
     }
 }

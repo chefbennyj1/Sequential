@@ -7,32 +7,7 @@ const Volume = require("../models/Volume");
 const Series = require("../models/Series");
 const VolumeService = require("../services/VolumeService");
 
-exports.saveMedia = async (req, res) => {
-  const { series, volume, chapter, pageId } = req.params;
-  const { media } = req.body;
-
-  if (!Array.isArray(media)) {
-    return res.status(400).json({ ok: false, message: "Invalid media format" });
-  }
-
-  try {
-    const seriesFolderName = await getSeriesFolderName(series);
-    const seriesPath = await resolveSeriesPath(seriesFolderName);
-    const pageDir = path.join(seriesPath, "Volumes", volume, chapter, pageId);
-    const pageJsonPath = path.join(pageDir, "page.json");
-
-    if (!fs.existsSync(pageJsonPath)) {
-      return res.status(404).json({ ok: false, message: "Page not found" });
-    }
-
-    const pageData = JSON.parse(fs.readFileSync(pageJsonPath, "utf8"));
-    const oldMedia = pageData.media || [];
-    
-    // Overwrite media and check for changes
-    pageData.media = media.map(newItem => {
-        return newItem;
-    });
-
+async function savePageDataAndSync(pageData, pageJsonPath, volume, chapter, pageId, seriesFolderName) {
     if (!pageData.header) pageData.header = {};
     pageData.header.lastUpdated = new Date();
 
@@ -42,6 +17,38 @@ exports.saveMedia = async (req, res) => {
     if (volumeId) {
       await VolumeService.syncSinglePage(volumeId, chapter, pageId, seriesFolderName);
     }
+}
+
+async function getPagePaths(series, volume, chapter, pageId) {
+    const seriesFolderName = await getSeriesFolderName(series);
+    const seriesPath = await resolveSeriesPath(seriesFolderName);
+    const pageDir = path.join(seriesPath, "Volumes", volume, chapter, pageId);
+    const pageJsonPath = path.join(pageDir, "page.json");
+    return { seriesFolderName, seriesPath, pageDir, pageJsonPath };
+}
+
+exports.saveMedia = async (req, res) => {
+  const { series, volume, chapter, pageId } = req.params;
+  const { media } = req.body;
+
+  if (!Array.isArray(media)) {
+    return res.status(400).json({ ok: false, message: "Invalid media format" });
+  }
+
+  try {
+    const { seriesFolderName, pageJsonPath } = await getPagePaths(series, volume, chapter, pageId);
+
+    if (!fs.existsSync(pageJsonPath)) {
+      return res.status(404).json({ ok: false, message: "Page not found" });
+    }
+
+    const pageData = JSON.parse(fs.readFileSync(pageJsonPath, "utf8"));
+    const oldMedia = pageData.media || [];
+    
+    // Overwrite media and check for changes
+    pageData.media = media;
+
+    await savePageDataAndSync(pageData, pageJsonPath, volume, chapter, pageId, seriesFolderName);
 
     // --- AUTO-SCAN DISABLED ---
     // AI descriptions should only be triggered manually via the 'Analyze' button
@@ -57,10 +64,7 @@ exports.saveMedia = async (req, res) => {
 exports.getMedia = async (req, res) => {
   const { series, volume, chapter, pageId } = req.params;
   try {
-    const seriesFolderName = await getSeriesFolderName(series);
-    const seriesPath = await resolveSeriesPath(seriesFolderName);
-    const pageDir = path.join(seriesPath, "Volumes", volume, chapter, pageId);
-    const pageJsonPath = path.join(pageDir, "page.json");
+    const { pageJsonPath } = await getPagePaths(series, volume, chapter, pageId);
 
     if (fs.existsSync(pageJsonPath)) {
       const pageData = JSON.parse(fs.readFileSync(pageJsonPath, "utf8"));
@@ -76,10 +80,7 @@ exports.getMedia = async (req, res) => {
 exports.getScene = async (req, res) => {
   const { series, volume, chapter, pageId } = req.params;
   try {
-    const seriesFolderName = await getSeriesFolderName(series);
-    const seriesPath = await resolveSeriesPath(seriesFolderName);
-    const pageDir = path.join(seriesPath, "Volumes", volume, chapter, pageId);
-    const pageJsonPath = path.join(pageDir, "page.json");
+    const { pageJsonPath } = await getPagePaths(series, volume, chapter, pageId);
 
     if (fs.existsSync(pageJsonPath)) {
       const pageData = JSON.parse(fs.readFileSync(pageJsonPath, "utf8"));
@@ -99,10 +100,7 @@ exports.saveScene = async (req, res) => {
   if (!Array.isArray(sceneData)) return res.status(400).json({ ok: false, message: "Invalid data format" });
 
   try {
-    const seriesFolderName = await getSeriesFolderName(series);
-    const seriesPath = await resolveSeriesPath(seriesFolderName);
-    const pageDir = path.join(seriesPath, "Volumes", volume, chapter, pageId);
-    const pageJsonPath = path.join(pageDir, "page.json");
+    const { seriesFolderName, pageDir, pageJsonPath } = await getPagePaths(series, volume, chapter, pageId);
 
     if (!fs.existsSync(pageDir)) return res.status(404).json({ ok: false, message: "Page directory not found" });
 
@@ -118,15 +116,7 @@ exports.saveScene = async (req, res) => {
     if (fs.existsSync(pageJsonPath)) pageData = JSON.parse(fs.readFileSync(pageJsonPath, 'utf8'));
 
     pageData.scene = sceneData;
-    if (!pageData.header) pageData.header = {};
-    pageData.header.lastUpdated = new Date();
-
-    fs.writeFileSync(pageJsonPath, JSON.stringify(pageData, null, 2));
-
-    const volumeId = await findVolumeId(volume, seriesFolderName);
-    if (volumeId) {
-      await VolumeService.syncSinglePage(volumeId, chapter, pageId, seriesFolderName);
-    }
+    await savePageDataAndSync(pageData, pageJsonPath, volume, chapter, pageId, seriesFolderName);
     res.json({ ok: true, message: "Scene saved successfully.", scene: pageData.scene });
   } catch (e) {
     res.status(500).json({ ok: false, message: e.message });

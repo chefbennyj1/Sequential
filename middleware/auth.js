@@ -41,10 +41,7 @@ exports.isAuthApi = (req, res, next) => {
   }
 };
 
-/**
- * Checks if the user has moderator or admin privileges.
- */
-exports.isModerator = async (req, res, next) => {
+function checkAccess(req, res, next, allowedRoles, fallbackRoute, errorMessage) {
     if (req.headers['x-export-secret'] === INTERNAL_SECRET || req.query.exportSecret === INTERNAL_SECRET) {
         return next();
     }
@@ -56,37 +53,26 @@ exports.isModerator = async (req, res, next) => {
         return res.redirect('/login');
     }
 
-    if (req.session.role === 'moderator' || req.session.role === 'admin') {
-        next();
-    } else {
-        if (req.xhr || req.originalUrl.startsWith('/api')) {
-            return res.status(403).json({ ok: false, message: "Forbidden: Moderator access required" });
-        }
-        res.redirect('/library'); // Basic users go to library
+    if (allowedRoles.includes(req.session.role)) {
+        return next();
     }
+
+    if (req.xhr || req.originalUrl.startsWith('/api')) {
+        return res.status(403).json({ ok: false, message: errorMessage });
+    }
+    res.redirect(fallbackRoute);
+}
+
+/**
+ * Checks if the user has moderator or admin privileges.
+ */
+exports.isModerator = async (req, res, next) => {
+    checkAccess(req, res, next, ['moderator', 'admin'], '/library', "Forbidden: Moderator access required");
 };
 
 /**
  * Checks if the user has administrator privileges.
  */
 exports.isAdmin = async (req, res, next) => {
-    if (req.headers['x-export-secret'] === INTERNAL_SECRET || req.query.exportSecret === INTERNAL_SECRET) {
-      return next();
-    }
-
-    if (!req.session.isAuth) {
-        if (req.xhr || req.originalUrl.startsWith('/api')) {
-            return res.status(401).json({ ok: false, message: "Unauthorized" });
-        }
-        return res.redirect('/login');
-    }
-
-    if (req.session.role === 'admin') {
-        next();
-    } else {
-        if (req.xhr || req.originalUrl.startsWith('/api')) {
-            return res.status(403).json({ ok: false, message: "Forbidden: Admin access required" });
-        }
-        res.redirect('/dashboard'); // Moderators go back to dashboard
-    }
+    checkAccess(req, res, next, ['admin'], '/dashboard', "Forbidden: Admin access required");
 };

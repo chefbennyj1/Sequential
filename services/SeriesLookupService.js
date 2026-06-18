@@ -39,4 +39,53 @@ async function findVolumeId(volumeFolderName, seriesFolderName) {
   return vol ? vol._id : null;
 }
 
-module.exports = { getSeriesFolderName, findVolumeId };
+/**
+ * Resolves a full page hierarchy (Series -> Volume -> Chapter -> Page)
+ */
+async function resolvePageHierarchy(volumeFolder, chapterId, pageId, seriesFolderName) {
+  if (!seriesFolderName) throw new Error("seriesFolderName is required");
+
+  let query = { folderName: seriesFolderName };
+  if (mongoose.Types.ObjectId.isValid(seriesFolderName)) {
+      query = { _id: seriesFolderName };
+  }
+  const seriesDoc = await Series.findOne(query);
+  if (!seriesDoc) return { ok: false, status: 404, message: "Series not found" };
+
+  const volPathRegex = new RegExp(`${volumeFolder}[\\\\/]?$`, 'i');
+  const volume = await Volume.findOne({ 
+      volumePath: volPathRegex,
+      series: seriesDoc._id 
+  });
+  
+  if (!volume) return { ok: false, status: 404, message: "Volume not found in this series" };
+
+  const chapterNum = parseInt(chapterId.replace('chapter-', ''));
+  const chapter = volume.chapters.find(c => c.chapterNumber === chapterNum);
+  if (!chapter) return { ok: false, status: 404, message: "Chapter not found" };
+
+  const pageIndex = parseInt(pageId.replace('page', '')) || 0;
+  const page = chapter.pages.find(p => p.index === pageIndex);
+  
+  if (!page) return { ok: false, status: 404, message: "Page not found" };
+
+  return { ok: true, page };
+}
+
+/**
+ * Helper to fetch a specific data field from a page's resolved hierarchy.
+ */
+async function fetchPageDataField(volumeFolder, chapterId, pageId, seriesFolderName, fieldName, defaultValue) {
+  try {
+    const result = await resolvePageHierarchy(volumeFolder, chapterId, pageId, seriesFolderName);
+    if (!result.ok) return result;
+
+    console.log(`[SeriesLookupService] Serving cached ${fieldName} for: ${pageId}`);
+    return { ok: true, [fieldName]: result.page[fieldName] || defaultValue };
+  } catch (err) {
+    console.error(`Error serving ${fieldName} for ${pageId}:`, err);
+    return { ok: false, status: 500, message: 'Internal Server Error' };
+  }
+}
+
+module.exports = { getSeriesFolderName, findVolumeId, resolvePageHierarchy, fetchPageDataField };

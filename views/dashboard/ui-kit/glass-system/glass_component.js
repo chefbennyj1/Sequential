@@ -996,4 +996,22 @@
     } else {
         boot();
     }
+
+    // Expose Glass components globally for programmatic access
+    window.GlassTheme = GlassTheme;
+    window.GlassModal = GlassModal;
+    window.GlassTabs = GlassTabs;
+    window.GlassAccordion = GlassAccordion;
+    window.GlassDropdown = GlassDropdown;
+    window.GlassToast = GlassToast;
+    window.GlassStepper = GlassStepper;
+    window.GlassNavTabs = GlassNavTabs;
+    window.GlassToggle = GlassToggle;
+    window.GlassRipple = GlassRipple;
+    window.GlassParallax = GlassParallax;
+    window.GlassChips = GlassChips;
+    window.GlassAvatarGroups = GlassAvatarGroups;
+    window.GlassBreadcrumb = GlassBreadcrumb;
+    window.GlassTable = GlassTable;
+
 })();

@@ -77,44 +77,13 @@ async function getAssetPath(volume, chapter, page, file, seriesFolderName) {
 }
 
 async function getMediaItemsByPageId(volumeFolder, chapterId, pageId, seriesFolderName) {
-  if (!seriesFolderName) throw new Error("seriesFolderName is required for getMediaItemsByPageId");
-  try {
-    const Volume = require('../models/Volume');
-    const Series = require('../models/Series');
-    
-    // 1. Resolve the series folder name and ID
-    let query = { folderName: seriesFolderName };
-    if (mongoose.Types.ObjectId.isValid(seriesFolderName)) {
-        query = { _id: seriesFolderName };
-    }
-    const seriesDoc = await Series.findOne(query);
-    if (!seriesDoc) return { ok: false, status: 404, message: "Series not found" };
-
-    // 2. Construct search path to find the right volume WITHIN that series
-    const volPathRegex = new RegExp(`${volumeFolder}[\\\\/]?$`, 'i');
-    const volume = await Volume.findOne({ 
-        volumePath: volPathRegex,
-        series: seriesDoc._id 
-    });
-    
-    if (!volume) return { ok: false, status: 404, message: "Volume not found in this series" };
-
-    const chapterNum = parseInt(chapterId.replace('chapter-', ''));
-    const chapter = volume.chapters.find(c => c.chapterNumber === chapterNum);
-    if (!chapter) return { ok: false, status: 404, message: "Chapter not found" };
-
-    const pageIndex = parseInt(pageId.replace('page', '')) || 0;
-    const page = chapter.pages.find(p => p.index === pageIndex);
-    
-    if (!page) return { ok: false, status: 404, message: "Page not found" };
-
-    console.log(`[MediaService] Serving cached media for: ${pageId}`);
-    return { ok: true, media: page.mediaData || { media: [] } }; 
-
-  } catch (err) {
-    console.error(`Error serving media for ${pageId}:`, err);
-    return { ok: false, status: 500, message: 'Internal Server Error' };
+  const { fetchPageDataField } = require('./SeriesLookupService');
+  const result = await fetchPageDataField(volumeFolder, chapterId, pageId, seriesFolderName, 'mediaData', { media: [] });
+  if (result.ok && result.mediaData) {
+      result.media = result.mediaData;
+      delete result.mediaData;
   }
+  return result;
 }
 
 async function findCoverImage(dirPath, baseName) {
