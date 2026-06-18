@@ -15,32 +15,39 @@ import { renderCard, renderChapterCard, renderSeriesCard } from '../../component
 /**
  * Populates series selection dropdowns.
  */
-export async function populateSeriesSelect(id) {
-    const select = document.getElementById(id);
-    if (!select) return;
-    select.innerHTML = '<option value="">Select a Series</option>';
+export async function populateSeriesSelect(idOrIds) {
+    const ids = Array.isArray(idOrIds) ? idOrIds : [idOrIds];
+    const selects = ids.map(id => document.getElementById(id)).filter(Boolean);
+    if (selects.length === 0) return;
+
+    selects.forEach(select => {
+        select.innerHTML = '<option value="">Select a Series</option>';
+    });
+
     try {
         const seriesList = await fetchSeriesAPI();
-        seriesList.forEach(series => {
-            const option = document.createElement('option');
-            option.value = series._id;
-            option.setAttribute('data-folder', series.folderName);
-            option.textContent = series.title;
-            select.appendChild(option);
-        });
+        
+        selects.forEach(select => {
+            seriesList.forEach(series => {
+                const option = document.createElement('option');
+                option.value = series._id;
+                option.setAttribute('data-folder', series.folderName);
+                option.textContent = series.title;
+                select.appendChild(option);
+            });
 
-        if (id !== 'globalSeriesSelect') {
-            const savedSeries = window.EDITOR_SESSION?.seriesId || localStorage.getItem('globalSeries');
-            if (savedSeries) {
-                // Delay dispatching to allow UI render cycle to complete if needed
-                setTimeout(() => {
-                    if(Array.from(select.options).some(opt => opt.value === savedSeries)) {
-                        select.value = savedSeries;
-                        select.dispatchEvent(new Event('change', { bubbles: true }));
-                    }
-                }, 50);
+            if (select.id !== 'globalSeriesSelect') {
+                const savedSeries = window.EDITOR_SESSION?.seriesId || localStorage.getItem('globalSeries');
+                if (savedSeries) {
+                    setTimeout(() => {
+                        if(Array.from(select.options).some(opt => opt.value === savedSeries)) {
+                            select.value = savedSeries;
+                            select.dispatchEvent(new Event('change', { bubbles: true }));
+                        }
+                    }, 50);
+                }
             }
-        }
+        });
     } catch (err) {
         console.error("Error populating series select:", err);
     }
@@ -290,7 +297,6 @@ export async function showVolumesForSeries(seriesId) {
         tempDiv.innerHTML = cardHtml;
         const card = tempDiv.firstElementChild;
         if (card) {
-            card.onclick = () => showChaptersForVolume(volume._id);
             volumesGrid.appendChild(card);
         }
     });
@@ -367,7 +373,6 @@ export async function showChaptersForVolume(volumeId) {
         tempDiv.innerHTML = cardHtml;
         const card = tempDiv.firstElementChild;
         if (card) {
-            card.onclick = () => window.location.href = `/viewer?id=${volumeId}&chapter=${chapter.chapterNumber}`;
             chaptersGrid.appendChild(card);
         }
     });

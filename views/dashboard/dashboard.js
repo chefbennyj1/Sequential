@@ -9,7 +9,6 @@ import { populateSeriesSelect } from './studio/js/LibraryManager.js';
 import { setActivePage, restoreLastActivePage } from './studio/js/PageConfigManager.js';
 import {
     initSceneEditor,
-    initVisualEditor,
     openSceneEditor,
     openVisualEditor
 } from './components/SceneEditor/SceneEditor.js';
@@ -70,7 +69,6 @@ export async function init(container) {
     // Initialize UI Sub-Systems
     try { initFileBrowser(); } catch (e) { console.error("FileBrowser init failed", e); }
     try { initSceneEditor(); } catch (e) { console.error("SceneEditor init failed", e); }
-    try { initVisualEditor(); } catch (e) { console.error("VisualEditor init failed", e); }
     try { new CharacterEditor(container); } catch (e) { console.error("CharacterEditor init failed", e); }
     try { new ScheduledTaskView(); } catch (e) { console.error("ScheduledTaskView init failed", e); }
     try { initPlotLab(container); } catch (e) { console.error("PlotLab init failed", e); }

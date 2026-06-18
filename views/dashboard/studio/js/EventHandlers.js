@@ -60,10 +60,12 @@ export async function switchToSection(targetPage, container) {
     if (targetPage === 'export-tool') popTasks.push(populateSeriesSelect('exportSeriesSelect'));
     if (targetPage === 'characters') popTasks.push(populateSeriesSelect('char-series-select'));
     if (targetPage === 'page-builder') {
-        popTasks.push(populateSeriesSelect('builderSeriesSelect'));
-        popTasks.push(populateSeriesSelect('insertSeriesSelect'));
-        popTasks.push(populateSeriesSelect('scriptSeriesSelect'));
-        popTasks.push(populateSeriesSelect('editSeriesSelect'));
+        popTasks.push(populateSeriesSelect([
+            'builderSeriesSelect',
+            'insertSeriesSelect',
+            'scriptSeriesSelect',
+            'editSeriesSelect'
+        ]));
         popTasks.push(populateLayoutSelect());
 
         const modeSel = document.getElementById('pageBuilderModeSelection');
@@ -259,6 +261,12 @@ export function initEventHandlers(container, allSections) {
         if (target.closest('.volume-card')) {
             const card = target.closest('.volume-card');
             showChaptersForVolume(card.id);
+        }
+        if (target.closest('.chapter-card')) {
+            const card = target.closest('.chapter-card');
+            const volId = card.dataset.volumeId;
+            const chapNum = card.dataset.chapterNumber;
+            window.location.href = `/viewer?id=${volId}&chapter=${chapNum}`;
         }
     });
 

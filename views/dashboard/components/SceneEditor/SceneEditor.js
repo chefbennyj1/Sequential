@@ -66,63 +66,6 @@ async function handleSceneSave(btn, volume, chapter, pageId, seriesId) {
     }
 }
 
-/**
- * Internal helper to load scene data and sync UI.
- */
-async function loadScene(volume, chapter, pageId, seriesId) {
-    currentSceneInfo = { volume, chapter, pageId };
-    const titleEl = document.getElementById('sceneEditorPageTitle');
-    if (titleEl) titleEl.textContent = `${volume} / ${chapter} / ${pageId} (PORTRAIT)`;
-
-    // Resolve Series Context if needed
-    if (!activeSeriesId || activeSeriesId !== seriesId) {
-        try {
-            const seriesList = await fetchSeriesAPI();
-            let series = seriesId ? seriesList.find(s => s._id === seriesId) : seriesList[0];
-            if (series) {
-                activeSeriesId = series._id;
-                activeSeriesFolder = series.folderName || "No_Overflow";
-                if (visual) {
-                    visual.activeSeriesId = activeSeriesId;
-                    visual.activeSeriesFolder = activeSeriesFolder;
-                }
-            }
-        } catch (e) { console.error("Could not resolve series", e); }
-    }
-
-    // Fetch Data
-    const [panelData, scene, characters, mediaRes] = await Promise.all([
-        fetchPagePanels(volume, chapter, pageId, activeSeriesId),
-        fetchSceneData(volume, chapter, pageId, activeSeriesId),
-        activeSeriesId ? fetchCharactersAPI(activeSeriesId) : Promise.resolve([]),
-        fetchMedia(volume, chapter, pageId, activeSeriesId)
-    ]);
-
-    // Sync Visual Manager Cache for Palette Tool
-    if (visual) {
-        visual.currentVisualMediaData = Array.isArray(mediaRes) ? mediaRes : (mediaRes.media || []);
-    }
-
-    currentSceneData = scene || [];
-    currentSceneData.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
-
-    // Detect Orphans
-    const panelNames = panelData.panels || [];
-    currentSceneData.forEach(item => {
-        if (item.displayType.type === 'SpeechBubble' || (item.displayType.type === 'TextBlock' && item.placement?.panel)) {
-            const target = item.placement?.panel;
-            item.isOrphaned = target && !panelNames.includes(target);
-        }
-    });
-
-    // Initialize/Update Managers
-    timeline.setData(currentSceneData, characters || []);
-    properties.setAvailableData(characters || [], panelData.panels || []);
-
-    selectedItemIndex = -1;
-    document.getElementById('sceneItemEditor').classList.add('hidden');
-    document.getElementById('sceneItemPlaceholder').classList.remove('hidden');
-}
 
 /**
  * Centralized Delete Logic for Page Scene Items.
@@ -239,7 +182,7 @@ export async function openSceneEditor(volume, chapter, pageId, mode = 'landscape
         }
     }
 
-    await loadScene(volume, chapter, pageId, seriesId, mode);
+    await syncEditorContext(volume, chapter, pageId, seriesId, false);
 }
 
 /**
@@ -281,7 +224,7 @@ export async function openVisualEditor(volume, chapter, pageId, mode = 'landscap
     }
 
     // Load initial data
-    await syncEditorContext(volume, chapter, pageId, mode);
+    await syncEditorContext(volume, chapter, pageId, seriesId, false);
 
     // Build the URL safely
     const folder = activeSeriesFolder || 'unknown';
@@ -303,10 +246,33 @@ export async function openVisualEditor(volume, chapter, pageId, mode = 'landscap
 
 /**
  * Syncs all manager data (Scene, Media, Characters) for a specific page.
- * Used during initial load and context switching (spreads).
+ * Handles both full loads and silent context switching (spreads).
  */
-async function syncEditorContext(volume, chapter, pageId, mode, silent = false) {
+async function syncEditorContext(volume, chapter, pageId, seriesId, silent = false) {
     console.log(`[SceneEditor] Syncing context for ${pageId}... (Silent: ${silent})`);
+    currentSceneInfo = { volume, chapter, pageId };
+    
+    if (!silent) {
+        const titleEl = document.getElementById('sceneEditorPageTitle');
+        if (titleEl) titleEl.textContent = `${volume} / ${chapter} / ${pageId} (PORTRAIT)`;
+    }
+
+    // Resolve Series Context if needed
+    if (!activeSeriesId || (seriesId && activeSeriesId !== seriesId)) {
+        try {
+            const seriesList = await fetchSeriesAPI();
+            let series = seriesId ? seriesList.find(s => s._id === seriesId) : seriesList[0];
+            if (series) {
+                activeSeriesId = series._id;
+                activeSeriesFolder = series.folderName || "No_Overflow";
+                if (visual) {
+                    visual.activeSeriesId = activeSeriesId;
+                    visual.activeSeriesFolder = activeSeriesFolder;
+                }
+            }
+        } catch (e) { console.error("Could not resolve series", e); }
+    }
+
     try {
         const [panelData, scene, characters, mediaRes] = await Promise.all([
             fetchPagePanels(volume, chapter, pageId, activeSeriesId),
@@ -317,6 +283,15 @@ async function syncEditorContext(volume, chapter, pageId, mode, silent = false) 
 
         currentSceneData = scene || [];
         currentSceneData.sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+
+        // Detect Orphans
+        const panelNames = panelData.panels || [];
+        currentSceneData.forEach(item => {
+            if (item.displayType.type === 'SpeechBubble' || (item.displayType.type === 'TextBlock' && item.placement?.panel)) {
+                const target = item.placement?.panel;
+                item.isOrphaned = target && !panelNames.includes(target);
+            }
+        });
 
         if (visual) {
             visual.currentVisualMediaData = Array.isArray(mediaRes) ? mediaRes : (mediaRes.media || []);
@@ -338,7 +313,13 @@ async function syncEditorContext(volume, chapter, pageId, mode, silent = false) 
             layoutEditor.classList.toggle('is-spread', isSpread);
         }
 
-        currentSceneInfo = { volume, chapter, pageId };
+        if (!silent) {
+            selectedItemIndex = -1;
+            const itemEditor = document.getElementById('sceneItemEditor');
+            const itemPlaceholder = document.getElementById('sceneItemPlaceholder');
+            if (itemEditor) itemEditor.classList.add('hidden');
+            if (itemPlaceholder) itemPlaceholder.classList.remove('hidden');
+        }
 
     } catch (err) {
         console.error("[SceneEditor] Failed to sync data context", err);
@@ -518,11 +499,7 @@ export function initSceneEditor() {
         }
 
         if (e.data.type === 'panelSelected') {
-            const { pageId, volume, chapter } = e.data;
-            if (pageId && pageId !== currentSceneInfo.pageId) {
-                console.log(`[SceneEditor] Panel context switch: ${currentSceneInfo.pageId} -> ${pageId}`);
-                await syncEditorContext(volume || currentSceneInfo.volume, chapter || currentSceneInfo.chapter, pageId, null, true);
-            }
+            // Context switch is already handled by the global spread context checker above
             visual.loadPanel(e.data, activeSeriesId);
         }
 
@@ -612,7 +589,3 @@ function duplicateSceneItem(index) {
     selectSceneItem(index + 1);
 }
 
-// Keeping initVisualEditor for external dashboard call
-export function initVisualEditor() {
-    // Shared with initSceneEditor but kept for compatibility
-}
