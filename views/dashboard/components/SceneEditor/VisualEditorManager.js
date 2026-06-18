@@ -656,7 +656,7 @@ export class VisualEditorManager {
 
     // --- Custom UI Overlays ---
 
-    showGlassPrompt(title, defaultValue = '') {
+    _createGlassOverlay(innerHTML, onSetup) {
         return new Promise(resolve => {
             const overlay = document.createElement('div');
             overlay.className = 'glass-modal-backdrop is-active';
@@ -671,25 +671,13 @@ export class VisualEditorManager {
             overlay.style.opacity = '0';
             overlay.style.transition = 'opacity 0.2s ease-out';
             
-            overlay.innerHTML = `
-                <div class="glass glass-card" style="min-width:300px; padding: 2rem; transform: translateY(20px); transition: transform 0.2s ease-out;">
-                    <h3 style="margin-top:0">${title}</h3>
-                    <input type="text" class="glass-input" value="${defaultValue}" style="width:100%; margin: 1rem 0; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.5rem; border-radius: 4px;" />
-                    <div style="display:flex; justify-content:flex-end; gap: 1rem;">
-                        <button class="glass glass-btn" id="gp-cancel">Cancel</button>
-                        <button class="glass glass-btn glass-btn--primary" id="gp-ok">OK</button>
-                    </div>
-                </div>
-            `;
+            overlay.innerHTML = innerHTML;
             
             document.body.appendChild(overlay);
             requestAnimationFrame(() => {
                 overlay.style.opacity = '1';
                 overlay.querySelector('.glass-card').style.transform = 'translateY(0)';
             });
-            
-            const input = overlay.querySelector('input');
-            input.focus();
             
             const cleanup = (val) => {
                 overlay.style.opacity = '0';
@@ -701,6 +689,25 @@ export class VisualEditorManager {
                     }
                 });
             };
+
+            onSetup(overlay, cleanup);
+        });
+    }
+
+    showGlassPrompt(title, defaultValue = '') {
+        const html = `
+            <div class="glass glass-card" style="min-width:300px; padding: 2rem; transform: translateY(20px); transition: transform 0.2s ease-out;">
+                <h3 style="margin-top:0">${title}</h3>
+                <input type="text" class="glass-input" value="${defaultValue}" style="width:100%; margin: 1rem 0; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.5rem; border-radius: 4px;" />
+                <div style="display:flex; justify-content:flex-end; gap: 1rem;">
+                    <button class="glass glass-btn" id="gp-cancel">Cancel</button>
+                    <button class="glass glass-btn glass-btn--primary" id="gp-ok">OK</button>
+                </div>
+            </div>
+        `;
+        return this._createGlassOverlay(html, (overlay, cleanup) => {
+            const input = overlay.querySelector('input');
+            input.focus();
             
             overlay.querySelector('#gp-cancel').onclick = () => cleanup(null);
             overlay.querySelector('#gp-ok').onclick = () => cleanup(input.value);
@@ -712,48 +719,17 @@ export class VisualEditorManager {
     }
 
     showGlassConfirm(title, message) {
-        return new Promise(resolve => {
-            const overlay = document.createElement('div');
-            overlay.className = 'glass-modal-backdrop is-active';
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0'; overlay.style.left = '0';
-            overlay.style.width = '100%'; overlay.style.height = '100%';
-            overlay.style.zIndex = '9999';
-            overlay.style.display = 'flex';
-            overlay.style.alignItems = 'center';
-            overlay.style.justifyContent = 'center';
-            overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
-            overlay.style.opacity = '0';
-            overlay.style.transition = 'opacity 0.2s ease-out';
-            
-            overlay.innerHTML = `
-                <div class="glass glass-card" style="min-width:300px; padding: 2rem; transform: translateY(20px); transition: transform 0.2s ease-out;">
-                    <h3 style="margin-top:0">${title}</h3>
-                    <p style="margin-bottom: 1.5rem; opacity: 0.8;">${message}</p>
-                    <div style="display:flex; justify-content:flex-end; gap: 1rem;">
-                        <button class="glass glass-btn" id="gc-cancel">Cancel</button>
-                        <button class="glass glass-btn glass-btn--primary" id="gc-ok">Confirm</button>
-                    </div>
+        const html = `
+            <div class="glass glass-card" style="min-width:300px; padding: 2rem; transform: translateY(20px); transition: transform 0.2s ease-out;">
+                <h3 style="margin-top:0">${title}</h3>
+                <p style="margin-bottom: 1.5rem; opacity: 0.8;">${message}</p>
+                <div style="display:flex; justify-content:flex-end; gap: 1rem;">
+                    <button class="glass glass-btn" id="gc-cancel">Cancel</button>
+                    <button class="glass glass-btn glass-btn--primary" id="gc-ok">Confirm</button>
                 </div>
-            `;
-            
-            document.body.appendChild(overlay);
-            requestAnimationFrame(() => {
-                overlay.style.opacity = '1';
-                overlay.querySelector('.glass-card').style.transform = 'translateY(0)';
-            });
-            
-            const cleanup = (val) => {
-                overlay.style.opacity = '0';
-                overlay.querySelector('.glass-card').style.transform = 'translateY(20px)';
-                overlay.addEventListener('transitionend', (e) => {
-                    if (e.target === overlay && overlay.parentNode) {
-                        document.body.removeChild(overlay);
-                        resolve(val);
-                    }
-                });
-            };
-            
+            </div>
+        `;
+        return this._createGlassOverlay(html, (overlay, cleanup) => {
             overlay.querySelector('#gc-cancel').onclick = () => cleanup(false);
             overlay.querySelector('#gc-ok').onclick = () => cleanup(true);
         });

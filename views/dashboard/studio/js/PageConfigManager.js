@@ -7,8 +7,6 @@ import {
 } from '../api/StudioClient.js';
 import { renderLayoutBrowser } from '../../components/LayoutBrowser/LayoutBrowser.js';
 
-export let currentDesignMode = 'portrait';
-
 /**
  * Checks for orphaned dialogue items and displays a warning banner.
  */

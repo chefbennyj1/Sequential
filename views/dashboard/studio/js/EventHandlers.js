@@ -8,7 +8,7 @@ import {
     showVolumesForSeries,
     showChaptersForVolume
 } from './LibraryManager.js';
-import { setActivePage, currentDesignMode } from './PageConfigManager.js';
+import { setActivePage } from './PageConfigManager.js';
 import { openSceneEditor, openVisualEditor } from '../../components/SceneEditor/SceneEditor.js';
 import ArrangeManager from './ArrangeManager.js';
 

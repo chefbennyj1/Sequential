@@ -6,6 +6,29 @@ const GeminiVisionService = require('../services/gemini/GeminiVisionService');
 const CharacterService = require('../services/CharacterService');
 const { resolveSeriesPath } = require('../services/MediaService');
 
+async function handleCharacterFileUpload(req, subDir) {
+    if (!req.file) return { error: 'No file uploaded', status: 400 };
+
+    const charId = req.params.id;
+    const character = await Character.findById(charId);
+    if (!character) return { error: 'Character not found', status: 404 };
+
+    const seriesPath = await resolveSeriesPath(character.series);
+    const destDir = path.join(seriesPath, 'Characters', charId, subDir);
+    if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
+
+    const fileName = path.basename(req.file.path);
+    const destPath = path.join(destDir, fileName);
+
+    // Move the file from temp storage to series folder
+    await fsPromises.rename(req.file.path, destPath);
+
+    return {
+        charId,
+        relativePath: `/api/images/${character.series}/characters/${charId}/${subDir}/${fileName}`
+    };
+}
+
 class CharacterController {
   async analyzeAvatar(req, res) {
     const { id } = req.params;
@@ -107,27 +130,12 @@ class CharacterController {
   }
 
   async uploadAvatar(req, res) {
-    if (!req.file) return res.status(400).json({ ok: false, message: 'No file uploaded' });
-    
     try {
-        const charId = req.params.id;
-        const character = await Character.findById(charId);
-        if (!character) return res.status(404).json({ ok: false, message: 'Character not found' });
-
-        const seriesPath = await resolveSeriesPath(character.series);
-        const destDir = path.join(seriesPath, 'Characters', charId, 'avatar');
-        if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-
-        const fileName = path.basename(req.file.path);
-        const destPath = path.join(destDir, fileName);
-
-        // Move the file from temp storage to series folder
-        await fsPromises.rename(req.file.path, destPath);
-
-        const relativePath = `/api/images/${character.series}/characters/${charId}/avatar/${fileName}`;
+        const result = await handleCharacterFileUpload(req, 'avatar');
+        if (result.error) return res.status(result.status).json({ ok: false, message: result.error });
         
-        await CharacterService.updateCharacter(charId, { image: relativePath });
-        res.json({ ok: true, image: relativePath });
+        await CharacterService.updateCharacter(result.charId, { image: result.relativePath });
+        res.json({ ok: true, image: result.relativePath });
     } catch (error) {
         console.error("[CharacterLab] Avatar upload error:", error);
         res.status(500).json({ ok: false, message: error.message });
@@ -135,26 +143,12 @@ class CharacterController {
   }
 
   async uploadReferenceImage(req, res) {
-    if (!req.file) return res.status(400).json({ ok: false, message: 'No file uploaded' });
-
     try {
-        const charId = req.params.id;
-        const character = await Character.findById(charId);
-        if (!character) return res.status(404).json({ ok: false, message: 'Character not found' });
+        const result = await handleCharacterFileUpload(req, 'references');
+        if (result.error) return res.status(result.status).json({ ok: false, message: result.error });
 
-        const seriesPath = await resolveSeriesPath(character.series);
-        const destDir = path.join(seriesPath, 'Characters', charId, 'references');
-        if (!fs.existsSync(destDir)) fs.mkdirSync(destDir, { recursive: true });
-
-        const fileName = path.basename(req.file.path);
-        const destPath = path.join(destDir, fileName);
-
-        await fsPromises.rename(req.file.path, destPath);
-
-        const relativePath = `/api/images/${character.series}/characters/${charId}/references/${fileName}`;
-
-        const updatedChar = await CharacterService.addReferenceImage(charId, relativePath);
-        res.json({ ok: true, url: relativePath, referenceImages: updatedChar.referenceImages });
+        const updatedChar = await CharacterService.addReferenceImage(result.charId, result.relativePath);
+        res.json({ ok: true, url: result.relativePath, referenceImages: updatedChar.referenceImages });
     } catch (error) {
         console.error("[CharacterLab] Reference upload error:", error);
         res.status(500).json({ ok: false, message: error.message });
