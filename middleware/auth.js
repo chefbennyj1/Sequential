@@ -56,19 +56,13 @@ exports.isModerator = async (req, res, next) => {
         return res.redirect('/login');
     }
 
-    const User = require('../models/User');
-    try {
-        const user = await User.findById(req.session.userId);
-        if (user && (user.role === 'moderator' || user.role === 'admin')) {
-            next();
-        } else {
-            if (req.xhr || req.originalUrl.startsWith('/api')) {
-                return res.status(403).json({ ok: false, message: "Forbidden: Moderator access required" });
-            }
-            res.redirect('/library'); // Basic users go to library
+    if (req.session.role === 'moderator' || req.session.role === 'admin') {
+        next();
+    } else {
+        if (req.xhr || req.originalUrl.startsWith('/api')) {
+            return res.status(403).json({ ok: false, message: "Forbidden: Moderator access required" });
         }
-    } catch (err) {
-        res.status(500).send("Server error during role check");
+        res.redirect('/library'); // Basic users go to library
     }
 };
 
@@ -87,18 +81,12 @@ exports.isAdmin = async (req, res, next) => {
         return res.redirect('/login');
     }
 
-    const User = require('../models/User');
-    try {
-        const user = await User.findById(req.session.userId);
-        if (user && user.role === 'admin') {
-            next();
-        } else {
-            if (req.xhr || req.originalUrl.startsWith('/api')) {
-                return res.status(403).json({ ok: false, message: "Forbidden: Admin access required" });
-            }
-            res.redirect('/dashboard'); // Moderators go back to dashboard
+    if (req.session.role === 'admin') {
+        next();
+    } else {
+        if (req.xhr || req.originalUrl.startsWith('/api')) {
+            return res.status(403).json({ ok: false, message: "Forbidden: Admin access required" });
         }
-    } catch (err) {
-        res.status(500).send("Server error during admin check");
+        res.redirect('/dashboard'); // Moderators go back to dashboard
     }
 };

@@ -93,17 +93,22 @@ exports.getAvailableFonts = async (req, res) => {
 
     try {
         let files = [];
-        if (fs.existsSync(fontsDir)) {
-            files = fs.readdirSync(fontsDir).filter(f => /\.(ttf|otf|woff|woff2)$/i.test(f));
+        try {
+            const dirFiles = await fs.promises.readdir(fontsDir);
+            files = dirFiles.filter(f => /\.(ttf|otf|woff|woff2)$/i.test(f));
+        } catch(e) {
+            // Ignore if directory does not exist
         }
 
         let cssVariables = [];
-        if (fs.existsSync(fontsCssPath)) {
-            const content = fs.readFileSync(fontsCssPath, 'utf8');
+        try {
+            const content = await fs.promises.readFile(fontsCssPath, 'utf8');
             const matches = content.match(/--font-family-[a-zA-Z0-9-]+/g);
             if (matches) {
                 cssVariables = [...new Set(matches)];
             }
+        } catch(e) {
+            // Ignore if file does not exist
         }
 
         res.json({ files, cssVariables });

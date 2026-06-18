@@ -23,7 +23,7 @@ exports.analyzeVolume = async (req, res) => {
         const scriptData = await ScriptService.generateVolumeScript(seriesId, volumeFolderName);
         
         // Read the generated file back
-        const scriptText = fs.readFileSync(scriptData.outputPath, 'utf8');
+        const scriptText = await fs.promises.readFile(scriptData.outputPath, 'utf8');
 
         // 2. Send to Gemini
         const critique = await GeminiCriticService.analyzeStory(scriptText);

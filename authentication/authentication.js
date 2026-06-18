@@ -46,10 +46,12 @@ router.post('/login', loginLimiter, async (req, res) => {
 
     req.session.isAuth = true;
     req.session.userId = user._id;
+    req.session.role = user.role;
     req.session.user = {
       id: user._id,
       name: user.username,
-      email: user.email
+      email: user.email,
+      role: user.role
     };
     
     if (req.headers.accept && req.headers.accept.includes('application/json')) {

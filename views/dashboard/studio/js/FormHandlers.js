@@ -4,6 +4,56 @@ import { setActivePage } from './PageConfigManager.js';
 import { updateUrlState } from './Navigation.js';
 import { fetchChapterRange } from '../api/StudioClient.js';
 
+function updateStatus(statusEl, message, type = 'error') {
+    if (!statusEl) return;
+    statusEl.textContent = message;
+    if (type === 'error') statusEl.className = "builder-status text-accent";
+    else if (type === 'success') statusEl.className = "builder-status text-accent font-bold";
+    else if (type === 'loading') statusEl.className = "builder-status text-muted";
+}
+
+async function handleApiFormSubmit(options) {
+    const { 
+        btn, 
+        status, 
+        loadingText = "Processing...", 
+        loadingStatusText = "Processing...",
+        originalBtnText, 
+        fetchCall, 
+        onSuccess,
+        onFinally,
+        successMsg = "Success!"
+    } = options;
+
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = loadingText;
+    }
+    updateStatus(status, loadingStatusText, 'loading');
+
+    try {
+        const res = await fetchCall();
+        const data = await res.json();
+
+        if (data.ok) {
+            updateStatus(status, successMsg, 'success');
+            if (onSuccess) await onSuccess(data);
+        } else {
+            updateStatus(status, "Error: " + data.message, 'error');
+        }
+    } catch (err) {
+        console.error(err);
+        updateStatus(status, "Request Failed.", 'error');
+    } finally {
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = originalBtnText;
+        }
+        if (onFinally) onFinally();
+    }
+}
+
+
 export function initFormHandlers(container) {
     // Page Builder Form Submission (Create Page)
     const createPageForm = document.getElementById('page-builder-form');      
@@ -27,38 +77,25 @@ export function initFormHandlers(container) {
                 return;
             }
 
-            btn.disabled = true;
-            btn.textContent = "Creating...";
-            status.textContent = "Processing...";
-            status.className = "builder-status text-muted";
-
-            try {
-                const res = await fetch('/api/editor/create-page', {
+            await handleApiFormSubmit({
+                btn,
+                status,
+                loadingText: "Creating...",
+                loadingStatusText: "Processing...",
+                originalBtnText: "Create Page Structure",
+                successMsg: "Success! Page created. Syncing...",
+                fetchCall: () => fetch('/api/editor/create-page', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ series: seriesId, volume: vol, chapter: chap, pageId, layout })
-                });
-                const data = await res.json();
-
-                if (data.ok) {
-                    status.textContent = "Success! Page created. Syncing..."; 
-                    status.className = "builder-status text-accent font-bold";
-
+                }),
+                onSuccess: () => {
                     setTimeout(() => {
                         setActivePage(vol, chap, pageId, seriesId);
                         updateUrlState({ tab: 'page-builder', vol, chap, page: pageId, series: seriesId });
                     }, 1000);
-                } else {
-                    status.textContent = "Error: " + data.message;
-                    status.className = "builder-status text-accent";
                 }
-            } catch (err) {
-                status.textContent = "Request Failed.";
-                status.className = "builder-status text-accent";
-            } finally {
-                btn.disabled = false;
-                btn.textContent = "Create Page Structure";
-            }
+            });
         };
     }
 
@@ -80,28 +117,18 @@ export function initFormHandlers(container) {
                 return;
             }
 
-            getNextPageIdBtn.disabled = true;
-            const originalText = getNextPageIdBtn.textContent;
-            getNextPageIdBtn.textContent = "...";
-
-            try {
-                const res = await fetch(`/api/editor/next-page-id?series=${seriesId}&volume=${vol}&chapter=${chap}`);
-                const data = await res.json();
-                if (data.ok) {
+            await handleApiFormSubmit({
+                btn: getNextPageIdBtn,
+                status,
+                loadingText: "...",
+                loadingStatusText: "Determining next page...",
+                originalBtnText: originalText,
+                successMsg: "Next consecutive page ID determined.",
+                fetchCall: () => fetch(`/api/editor/next-page-id?series=${seriesId}&volume=${vol}&chapter=${chap}`),
+                onSuccess: (data) => {
                     pageInput.value = data.nextPageId;
-                    status.textContent = "Next consecutive page ID determined.";
-                    status.className = "builder-status text-accent";
-                } else {
-                    status.textContent = "Error: " + data.message;
-                    status.className = "builder-status text-accent";
                 }
-            } catch (err) {
-                console.error(err);
-                status.textContent = "Request Failed.";
-            } finally {
-                getNextPageIdBtn.disabled = false;
-                getNextPageIdBtn.textContent = originalText;
-            }
+            });
         };
     }
 
@@ -143,37 +170,24 @@ export function initFormHandlers(container) {
                 }
             }
 
-            btn.disabled = true;
-            btn.textContent = "Processing...";
-            status.textContent = "Shifting folders and re-naming files...";   
-            status.className = "builder-status text-muted";
-
-            try {
-                const res = await fetch('/api/editor/insert-page', {
+            await handleApiFormSubmit({
+                btn,
+                status,
+                loadingText: "Processing...",
+                loadingStatusText: "Shifting folders and re-naming files...",
+                originalBtnText: "Insert & Shift Pages",
+                successMsg: "Success! Pages shifted and new page inserted.",
+                fetchCall: () => fetch('/api/editor/insert-page', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ series: seriesId, volume: vol, chapter: chap, insertPoint })
-                });
-                const data = await res.json();
-
-                if (data.ok) {
-                    status.textContent = "Success! Pages shifted and new page inserted.";
-                    status.className = "builder-status text-accent font-bold";
-
+                }),
+                onSuccess: () => {
                     const newPageId = 'page' + insertPoint;
                     setActivePage(vol, chap, newPageId, seriesId);
                     updateUrlState({ tab: 'page-builder', vol, chap, page: newPageId, series: seriesId });
-                } else {
-                    status.textContent = "Error: " + data.message;
-                    status.className = "builder-status text-accent";
                 }
-            } catch (err) {
-                status.textContent = "Request Failed.";
-                status.className = "builder-status text-accent";
-            } finally {
-                btn.disabled = false;
-                btn.textContent = "Insert & Shift Pages";
-            }
+            });
         };
     }
 
@@ -197,37 +211,28 @@ export function initFormHandlers(container) {
                 return;
             }
 
-            btn.disabled = true;
-            btn.textContent = "Creating...";
             if (overlay) overlay.classList.add('active');
-
-            try {
-                const res = await fetch('/api/volume/create', {
+            await handleApiFormSubmit({
+                btn,
+                status,
+                loadingText: "Creating...",
+                loadingStatusText: "Processing...",
+                originalBtnText: "Create Volume Structure",
+                successMsg: "Success! Volume created. Redirecting...",
+                fetchCall: () => fetch('/api/volume/create', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ seriesId, index, title, firstChapterTitle })
-                });
-                const data = await res.json();
-
-                if (data.ok) {
-                    status.textContent = "Success! Volume created. Redirecting...";
-                    status.className = "builder-status text-accent font-bold";
+                }),
+                onSuccess: () => {
                     setTimeout(() => {
                         window.location.reload(); // Reload to refresh the library
                     }, 1500);
-                } else {
-                    status.textContent = "Error: " + data.message;
-                    status.className = "builder-status text-accent";
+                },
+                onFinally: () => {
                     if (overlay) overlay.classList.remove('active');
                 }
-            } catch (err) {
-                status.textContent = "Request Failed.";
-                status.className = "builder-status text-accent";
-                if (overlay) overlay.classList.remove('active');
-            } finally {
-                btn.disabled = false;
-                btn.textContent = "Create Volume Structure";
-            }
+            });
         };
     }
 
@@ -251,39 +256,26 @@ export function initFormHandlers(container) {
                 return;
             }
 
-            btn.disabled = true;
-            btn.textContent = "Initializing...";
-            status.textContent = "Checking for existence and creating chapter...";
-            status.className = "builder-status text-muted";
-
-            try {
-                const res = await fetch('/api/editor/create-chapter', {       
+            await handleApiFormSubmit({
+                btn,
+                status,
+                loadingText: "Initializing...",
+                loadingStatusText: "Checking for existence and creating chapter...",
+                originalBtnText: "Initialize Chapter",
+                successMsg: "Success! Chapter created. Syncing database...",
+                fetchCall: () => fetch('/api/editor/create-chapter', {
                     method: 'POST',
                     headers: {'Content-Type': 'application/json'},
                     body: JSON.stringify({ series: seriesId, volume: vol, chapterIndex, title })
-                });
-                const data = await res.json();
-
-                if (data.ok) {
-                    status.textContent = "Success! " + data.message + ". Syncing database...";
-                    status.className = "builder-status text-accent font-bold";
-
-                    // Give the DB a second to settle after the scan
+                }),
+                onSuccess: (data) => {
+                    updateStatus(status, "Success! " + data.message + ". Syncing database...", 'success');
                     setTimeout(() => {
                         setActivePage(vol, data.chapter, data.pageId, seriesId);
                         updateUrlState({ tab: 'page-builder', vol, chap: data.chapter, page: data.pageId, series: seriesId });
                     }, 1000);
-                } else {
-                    status.textContent = "Error: " + data.message;
-                    status.className = "builder-status text-accent";
                 }
-            } catch (err) {
-                status.textContent = "Request Failed.";
-                status.className = "builder-status text-accent";
-            } finally {
-                btn.disabled = false;
-                btn.textContent = "Initialize Chapter";
-            }
+            });
         };
     }
 

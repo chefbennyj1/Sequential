@@ -4,6 +4,27 @@ const mongoose = require('mongoose');
 const VolumeModel = require('../models/Volume');
 const Series = require('../models/Series');
 const { resolveSeriesPath } = require('./MediaService');
+const { getSeriesFolderName } = require('./SeriesLookupService');
+
+async function syncVolumeToDB(seriesFolderName, volumeFolderName) {
+    const seriesDoc = await Series.findOne({ folderName: seriesFolderName });
+    const volPathRegex = new RegExp(`${volumeFolderName}[\\\\/]?$`, 'i');
+    const volume = await VolumeModel.findOne({ 
+        volumePath: volPathRegex, 
+        series: seriesDoc ? seriesDoc._id : { $exists: false } 
+    });
+    if (volume) await updateChaptersFromFS(volume);
+}
+
+async function getSortedSubdirectories(dirPath, prefix, returnNumbers = false) {
+    if (!fs.existsSync(dirPath)) return [];
+    const dirs = (await fs.promises.readdir(dirPath, { withFileTypes: true }))
+        .filter(d => d.isDirectory() && d.name.startsWith(prefix));
+    if (returnNumbers) {
+        return dirs.map(d => parseInt(d.name.replace(/\D/g, '')) || 0).sort((a, b) => a - b);
+    }
+    return dirs.map(d => d.name).sort((a, b) => (parseInt(a.replace(/\D/g, '')) || 0) - (parseInt(b.replace(/\D/g, '')) || 0));
+}
 
 const DEFAULT_JS = `export async function onPageLoad(container, pageInfo) {
     container.addEventListener('view_visible', async () => { console.log(\`Page \${pageInfo.pageId} is visible.\`); });
@@ -122,10 +143,7 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
     }
         
     console.log(`[Scanner] Scanning: ${volumeBaseDir}`);
-    const chapterFolders = (await fs.promises.readdir(volumeBaseDir, { withFileTypes: true }))
-      .filter(d => d.isDirectory() && d.name.startsWith('chapter-'))
-      .map(d => d.name)
-      .sort((a,b) => (parseInt(a.replace(/\D/g, '')) || 0) - (parseInt(b.replace(/\D/g, '')) || 0));
+    const chapterFolders = await getSortedSubdirectories(volumeBaseDir, 'chapter-');
 
     // Remove stale chapters
     const fsChapterNums = chapterFolders.map(f => parseInt(f.replace(/\D/g, '')) || 0);
@@ -141,10 +159,7 @@ async function updateChaptersFromFS(volume, explicitPath = null) {
         volume.chapters.push(chapter);
       }
 
-      const pageFolders = (await fs.promises.readdir(chapterPath, { withFileTypes: true }))
-        .filter(d => d.isDirectory() && d.name.startsWith('page'))
-        .map(d => d.name)
-        .sort((a,b) => (parseInt(a.replace(/\D/g, '')) || 0) - (parseInt(b.replace(/\D/g, '')) || 0));
+      const pageFolders = await getSortedSubdirectories(chapterPath, 'page');
 
       const pages = [];
       for (const pageFolder of pageFolders) {
@@ -351,14 +366,7 @@ async function tryRename(oldP, newP, retries = 5) {
 async function insertPage({ series, volume: volumeFolderName, chapter: chapterFolderName, insertPoint }) {
 
 
-    const seriesFolderName = await (async () => {
-        if (mongoose.Types.ObjectId.isValid(series)) {
-            const doc = await Series.findById(series);
-            return doc ? doc.folderName : null;
-        }
-        return series;
-    })();
-
+    const seriesFolderName = await getSeriesFolderName(series);
     if (!seriesFolderName) throw new Error("Series folder name is required for insertPage");
 
     const seriesPath = await resolveSeriesPath(seriesFolderName);
@@ -369,10 +377,7 @@ async function insertPage({ series, volume: volumeFolderName, chapter: chapterFo
     const insertIdx = parseInt(insertPoint);
     if (isNaN(insertIdx)) throw new Error("Invalid insert point");
 
-    const chapterDirs = (await fs.promises.readdir(volumePath, { withFileTypes: true }))
-        .filter(d => d.isDirectory() && d.name.startsWith('chapter-'))
-        .map(d => d.name)
-        .sort((a, b) => (parseInt(a.replace(/\D/g, '')) || 0) - (parseInt(b.replace(/\D/g, '')) || 0));
+    const chapterDirs = await getSortedSubdirectories(volumePath, 'chapter-');
 
     const targetChapIdx = chapterDirs.indexOf(chapterFolderName);
     if (targetChapIdx === -1) throw new Error("Target chapter not found in volume");
@@ -468,10 +473,7 @@ async function insertPage({ series, volume: volumeFolderName, chapter: chapterFo
         fs.writeFileSync(path.join(newPagePath, 'page.css'), DEFAULT_CSS(newPageName));
     }
 
-    const seriesDoc = await Series.findOne({ folderName: seriesFolderName });
-    const volPathRegex = new RegExp(`${volumeFolderName}[\\\\/]?$`, 'i');
-    const volume = await VolumeModel.findOne({ volumePath: volPathRegex, series: seriesDoc ? seriesDoc._id : { $exists: false } });
-    if (volume) await updateChaptersFromFS(volume);
+    await syncVolumeToDB(seriesFolderName, volumeFolderName);
 
     let finalMessage = `Global Page Insertion complete at ${insertIdx}. Successfully shifted ${foldersToMove.length} pages.`;
     if (compromisedSpreads.length > 0) {
@@ -528,14 +530,7 @@ async function createChapter({ seriesFolderName, volumeFolderName, title, chapte
     await fs.promises.mkdir(path.join(firstPagePath, "assets", "image"), { recursive: true });
 
 
-    const seriesDoc = await Series.findOne({ folderName: seriesFolderName });
-    
-    const volPathRegex = new RegExp(`${volumeFolderName}[\\\\/]?$`, 'i');
-    const volume = await VolumeModel.findOne({ 
-        volumePath: volPathRegex,
-        series: seriesDoc ? seriesDoc._id : { $exists: false }
-    });
-    if (volume) await updateChaptersFromFS(volume);
+    await syncVolumeToDB(seriesFolderName, volumeFolderName);
 
     return { ok: true, message: `Chapter ${chapIdx} created`, chapter: chapterFolderName, pageId: firstPageName };
 }
@@ -566,14 +561,7 @@ async function updateInternalFiles(dir, oldName, newName) {
 async function getChapterRange({ series, volume: volumeFolderName, chapter: chapterFolderName }) {
 
 
-    const seriesFolderName = await (async () => {
-        if (mongoose.Types.ObjectId.isValid(series)) {
-            const doc = await Series.findById(series);
-            return doc ? doc.folderName : null;
-        }
-        return series;
-    })();
-
+    const seriesFolderName = await getSeriesFolderName(series);
     if (!seriesFolderName) throw new Error("Series folder name is required");
 
     const seriesPath = await resolveSeriesPath(seriesFolderName);
@@ -583,10 +571,7 @@ async function getChapterRange({ series, volume: volumeFolderName, chapter: chap
         return { min: 0, max: 0, count: 0, pages: [] };
     }
 
-    const pageDirs = (await fs.promises.readdir(chapterPath, { withFileTypes: true }))
-        .filter(d => d.isDirectory() && d.name.startsWith('page'))
-        .map(d => parseInt(d.name.replace(/\D/g, '')) || 0)
-        .sort((a, b) => a - b);
+    const pageDirs = await getSortedSubdirectories(chapterPath, 'page', true);
 
     if (pageDirs.length === 0) {
         return { min: 0, max: 0, count: 0, pages: [] };
@@ -603,14 +588,7 @@ async function getChapterRange({ series, volume: volumeFolderName, chapter: chap
 async function reorderPages({ series, volume: volumeFolderName, chapter: chapterFolderName, newOrder }) {
 
 
-    const seriesFolderName = await (async () => {
-        if (mongoose.Types.ObjectId.isValid(series)) {
-            const doc = await Series.findById(series);
-            return doc ? doc.folderName : null;
-        }
-        return series;
-    })();
-
+    const seriesFolderName = await getSeriesFolderName(series);
     if (!seriesFolderName) throw new Error("Series folder name is required");
 
     const seriesPath = await resolveSeriesPath(seriesFolderName);
@@ -623,10 +601,7 @@ async function reorderPages({ series, volume: volumeFolderName, chapter: chapter
 
     // 2. Determine the starting index (we assume they want to keep the same range but different order)
     // Find the smallest index currently in the chapter
-    const existingPages = (await fs.promises.readdir(chapterPath, { withFileTypes: true }))
-        .filter(d => d.isDirectory() && d.name.startsWith('page'))
-        .map(d => parseInt(d.name.replace(/\D/g, '')) || 0)
-        .sort((a, b) => a - b);
+    const existingPages = await getSortedSubdirectories(chapterPath, 'page', true);
 
     if (existingPages.length === 0) throw new Error("No pages found to reorder");
     
@@ -664,10 +639,7 @@ async function reorderPages({ series, volume: volumeFolderName, chapter: chapter
     }
 
     // 5. Sync DB
-    const seriesDoc = await Series.findOne({ folderName: seriesFolderName });
-    const volPathRegex = new RegExp(`${volumeFolderName}[\\\\/]?$`, 'i');
-    const volume = await VolumeModel.findOne({ volumePath: volPathRegex, series: seriesDoc ? seriesDoc._id : { $exists: false } });
-    if (volume) await updateChaptersFromFS(volume);
+    await syncVolumeToDB(seriesFolderName, volumeFolderName);
 
     return { ok: true, message: `Reordered ${tempMapping.length} pages starting from index ${startIdx}` };
 }

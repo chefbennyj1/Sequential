@@ -51,12 +51,6 @@ class LayoutService {
 
         const pageJson = JSON.parse(fs.readFileSync(atomicPath, 'utf8'));
         const layoutId = pageJson.header?.layout?.id ?? "Standard_Page";
-
-        const templatePath = path.join(layoutsDir, 'portrait', `${layoutId}.html`);
-
-        if (fs.existsSync(templatePath)) {
-            const templateHtml = fs.readFileSync(templatePath, 'utf8');
-        }
         
         const usedPanels = pageJson.media ? pageJson.media.map(m => m.panel) : [];
         const maxZ = usedPanels.reduce((max, p) => {
