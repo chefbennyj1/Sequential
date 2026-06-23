@@ -221,7 +221,9 @@ export class VisualEditorManager {
     }
 
     renderPanelEditor(panelSelector) {
-        const entry = this.currentVisualMediaData.find(m => m.panel === panelSelector) || { panel: panelSelector, type: 'image' };
+        const normalizePanel = (p) => p ? p.replace(/^\./, '') : '';
+        const normalizedSelector = normalizePanel(panelSelector);
+        const entry = this.currentVisualMediaData.find(m => normalizePanel(m.panel) === normalizedSelector) || { panel: panelSelector, type: 'image' };
         
         // Determine object-fit and position for display in UI
         const isLsCustom = !!(entry.landscapeStyle && entry.landscapeStyle.objectPosition && entry.landscapeStyle.objectPosition.includes('%'));
@@ -290,6 +292,33 @@ export class VisualEditorManager {
                     } catch (err) {
                         if (window.GlassToast) window.GlassToast.show('error', 'Error', "Failed to create floating panel: " + err.message);
                     }
+                }
+            };
+        }
+
+        const syncBtn = document.getElementById('syncPageToDbBtn');
+        if (syncBtn) {
+            syncBtn.onclick = async () => {
+                const originalText = syncBtn.innerHTML;
+                syncBtn.disabled = true;
+                syncBtn.innerHTML = '<ion-icon name="sync-outline" class="spin"></ion-icon> Syncing...';
+                try {
+                    const { volume, chapter, pageId } = this.currentVisualContext;
+                    const seriesId = this.activeSeriesId;
+                    const res = await fetch(`/api/editor/sync-page/${seriesId}/${volume}/${chapter}/${pageId}`, {
+                        method: 'POST'
+                    });
+                    const data = await res.json();
+                    if (data.ok) {
+                        if (window.GlassToast) window.GlassToast.show('success', 'Synced', 'Page changes pushed to database.');
+                    } else {
+                        throw new Error(data.message || 'Sync failed');
+                    }
+                } catch (e) {
+                    if (window.GlassToast) window.GlassToast.show('error', 'Sync Failed', e.message);
+                } finally {
+                    syncBtn.disabled = false;
+                    syncBtn.innerHTML = originalText;
                 }
             };
         }
@@ -638,18 +667,22 @@ export class VisualEditorManager {
     }
 
     updateCache(panel, type, fileName) {
-        const idx = this.currentVisualMediaData.findIndex(m => m.panel === panel);
+        const normalizePanel = (p) => p ? p.replace(/^\./, '') : '';
+        const normalizedPanel = normalizePanel(panel);
+        const idx = this.currentVisualMediaData.findIndex(m => normalizePanel(m.panel) === normalizedPanel);
         if (idx !== -1) {
             this.currentVisualMediaData[idx] = { ...this.currentVisualMediaData[idx], type, fileName };
         } else {
             this.currentVisualMediaData.push({ panel, type, fileName });
         }
-        
-        if (this.selectedPanelSelector === panel) {
-            this.render(panel);
+
+        if (normalizePanel(this.selectedPanelSelector) === normalizedPanel) {
+            const iframe = document.getElementById('pagePreviewFrame');
+            const panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
+            this.render(panelNames);
         } else if (!this.selectedPanelSelector) {
             const iframe = document.getElementById('pagePreviewFrame');
-            let panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
+            const panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
             this.renderDirectory(panelNames);
         }
     }

@@ -57,7 +57,10 @@ export function renderAllPanelsTemplate(panelNames, currentVisualMediaData, acti
     return `
         <div class="flex-row justify-between align-center margin-b-15">
             <h4 class="margin-0">Page Panels</h4>
-            <button id="addFloatingPanelBtn" class="glass glass-btn glass-btn--sm glass-btn--primary">+ Add Floating</button>
+            <div class="flex-row gap-5">
+                <button id="syncPageToDbBtn" class="glass glass-btn glass-btn--sm glass-btn--ghost" title="Push changes to database"><ion-icon name="cloud-upload-outline"></ion-icon> Sync to DB</button>
+                <button id="addFloatingPanelBtn" class="glass glass-btn glass-btn--sm glass-btn--primary">+ Add Floating</button>
+            </div>
         </div>
         
         <div class="panel-editor-ui">

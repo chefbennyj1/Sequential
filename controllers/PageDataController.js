@@ -13,10 +13,12 @@ async function savePageDataAndSync(pageData, pageJsonPath, volume, chapter, page
 
     fs.writeFileSync(pageJsonPath, JSON.stringify(pageData, null, 2));
 
-    const volumeId = await findVolumeId(volume, seriesFolderName);
-    if (volumeId) {
-      await VolumeService.syncSinglePage(volumeId, chapter, pageId, seriesFolderName);
-    }
+    // The user requested to disable auto-sync on every save to reduce DB load
+    // The "Sync to DB" button in the visual editor handles this manually now.
+    // const volumeId = await findVolumeId(volume, seriesFolderName);
+    // if (volumeId) {
+    //   await VolumeService.syncSinglePage(volumeId, chapter, pageId, seriesFolderName);
+    // }
 }
 
 async function getPagePaths(series, volume, chapter, pageId) {
@@ -124,9 +126,12 @@ exports.saveScene = async (req, res) => {
 };
 
 exports.syncPage = async (req, res) => {
-  const { volumeId, chapter, pageId } = req.params;
+  const { series, volumeId, chapter, pageId } = req.params;
   try {
-    const result = await VolumeService.syncSinglePage(volumeId, chapter, pageId);
+    const seriesFolderName = await getSeriesFolderName(series);
+    const volumeDbId = await findVolumeId(volumeId, seriesFolderName);
+    if (!volumeDbId) throw new Error("Volume not found");
+    const result = await VolumeService.syncSinglePage(volumeDbId, chapter, pageId, seriesFolderName);
     res.json(result);
   } catch (e) {
     res.status(500).json({ ok: false, message: e.message });

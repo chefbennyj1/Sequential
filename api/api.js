@@ -86,7 +86,7 @@ router.get('/editor/scene/:series/:volume/:chapter/:pageId', isModerator, PageDa
 router.get('/editor/media/:series/:volume/:chapter/:pageId', isModerator, PageDataController.getMedia);
 router.post('/editor/scene/:series/:volume/:chapter/:pageId', isModerator, PageDataController.saveScene);
 router.post('/editor/media/:series/:volume/:chapter/:pageId', isModerator, PageDataController.saveMedia);
-router.post('/editor/sync-page/:volumeId/:chapter/:pageId', isModerator, PageDataController.syncPage);
+router.post('/editor/sync-page/:series/:volumeId/:chapter/:pageId', isModerator, PageDataController.syncPage);
 router.get('/editor/plot-board/:series', isModerator, PageDataController.getPlotBoard);
 router.post('/editor/plot-board/:series', isModerator, PageDataController.savePlotBoard);
 

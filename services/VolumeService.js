@@ -239,16 +239,16 @@ async function syncSinglePage(volumeId, chapterId, pageId, seriesFolderName = nu
             const seriesDoc = await Series.findOne({ folderName: seriesFolderName });
             if (seriesDoc) {
                 if (mongoose.Types.ObjectId.isValid(volumeId)) {
-                    volume = await Volume.findOne({ _id: volumeId, series: seriesDoc._id });
+                    volume = await VolumeModel.findOne({ _id: volumeId, series: seriesDoc._id });
                 } else {
                     const volPathRegex = new RegExp(`${volumeId}[\\\\/]?$`, 'i');
-                    volume = await Volume.findOne({ volumePath: volPathRegex, series: seriesDoc._id });
+                    volume = await VolumeModel.findOne({ volumePath: volPathRegex, series: seriesDoc._id });
                 }
             }
         }
 
         if (!volume && mongoose.Types.ObjectId.isValid(volumeId)) {
-            volume = await Volume.findById(volumeId).populate('series');
+            volume = await VolumeModel.findById(volumeId).populate('series');
         }
 
         if (!volume) throw new Error("Volume not found");
