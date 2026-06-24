@@ -175,8 +175,9 @@ class ActionText {
                 const h = parseInt(this.options.curveHeight) || 150; // Increased base height slightly to prevent vertical clipping
                 const pathId = `path-${Math.random().toString(36).substr(2, 9)}`;
         
-                // DEFAULT CURVE: Subtle upward arc stretched to the new dynamic width
-                let curvePath = `M 10,${h-30} Q ${w/2},10 ${w-10},${h-30}`;
+                // DEFAULT CURVE: Subtle upward arc stretched with a wide buffer to prevent endpoint clipping
+                const pathBuffer = 200;
+                let curvePath = `M -${pathBuffer},${h-30} Q ${w/2},10 ${w+pathBuffer},${h-30}`;
         
                 // If a specific path is provided (not 'auto', not null), use it.
                 if (this.options.curve && this.options.curve !== 'auto' && this.options.curve !== true) {
