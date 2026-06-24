@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const Series = require('../models/Series');
+const Volume = require('../models/Volume');
 const MediaService = require('../services/MediaService');
 const path = require('path');
 const fs = require('fs').promises;
@@ -61,6 +62,48 @@ exports.getSeriesDetails = async (req, res) => {
     } catch (err) {
         console.error(`Error fetching series details for ${seriesId}:`, err);
         res.status(500).json({ ok: false, message: "Server error" });
+    }
+};
+
+exports.getSeriesVolumes = async (req, res) => {
+    const { seriesId } = req.params;
+    try {
+        const series = await fetchSeriesByIdOrName(seriesId);
+        if (!series) {
+            return res.status(404).send("Series not found");
+        }
+
+        const seriesDir = resolveSeriesDir(series);
+
+        if (series.volumes) {
+            await populateVolumeCovers(series, seriesDir);
+            series.volumes.sort((a, b) => a.index - b.index);
+        }
+
+        res.render("reader/browser/series", { series, config: req.app.get('APP_CONFIG') });
+    } catch (e) {
+        console.error(e);
+        res.status(500).send("Error loading series");
+    }
+};
+
+exports.getVolumeChapters = async (req, res) => {
+    const { seriesId, volumeId } = req.params;
+    try {
+        const volume = await Volume.findById(volumeId).lean();
+        const series = await fetchSeriesByIdOrName(seriesId);
+        if (!volume || !series) {
+            return res.status(404).send("Content not found");
+        }
+
+        if (volume.chapters) {
+            volume.chapters.sort((a, b) => a.chapterNumber - b.chapterNumber);
+        }
+
+        res.render("reader/browser/volume", { series, volume, config: req.app.get('APP_CONFIG') });
+    } catch (e) {
+        console.error(e);
+        res.status(500).send("Error loading volume");
     }
 };
 

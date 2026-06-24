@@ -3,7 +3,7 @@ const fs = require("fs");
 const mongoose = require("mongoose");
 const multer = require("multer");
 const { resolveSeriesPath } = require("../services/MediaService");
-const { getSeriesFolderName, findVolumeId } = require("../services/SeriesLookupService");
+const { getSeriesFolderName, findVolumeId } = require('../services/HierarchyLookupService');
 const Volume = require("../models/Volume");
 const Series = require("../models/Series");
 const VolumeService = require("../services/VolumeService");
@@ -74,7 +74,10 @@ exports.uploadAsset = async (req, res) => {
 
       const volumeId = await findVolumeId(volume, seriesFolderName);
       if (volumeId) {
-        await VolumeService.syncSinglePage(volumeId, chapter, pageId, seriesFolderName);
+        // Fire-and-forget: the filesystem is the source of truth.
+        // The DB cache update runs in the background so the client is not blocked.
+        VolumeService.syncSinglePage(volumeId, chapter, pageId, seriesFolderName)
+          .catch(err => console.error('[AssetUpload] Background DB sync failed:', err.message));
       }
     }
     res.json({ ok: true, message: "Asset uploaded.", assetPath: targetPath });
@@ -160,18 +163,23 @@ exports.flipAsset = async (req, res) => {
       const mediaEntry = pageData.media?.find(m => (m.panel === panel || m.panel === sanitizedPanel || m.panel === panel.replace('.', '')) && m.fileName === fileName);
       
       if (mediaEntry) {
-        console.log(`[AssetUploadController] Updating hash for panel: ${mediaEntry.panel}`);
-        const newHash = await GeminiVisionService.generateImageHash(assetPath);
-        if (newHash) {
-          mediaEntry.imageHash = newHash;
-          fs.writeFileSync(pageJsonPath, JSON.stringify(pageData, null, 2));
-          
-          // Sync with DB
-          const volumeId = await findVolumeId(volume, seriesFolderName);
-          if (volumeId) {
-            await VolumeService.syncSinglePage(volumeId, chapter, pageId, seriesFolderName);
+        console.log(`[AssetUploadController] Scheduling background hash + sync for panel: ${mediaEntry.panel}`);
+        // Fire-and-forget: hash regeneration and DB sync run in the background.
+        (async () => {
+          try {
+            const newHash = await GeminiVisionService.generateImageHash(assetPath);
+            if (newHash) {
+              mediaEntry.imageHash = newHash;
+              fs.writeFileSync(pageJsonPath, JSON.stringify(pageData, null, 2));
+              const volumeId = await findVolumeId(volume, seriesFolderName);
+              if (volumeId) {
+                await VolumeService.syncSinglePage(volumeId, chapter, pageId, seriesFolderName);
+              }
+            }
+          } catch (bgErr) {
+            console.error('[AssetUpload] Background hash/sync failed after flip:', bgErr.message);
           }
-        }
+        })();
       } else {
         console.warn(`[AssetUploadController] No media entry found in page.json for panel: ${panel}`);
       }

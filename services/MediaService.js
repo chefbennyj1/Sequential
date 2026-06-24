@@ -1,26 +1,11 @@
 const fs = require('fs').promises;
 const path = require('path');
-const mongoose = require('mongoose');
 const sharp = require('sharp');
 const mime = require('mime-types');
-const Series = require('../models/Series');
-const LibraryRoot = require('../models/LibraryRoot');
 
-// Helper to resolve series path dynamically
-async function resolveSeriesPath(seriesIdentifier) {
-    let query = { folderName: seriesIdentifier };
-    if (mongoose.Types.ObjectId.isValid(seriesIdentifier)) {
-        query = { _id: seriesIdentifier };
-    }
-
-    const series = await Series.findOne(query).populate('libraryRoot');
-    if (series && series.libraryRoot && series.libraryRoot.path) {
-        return path.join(series.libraryRoot.path, series.folderName);
-    }
-    // Fallback to internal (using folderName if series exists, else identifier)
-    const folderName = series ? series.folderName : seriesIdentifier;
-    return path.join(__dirname, '..', 'Library', folderName);
-}
+// resolveSeriesPath is the canonical series path resolver.
+// It lives in HierarchyLookupService and is re-exported here for backward compatibility.
+const { resolveSeriesPath, fetchPageDataField } = require('./HierarchyLookupService');
 
 async function serveImage(imagePath, resizeWidth, seriesFolderName) {
     if (!seriesFolderName) throw new Error("seriesFolderName is required for serveImage");
@@ -77,7 +62,6 @@ async function getAssetPath(volume, chapter, page, file, seriesFolderName) {
 }
 
 async function getMediaItemsByPageId(volumeFolder, chapterId, pageId, seriesFolderName) {
-  const { fetchPageDataField } = require('./SeriesLookupService');
   const result = await fetchPageDataField(volumeFolder, chapterId, pageId, seriesFolderName, 'mediaData', { media: [] });
   if (result.ok && result.mediaData) {
       result.media = result.mediaData;

@@ -1,11 +1,11 @@
 const fs = require("fs");
 const path = require("path");
-const { resolveSeriesPath } = require("./MediaService");
+const { resolveSeriesPath, getSeriesFolderName } = require('./HierarchyLookupService');
 const LayoutService = require("./LayoutService");
 
 class PreviewService {
     static async generatePreviewData(series, volume, chapter, pageId) {
-        const seriesFolderName = await LayoutService.getSeriesFolderName(series);
+        const seriesFolderName = await getSeriesFolderName(series);
         const seriesPath = await resolveSeriesPath(seriesFolderName);
         const volumesDir = path.join(seriesPath, "Volumes");
         

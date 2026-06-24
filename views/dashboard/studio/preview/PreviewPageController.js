@@ -61,13 +61,7 @@ export class PreviewPageController {
                                 target.style[prop] = item.style[prop];
                             }
                         }
-                        
-                        if (mode === 'portrait' && item.portraitStyle) {
-                            for (const prop in item.portraitStyle) {
-                                const target = (item.isFloating && !visualProps.includes(prop)) ? panel : el;
-                                target.style[prop] = item.portraitStyle[prop];
-                            }
-                        }
+
                         
                         panel.innerHTML = '';
                         panel.appendChild(el);
@@ -415,9 +409,6 @@ export class PreviewPageController {
             this._applyStylesToTarget(targetStyles, panel, img, visualProps);
         }
 
-        if (this.params.mode === 'portrait' && entry?.portraitStyle) {
-            this._applyStylesToTarget(entry.portraitStyle, panel, img, visualProps);
-        }
     }
 
     _applyStylesToTarget(stylesObj, panel, img, visualProps) {

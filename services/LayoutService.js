@@ -1,32 +1,13 @@
 const fs = require("fs");
 const path = require("path");
 const mongoose = require("mongoose");
-const { resolveSeriesPath } = require("./MediaService");
+const { resolveSeriesPath, getSeriesFolderName } = require('./HierarchyLookupService');
 const PanelService = require("./PanelService");
 const VolumeService = require("./VolumeService");
 
 const layoutsDir = path.resolve(__dirname, "..", "Library", "layouts");
 
 class LayoutService {
-    /**
-     * Resolves a series ID or folder name into the canonical folder name.
-     */
-    static async getSeriesFolderName(identifier) {
-        if (!identifier) return null;
-        if (mongoose.Types.ObjectId.isValid(identifier)) {
-            try {
-                const Series = require("../models/Series");
-                const series = await Series.findById(identifier);
-                if (series) return series.folderName;
-            } catch (e) { console.error("Error resolving series ID:", e); }
-        }
-        try {
-            const Series = require("../models/Series");
-            const seriesByFolder = await Series.findOne({ folderName: identifier });
-            if (seriesByFolder) return seriesByFolder.folderName;
-        } catch (e) { }
-        return identifier;
-    }
 
     /**
      * Retrieves all available portrait layouts.
@@ -42,7 +23,7 @@ class LayoutService {
      * Determines the next available Z-index panel ID for a specific page.
      */
     static async getNextPanelId(series, volume, chapter, pageId) {
-        const seriesFolderName = await this.getSeriesFolderName(series);
+        const seriesFolderName = await getSeriesFolderName(series);
         const seriesPath = await resolveSeriesPath(seriesFolderName);
         const pageDir = path.join(seriesPath, "Volumes", volume, chapter, pageId);
         const atomicPath = path.join(pageDir, 'page.json');
@@ -133,7 +114,7 @@ class LayoutService {
      * Resolves all available panels for a page by parsing its layout template and CSS.
      */
     static async getPanels(series, volume, chapter, pageId) {
-        const seriesFolderName = await this.getSeriesFolderName(series);
+        const seriesFolderName = await getSeriesFolderName(series);
         const seriesPath = await resolveSeriesPath(seriesFolderName);
         const pageDir = path.join(seriesPath, "Volumes", volume, chapter, pageId);
         const cssPath = path.join(pageDir, `page.css`);
@@ -260,8 +241,15 @@ class LayoutService {
             return false;
         };
 
-        updatePage(pageId, isLeft ? 'left' : 'right');
-        updatePage(partnerId, isLeft ? 'right' : 'left');
+        const pageUpdated = updatePage(pageId, isLeft ? 'left' : 'right');
+        const partnerUpdated = updatePage(partnerId, isLeft ? 'right' : 'left');
+
+        if (pageUpdated) {
+            await VolumeService.syncSinglePage(volume._id, chapterId, pageId, seriesFolderName);
+        }
+        if (partnerUpdated) {
+            await VolumeService.syncSinglePage(volume._id, chapterId, partnerId, seriesFolderName);
+        }
     }
 }
 

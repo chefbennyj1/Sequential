@@ -110,7 +110,7 @@ export function renderAllPanelsTemplate(panelNames, currentVisualMediaData, acti
     `;
 }
 
-export function renderPanelSettings(panelSelector, entry, isLsCustom, isPtCustom, lsPos, ptPos, lsScale, ptScale, getNum) {
+export function renderPanelSettings(panelSelector, entry, isCustom, ptPos, ptScale, getNum) {
     return `
         <div class="tools-header-sticky">
             <div class="flex-between align-center">
@@ -202,13 +202,13 @@ export function renderPanelSettings(panelSelector, entry, isLsCustom, isPtCustom
                 <div class="form-group margin-b-15">
                     <label>Alignment</label>
                     <select id="visual-portrait-style-object-position" class="glass-select width-100">
-                        <option value="cover" ${(!isPtCustom && (!entry.portraitStyle || (entry.portraitStyle.objectFit !== 'contain' && (!entry.portraitStyle.objectPosition || entry.portraitStyle.objectPosition === 'center')))) ? 'selected' : ''}>Cover (Center)</option>
-                        <option value="contain" ${(entry.portraitStyle && entry.portraitStyle.objectFit === 'contain') ? 'selected' : ''}>Contain (Fit Full)</option>
-                        <option value="top center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'top center') ? 'selected' : ''}>Cover (Top Pinned)</option>
-                        <option value="bottom center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'bottom center') ? 'selected' : ''}>Cover (Bottom Pinned)</option>
-                        <option value="left center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'left center') ? 'selected' : ''}>Cover (Left Pinned)</option>
-                        <option value="right center" ${(entry.portraitStyle && entry.portraitStyle.objectPosition === 'right center') ? 'selected' : ''}>Cover (Right Pinned)</option>
-                        <option value="custom" ${isPtCustom ? 'selected' : ''}>Cover (Custom Pan)</option>
+                        <option value="cover" ${(!isCustom && (!entry.style || (entry.style.objectFit !== 'contain' && (!entry.style.objectPosition || entry.style.objectPosition === 'center')))) ? 'selected' : ''}>Cover (Center)</option>
+                        <option value="contain" ${(entry.style && entry.style.objectFit === 'contain') ? 'selected' : ''}>Contain (Fit Full)</option>
+                        <option value="top center" ${(entry.style && entry.style.objectPosition === 'top center') ? 'selected' : ''}>Cover (Top Pinned)</option>
+                        <option value="bottom center" ${(entry.style && entry.style.objectPosition === 'bottom center') ? 'selected' : ''}>Cover (Bottom Pinned)</option>
+                        <option value="left center" ${(entry.style && entry.style.objectPosition === 'left center') ? 'selected' : ''}>Cover (Left Pinned)</option>
+                        <option value="right center" ${(entry.style && entry.style.objectPosition === 'right center') ? 'selected' : ''}>Cover (Right Pinned)</option>
+                        <option value="custom" ${isCustom ? 'selected' : ''}>Cover (Custom Pan)</option>
                     </select>
                 </div>
                 <div class="form-group margin-b-15">
@@ -219,7 +219,7 @@ export function renderPanelSettings(panelSelector, entry, isLsCustom, isPtCustom
                         <button type="button" class="glass glass-btn glass-btn--sm glass-btn--ghost btn-nudge" data-target="pt-scale" data-dir="0.1">+</button>
                     </div>
                 </div>
-                <div id="pt-pan-wrapper" style="display: ${isPtCustom ? 'block' : 'none'};">
+                <div id="pt-pan-wrapper" style="display: ${isCustom ? 'block' : 'none'};">
                     <label>Pan (X & Y)</label>
                     <div class="flex-row gap-5 align-center margin-b-5">
                        <span style="width: 15px">X</span>

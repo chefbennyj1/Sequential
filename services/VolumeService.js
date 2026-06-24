@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const VolumeModel = require('../models/Volume');
 const Series = require('../models/Series');
 const { resolveSeriesPath } = require('./MediaService');
-const { getSeriesFolderName } = require('./SeriesLookupService');
+const { getSeriesFolderName } = require('./HierarchyLookupService');
 
 async function syncVolumeToDB(seriesFolderName, volumeFolderName) {
     const seriesDoc = await Series.findOne({ folderName: seriesFolderName });
@@ -644,4 +644,17 @@ async function reorderPages({ series, volume: volumeFolderName, chapter: chapter
     return { ok: true, message: `Reordered ${tempMapping.length} pages starting from index ${startIdx}` };
 }
 
-module.exports = { createVolume, populatePagesFromFS: updateChaptersFromFS, updateChaptersFromFS, syncSinglePage, insertPage, createChapter, getChapterRange, reorderPages };
+/**
+ * Iterates all Volume documents and syncs each one's chapters/pages from the filesystem.
+ * Previously lived in VolumeSyncService — consolidated here as it is a direct VolumeService concern.
+ */
+async function updateVolumesFromFS() {
+    const volumes = await VolumeModel.find();
+    for (const vol of volumes) {
+        const updatedVol = await updateChaptersFromFS(vol);
+        const totalPages = updatedVol.chapters.reduce((sum, chapter) => sum + chapter.pages.length, 0);
+        console.log(`[VolumeService] Updated volume ${updatedVol.title} with ${updatedVol.chapters.length} chapters and ${totalPages} pages.`);
+    }
+}
+
+module.exports = { createVolume, populatePagesFromFS: updateChaptersFromFS, updateChaptersFromFS, syncSinglePage, insertPage, createChapter, getChapterRange, reorderPages, updateVolumesFromFS };

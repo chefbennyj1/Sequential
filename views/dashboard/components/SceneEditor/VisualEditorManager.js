@@ -225,9 +225,8 @@ export class VisualEditorManager {
         const normalizedSelector = normalizePanel(panelSelector);
         const entry = this.currentVisualMediaData.find(m => normalizePanel(m.panel) === normalizedSelector) || { panel: panelSelector, type: 'image' };
         
-        // Determine object-fit and position for display in UI
-        const isLsCustom = !!(entry.landscapeStyle && entry.landscapeStyle.objectPosition && entry.landscapeStyle.objectPosition.includes('%'));
-        const isPtCustom = !!(entry.portraitStyle && entry.portraitStyle.objectPosition && entry.portraitStyle.objectPosition.includes('%'));
+        const style = entry.style || {};
+        const isCustom = !!(style.objectPosition && style.objectPosition.includes('%'));
 
         const getNum = (val) => {
             if (!val) return 50;
@@ -236,15 +235,15 @@ export class VisualEditorManager {
         };
 
         const ptPos = { x: 50, y: 50 };
-        if (isPtCustom) {
-            const parts = entry.portraitStyle.objectPosition.split(' ');
+        if (isCustom) {
+            const parts = style.objectPosition.split(' ');
             ptPos.x = getNum(parts[0]);
             ptPos.y = getNum(parts[1]);
         }
 
-        const ptScale = entry.portraitStyle?.transform ? parseFloat(entry.portraitStyle.transform.match(/scale\((.*?)\)/)?.[1] || 1) : 1;
+        const ptScale = style.transform ? parseFloat(style.transform.match(/scale\((.*?)\)/)?.[1] || 1) : 1;
 
-        this.toolsPane.innerHTML = renderPanelSettings(panelSelector, entry, isLsCustom, isPtCustom, {}, ptPos, 1, ptScale, getNum);
+        this.toolsPane.innerHTML = renderPanelSettings(panelSelector, entry, isCustom, ptPos, ptScale, getNum);
         
         // AI Constraint: Hide analysis tools if disabled in global settings
         const aiBtn = document.getElementById('visual-ai-analyze-btn');
@@ -607,7 +606,8 @@ export class VisualEditorManager {
         if (parseFloat(scale) !== 1) style.transform = `scale(${parseFloat(scale).toFixed(2)})`; else delete style.transform;
 
         updated.style = style; 
-        updated.portraitStyle = JSON.parse(JSON.stringify(style));
+        if (updated.portraitStyle) delete updated.portraitStyle;
+        if (updated.landscapeStyle) delete updated.landscapeStyle;
         if (idx !== -1) this.currentVisualMediaData[idx] = updated; else this.currentVisualMediaData.push(updated);
 
         const btn = document.getElementById('saveVisualMediaBtn');

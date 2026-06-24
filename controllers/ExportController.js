@@ -167,6 +167,10 @@ class ExportController {
 
     static async _injectPrintStyles(page, BLEED_WIDTH, BLEED_HEIGHT, preset) {
         return await page.evaluate(async (viewportW, viewportH, currentPreset) => {
+            const baseFontSize = 16; 
+            const baseHeight = 1080;
+            const scaleFactor = viewportH / baseHeight;
+            const scaledFontSize = (baseFontSize * scaleFactor).toFixed(2) + 'px';
             const bleedPx = 35; // 3mm @ 300DPI
             const hideList = ['.viewer-controls', '.nav-zone', '#loading-overlay', 'header', '.page-nav-buttons', '.debug-info', '#loading-page'];
             hideList.forEach(s => { document.querySelectorAll(s).forEach(el => el.style.display = 'none'); });
@@ -273,7 +277,7 @@ class ExportController {
 
             // Clean up any inner layouts to ensure they fill the new box perfectly
             const layout = masterStage.querySelector('.page-layout');
-            const safePadding = Math.round(50 * scaleFactor); // Enforce a 50px (at 1080p) safe zone
+            const safePadding = Math.round(10 * scaleFactor); // Enforce a 10px (at 1080p) safe zone
 
             if (layout) {
                 layout.style.setProperty('height', '100%', 'important');
@@ -294,10 +298,6 @@ class ExportController {
             document.head.appendChild(style);
             
             // Apply dynamic font scaling based on viewport height
-            const baseFontSize = 16; 
-            const baseHeight = 1080;
-            const scaleFactor = viewportH / baseHeight;
-            const scaledFontSize = (baseFontSize * scaleFactor).toFixed(2) + 'px';
             
             document.documentElement.style.fontSize = scaledFontSize; 
             document.body.style.setProperty('--bubble-font-size', scaledFontSize);

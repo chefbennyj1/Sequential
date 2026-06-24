@@ -1,9 +1,8 @@
 const path = require('path');
 const fs = require('fs');
-const mongoose = require('mongoose');
 const mime = require('mime-types');
 const MediaService = require('../services/MediaService.js');
-const SceneService = require('../services/SceneService.js');
+const { getSeriesFolderName } = require('../services/HierarchyLookupService');
 
 exports.serveImage = async (req, res) => {
     // Express 5: Wildcards are named. *path returns req.params.path (string or array).
@@ -13,14 +12,7 @@ exports.serveImage = async (req, res) => {
     const resizeWidth = parseInt(req.query.resize, 10);
 
     try {
-        const seriesFolderName = await (async () => {
-            if (series && mongoose.Types.ObjectId.isValid(series)) {
-                const Series = require('../models/Series');
-                const doc = await Series.findById(series);
-                return doc ? doc.folderName : null;
-            }
-            return series;
-        })();
+        const seriesFolderName = await getSeriesFolderName(series);
 
         if (!seriesFolderName) return res.status(400).send("Series folder name is required");
 
@@ -42,14 +34,7 @@ exports.servePageImage = async (req, res) => {
     const actualPage = page || pageId;
     
     try {
-        const seriesFolderName = await (async () => {
-            if (series && mongoose.Types.ObjectId.isValid(series)) {
-                const Series = require('../models/Series');
-                const doc = await Series.findById(series);
-                return doc ? doc.folderName : null;
-            }
-            return series || "No_Overflow";
-        })();
+        const seriesFolderName = await getSeriesFolderName(series) || 'No_Overflow';
 
         if (!seriesFolderName) return res.status(400).send("Series folder name is required");
 

@@ -36,7 +36,7 @@ const apiRoutes = require("./api/api.js");
 const contentRoutes = require("./routes/content.js");
 
 const User = require("./models/User.js");
-const VolumeSync = require("./services/VolumeSyncService.js")
+// updateVolumesFromFS is now exported from ./services/VolumeService.js
 const { isAuth } = require('./middleware/auth.js');
 
 
