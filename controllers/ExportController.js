@@ -301,7 +301,6 @@ class ExportController {
             
             document.documentElement.style.fontSize = scaledFontSize; 
             document.body.style.setProperty('--bubble-font-size', scaledFontSize);
-            document.body.style.setProperty('--action-font-size', (3 * scaleFactor).toFixed(2) + 'rem');
             
             masterStage.style.setProperty('--speech-bubble-scale', scaleFactor.toFixed(2));
             masterStage.style.setProperty('--text-block-scale', scaleFactor.toFixed(2));
