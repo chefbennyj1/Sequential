@@ -46,10 +46,27 @@ class ActionText {
         container.className = 'action-text-container';
         
         // Position & Random Rotation
-        if (this.options.top) container.style.setProperty('--action-top', this.options.top);
-        if (this.options.bottom) container.style.setProperty('--action-bottom', this.options.bottom);
-        if (this.options.left) container.style.setProperty('--action-left', this.options.left);
-        if (this.options.right) container.style.setProperty('--action-right', this.options.right);
+        if (this.options.left && this.options.left !== '') {
+            container.style.setProperty('--action-left', this.options.left);
+            container.style.setProperty('--action-right', 'auto');
+        } else if (this.options.right && this.options.right !== '') {
+            container.style.setProperty('--action-right', this.options.right);
+            container.style.setProperty('--action-left', 'auto');
+        } else {
+            container.style.setProperty('--action-left', '50%');
+            container.style.setProperty('--action-right', 'auto');
+        }
+        
+        if (this.options.top && this.options.top !== '') {
+            container.style.setProperty('--action-top', this.options.top);
+            container.style.setProperty('--action-bottom', 'auto');
+        } else if (this.options.bottom && this.options.bottom !== '') {
+            container.style.setProperty('--action-bottom', this.options.bottom);
+            container.style.setProperty('--action-top', 'auto');
+        } else {
+            container.style.setProperty('--action-top', '50%');
+            container.style.setProperty('--action-bottom', 'auto');
+        }
         
         const rot = parseFloat(this.options.rotation);
         const rotationValue = isNaN(rot) ? -20 : rot;

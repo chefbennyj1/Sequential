@@ -45,6 +45,7 @@
 
 .action-text-svg {
     overflow: visible;
+    flex-shrink: 0;
 }
 
 /* Optional: Add a little "pop" animation when visible */
