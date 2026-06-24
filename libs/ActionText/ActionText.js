@@ -184,7 +184,7 @@ class ActionText {
                 }
         
                 container.innerHTML = `
-                    <svg viewBox="0 0 ${w} ${h}" width="${w}" height="${h}" class="action-text-svg" style="overflow: visible;">
+                    <svg viewBox="0 0 ${w} ${h}" width="${w / 16}rem" height="${h / 16}rem" class="action-text-svg" style="overflow: visible;">
                         <defs>
                             <path id="${pathId}" d="${curvePath}" />
                         </defs>
