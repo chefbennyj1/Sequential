@@ -95,7 +95,7 @@ export function renderAllPanelsTemplate(panelNames, currentVisualMediaData, acti
             </div>
 
             <div class="form-group glass glass--bright padding-20 border-radius-12 border-dim margin-b-30">
-                <div class="flex-row align-center justify-between margin-b-15">
+                <div class="flex-column gap-10 margin-b-15" style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;">
                     <span class="font-weight-bold font-size-09">Layout Mode</span>
                     <div id="spreadToggleGroup" class="glass glass-toggle">
                         <span class="glass-toggle__opt ${!isSpread ? 'is-on' : ''}" data-value="single" tabindex="0">Single</span>
