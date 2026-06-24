@@ -55,9 +55,9 @@ export function renderAllPanelsTemplate(panelNames, currentVisualMediaData, acti
     }).sort((a, b) => a.isFloating !== b.isFloating ? (a.isFloating ? 1 : -1) : a.panel.localeCompare(b.panel));
 
     return `
-        <div class="flex-row justify-between align-center margin-b-15">
+        <div class="flex-column gap-10 margin-b-15" style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;">
             <h4 class="margin-0">Page Panels</h4>
-            <div class="flex-row gap-5">
+            <div class="flex-row gap-5" style="display: flex; gap: 5px;">
                 <button id="syncPageToDbBtn" class="glass glass-btn glass-btn--sm glass-btn--ghost" title="Push changes to database"><ion-icon name="cloud-upload-outline"></ion-icon> Sync to DB</button>
                 <button id="addFloatingPanelBtn" class="glass glass-btn glass-btn--sm glass-btn--primary">+ Add Floating</button>
             </div>
@@ -113,7 +113,7 @@ export function renderAllPanelsTemplate(panelNames, currentVisualMediaData, acti
 export function renderPanelSettings(panelSelector, entry, isCustom, ptPos, ptScale, getNum) {
     return `
         <div class="tools-header-sticky">
-            <div class="flex-between align-center">
+            <div class="flex-column gap-10" style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;">
                 <h4 class="text-accent margin-0" style="text-transform: uppercase;">${panelSelector.replace('.', '')}</h4>
                 <button id="backToDirectoryBtn" class="glass glass-btn glass-btn--sm glass-btn--ghost">Close &rarr;</button>
             </div>
@@ -122,8 +122,8 @@ export function renderPanelSettings(panelSelector, entry, isCustom, ptPos, ptSca
         <div class="panel-editor-ui">
             ${entry.isFloating ? `
             <div class="floating-panel-settings glass glass--bright padding-10 margin-b-15 border-radius-8">
-                <div class="flex-row justify-between align-center margin-b-10">
-                    <h5 class="text-accent">Floating Geometry</h5>
+                <div class="flex-column gap-10 margin-b-10" style="display: flex; flex-direction: column; gap: 10px; align-items: flex-start;">
+                    <h5 class="text-accent margin-0">Floating Geometry</h5>
                     <button id="deleteFloatingPanelBtn" class="glass glass-btn glass-btn--sm glass-btn--danger">Delete</button>
                 </div>
                 <div class="form-group margin-b-10 flex-row gap-10">
