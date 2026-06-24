@@ -230,8 +230,9 @@ export class VisualEditorManager {
                 <div class="tab-content fade-in">
                     <div class="flex-row justify-between align-center margin-b-15">
                         <h4 class="margin-0">Timeline</h4>
-                        <div class="pos-relative">
+                        <div class="glass-tooltip-wrap">
                             <button id="addItemBtn" class="glass glass-btn glass-btn--sm glass-btn--primary">+ Add Dialogue</button>
+                            <div class="glass glass--dark glass-tooltip">Add SpeechBubble, TextBlock, or Pause to page</div>
                         </div>
                     </div>
                     <div class="timeline-container">

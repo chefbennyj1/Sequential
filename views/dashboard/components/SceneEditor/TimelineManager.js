@@ -107,10 +107,20 @@ export class TimelineManager {
                 }
             }
 
+            let badgeHtml = `<div class="glass-badge glass-badge--aqua">${type}</div>`;
+            if (item.isOrphaned) {
+                badgeHtml = `
+                    <div class="glass-tooltip-wrap">
+                        <div class="glass-badge glass-badge--danger">${type} (Orphan)</div>
+                        <div class="glass glass--dark glass-tooltip">No visual layout panel assigned to this dialogue item</div>
+                    </div>
+                `;
+            }
+
             li.innerHTML = `   
                 <div class="item-main">
                     <div class="item-header">
-                        <div class="glass-badge glass-badge--aqua">${type}</div>
+                        ${badgeHtml}
                         <div class="item-meta">ID: ${shortId}</div>
                     </div>
                     <div class="item-body">

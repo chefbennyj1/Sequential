@@ -58,8 +58,14 @@ export function renderAllPanelsTemplate(panelNames, currentVisualMediaData, acti
         <div class="header-stack-column margin-b-15">
             <h4 class="margin-0">Page Panels</h4>
             <div class="flex-row gap-5">
-                <button id="syncPageToDbBtn" class="glass glass-btn glass-btn--sm glass-btn--ghost" title="Push changes to database"><ion-icon name="cloud-upload-outline"></ion-icon> Sync to DB</button>
-                <button id="addFloatingPanelBtn" class="glass glass-btn glass-btn--sm glass-btn--primary">+ Add Floating</button>
+                <div class="glass-tooltip-wrap">
+                    <button id="syncPageToDbBtn" class="glass glass-btn glass-btn--sm glass-btn--ghost"><ion-icon name="cloud-upload-outline"></ion-icon> Sync to DB</button>
+                    <div class="glass glass--dark glass-tooltip">Persist layout changes to database</div>
+                </div>
+                <div class="glass-tooltip-wrap">
+                    <button id="addFloatingPanelBtn" class="glass glass-btn glass-btn--sm glass-btn--primary">+ Add Floating</button>
+                    <div class="glass glass--dark glass-tooltip">Create dynamic overlay panel viewport</div>
+                </div>
             </div>
         </div>
         
@@ -84,7 +90,11 @@ export function renderAllPanelsTemplate(panelNames, currentVisualMediaData, acti
                                     <div class="text-muted font-size-07 truncate">${item.fileName || 'No asset assigned'}</div>
                                 </div>
                             </div>
-                            ${item.isFloating ? `<button class="glass glass-btn glass-btn--sm glass-btn--danger delete-geom-btn margin-l-10" title="Delete Geometry"><ion-icon name="trash-outline"></ion-icon></button>` : ''}
+                            ${item.isFloating ? `
+                            <div class="glass-tooltip-wrap margin-l-10">
+                                <button class="glass glass-btn glass-btn--sm glass-btn--danger delete-geom-btn"><ion-icon name="trash-outline"></ion-icon></button>
+                                <div class="glass glass--dark glass-tooltip">Remove floating panel layer</div>
+                            </div>` : ''}
                         </div>
                     `;
                 }).join('')}
@@ -166,17 +176,26 @@ export function renderPanelSettings(panelSelector, entry, isCustom, ptPos, ptSca
                     <button id="visual-asset-browse" class="glass glass-btn glass-btn--sm glass-btn--ghost btn-browse">...</button>
                 </div>
                 <div class="flex-row gap-5 margin-t-5">
-                    <button id="visual-flip-h" class="glass glass-btn glass-btn--sm glass-btn--ghost flex-1">Flip Horizontal</button>
-                    <button id="visual-flip-v" class="glass glass-btn glass-btn--sm glass-btn--ghost flex-1">Flip Vertical</button>
+                    <div class="glass-tooltip-wrap flex-1">
+                        <button id="visual-flip-h" class="glass glass-btn glass-btn--sm glass-btn--ghost w-full">Flip Horizontal</button>
+                        <div class="glass glass--dark glass-tooltip">Flip image horizontally</div>
+                    </div>
+                    <div class="glass-tooltip-wrap flex-1">
+                        <button id="visual-flip-v" class="glass glass-btn glass-btn--sm glass-btn--ghost w-full">Flip Vertical</button>
+                        <div class="glass glass--dark glass-tooltip">Flip image vertically</div>
+                    </div>
                 </div>
             </div>
             <div class="form-group margin-b-15">
                 <div class="flex-row justify-between align-center margin-b-5">
                     <label class="margin-0">Panel Description (AI Metadata / Alt Text)</label>
-                    <button id="visual-ai-analyze-btn" class="glass glass-btn glass-btn--sm glass-btn--ghost flex-row align-center gap-5" title="Run Gemini AI for this panel">
-                        <ion-icon name="sparkles-outline"></ion-icon>
-                        <span>AI Analyze Image</span>
-                    </button>
+                    <div class="glass-tooltip-wrap">
+                        <button id="visual-ai-analyze-btn" class="glass glass-btn glass-btn--sm glass-btn--ghost flex-row align-center gap-5">
+                            <ion-icon name="sparkles-outline"></ion-icon>
+                            <span>AI Analyze Image</span>
+                        </button>
+                        <div class="glass glass--dark glass-tooltip">Use Gemini Vision to analyze panel composition & characters</div>
+                    </div>
                 </div>
                 <textarea id="visual-asset-description" class="glass-input width-100" rows="3" placeholder="Describe the action and composition...">${entry.description || ''}</textarea>
             </div>
@@ -214,9 +233,15 @@ export function renderPanelSettings(panelSelector, entry, isCustom, ptPos, ptSca
                 <div class="form-group margin-b-15">
                     <label>Scale (Zoom)</label>
                     <div class="flex-row gap-5 align-center">
-                        <button type="button" class="glass glass-btn glass-btn--sm glass-btn--ghost btn-nudge" data-target="pt-scale" data-dir="-0.1">-</button>
+                        <div class="glass-tooltip-wrap">
+                            <button type="button" class="glass glass-btn glass-btn--sm glass-btn--ghost btn-nudge" data-target="pt-scale" data-dir="-0.1">-</button>
+                            <div class="glass glass--dark glass-tooltip">Zoom out by 10%</div>
+                        </div>
                         <input type="number" id="visual-pt-scale" class="glass-input flex-1" step="0.1" min="1.0" value="${ptScale}">
-                        <button type="button" class="glass glass-btn glass-btn--sm glass-btn--ghost btn-nudge" data-target="pt-scale" data-dir="0.1">+</button>
+                        <div class="glass-tooltip-wrap">
+                            <button type="button" class="glass glass-btn glass-btn--sm glass-btn--ghost btn-nudge" data-target="pt-scale" data-dir="0.1">+</button>
+                            <div class="glass glass--dark glass-tooltip">Zoom in by 10%</div>
+                        </div>
                     </div>
                 </div>
                 <div id="pt-pan-wrapper" style="display: ${isCustom ? 'block' : 'none'};">
