@@ -330,6 +330,11 @@ class ExportController {
                     font-size: ${scaledFontSize} !important; 
                 }
 
+                /* Scale down Action Text in print */
+                .page .action-text-content {
+                    font-size: calc(var(--action-font-size, 3rem) * 0.6) !important;
+                }
+
                 /* Force custom system bubbles to obey the scaled padding and border */
                 .page .system-bubble .super-bubble {
                     padding-top: ${(25 * scaleFactor).toFixed(2)}px !important;
