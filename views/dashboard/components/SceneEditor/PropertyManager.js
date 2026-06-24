@@ -257,11 +257,8 @@ export class PropertyManager {
                 colors.forEach(hex => {
                     const s = document.createElement('div');
                     s.className = 'palette-swatch';
-                    s.style.cssText = `width:28px; height:28px; background:${hex}; border-radius:6px; cursor:pointer; border:1px solid rgba(255,255,255,0.2); box-shadow: 0 2px 5px rgba(0,0,0,0.2); transition: transform 0.1s;`;
+                    s.style.backgroundColor = hex;
                     s.title = "Left click: Text Color | Right click: Outline Color | Shift+Click: Both";
-                    
-                    s.onmouseenter = () => s.style.transform = 'scale(1.1)';
-                    s.onmouseleave = () => s.style.transform = 'scale(1.0)';
 
                     s.onclick = (e) => {
                         if (e.shiftKey) {

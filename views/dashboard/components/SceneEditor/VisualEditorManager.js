@@ -199,9 +199,9 @@ export class VisualEditorManager {
     renderDirectory(panelNames) {
         // Tab switching header
         const tabsHtml = `
-            <div class="editor-tabs flex-row border-dim-bottom margin-b-15" style="display: flex; border-bottom: 1px solid var(--glass-border); margin-bottom: 15px;">
-                <button class="tab-btn flex-1 padding-y-10 text-center font-weight-bold ${this.activeTab === 'panels' ? 'active' : ''}" data-tab="panels" style="flex: 1; background: none; border: none; padding: 10px 0; text-align: center; font-weight: bold; color: ${this.activeTab === 'panels' ? 'var(--accent-aqua)' : 'var(--color-text-muted)'}; border-bottom: 2px solid ${this.activeTab === 'panels' ? 'var(--accent-aqua)' : 'transparent'}; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;">Panels</button>
-                <button class="tab-btn flex-1 padding-y-10 text-center font-weight-bold ${this.activeTab === 'timeline' ? 'active' : ''}" data-tab="timeline" style="flex: 1; background: none; border: none; padding: 10px 0; text-align: center; font-weight: bold; color: ${this.activeTab === 'timeline' ? 'var(--accent-aqua)' : 'var(--color-text-muted)'}; border-bottom: 2px solid ${this.activeTab === 'timeline' ? 'var(--accent-aqua)' : 'transparent'}; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;">Timeline</button>
+            <div class="editor-tabs flex-row border-dim-bottom margin-b-15">
+                <button class="tab-btn flex-1 padding-y-10 text-center font-weight-bold ${this.activeTab === 'panels' ? 'active' : ''}" data-tab="panels">Panels</button>
+                <button class="tab-btn flex-1 padding-y-10 text-center font-weight-bold ${this.activeTab === 'timeline' ? 'active' : ''}" data-tab="timeline">Timeline</button>
             </div>
         `;
 
@@ -227,15 +227,15 @@ export class VisualEditorManager {
         } else {
             this.toolsPane.innerHTML = `
                 ${tabsHtml}
-                <div class="tab-content fade-in" style="padding: 10px 0;">
-                    <div class="flex-row justify-between align-center margin-b-15" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                        <h4 class="margin-0" style="margin: 0;">Timeline</h4>
-                        <div style="position: relative;">
+                <div class="tab-content fade-in">
+                    <div class="flex-row justify-between align-center margin-b-15">
+                        <h4 class="margin-0">Timeline</h4>
+                        <div class="pos-relative">
                             <button id="addItemBtn" class="glass glass-btn glass-btn--sm glass-btn--primary">+ Add Dialogue</button>
                         </div>
                     </div>
                     <div class="timeline-container">
-                        <ul id="sceneTreeList" class="scene-list timeline-list" style="list-style: none; padding: 0; margin: 0;"></ul>
+                        <ul id="sceneTreeList" class="scene-list timeline-list"></ul>
                     </div>
                 </div>
             `;
@@ -284,32 +284,32 @@ export class VisualEditorManager {
         }
 
         const popoverHtml = `
-            <div id="addDialoguePopover" class="glass glass--dark border-radius-8 padding-10" style="position: absolute; z-index: 10000; box-shadow: var(--shadow-glass); width: 220px; border: 1px solid var(--glass-border); background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); color: #fff;">
-                <div class="text-accent uppercase font-size-07 font-weight-bold margin-b-10" style="padding: 2px 5px; color: var(--accent-aqua); letter-spacing: 0.5px;">Select Dialogue Type</div>
-                <div class="popover-options flex-column gap-5" style="display: flex; flex-direction: column; gap: 5px;">
-                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="SpeechBubble" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: background 0.2s;">
-                        <ion-icon name="chatbubble-outline" style="color: var(--accent-aqua); font-size: 1.1rem;"></ion-icon>
-                        <span style="font-size: 0.85rem;">Speech Bubble</span>
+            <div id="addDialoguePopover" class="glass glass--dark border-radius-8 padding-10 add-dialogue-popover">
+                <div class="text-accent uppercase font-size-07 font-weight-bold margin-b-10 popover-header">Select Dialogue Type</div>
+                <div class="popover-options flex-column gap-5">
+                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="SpeechBubble">
+                        <ion-icon name="chatbubble-outline"></ion-icon>
+                        <span>Speech Bubble</span>
                     </div>
-                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="Narrator" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: background 0.2s;">
-                        <ion-icon name="document-text-outline" style="color: var(--accent-aqua); font-size: 1.1rem;"></ion-icon>
-                        <span style="font-size: 0.85rem;">TextBlock: Narrator</span>
+                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="Narrator">
+                        <ion-icon name="document-text-outline"></ion-icon>
+                        <span>TextBlock: Narrator</span>
                     </div>
-                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="InternalMonologue" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: background 0.2s;">
-                        <ion-icon name="help-circle-outline" style="color: var(--accent-aqua); font-size: 1.1rem;"></ion-icon>
-                        <span style="font-size: 0.85rem;">TextBlock: Internal</span>
+                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="InternalMonologue">
+                        <ion-icon name="help-circle-outline"></ion-icon>
+                        <span>TextBlock: Internal</span>
                     </div>
-                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="Dialogue" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: background 0.2s;">
-                        <ion-icon name="chatbubbles-outline" style="color: var(--accent-aqua); font-size: 1.1rem;"></ion-icon>
-                        <span style="font-size: 0.85rem;">TextBlock: Dialogue</span>
+                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="Dialogue">
+                        <ion-icon name="chatbubbles-outline"></ion-icon>
+                        <span>TextBlock: Dialogue</span>
                     </div>
-                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="ActionText" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: background 0.2s;">
-                        <ion-icon name="flash-outline" style="color: var(--accent-aqua); font-size: 1.1rem;"></ion-icon>
-                        <span style="font-size: 0.85rem;">Action Text</span>
+                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="ActionText">
+                        <ion-icon name="flash-outline"></ion-icon>
+                        <span>Action Text</span>
                     </div>
-                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="Pause" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: background 0.2s;">
-                        <ion-icon name="pause-circle-outline" style="color: var(--accent-aqua); font-size: 1.1rem;"></ion-icon>
-                        <span style="font-size: 0.85rem;">Pause</span>
+                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="Pause">
+                        <ion-icon name="pause-circle-outline"></ion-icon>
+                        <span>Pause</span>
                     </div>
                 </div>
             </div>
@@ -890,29 +890,16 @@ export class VisualEditorManager {
     _createGlassOverlay(innerHTML, onSetup) {
         return new Promise(resolve => {
             const overlay = document.createElement('div');
-            overlay.className = 'glass-modal-backdrop is-active';
-            overlay.style.position = 'fixed';
-            overlay.style.top = '0'; overlay.style.left = '0';
-            overlay.style.width = '100%'; overlay.style.height = '100%';
-            overlay.style.zIndex = '9999';
-            overlay.style.display = 'flex';
-            overlay.style.alignItems = 'center';
-            overlay.style.justifyContent = 'center';
-            overlay.style.backgroundColor = 'rgba(0,0,0,0.5)';
-            overlay.style.opacity = '0';
-            overlay.style.transition = 'opacity 0.2s ease-out';
-            
+            overlay.className = 'glass-modal-backdrop';
             overlay.innerHTML = innerHTML;
-            
             document.body.appendChild(overlay);
+
             requestAnimationFrame(() => {
-                overlay.style.opacity = '1';
-                overlay.querySelector('.glass-card').style.transform = 'translateY(0)';
+                overlay.classList.add('is-open');
             });
             
             const cleanup = (val) => {
-                overlay.style.opacity = '0';
-                overlay.querySelector('.glass-card').style.transform = 'translateY(20px)';
+                overlay.classList.remove('is-open');
                 overlay.addEventListener('transitionend', (e) => {
                     if (e.target === overlay && overlay.parentNode) {
                         document.body.removeChild(overlay);
@@ -927,10 +914,14 @@ export class VisualEditorManager {
 
     showGlassPrompt(title, defaultValue = '') {
         const html = `
-            <div class="glass glass-card" style="min-width:300px; padding: 2rem; transform: translateY(20px); transition: transform 0.2s ease-out;">
-                <h3 style="margin-top:0">${title}</h3>
-                <input type="text" class="glass-input" value="${defaultValue}" style="width:100%; margin: 1rem 0; background: rgba(0,0,0,0.2); border: 1px solid rgba(255,255,255,0.1); color: #fff; padding: 0.5rem; border-radius: 4px;" />
-                <div style="display:flex; justify-content:flex-end; gap: 1rem;">
+            <div class="glass-modal glass-modal--sm">
+                <div class="glass-modal__header">
+                    <h3 class="margin-0">${title}</h3>
+                </div>
+                <div class="glass-modal__body">
+                    <input type="text" class="glass-input w-full" value="${defaultValue}" />
+                </div>
+                <div class="glass-modal__footer justify-end">
                     <button class="glass glass-btn" id="gp-cancel">Cancel</button>
                     <button class="glass glass-btn glass-btn--primary" id="gp-ok">OK</button>
                 </div>
@@ -951,10 +942,14 @@ export class VisualEditorManager {
 
     showGlassConfirm(title, message) {
         const html = `
-            <div class="glass glass-card" style="min-width:300px; padding: 2rem; transform: translateY(20px); transition: transform 0.2s ease-out;">
-                <h3 style="margin-top:0">${title}</h3>
-                <p style="margin-bottom: 1.5rem; opacity: 0.8;">${message}</p>
-                <div style="display:flex; justify-content:flex-end; gap: 1rem;">
+            <div class="glass-modal glass-modal--sm">
+                <div class="glass-modal__header">
+                    <h3 class="margin-0">${title}</h3>
+                </div>
+                <div class="glass-modal__body">
+                    <p class="margin-0 text-muted">${message}</p>
+                </div>
+                <div class="glass-modal__footer justify-end">
                     <button class="glass glass-btn" id="gc-cancel">Cancel</button>
                     <button class="glass glass-btn glass-btn--primary" id="gc-ok">Confirm</button>
                 </div>

@@ -109,22 +109,22 @@ export class TimelineManager {
 
             li.innerHTML = `   
                 <div class="item-main">
-                    <div class="item-header" style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:5px;">
-                        <div class="glass-badge glass-badge--aqua" style="font-size: 0.65rem; padding: 2px 8px;">${type}</div>
-                        <div class="item-meta" style="font-size: 0.65rem; opacity: 0.5;">ID: ${shortId}</div>
+                    <div class="item-header">
+                        <div class="glass-badge glass-badge--aqua">${type}</div>
+                        <div class="item-meta">ID: ${shortId}</div>
                     </div>
-                    <div style="display:flex; align-items:center; gap:8px;">
+                    <div class="item-body">
                         ${avatarHtml}
                         <span class="item-char">${char || '---'}</span>
                     </div> 
-                    ${previewText ? `<div class="item-text" style="margin-top:5px;">${previewText}</div>` : ''}      
+                    ${previewText ? `<div class="item-text">${previewText}</div>` : ''}      
                 </div>
             `;
 
             li.addEventListener('dragstart', e => {
                 this.dragSrcIndex = index;
                 e.dataTransfer.effectAllowed = 'move';        
-                li.style.opacity = '0.4';
+                li.classList.add('is-dragging');
             });
             li.addEventListener('dragover', e => {
                 e.preventDefault();
@@ -132,7 +132,7 @@ export class TimelineManager {
             });
             li.addEventListener('drop', (e) => this.handleDrop(e, index));
             li.addEventListener('dragend', () => {
-                li.style.opacity = '1';
+                li.classList.remove('is-dragging');
                 this.list.querySelectorAll('.scene-item').forEach(i => i.classList.remove('over'));
             });
 

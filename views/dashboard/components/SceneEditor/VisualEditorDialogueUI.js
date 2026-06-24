@@ -7,7 +7,7 @@ import { pushSceneUpdate } from './VisualEditorSync.js';
  */
 export function renderDialogueProperties(container, item, propertiesManager, getActiveSceneData, currentVisualMediaData, currentVisualContext, onSaveCallback, onDeleteCallback, onCloseCallback) {
     container.innerHTML = '';
-    Object.assign(container.style, { display: 'flex', flexDirection: 'column', height: '100%', overflow: 'hidden', boxSizing: 'border-box' });
+    container.classList.add('dialogue-editor-container');
 
     const header = document.createElement('div');
     header.className = 'flex-row justify-between align-center margin-b-15 padding-x-10';
@@ -28,7 +28,7 @@ export function renderDialogueProperties(container, item, propertiesManager, get
     container.appendChild(header);
 
     const scroll = document.createElement('div');
-    Object.assign(scroll.style, { overflowY: 'auto', padding: '0 10px', flex: '1' });
+    scroll.className = 'dialogue-editor-scroll';
     container.appendChild(scroll);
 
     const originalFormEl = document.getElementById('sceneItemEditor');
@@ -65,8 +65,7 @@ export function renderDialogueProperties(container, item, propertiesManager, get
         }
 
         const footer = document.createElement('div');
-        footer.className = 'tools-footer-sticky margin-t-20';
-        footer.style.padding = '10px';
+        footer.className = 'tools-footer-sticky margin-t-20 dialogue-editor-footer';
         footer.innerHTML = `<button class="glass glass-btn glass-btn--primary w-full">Save Dialogue Changes</button>`;
         footer.querySelector('button').onclick = async (e) => {
             const b = e.target; b.disabled = true; b.textContent = 'Saving...';
