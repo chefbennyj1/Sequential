@@ -46,7 +46,7 @@ async function checkOrphanDialogue(vol, chap, page, seriesId) {
                         <h5 class="text-danger margin-b-5">Orphaned Dialogue Detected</h5>
                         <p class="text-muted font-size-08">There are ${orphans.length} items targeting panels that do not exist in the current layout. These will not appear in the viewer until re-assigned.</p>
                     </div>
-                    <button class="small btn-danger-outline" onclick="document.getElementById('openSceneEditorBtn').click()">Fix in Scene Editor</button>
+                    <button class="small btn-danger-outline" onclick="document.getElementById('openLayoutEditorBtn').click()">Fix in Editor</button>
                 </div>
             `;
         } else {
@@ -66,7 +66,6 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
     const toolbar = document.getElementById('activePageToolbar');
     const display = document.getElementById('activePageDisplay');
     const layoutBtn = document.getElementById('openLayoutEditorBtn');
-    const sceneBtn = document.getElementById('openSceneEditorBtn');
     const layoutBrowser = document.getElementById('activePageLayoutBrowser');
     const layoutValue = document.getElementById('activePageLayoutValue');
     const applyLayoutBtn = document.getElementById('applyLayoutBtn');
@@ -80,7 +79,7 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
     localStorage.setItem('sequential_last_active_page', JSON.stringify({ vol, chap, page, seriesId, seriesFolder }));
 
     // Link context to buttons
-    [layoutBtn, sceneBtn].forEach(btn => {
+    [layoutBtn].forEach(btn => {
         if (btn) {
             btn.dataset.vol = vol;
             btn.dataset.chap = chap;

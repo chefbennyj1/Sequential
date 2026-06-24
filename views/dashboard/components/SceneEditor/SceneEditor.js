@@ -346,22 +346,42 @@ function getActiveAssets() {
  * Initialize all editor sub-systems and global event listeners.
  */
 export function initSceneEditor() {
-    const container = document.querySelector('.scene-editor');
-    if (!container) return;
+    const layoutEditor = document.querySelector('.layout-editor');
+    if (!layoutEditor) return;
 
     // 1. Instantiate Managers
     timeline = new TimelineManager(
-        container, 
-        (index) => selectSceneItem(index), // onSelect
+        layoutEditor, 
+        (index) => {
+            if (visual && !layoutEditor.classList.contains('hidden')) {
+                visual.selectSceneItem(index);
+            } else {
+                selectSceneItem(index);
+            }
+        }, // onSelect
         (newData, newIndex) => { // onReorder
             currentSceneData = newData;
-            selectSceneItem(newIndex);
+            if (visual && !layoutEditor.classList.contains('hidden')) {
+                visual.selectSceneItem(newIndex);
+            } else {
+                selectSceneItem(newIndex);
+            }
+            saveSceneData(currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, currentSceneData, activeSeriesId).then(() => {
+                const iframe = document.getElementById('pagePreviewFrame');
+                if (iframe) pushSceneUpdate(iframe, currentSceneData, visual.currentVisualMediaData, currentSceneInfo.pageId);
+            });
         },
-        (index) => duplicateSceneItem(index) // onDuplicate
+        (index) => { // onDuplicate
+            duplicateSceneItem(index);
+            saveSceneData(currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, currentSceneData, activeSeriesId).then(() => {
+                const iframe = document.getElementById('pagePreviewFrame');
+                if (iframe) pushSceneUpdate(iframe, currentSceneData, visual.currentVisualMediaData, currentSceneInfo.pageId);
+            });
+        }
     );
 
     properties = new PropertyManager(
-        container,
+        document.body,
         () => { // onUpdate
             if (selectedItemIndex !== -1) {
                 properties.updateItem(currentSceneData[selectedItemIndex]);
@@ -379,12 +399,16 @@ export function initSceneEditor() {
     );
 
     visual = new VisualEditorManager(
-        document.querySelector('.layout-editor'),
+        layoutEditor,
         getActiveAssets,
         activeSeriesId,
         activeSeriesFolder,
         () => currentSceneData // getActiveSceneData callback
     );
+
+    // Link references between managers
+    visual.timeline = timeline;
+    visual.properties = properties;
 
     // 2. Global Button Handlers
     const closeSceneBtn = document.getElementById('closeSceneEditorBtn');
@@ -554,6 +578,12 @@ function selectSceneItem(index) {
     selectedItemIndex = index;
     timeline.setSelectedIndex(index);
 
+    const layoutEditor = document.querySelector('.layout-editor');
+    if (layoutEditor && !layoutEditor.classList.contains('hidden')) {
+        visual.selectSceneItem(index);
+        return;
+    }
+
     // CRITICAL FIX: Ensure properties manager points to the real Scene Editor form
     // before populating, in case it was detached by the Visual Editor.
     const sceneEditorContainer = document.querySelector('.scene-editor');
@@ -562,8 +592,8 @@ function selectSceneItem(index) {
         properties.form = sceneEditorContainer.querySelector('#sceneItemForm');
     }
 
-    document.getElementById('sceneItemEditor').classList.remove('hidden');
-    document.getElementById('sceneItemPlaceholder').classList.add('hidden');
+    document.getElementById('sceneItemEditor')?.classList.remove('hidden');
+    document.getElementById('sceneItemPlaceholder')?.classList.add('hidden');
     properties.populate(currentSceneData[index]);
 }
 

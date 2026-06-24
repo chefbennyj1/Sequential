@@ -1,9 +1,9 @@
 // views/dashboard/components/SceneEditor/VisualEditorManager.js
-import { fetchMedia } from '../../studio/api/StudioClient.js';
+import { fetchMedia, saveSceneData } from '../../studio/api/StudioClient.js';
 import { openFileBrowser } from '../FileBrowser/FileBrowser.js';
 import { renderPanelSettings, renderAllPanelsTemplate, renderReadinessStepperTemplate } from './VisualEditorUI.js';
 import { renderDialogueProperties } from './VisualEditorDialogueUI.js';
-import { pushPanelSelect, syncPreviewLive, pushMediaPersisted } from './VisualEditorSync.js';
+import { pushPanelSelect, syncPreviewLive, pushMediaPersisted, pushSceneUpdate } from './VisualEditorSync.js';
 import { VisualEditorAssetManager } from './VisualEditorAssetManager.js';
 
 /**
@@ -23,6 +23,7 @@ export class VisualEditorManager {
         this.currentVisualContext = {}; // { volume, chapter, pageId }
         this.selectedPanelSelector = null;
         this.isSpread = false;
+        this.activeTab = 'panels';
 
         // Initialize Asset Manager
         this.assetManager = new VisualEditorAssetManager(this.currentVisualContext, this.currentVisualMediaData, this.activeSeriesId);
@@ -196,24 +197,221 @@ export class VisualEditorManager {
     }
 
     renderDirectory(panelNames) {
-        const stepperHtml = this.renderReadinessStepper(panelNames);
-        const panelsHtml = renderAllPanelsTemplate(
-            panelNames, 
-            this.currentVisualMediaData, 
-            this.activeSeriesFolder, 
-            this.activeSeriesId, 
-            this.currentVisualContext,
-            this.isSpread
-        );
-
-        // Wrap both stepper and panel list in the scrollable UI container
-        this.toolsPane.innerHTML = `
-            <div class="panel-editor-ui">
-                ${stepperHtml}
-                ${panelsHtml}
+        // Tab switching header
+        const tabsHtml = `
+            <div class="editor-tabs flex-row border-dim-bottom margin-b-15" style="display: flex; border-bottom: 1px solid var(--glass-border); margin-bottom: 15px;">
+                <button class="tab-btn flex-1 padding-y-10 text-center font-weight-bold ${this.activeTab === 'panels' ? 'active' : ''}" data-tab="panels" style="flex: 1; background: none; border: none; padding: 10px 0; text-align: center; font-weight: bold; color: ${this.activeTab === 'panels' ? 'var(--accent-aqua)' : 'var(--color-text-muted)'}; border-bottom: 2px solid ${this.activeTab === 'panels' ? 'var(--accent-aqua)' : 'transparent'}; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;">Panels</button>
+                <button class="tab-btn flex-1 padding-y-10 text-center font-weight-bold ${this.activeTab === 'timeline' ? 'active' : ''}" data-tab="timeline" style="flex: 1; background: none; border: none; padding: 10px 0; text-align: center; font-weight: bold; color: ${this.activeTab === 'timeline' ? 'var(--accent-aqua)' : 'var(--color-text-muted)'}; border-bottom: 2px solid ${this.activeTab === 'timeline' ? 'var(--accent-aqua)' : 'transparent'}; cursor: pointer; font-size: 0.9rem; transition: all 0.2s;">Timeline</button>
             </div>
         `;
-        this.bindDirectoryEvents();
+
+        if (this.activeTab === 'panels') {
+            const stepperHtml = this.renderReadinessStepper(panelNames);
+            const panelsHtml = renderAllPanelsTemplate(
+                panelNames, 
+                this.currentVisualMediaData, 
+                this.activeSeriesFolder, 
+                this.activeSeriesId, 
+                this.currentVisualContext,
+                this.isSpread
+            );
+
+            this.toolsPane.innerHTML = `
+                ${tabsHtml}
+                <div class="tab-content fade-in">
+                    ${stepperHtml}
+                    ${panelsHtml}
+                </div>
+            `;
+            this.bindDirectoryEvents();
+        } else {
+            this.toolsPane.innerHTML = `
+                ${tabsHtml}
+                <div class="tab-content fade-in" style="padding: 10px 0;">
+                    <div class="flex-row justify-between align-center margin-b-15" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <h4 class="margin-0" style="margin: 0;">Timeline</h4>
+                        <div style="position: relative;">
+                            <button id="addItemBtn" class="glass glass-btn glass-btn--sm glass-btn--primary">+ Add Dialogue</button>
+                        </div>
+                    </div>
+                    <div class="timeline-container">
+                        <ul id="sceneTreeList" class="scene-list timeline-list" style="list-style: none; padding: 0; margin: 0;"></ul>
+                    </div>
+                </div>
+            `;
+            
+            // Populate timeline data
+            if (this.timeline) {
+                const sceneData = this.getActiveSceneData();
+                this.timeline.setData(sceneData, this.properties?.availableCharacters);
+            }
+            
+            this.bindTimelineTabEvents();
+        }
+
+        this.bindTabClickEvents();
+    }
+
+    bindTabClickEvents() {
+        const tabs = this.toolsPane.querySelectorAll('.tab-btn');
+        tabs.forEach(tab => {
+            tab.onclick = () => {
+                const selectedTab = tab.dataset.tab;
+                if (this.activeTab !== selectedTab) {
+                    this.activeTab = selectedTab;
+                    const iframe = document.getElementById('pagePreviewFrame');
+                    const panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
+                    this.renderDirectory(panelNames);
+                }
+            };
+        });
+    }
+
+    bindTimelineTabEvents() {
+        const addBtn = document.getElementById('addItemBtn');
+        if (addBtn) {
+            addBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.showAddDialoguePopover(addBtn);
+            };
+        }
+    }
+
+    showAddDialoguePopover(anchorEl) {
+        let popover = document.getElementById('addDialoguePopover');
+        if (popover) {
+            popover.remove();
+        }
+
+        const popoverHtml = `
+            <div id="addDialoguePopover" class="glass glass--dark border-radius-8 padding-10" style="position: absolute; z-index: 10000; box-shadow: var(--shadow-glass); width: 220px; border: 1px solid var(--glass-border); background: rgba(15, 23, 42, 0.95); backdrop-filter: blur(10px); color: #fff;">
+                <div class="text-accent uppercase font-size-07 font-weight-bold margin-b-10" style="padding: 2px 5px; color: var(--accent-aqua); letter-spacing: 0.5px;">Select Dialogue Type</div>
+                <div class="popover-options flex-column gap-5" style="display: flex; flex-direction: column; gap: 5px;">
+                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="SpeechBubble" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: background 0.2s;">
+                        <ion-icon name="chatbubble-outline" style="color: var(--accent-aqua); font-size: 1.1rem;"></ion-icon>
+                        <span style="font-size: 0.85rem;">Speech Bubble</span>
+                    </div>
+                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="Narrator" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: background 0.2s;">
+                        <ion-icon name="document-text-outline" style="color: var(--accent-aqua); font-size: 1.1rem;"></ion-icon>
+                        <span style="font-size: 0.85rem;">TextBlock: Narrator</span>
+                    </div>
+                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="InternalMonologue" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: background 0.2s;">
+                        <ion-icon name="help-circle-outline" style="color: var(--accent-aqua); font-size: 1.1rem;"></ion-icon>
+                        <span style="font-size: 0.85rem;">TextBlock: Internal</span>
+                    </div>
+                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="Dialogue" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: background 0.2s;">
+                        <ion-icon name="chatbubbles-outline" style="color: var(--accent-aqua); font-size: 1.1rem;"></ion-icon>
+                        <span style="font-size: 0.85rem;">TextBlock: Dialogue</span>
+                    </div>
+                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="ActionText" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: background 0.2s;">
+                        <ion-icon name="flash-outline" style="color: var(--accent-aqua); font-size: 1.1rem;"></ion-icon>
+                        <span style="font-size: 0.85rem;">Action Text</span>
+                    </div>
+                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="Pause" style="display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 6px 10px; border-radius: 4px; transition: background 0.2s;">
+                        <ion-icon name="pause-circle-outline" style="color: var(--accent-aqua); font-size: 1.1rem;"></ion-icon>
+                        <span style="font-size: 0.85rem;">Pause</span>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        const tempDiv = document.createElement('div');
+        tempDiv.innerHTML = popoverHtml.trim();
+        popover = tempDiv.firstChild;
+        document.body.appendChild(popover);
+
+        const rect = anchorEl.getBoundingClientRect();
+        popover.style.top = `${rect.bottom + window.scrollY + 5}px`;
+        popover.style.left = `${rect.right - 220 + window.scrollX}px`;
+
+        const outsideClickListener = (e) => {
+            if (!popover.contains(e.target) && !anchorEl.contains(e.target)) {
+                popover.remove();
+                document.removeEventListener('click', outsideClickListener);
+            }
+        };
+        setTimeout(() => document.addEventListener('click', outsideClickListener), 0);
+
+        popover.querySelectorAll('.popover-opt').forEach(opt => {
+            opt.onclick = () => {
+                const type = opt.dataset.type;
+                popover.remove();
+                document.removeEventListener('click', outsideClickListener);
+                this.createNewDialogueItem(type);
+            };
+            opt.onmouseenter = () => opt.style.background = 'rgba(255, 255, 255, 0.1)';
+            opt.onmouseleave = () => opt.style.background = 'transparent';
+        });
+    }
+
+    createNewDialogueItem(type) {
+        const sceneData = this.getActiveSceneData();
+        const generateId = () => (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : 'id-' + Math.random().toString(36).substr(2, 9);
+        
+        let displayType = { type: 'SpeechBubble' };
+        if (['Narrator', 'InternalMonologue', 'Dialogue'].includes(type)) {
+            displayType = { type: 'TextBlock', style: type };
+        } else if (type === 'ActionText') {
+            displayType = { type: 'ActionText' };
+        } else if (type === 'Pause') {
+            displayType = { type: 'Pause' };
+        }
+
+        const newItem = {
+            id: generateId(),
+            displayOrder: sceneData.length,
+            displayType: displayType,
+            character: 'New',
+            text: type === 'Pause' ? '' : 'Text',
+            placement: { panel: '.panel-A', bottom: '2%', left: '2%', right: '2%' },
+            mediaAction: []
+        };
+        
+        sceneData.push(newItem);
+
+        // Update Timeline
+        if (this.timeline) {
+            this.timeline.setData(sceneData, this.properties?.availableCharacters);
+            const newIndex = sceneData.length - 1;
+            this.selectSceneItem(newIndex);
+        }
+
+        // Notify preview iframe
+        const iframe = document.getElementById('pagePreviewFrame');
+        if (iframe) {
+            pushSceneUpdate(iframe, sceneData, this.currentVisualMediaData, this.currentVisualContext.pageId);
+        }
+    }
+
+    selectSceneItem(index) {
+        const sceneData = this.getActiveSceneData();
+        const item = sceneData[index];
+        if (!item) return;
+
+        if (this.timeline) {
+            this.timeline.setSelectedIndex(index);
+        }
+
+        this.showDialogueProperties(item, this.properties, async () => {
+            await saveSceneData(this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, sceneData, this.activeSeriesId);
+        }, async (delItem) => {
+            const idx = sceneData.findIndex(i => i.id == delItem.id);
+            if (idx !== -1) {
+                sceneData.splice(idx, 1);
+                sceneData.forEach((itm, i) => itm.displayOrder = i);
+                await saveSceneData(this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, sceneData, this.activeSeriesId);
+                this.loadPanel({ panel: null }, this.activeSeriesId);
+                const iframe = document.getElementById('pagePreviewFrame');
+                if (iframe) {
+                    pushSceneUpdate(iframe, sceneData, this.currentVisualMediaData, this.currentVisualContext.pageId);
+                }
+            }
+        });
+
+        const iframe = document.getElementById('pagePreviewFrame');
+        if (iframe?.contentWindow) {
+            iframe.contentWindow.postMessage({ type: 'dialogueHighlight', id: item.id }, '*');
+        }
     }
 
     get toolsPane() {

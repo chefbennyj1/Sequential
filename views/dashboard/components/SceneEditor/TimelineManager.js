@@ -2,7 +2,7 @@
 
 export class TimelineManager {
     constructor(container, onSelect, onReorder, onDuplicate) {
-        this.list = container.querySelector('#sceneTreeList');
+        this.container = container;
         this.onSelect = onSelect;
         this.onReorder = onReorder;
         this.onDuplicate = onDuplicate;
@@ -16,10 +16,8 @@ export class TimelineManager {
     }
 
     initEventListeners() {
-        if (!this.list) return;
-
-        // --- Event Delegation: Click & Context Menu ---
-        this.list.addEventListener('click', (e) => {
+        // --- Event Delegation on Container: Click & Context Menu ---
+        this.container.addEventListener('click', (e) => {
             const item = e.target.closest('.scene-item');
             if (item) {
                 const index = parseInt(item.dataset.index);
@@ -27,7 +25,7 @@ export class TimelineManager {
             }
         });
 
-        this.list.addEventListener('contextmenu', (e) => {
+        this.container.addEventListener('contextmenu', (e) => {
             const item = e.target.closest('.scene-item');
             if (item) {
                 e.preventDefault();
@@ -79,6 +77,7 @@ export class TimelineManager {
     }
 
     render() {
+        this.list = this.container.querySelector('#sceneTreeList');
         if (!this.list) return;
         this.list.innerHTML = '';
 

@@ -9,7 +9,7 @@ import {
     showChaptersForVolume
 } from './LibraryManager.js';
 import { setActivePage } from './PageConfigManager.js';
-import { openSceneEditor, openVisualEditor } from '../../components/SceneEditor/SceneEditor.js';
+import { openVisualEditor } from '../../components/SceneEditor/SceneEditor.js';
 import ArrangeManager from './ArrangeManager.js';
 
 let currentSceneInfo = {};
@@ -144,10 +144,6 @@ export function initEventHandlers(container, allSections) {
             openVisualEditor(vol, chap, page, 'portrait', series, seriesFolder);
         }
 
-        if (target.id === 'openSceneEditorBtn') {
-            const { vol, chap, page, series } = target.dataset;
-            openSceneEditor(vol, chap, page, 'portrait', series);
-        }
 
         // Page Builder Internal Mode Cards
         if (target.closest('#modeCreateBtn')) {
