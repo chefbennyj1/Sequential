@@ -114,20 +114,6 @@
     margin-bottom: 2px;
 }
 
-.scene-item .item-char {
-    font-weight: 600;
-    color: var(--accent-aqua);
-}
-
-.scene-item .item-text {
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-style: italic;
-    margin-top: 4px;
-}
 
 .char-avatar-mini {
     width: 24px;
@@ -236,34 +222,6 @@
     opacity: 1;
 }
 
-/* Sidebar Tab Switching */
-.editor-tabs {
-    border-bottom: 1px solid var(--glass-border);
-    margin-bottom: 15px;
-}
-
-.tab-btn {
-    flex: 1;
-    background: none;
-    border: none;
-    padding: 10px 0;
-    text-align: center;
-    font-weight: bold;
-    color: var(--color-text-muted);
-    border-bottom: 2px solid transparent;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-}
-
-.tab-btn:hover {
-    color: var(--color-text);
-}
-
-.tab-btn.active {
-    color: var(--accent-aqua) !important;
-    border-bottom: 2px solid var(--accent-aqua) !important;
-}
 
 .tab-content {
     flex: 1;
@@ -289,12 +247,6 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Timeline Custom Styles inside Sidebar */
-.timeline-container {
-    min-height: 0;
-    flex: 1;
-    padding-right: 5px;
-}
 
 .tab-content::-webkit-scrollbar {
     width: 6px;
@@ -308,20 +260,6 @@
     background: rgba(255, 255, 255, 0.1);
     border-radius: 3px;
 }
-.scene-item .item-char {
-    font-weight: 600;
-    color: var(--accent-aqua);
-}
-
-.scene-item .item-text {
-    font-size: var(--text-xs);
-    color: var(--color-text-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    font-style: italic;
-    margin-top: 4px;
-}
 
 .char-avatar-mini {
     width: 24px;
@@ -430,34 +368,6 @@
     opacity: 1;
 }
 
-/* Sidebar Tab Switching */
-.editor-tabs {
-    border-bottom: 1px solid var(--glass-border);
-    margin-bottom: 15px;
-}
-
-.tab-btn {
-    flex: 1;
-    background: none;
-    border: none;
-    padding: 10px 0;
-    text-align: center;
-    font-weight: bold;
-    color: var(--color-text-muted);
-    border-bottom: 2px solid transparent;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.2s ease;
-}
-
-.tab-btn:hover {
-    color: var(--color-text);
-}
-
-.tab-btn.active {
-    color: var(--accent-aqua) !important;
-    border-bottom: 2px solid var(--accent-aqua) !important;
-}
 
 .tab-content {
     flex: 1;
@@ -483,12 +393,6 @@
     to { opacity: 1; transform: translateY(0); }
 }
 
-/* Timeline Custom Styles inside Sidebar */
-.timeline-container {
-    min-height: 0;
-    flex: 1;
-    padding-right: 5px;
-}
 
 .tab-content::-webkit-scrollbar {
     width: 6px;
@@ -743,8 +647,3 @@
     position: relative;
 }
 
-.timeline-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}

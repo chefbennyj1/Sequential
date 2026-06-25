@@ -16,12 +16,11 @@ import { updateUrlState } from '../../studio/js/Navigation.js';
 import { switchToSection } from '../../studio/js/EventHandlers.js';
 
 // Sub-Managers
-import { TimelineManager } from './TimelineManager.js';
 import { PropertyManager } from './PropertyManager.js';
 import { VisualEditorManager } from './VisualEditorManager.js';
 import { pushSceneUpdate } from './VisualEditorSync.js';
 
-let timeline, properties, visual;
+let properties, visual;
 
 // Page state
 let currentSceneData = [];
@@ -30,7 +29,7 @@ let activeSeriesId = null;
 let activeSeriesFolder = null;
 
 /**
- * Delete a scene item, persist, and refresh the timeline.
+ * Delete a scene item and persist.
  */
 async function handleSceneDelete(item, volume, chapter, pageId, seriesId) {
     const idx = currentSceneData.findIndex(i => i.id == item.id);
@@ -41,7 +40,6 @@ async function handleSceneDelete(item, volume, chapter, pageId, seriesId) {
     try {
         const res = await saveSceneData(volume, chapter, pageId, currentSceneData, seriesId);
         if (res.ok) {
-            timeline.setData(currentSceneData, properties.availableCharacters);
             const iframe = document.getElementById('pagePreviewFrame');
             if (iframe) pushSceneUpdate(iframe, currentSceneData, visual.currentVisualMediaData, pageId);
         } else {
@@ -167,7 +165,6 @@ async function syncEditorContext(volume, chapter, pageId, seriesId, silent = fal
         }
 
         if (properties) properties.setAvailableData(characters || [], panelNames);
-        if (timeline) timeline.setData(currentSceneData, characters || []);
 
         const layoutEditor = document.querySelector('.layout-editor');
         if (layoutEditor && !silent) {
@@ -205,7 +202,6 @@ function duplicateSceneItem(index) {
     currentSceneData.splice(index + 1, 0, newItem);
     currentSceneData.forEach((itm, i) => itm.displayOrder = i);
 
-    timeline.setData(currentSceneData, properties.availableCharacters);
     visual.selectSceneItem(index + 1);
 }
 
@@ -217,26 +213,6 @@ export function initSceneEditor() {
     if (!layoutEditor) return;
 
     // Instantiate managers
-    timeline = new TimelineManager(
-        layoutEditor,
-        (index) => visual.selectSceneItem(index),
-        (newData, newIndex) => {
-            currentSceneData = newData;
-            visual.selectSceneItem(newIndex);
-            saveSceneData(currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, currentSceneData, activeSeriesId).then(() => {
-                const iframe = document.getElementById('pagePreviewFrame');
-                if (iframe) pushSceneUpdate(iframe, currentSceneData, visual.currentVisualMediaData, currentSceneInfo.pageId);
-            });
-        },
-        (index) => {
-            duplicateSceneItem(index);
-            saveSceneData(currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, currentSceneData, activeSeriesId).then(() => {
-                const iframe = document.getElementById('pagePreviewFrame');
-                if (iframe) pushSceneUpdate(iframe, currentSceneData, visual.currentVisualMediaData, currentSceneInfo.pageId);
-            });
-        }
-    );
-
     properties = new PropertyManager(
         document.body,
         () => {}, // overridden by renderDialogueProperties when dialogue editor is open
@@ -257,7 +233,6 @@ export function initSceneEditor() {
         () => currentSceneData
     );
 
-    visual.timeline = timeline;
     visual.properties = properties;
 
     // Close button (visual editor header)

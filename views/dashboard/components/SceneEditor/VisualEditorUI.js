@@ -45,7 +45,7 @@ export function renderReadinessStepperTemplate(stats) {
                     <div class="glass-step__inner">
                         <div class="glass-step__label">Continuity</div>
                         <div class="text-muted font-size-06">${continuity.hasScene ? 'Dialogue Layer Active' : 'No Dialogue Found'}</div>
-                        ${!continuity.complete ? '<div class="step-action-hint">→ Open Timeline</div>' : ''}
+                        ${!continuity.complete ? '<div class="step-action-hint">→ Add Dialogue Item</div>' : ''}
                     </div>
                 </div>
             </div>
