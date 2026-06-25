@@ -114,6 +114,36 @@ export async function switchToSection(targetPage, container) {
     container.dispatchEvent(new CustomEvent('sectionShown', { detail: { section: targetPage } }));
 }
 
+function loadSelectedPage() {
+    const vS = document.getElementById('editVolumeSelect');
+    const cS = document.getElementById('editChapterSelect');
+    const pS = document.getElementById('editPageSelect');
+    const sS = document.getElementById('editSeriesSelect');
+
+    const vol = vS?.options[vS.selectedIndex]?.getAttribute('data-folder');
+    const seriesId = sS?.value;
+    const seriesFolder = sS?.options[sS.selectedIndex]?.getAttribute('data-folder');
+    const chapNum = cS?.options[cS.selectedIndex]?.getAttribute('data-number');
+    const pageId = pS?.value;
+
+    if (!vol || !chapNum || !pageId || !seriesId) return;
+
+    const chap = 'chapter-' + chapNum;
+
+    window.EDITOR_SESSION = {
+        volume: vol,
+        volumeId: vS.value,
+        chapter: chap,
+        chapterId: cS.value,
+        pageId,
+        seriesId,
+        seriesFolder
+    };
+
+    setActivePage(vol, chap, pageId, seriesId, seriesFolder);
+    updateUrlState({ tab: 'page-builder', vol, chap, page: pageId, series: seriesId, seriesFolder });
+}
+
 export function initEventHandlers(container, allSections) {
     if (!arrangeManager) arrangeManager = new ArrangeManager();
 
@@ -240,42 +270,6 @@ export function initEventHandlers(container, allSections) {
                 });
         }
 
-        // Load Page Tools
-        if (target.id === 'loadPageBtn') {
-            const vS = document.getElementById('editVolumeSelect');
-            const cS = document.getElementById('editChapterSelect');
-            const pS = document.getElementById('editPageSelect');
-            const sS = document.getElementById('editSeriesSelect');
-
-            const vol = vS.options[vS.selectedIndex]?.getAttribute('data-folder');
-            const seriesId = sS.value;
-            const seriesFolder = sS.options[sS.selectedIndex]?.getAttribute('data-folder');
-            const chapNum = cS.options[cS.selectedIndex]?.getAttribute('data-number');
-            const pageId = pS.value;
-
-            if (!vol || !chapNum || !pageId || !seriesId) {
-                alert("Please select Series, Volume, Chapter, and Page.");    
-                return;
-            }
-
-            const chap = 'chapter-' + chapNum;
-            
-            // MEMOIZATION: Store current working environment
-            window.EDITOR_SESSION = { 
-                volume: vol, 
-                volumeId: vS.value,
-                chapter: chap, 
-                chapterId: cS.value,
-                pageId: pageId, 
-                seriesId, 
-                seriesFolder 
-            };
-
-            currentSceneInfo = { volume: vol, chapter: chap, pageId: pageId, seriesId, seriesFolder };
-            setActivePage(vol, chap, pageId, seriesId, seriesFolder);
-            updateUrlState({ tab: 'page-builder', vol, chap, page: pageId, series: seriesId, seriesFolder });
-        }
-
         // Library Cards
         if (target.closest('.series-card')) {
             const card = target.closest('.series-card');
@@ -338,9 +332,8 @@ export function initEventHandlers(container, allSections) {
             if (window.EDITOR_SESSION) window.EDITOR_SESSION.chapterId = e.target.value;
         }
         if (e.target.id === 'editPageSelect') {
-            document.getElementById('loadPageBtn').disabled = !e.target.value;
-            // Sync session
             if (window.EDITOR_SESSION) window.EDITOR_SESSION.pageId = e.target.value;
+            if (e.target.value) loadSelectedPage();
         }
         if (e.target.id === 'editVolumeSelect') {
             populateChapterSelect(e.target.value, 'editChapterSelect', false);
