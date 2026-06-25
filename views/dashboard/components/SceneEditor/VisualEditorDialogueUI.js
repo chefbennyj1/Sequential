@@ -2,6 +2,41 @@
 import { pushSceneUpdate } from './VisualEditorSync.js';
 
 /**
+ * Glass-styled confirm dialog. Returns a Promise<boolean>.
+ */
+function glassConfirm(title, message) {
+    return new Promise(resolve => {
+        const backdrop = document.createElement('div');
+        backdrop.className = 'glass-modal-backdrop';
+        backdrop.innerHTML = `
+            <div class="glass-modal glass-modal--sm">
+                <div class="glass-modal__header">
+                    <h3 class="margin-0">${title}</h3>
+                </div>
+                <div class="glass-modal__body">
+                    <p class="margin-0 text-muted">${message}</p>
+                </div>
+                <div class="glass-modal__footer justify-end">
+                    <button class="glass glass-btn glass-btn--ghost" id="gc-cancel">Cancel</button>
+                    <button class="glass glass-btn glass-btn--danger" id="gc-confirm">Delete</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(backdrop);
+        requestAnimationFrame(() => backdrop.classList.add('is-open'));
+
+        const close = (result) => {
+            backdrop.classList.remove('is-open');
+            backdrop.addEventListener('transitionend', () => backdrop.remove(), { once: true });
+            resolve(result);
+        };
+
+        backdrop.querySelector('#gc-cancel').onclick = () => close(false);
+        backdrop.querySelector('#gc-confirm').onclick = () => close(true);
+    });
+}
+
+/**
  * Builds the dialogue item editor form HTML.
  * Owned here so the visual editor has no DOM dependency on any external template.
  */
@@ -160,7 +195,8 @@ export function renderDialogueProperties(container, item, propertiesManager, get
     };
 
     footer.querySelector('#deleteDialogueBtn').onclick = async () => {
-        if (confirm('Delete this dialogue item?')) {
+        const confirmed = await glassConfirm('Delete Item', 'This dialogue item will be permanently removed. Are you sure?');
+        if (confirmed) {
             await onDeleteCallback(item);
             cleanupAndClose();
         }
