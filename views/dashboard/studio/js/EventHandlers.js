@@ -15,22 +15,52 @@ import ArrangeManager from './ArrangeManager.js';
 let currentSceneInfo = {};
 let arrangeManager;
 
+// Fragment load cache — prevents duplicate fetches
+const _loadedSections = new Set();
+
 /**
  * Switches the visible dashboard section and triggers any necessary data population.
  */
 export async function switchToSection(targetPage, container) {
     console.log(`[Dashboard] Attempting switch to section: ${targetPage}`);
-    
-    const allSections = container.querySelectorAll('.dashboard-section, .glass-tab-panel');
-    const targetSection = container.querySelector('.' + targetPage);
-    
-    if (!targetSection) {
-        console.warn(`[Dashboard] Target section not found in container: .${targetPage}`);
+
+    const mountPoint = container.querySelector('#main-content');
+    if (!mountPoint) {
+        console.warn('[Dashboard] #main-content mount point not found.');
         return;
     }
 
-    // --- LIQUID GLASS TAB LOGIC ---
-    // 1. Update Tabs (if any)
+    // --- Lazy-load fragment if not already in DOM ---
+    if (!_loadedSections.has(targetPage)) {
+        const fragmentUrl = `/views/dashboard/sections/${targetPage}/${targetPage}.html`;
+        try {
+            const res = await fetch(fragmentUrl);
+            if (!res.ok) {
+                console.warn(`[Dashboard] Fragment not found: ${fragmentUrl} (${res.status})`);
+                return;
+            }
+            const html = await res.text();
+            const temp = document.createElement('div');
+            temp.innerHTML = html.trim();
+            const node = temp.firstElementChild;
+            if (node) mountPoint.appendChild(node);
+            _loadedSections.add(targetPage);
+            console.log(`[Dashboard] Fragment loaded and mounted: ${targetPage}`);
+        } catch (err) {
+            console.error(`[Dashboard] Failed to fetch fragment for '${targetPage}':`, err);
+            return;
+        }
+    }
+
+    // --- Existing visibility logic (UNCHANGED from original) ---
+    const allSections = mountPoint.querySelectorAll('.dashboard-section, .glass-tab-panel');
+    const targetSection = mountPoint.querySelector('.' + targetPage);
+
+    if (!targetSection) {
+        console.warn(`[Dashboard] Target section not found after fetch: .${targetPage}`);
+        return;
+    }
+
     const tabs = container.querySelectorAll('.glass-tab');
     tabs.forEach(tab => {
         const isActive = tab.dataset.page === targetPage;
@@ -38,17 +68,11 @@ export async function switchToSection(targetPage, container) {
         tab.setAttribute('tabindex', isActive ? '0' : '-1');
     });
 
-    // 2. Update Panels (Exclusive Visibility)
-    console.log(`[Dashboard] Activating .${targetPage} and deactivating others.`);
-
-    // Hide background blobs for scanner page to prevent circular artifacts
-    
-
     allSections.forEach(s => {
         s.classList.remove('is-active');
-        s.classList.add('hidden'); 
+        s.classList.add('hidden');
     });
-    
+
     targetSection.classList.add('is-active');
     targetSection.classList.remove('hidden');
 

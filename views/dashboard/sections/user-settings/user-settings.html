@@ -1,0 +1,26 @@
+    <div class="user-settings dashboard-section hidden glass glass--frosted glass-card">
+        <h3>User Settings</h3>
+        <form id="credentials" action="/api/user/update" method="POST">
+            <div class="input-field">
+                <label for="email">Email</label>
+                <input type="email" id="email" name="email" required />
+                <span class="error-message"></span>
+            </div>
+            <div class="input-field">
+                <label for="currentPassword">Current Password</label>
+                <input type="password" id="currentPassword" name="currentPassword" required />
+                <span class="error-message"></span>
+            </div>
+            <div class="input-field">
+                <label for="newPassword">New Password</label>
+                <input type="password" id="newPassword" name="newPassword" required />
+                <span class="error-message"></span>
+            </div>
+            <div class="input-field">
+                <label for="confirmPassword">Confirm New Password</label>
+                <input type="password" id="confirmPassword" name="confirmPassword" required />
+                <span class="error-message"></span>
+            </div>
+            <button class="glass glass-btn glass-btn--primary" type="submit">Update</button>
+        </form>
+    </div>
