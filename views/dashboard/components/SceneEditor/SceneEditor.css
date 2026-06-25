@@ -13,7 +13,8 @@
 
 /* Timeline Pane */
 .scene-tree-pane {
-    flex: 0 0 350px !important; /* Fixed width, no grow, no shrink */
+    flex: 0 0 350px !important;
+    /* Fixed width, no grow, no shrink */
     background: var(--glass-white) !important;
     backdrop-filter: var(--blur-md);
     -webkit-backdrop-filter: var(--blur-md);
@@ -28,7 +29,8 @@
 
 /* Props Pane */
 .scene-props-pane {
-    flex: 1 1 0% !important; /* Use 0% basis to force flex-grow constraint */
+    flex: 1 1 0% !important;
+    /* Use 0% basis to force flex-grow constraint */
     min-width: 0;
     background: var(--glass-white) !important;
     backdrop-filter: var(--blur-md);
@@ -55,11 +57,13 @@
     flex: 0 0 auto;
 }
 
-#sceneItemEditor, 
+#sceneItemEditor,
 #sceneItemPlaceholder {
     flex: 1 1 0% !important;
-    height: 0; /* Force flex-grow to define height */
-    max-height: 90dvh !important; /* Failsafe height constraint for scrolling */
+    height: 0;
+    /* Force flex-grow to define height */
+    max-height: 90dvh !important;
+    /* Failsafe height constraint for scrolling */
     overflow-y: auto !important;
     padding: var(--space-lg);
     box-sizing: border-box;
@@ -67,7 +71,8 @@
 
 #sceneItemForm {
     display: block;
-    padding-bottom: 100px; /* Massive buffer to ensure scroll to bottom */
+    padding-bottom: 100px;
+    /* Massive buffer to ensure scroll to bottom */
 }
 
 /* Timeline Items */
@@ -243,8 +248,15 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 
@@ -389,8 +401,15 @@
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; transform: translateY(4px); }
-    to { opacity: 1; transform: translateY(0); }
+    from {
+        opacity: 0;
+        transform: translateY(4px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
 }
 
 
@@ -414,7 +433,8 @@
 /* Premium Glass Toggle Styling */
 .glass-toggle {
     display: inline-flex !important;
-    background: rgba(0, 0, 0, 0.15) !important; /* Semi-dark track for contrast in light theme */
+    background: rgba(0, 0, 0, 0.15) !important;
+    /* Semi-dark track for contrast in light theme */
     border: 1px solid rgba(0, 0, 0, 0.08) !important;
     border-radius: 9999px !important;
     padding: 3px !important;
@@ -442,8 +462,10 @@
 }
 
 .glass-toggle__opt.is-on {
-    background: rgba(255, 255, 255, 0.85) !important; /* Bright white pill selector */
-    color: var(--accent-aqua) !important; /* Accent color text for active state */
+    background: rgba(255, 255, 255, 0.85) !important;
+    /* Bright white pill selector */
+    color: var(--accent-aqua) !important;
+    /* Accent color text for active state */
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12) !important;
 }
 
@@ -508,30 +530,6 @@
     justify-content: flex-end;
 }
 
-/* Page Readiness Monitor custom overrides */
-.readiness-monitor h5 {
-    margin-left: 5px;
-}
-
-.readiness-monitor .glass-stepper--vertical {
-    padding: 0 5px;
-}
-
-.step-clickable {
-    cursor: pointer;
-    transition: opacity 0.15s;
-}
-
-.step-clickable:hover {
-    opacity: 0.75;
-}
-
-.step-action-hint {
-    font-size: 0.6rem;
-    color: var(--cyber-primary, #00ccff);
-    margin-top: 3px;
-    letter-spacing: 0.03em;
-}
 
 /* Geometry Item lists and floating styling */
 .geometry-item.is-floating {
@@ -589,7 +587,7 @@
     gap: 8px;
     padding: 12px 10px;
     border-top: 1px solid var(--border);
-    background: var(--glass-bg, rgba(0,0,0,0.2));
+    background: var(--glass-bg, rgba(0, 0, 0, 0.2));
     flex-shrink: 0;
 }
 
@@ -643,7 +641,48 @@
     opacity: 0.4;
 }
 
+/* Sidebar Tab Switching */
+.editor-tabs {
+    border-bottom: 1px solid var(--glass-border);
+    margin-bottom: 15px;
+}
+
+.tab-btn {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 10px 0;
+    text-align: center;
+    font-weight: bold;
+    color: var(--color-text-muted);
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s ease;
+}
+
+.tab-btn:hover {
+    color: var(--color-text);
+}
+
+.tab-btn.active {
+    color: var(--accent-aqua) !important;
+    border-bottom: 2px solid var(--accent-aqua) !important;
+}
+
+/* Timeline */
+.timeline-container {
+    min-height: 0;
+    flex: 1;
+    padding-right: 5px;
+}
+
+.timeline-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
 .pos-relative {
     position: relative;
 }
-

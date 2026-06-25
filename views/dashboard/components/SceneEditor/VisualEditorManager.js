@@ -1,7 +1,7 @@
 // views/dashboard/components/SceneEditor/VisualEditorManager.js
 import { fetchMedia, saveSceneData } from '../../studio/api/StudioClient.js';
 import { openFileBrowser } from '../FileBrowser/FileBrowser.js';
-import { renderPanelSettings, renderAllPanelsTemplate, renderReadinessStepperTemplate } from './VisualEditorUI.js';
+import { renderPanelSettings, renderAllPanelsTemplate } from './VisualEditorUI.js';
 import { renderDialogueProperties } from './VisualEditorDialogueUI.js';
 import { pushPanelSelect, syncPreviewLive, pushMediaPersisted, pushSceneUpdate } from './VisualEditorSync.js';
 import { VisualEditorAssetManager } from './VisualEditorAssetManager.js';
@@ -23,6 +23,7 @@ export class VisualEditorManager {
         this.currentVisualContext = {}; // { volume, chapter, pageId }
         this.selectedPanelSelector = null;
         this.isSpread = false;
+        this.activeTab = 'panels';
 
         // Initialize Asset Manager
         this.assetManager = new VisualEditorAssetManager(this.currentVisualContext, this.currentVisualMediaData, this.activeSeriesId);
@@ -166,62 +167,84 @@ export class VisualEditorManager {
         }
     }
 
-    renderReadinessStepper(panelNames) {
-        const stats = {
-            assets: { count: 0, total: panelNames.length, complete: false },
-            ai: { count: 0, total: panelNames.length, complete: false },
-            continuity: { hasScene: false, complete: false }
-        };
-
-        // 1. Assets Check
-        panelNames.forEach(p => {
-            const entry = this.currentVisualMediaData.find(m => m.panel === p);
-            if (entry && entry.fileName) stats.assets.count++;
-        });
-        stats.assets.complete = stats.assets.count >= stats.assets.total && stats.assets.total > 0;
-
-        // 2. AI Check
-        panelNames.forEach(p => {
-            const entry = this.currentVisualMediaData.find(m => m.panel === p);
-            if (entry && entry.description && entry.description.trim().length > 10) stats.ai.count++;
-        });
-        stats.ai.complete = stats.ai.count >= stats.ai.total && stats.ai.total > 0;
-
-        // 3. Continuity Check
-        const sceneData = this.getActiveSceneData ? this.getActiveSceneData() : [];
-        stats.continuity.hasScene = sceneData.length > 0;
-        stats.continuity.complete = stats.continuity.hasScene && stats.assets.complete && stats.ai.complete;
-
-        return renderReadinessStepperTemplate(stats);
-    }
-
     renderDirectory(panelNames) {
-        this._panelNames = panelNames;
-
-        const stepperHtml = this.renderReadinessStepper(panelNames);
-        const panelsHtml = renderAllPanelsTemplate(
-            panelNames,
-            this.currentVisualMediaData,
-            this.activeSeriesFolder,
-            this.activeSeriesId,
-            this.currentVisualContext,
-            this.isSpread
-        );
-
-        this.toolsPane.innerHTML = `
-            <div class="tab-content fade-in">
-                ${stepperHtml}
-                <div class="flex-row justify-between align-center padding-b-10 border-dim-bottom margin-b-15">
-                    <h5 class="text-accent margin-0 uppercase font-size-07">Dialogue</h5>
-                    <div class="glass-tooltip-wrap">
-                        <button id="addItemBtn" class="glass glass-btn glass-btn--sm glass-btn--primary">+ Add Dialogue</button>
-                        <div class="glass glass--dark glass-tooltip">Add SpeechBubble, TextBlock, or Pause to page</div>
-                    </div>
-                </div>
-                ${panelsHtml}
+        // Tab switching header
+        const tabsHtml = `
+            <div class="editor-tabs flex-row border-dim-bottom margin-b-15">
+                <button class="tab-btn flex-1 padding-y-10 text-center font-weight-bold ${this.activeTab === 'panels' ? 'active' : ''}" data-tab="panels">Panels</button>
+                <button class="tab-btn flex-1 padding-y-10 text-center font-weight-bold ${this.activeTab === 'timeline' ? 'active' : ''}" data-tab="timeline">Timeline</button>
             </div>
         `;
-        this.bindDirectoryEvents();
+
+        if (this.activeTab === 'panels') {
+            const panelsHtml = renderAllPanelsTemplate(
+                panelNames,
+                this.currentVisualMediaData,
+                this.activeSeriesFolder,
+                this.activeSeriesId,
+                this.currentVisualContext,
+                this.isSpread
+            );
+
+            this.toolsPane.innerHTML = `
+                ${tabsHtml}
+                <div class="tab-content fade-in">
+                    ${panelsHtml}
+                </div>
+            `;
+            this.bindDirectoryEvents();
+        } else {
+            this.toolsPane.innerHTML = `
+                ${tabsHtml}
+                <div class="tab-content fade-in">
+                    <div class="flex-row justify-between align-center margin-b-15">
+                        <h4 class="margin-0">Timeline</h4>
+                        <div class="glass-tooltip-wrap">
+                            <button id="addItemBtn" class="glass glass-btn glass-btn--sm glass-btn--primary">+ Add Dialogue</button>
+                            <div class="glass glass--dark glass-tooltip">Add SpeechBubble, TextBlock, or Pause to page</div>
+                        </div>
+                    </div>
+                    <div class="timeline-container">
+                        <ul id="sceneTreeList" class="scene-list timeline-list"></ul>
+                    </div>
+                </div>
+            `;
+
+            // Populate timeline data
+            if (this.timeline) {
+                const sceneData = this.getActiveSceneData();
+                this.timeline.setData(sceneData, this.properties?.availableCharacters);
+            }
+
+            this.bindTimelineTabEvents();
+        }
+
+        this.bindTabClickEvents();
+    }
+
+    bindTabClickEvents() {
+        const tabs = this.toolsPane.querySelectorAll('.tab-btn');
+        tabs.forEach(tab => {
+            tab.onclick = () => {
+                const selectedTab = tab.dataset.tab;
+                if (this.activeTab !== selectedTab) {
+                    this.activeTab = selectedTab;
+                    const iframe = document.getElementById('pagePreviewFrame');
+                    const panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
+                    this.renderDirectory(panelNames);
+                }
+            };
+        });
+    }
+
+    bindTimelineTabEvents() {
+        const addBtn = document.getElementById('addItemBtn');
+        if (addBtn) {
+            addBtn.onclick = (e) => {
+                e.stopPropagation();
+                this.showAddDialoguePopover(addBtn);
+            };
+        }
     }
 
     showAddDialoguePopover(anchorEl) {
@@ -316,7 +339,12 @@ export class VisualEditorManager {
         
         sceneData.push(newItem);
 
-        this.selectSceneItem(sceneData.length - 1);
+        // Update Timeline
+        if (this.timeline) {
+            this.timeline.setData(sceneData, this.properties?.availableCharacters);
+            const newIndex = sceneData.length - 1;
+            this.selectSceneItem(newIndex);
+        }
 
         // Notify preview iframe
         const iframe = document.getElementById('pagePreviewFrame');
@@ -329,6 +357,10 @@ export class VisualEditorManager {
         const sceneData = this.getActiveSceneData();
         const item = sceneData[index];
         if (!item) return;
+
+        if (this.timeline) {
+            this.timeline.setSelectedIndex(index);
+        }
 
         this.showDialogueProperties(item, this.properties, async () => {
             await saveSceneData(this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, sceneData, this.activeSeriesId);
@@ -455,18 +487,6 @@ export class VisualEditorManager {
                     syncBtn.disabled = false;
                     syncBtn.innerHTML = originalText;
                 }
-            };
-        }
-
-        pane.querySelectorAll('[data-step-action]').forEach(step => {
-            step.onclick = () => this.handleStepAction(step.dataset.stepAction);
-        });
-
-        const addItemBtn = document.getElementById('addItemBtn');
-        if (addItemBtn) {
-            addItemBtn.onclick = (e) => {
-                e.stopPropagation();
-                this.showAddDialoguePopover(addItemBtn);
             };
         }
 
@@ -791,49 +811,6 @@ export class VisualEditorManager {
             }
         } catch (err) { 
             if (window.GlassToast) window.GlassToast.show('error', 'Error', err.message);
-        }
-    }
-
-    handleStepAction(action) {
-        const panelNames = this._panelNames || [];
-
-        if (action === 'fix-assets') {
-            const missing = panelNames.find(p => !this.currentVisualMediaData.find(m => m.panel === p && m.fileName));
-            if (missing) {
-                this.renderPanelEditor(missing);
-            } else {
-                if (window.GlassToast) window.GlassToast.show('info', 'All Good', 'All panels already have assets assigned.');
-            }
-        } else if (action === 'fix-intelligence') {
-            this.triggerBulkAiScan();
-        } else if (action === 'fix-continuity') {
-            const addBtn = document.getElementById('addItemBtn');
-            if (addBtn) this.showAddDialoguePopover(addBtn);
-        }
-    }
-
-    async triggerBulkAiScan() {
-        if (!window.AI_CONFIG?.visionEnabled) {
-            if (window.GlassToast) window.GlassToast.show('info', 'AI Disabled', 'Enable Gemini Vision in Library Settings to use AI scanning.');
-            return;
-        }
-        const { volume, chapter, pageId } = this.currentVisualContext;
-        try {
-            const res = await fetch('/api/vision/scan', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    force: false,
-                    scope: { seriesId: this.activeSeriesId, volume, chapter, pageId }
-                })
-            });
-            if (!res.ok) {
-                const errData = await res.json().catch(() => ({}));
-                throw new Error(errData.message || 'Scan request failed');
-            }
-            if (window.GlassToast) window.GlassToast.show('info', 'AI Scan Started', 'Scanning panels missing descriptions — the stepper updates as each panel completes.');
-        } catch (err) {
-            if (window.GlassToast) window.GlassToast.show('error', 'Scan Failed', err.message);
         }
     }
 
