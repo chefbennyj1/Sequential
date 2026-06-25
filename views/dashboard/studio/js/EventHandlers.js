@@ -333,7 +333,7 @@ export function initEventHandlers(container, allSections) {
         }
         if (e.target.id === 'editPageSelect') {
             if (window.EDITOR_SESSION) window.EDITOR_SESSION.pageId = e.target.value;
-            if (e.target.value) loadSelectedPage();
+            if (e.target.value && e.isTrusted) loadSelectedPage();
         }
         if (e.target.id === 'editVolumeSelect') {
             populateChapterSelect(e.target.value, 'editChapterSelect', false);
