@@ -9,7 +9,6 @@ import { populateSeriesSelect } from './studio/js/LibraryManager.js';
 import { setActivePage, restoreLastActivePage } from './studio/js/PageConfigManager.js';
 import {
     initSceneEditor,
-    openSceneEditor,
     openVisualEditor
 } from './components/SceneEditor/SceneEditor.js';
 import { initFileBrowser } from './components/FileBrowser/FileBrowser.js';
@@ -56,7 +55,6 @@ export async function init(container) {
 
     // --- Register Navigation Handlers ---
     registerNavigationHandlers({
-        openSceneEditor,
         openVisualEditor,
         setActivePage
     });

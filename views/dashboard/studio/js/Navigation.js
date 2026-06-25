@@ -1,7 +1,6 @@
 // views/dashboard/js/Navigation.js
 
-import { openSceneEditor } from '../../components/SceneEditor/SceneEditor.js';
-import { openVisualEditor } from '../../components/SceneEditor/SceneEditor.js'; // Assuming Visual Editor logic might live here or handled in Main for now
+import { openVisualEditor } from '../../components/SceneEditor/SceneEditor.js';
 import { populateVolumeSelect, populateLayoutSelect } from './LibraryManager.js';
 import { setActivePage } from './PageConfigManager.js';
 import { switchToSection } from './EventHandlers.js';
@@ -58,9 +57,7 @@ export async function restoreStateFromUrl(container) {
             console.log(`[Navigation] Deep-linking into: ${tab} (${vol}/${chap}/${page})`);
             
             // Dispatch to registered handlers immediately (The UI is now ready)
-            if (tab === 'scene-editor') {
-                openSceneEditor(vol, chap, page, 'portrait', series);
-            } else if (tab === 'layout-editor') {
+            if (tab === 'layout-editor') {
                 openVisualEditor(vol, chap, page, 'portrait', series, seriesFolder);
             } else if (tab === 'page-builder' && _handlers.setActivePage) {
                 _handlers.setActivePage(vol, chap, page, series, seriesFolder);
