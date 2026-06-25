@@ -8,7 +8,7 @@ const { decrypt } = require("../../utils/encryption");
 
 class GeminiVisionService {
     constructor() {
-        this.modelName = "gemini-1.5-flash"; 
+        this.modelName = "gemini-1.5-flash";
     }
 
     async getClient() {
@@ -50,27 +50,38 @@ class GeminiVisionService {
         try {
             const genAI = await this.getClient();
             const settings = await GlobalSettings.findOne({ key: "main" });
-            
+
             // Dynamically fetch the user's preferred model, fallback to the 2026 stable default
-            const targetModel = (settings && settings.vision && settings.vision.modelName) 
-                ? settings.vision.modelName 
+            const targetModel = (settings && settings.vision && settings.vision.modelName)
+                ? settings.vision.modelName
                 : "gemini-flash-latest";
 
-            const model = genAI.getGenerativeModel({ 
-                model: targetModel 
+            const model = genAI.getGenerativeModel({
+                model: targetModel
             });
-            
+
             // Build the final prompt with context injection
             let finalPrompt = "";
             if (context) {
                 finalPrompt += context + "\n\n";
             }
-            
-            finalPrompt += customPrompt || (settings?.vision?.systemPrompt) || `Analyze this comic panel in a "Seinen Noir" style (like Ghost in the Shell or Arcane).
-            Return a JSON object with:
-            - description: A detailed 2-3 sentence description of the action and atmosphere.
-            - alt: A concise summary for accessibility.
-            - hashtags: An array of 5-7 thematic hashtags including #NoOverflow.`;
+
+            finalPrompt += customPrompt || (settings?.vision?.systemPrompt) || `You are a screenplay writer working on "No Overflow" — a Seinen Noir graphic novel in the tradition of Ghost in the Shell and Arcane.
+
+Write each panel description as a SCREENPLAY ACTION LINE. Use present tense, active voice. Lead with the character by name when they are present. Describe what is HAPPENING and what it MEANS emotionally or narratively — not the camera angle, not the lighting style, not the visual composition.
+
+BAD: "A high-contrast close-up of a woman with a black hime-cut bob staring forward intensely against a dark background, illuminated by dramatic rim lighting."
+GOOD: "Rin doesn't look away. Her hand has already found the grip of her pistol."
+
+BAD: "In a dramatic low-angle shot, Doctor Blackwell stands in front of glowing holographic displays, his wild white hair prominent."
+GOOD: "Blackwell surveys his work. Whatever the Board thinks they're funding, he has already moved past it."
+
+If the panel is purely establishing (a cityscape, an empty room), describe what the environment TELLS US about the world — mood, power, decay, danger.
+
+Return a JSON object with:
+- description: 1-3 screenplay action lines. Write for a reader, not a camera operator. Do not mention lighting, shot framing, or art style.
+- alt: A single plain-language sentence describing what is shown, for accessibility.
+- hashtags: An array of 5-7 thematic hashtags including #NoOverflow.`;
 
             // Detect MIME type based on extension
             const ext = path.extname(imagePath).toLowerCase().replace('.', '');
@@ -81,7 +92,7 @@ class GeminiVisionService {
                 {
                     inlineData: {
                         data: imageBuffer.toString("base64"),
-                        mimeType: mimeType || "image/png", 
+                        mimeType: mimeType || "image/png",
                     },
                 },
             ];
@@ -91,7 +102,7 @@ class GeminiVisionService {
             const result = await model.generateContent([finalPrompt, ...imageParts], { timeout: 60000 });
             const response = await result.response;
             const text = response.text();
-            
+
             console.log(`[GeminiVision] Raw AI Response for ${path.basename(imagePath)}:`, text);
 
             try {
@@ -99,7 +110,7 @@ class GeminiVisionService {
                 const jsonMatch = text.match(/\{[\s\S]*\}/);
                 const jsonStr = jsonMatch ? jsonMatch[0] : text;
                 const parsed = JSON.parse(jsonStr);
-                
+
                 console.log(`[GeminiVision] Successfully parsed JSON for ${path.basename(imagePath)}:`, JSON.stringify(parsed, null, 2));
                 return parsed;
             } catch (e) {
