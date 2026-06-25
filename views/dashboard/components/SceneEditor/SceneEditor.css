@@ -613,6 +613,22 @@
     padding: 0 5px;
 }
 
+.step-clickable {
+    cursor: pointer;
+    transition: opacity 0.15s;
+}
+
+.step-clickable:hover {
+    opacity: 0.75;
+}
+
+.step-action-hint {
+    font-size: 0.6rem;
+    color: var(--cyber-primary, #00ccff);
+    margin-top: 3px;
+    letter-spacing: 0.03em;
+}
+
 /* Geometry Item lists and floating styling */
 .geometry-item.is-floating {
     border-color: var(--accent) !important;

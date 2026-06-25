@@ -197,6 +197,8 @@ export class VisualEditorManager {
     }
 
     renderDirectory(panelNames) {
+        this._panelNames = panelNames;
+
         // Tab switching header
         const tabsHtml = `
             <div class="editor-tabs flex-row border-dim-bottom margin-b-15">
@@ -521,6 +523,10 @@ export class VisualEditorManager {
             };
         }
 
+        pane.querySelectorAll('[data-step-action]').forEach(step => {
+            step.onclick = () => this.handleStepAction(step.dataset.stepAction);
+        });
+
         const spreadToggleGroup = document.getElementById('spreadToggleGroup');
         if (spreadToggleGroup) {
             spreadToggleGroup.onclick = async (e) => {
@@ -842,6 +848,49 @@ export class VisualEditorManager {
             }
         } catch (err) { 
             if (window.GlassToast) window.GlassToast.show('error', 'Error', err.message);
+        }
+    }
+
+    handleStepAction(action) {
+        const panelNames = this._panelNames || [];
+
+        if (action === 'fix-assets') {
+            const missing = panelNames.find(p => !this.currentVisualMediaData.find(m => m.panel === p && m.fileName));
+            if (missing) {
+                this.renderPanelEditor(missing);
+            } else {
+                if (window.GlassToast) window.GlassToast.show('info', 'All Good', 'All panels already have assets assigned.');
+            }
+        } else if (action === 'fix-intelligence') {
+            this.triggerBulkAiScan();
+        } else if (action === 'fix-continuity') {
+            this.activeTab = 'timeline';
+            this.renderDirectory(panelNames);
+        }
+    }
+
+    async triggerBulkAiScan() {
+        if (!window.AI_CONFIG?.visionEnabled) {
+            if (window.GlassToast) window.GlassToast.show('info', 'AI Disabled', 'Enable Gemini Vision in Library Settings to use AI scanning.');
+            return;
+        }
+        const { volume, chapter, pageId } = this.currentVisualContext;
+        try {
+            const res = await fetch('/api/vision/scan', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    force: false,
+                    scope: { seriesId: this.activeSeriesId, volume, chapter, pageId }
+                })
+            });
+            if (!res.ok) {
+                const errData = await res.json().catch(() => ({}));
+                throw new Error(errData.message || 'Scan request failed');
+            }
+            if (window.GlassToast) window.GlassToast.show('info', 'AI Scan Started', 'Scanning panels missing descriptions — the stepper updates as each panel completes.');
+        } catch (err) {
+            if (window.GlassToast) window.GlassToast.show('error', 'Scan Failed', err.message);
         }
     }
 

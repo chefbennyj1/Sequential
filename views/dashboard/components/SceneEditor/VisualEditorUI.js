@@ -12,34 +12,40 @@ export function renderReadinessStepperTemplate(stats) {
     return `
         <div class="glass glass--bright padding-20 border-radius-12 margin-b-20 readiness-monitor">
             <h5 class="text-accent uppercase font-size-07 margin-b-15 letter-spacing-1">Page Readiness Monitor</h5>
-            
+
             <div class="glass-stepper glass-stepper--vertical">
                 <!-- Step 1: Assets -->
-                <div class="glass-step ${assets.complete ? 'is-complete' : 'is-active'}">
+                <div class="glass-step ${assets.complete ? 'is-complete' : 'is-active step-clickable'}"
+                     ${!assets.complete ? 'data-step-action="fix-assets"' : ''}>
                     <div class="glass-step__node">${assets.complete ? '✓' : '1'}</div>
                     <div class="glass-step__inner">
                         <div class="glass-step__label">Assets</div>
                         <div class="text-muted font-size-06">${assets.count}/${assets.total} Panels have images</div>
+                        ${!assets.complete ? '<div class="step-action-hint">→ Go to first missing panel</div>' : ''}
                     </div>
                     <div class="glass-step__connector"></div>
                 </div>
 
                 <!-- Step 2: Intelligence -->
-                <div class="glass-step ${ai.complete ? 'is-complete' : (assets.complete ? 'is-active' : '')}">
+                <div class="glass-step ${ai.complete ? 'is-complete' : (assets.complete ? 'is-active' : '')} ${!ai.complete ? 'step-clickable' : ''}"
+                     ${!ai.complete ? 'data-step-action="fix-intelligence"' : ''}>
                     <div class="glass-step__node">${ai.complete ? '✓' : '2'}</div>
                     <div class="glass-step__inner">
                         <div class="glass-step__label">Intelligence</div>
                         <div class="text-muted font-size-06">${ai.count}/${ai.total} Gemini descriptions</div>
+                        ${!ai.complete ? '<div class="step-action-hint">→ Scan all missing panels</div>' : ''}
                     </div>
                     <div class="glass-step__connector"></div>
                 </div>
 
                 <!-- Step 3: Continuity -->
-                <div class="glass-step ${continuity.complete ? 'is-complete' : (ai.complete ? 'is-active' : '')}">
+                <div class="glass-step ${continuity.complete ? 'is-complete' : (ai.complete ? 'is-active' : '')} ${!continuity.complete ? 'step-clickable' : ''}"
+                     ${!continuity.complete ? 'data-step-action="fix-continuity"' : ''}>
                     <div class="glass-step__node">${continuity.complete ? '✓' : '3'}</div>
                     <div class="glass-step__inner">
                         <div class="glass-step__label">Continuity</div>
                         <div class="text-muted font-size-06">${continuity.hasScene ? 'Dialogue Layer Active' : 'No Dialogue Found'}</div>
+                        ${!continuity.complete ? '<div class="step-action-hint">→ Open Timeline</div>' : ''}
                     </div>
                 </div>
             </div>
