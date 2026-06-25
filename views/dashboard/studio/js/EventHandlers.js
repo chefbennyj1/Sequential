@@ -46,6 +46,7 @@ export async function switchToSection(targetPage, container) {
             if (node) mountPoint.appendChild(node);
             _loadedSections.add(targetPage);
             console.log(`[Dashboard] Fragment loaded and mounted: ${targetPage}`);
+            container.dispatchEvent(new CustomEvent('fragmentLoaded', { detail: { section: targetPage } }));
         } catch (err) {
             console.error(`[Dashboard] Failed to fetch fragment for '${targetPage}':`, err);
             return;

@@ -61,19 +61,40 @@ export async function init(container) {
         setActivePage
     });
 
-    // --- Initialize Refactored Sub-Systems ---
+    // --- Initialize Base Event Handlers ---
     initEventHandlers(container, allSections);
-    initFormHandlers(container);
-    initExportManager(container);
 
-    // Initialize UI Sub-Systems
-    try { initFileBrowser(); } catch (e) { console.error("FileBrowser init failed", e); }
-    try { initSceneEditor(); } catch (e) { console.error("SceneEditor init failed", e); }
-    try { new CharacterEditor(container); } catch (e) { console.error("CharacterEditor init failed", e); }
-    try { new ScheduledTaskView(); } catch (e) { console.error("ScheduledTaskView init failed", e); }
-    try { initPlotLab(container); } catch (e) { console.error("PlotLab init failed", e); }
-    try { initStoryCritic(container); } catch (e) { console.error("StoryCritic init failed", e); }
-    try { initStyleLab(container); } catch (e) { console.error("StyleLab init failed", e); }
+    // --- Lazy Initialize Sub-Systems when fragments load ---
+    container.addEventListener('fragmentLoaded', (e) => {
+        const section = e.detail.section;
+        console.log(`[Dashboard] Initializing sub-system for: ${section}`);
+        
+        if (['create-new-volume', 'create-new-chapter', 'edit-volume', 'library-settings', 'page-builder'].includes(section)) {
+            try { initFormHandlers(container); } catch (err) { console.error("FormHandlers init failed", err); }
+        }
+        if (section === 'export-tool') {
+            try { initExportManager(container); } catch (err) { console.error("ExportManager init failed", err); }
+        }
+        if (section === 'layout-editor' || section === 'page-builder') {
+             try { initSceneEditor(); } catch (err) { console.error("SceneEditor init failed", err); }
+             try { initFileBrowser(); } catch (err) { console.error("FileBrowser init failed", err); }
+        }
+        if (section === 'characters') {
+             try { new CharacterEditor(container); } catch (err) { console.error("CharacterEditor init failed", err); }
+        }
+        if (section === 'scheduled-tasks') {
+             try { new ScheduledTaskView(); } catch (err) { console.error("ScheduledTaskView init failed", err); }
+        }
+        if (section === 'plot-lab') {
+             try { initPlotLab(container); } catch (err) { console.error("PlotLab init failed", err); }
+        }
+        if (section === 'story-critic') {
+             try { initStoryCritic(container); } catch (err) { console.error("StoryCritic init failed", err); }
+        }
+        if (section === 'style-lab') {
+             try { initStyleLab(container); } catch (err) { console.error("StyleLab init failed", err); }
+        }
+    });
 
     // Inject PlotLab CSS
     if (!document.querySelector(`link[href="/views/dashboard/components/PlotLab/PlotLab.css"]`)) {
