@@ -42,8 +42,10 @@ export async function switchToSection(targetPage, container) {
             const html = await res.text();
             const temp = document.createElement('div');
             temp.innerHTML = html.trim();
-            const node = temp.firstElementChild;
-            if (node) mountPoint.appendChild(node);
+            // Append ALL top-level nodes — fragments can have multiple sibling roots
+            const docFrag = document.createDocumentFragment();
+            while (temp.firstChild) docFrag.appendChild(temp.firstChild);
+            mountPoint.appendChild(docFrag);
             _loadedSections.add(targetPage);
             console.log(`[Dashboard] Fragment loaded and mounted: ${targetPage}`);
             container.dispatchEvent(new CustomEvent('fragmentLoaded', { detail: { section: targetPage } }));
