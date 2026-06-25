@@ -664,7 +664,13 @@
 }
 
 .dialogue-editor-footer {
-    padding: 10px;
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    padding: 12px 10px;
+    border-top: 1px solid var(--border);
+    background: var(--glass-bg, rgba(0,0,0,0.2));
+    flex-shrink: 0;
 }
 
 /* Palette Swatches */
