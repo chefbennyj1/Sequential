@@ -1,23 +1,23 @@
-@import url('https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400..900&family=Oswald:wght@200..700&display=swap');
+/* @import url('https://fonts.googleapis.com/css2?family=Michroma&family=Orbitron:wght@400..900&family=Oswald:wght@200..700&display=swap'); */
 
 :root {
-  --font-family-comic: "Comic Book", cursive;
-  --font-family-comic-bold: "Comic Book Bold", cursive;
-  --font-family-comic-italic: "Comic Book Italic", cursive;
-  --font-family-comic-bold-italic: "Comic Book Bold Italic", cursive;
+    --font-family-comic: "Comic Book", cursive;
+    --font-family-comic-bold: "Comic Book Bold", cursive;
+    --font-family-comic-italic: "Comic Book Italic", cursive;
+    --font-family-comic-bold-italic: "Comic Book Bold Italic", cursive;
 
-  --font-family-mangat: "Mangat", sans-serif;
-  --font-family-mangat-bold: "Mangat Bold", sans-serif;
-  --font-family-mangat-italic: "Mangat Italic", sans-serif;
+    --font-family-mangat: "Mangat", sans-serif;
+    --font-family-mangat-bold: "Mangat Bold", sans-serif;
+    --font-family-mangat-italic: "Mangat Italic", sans-serif;
 
-  --font-family-display: "Michroma", sans-serif;
-  --font-family-accent: "Orbitron", sans-serif;
-  --font-family-sans-serif: "Oswald", sans-serif;
+    --font-family-display: "Michroma", sans-serif;
+    --font-family-accent: "Orbitron", sans-serif;
+    --font-family-sans-serif: "Oswald", sans-serif;
 
-  --font-family-Press-Start-2P: "Press Start 2P", cursive;
+    --font-family-Press-Start-2P: "Press Start 2P", cursive;
 
-  --font-family-kablam: "Ka Blam", sans-serif;
-  --font-family-kablam-under: "Ka Blam Under", sans-serif;
+    --font-family-kablam: "Ka Blam", sans-serif;
+    --font-family-kablam-under: "Ka Blam Under", sans-serif;
 }
 
 @font-face {
@@ -62,12 +62,12 @@
 
 @font-face {
     font-family: "Ka Blam";
-    src: url("/views/shared/styles/fonts/Ka%20Blam.ttf") format("truetype");
+    src: url("/views/shared/styles/fonts/KaBlam.ttf") format("truetype");
     font-display: swap;
 }
 
 @font-face {
     font-family: "Ka Blam Under";
-    src: url("/views/shared/styles/fonts/Ka%20Blam%20Under.ttf") format("truetype");
+    src: url("/views/shared/styles/fonts/KaBlamUnder.ttf") format("truetype");
     font-display: swap;
 }
