@@ -299,10 +299,7 @@ body {
 }
 
 #logo-svg-container #logo-svg {
-    height: 160px;
-    width: 160px;
     display: block;
-    overflow: hidden;
     filter: drop-shadow(0 0 12px rgba(23, 158, 199, 0.55));
 }
 
