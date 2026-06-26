@@ -140,3 +140,28 @@ function loginButton() {
     })
   }
 }
+
+export function animateLogo() {
+    const path = document.getElementById('logo-path');
+    if (!path || typeof gsap === 'undefined') return;
+
+    const len = path.getTotalLength();
+    gsap.set(path, { strokeDasharray: len, strokeDashoffset: len });
+
+    gsap.timeline()
+        .to(path, {
+            strokeDashoffset: 0,
+            duration: 2.4,
+            ease: 'power2.inOut'
+        })
+        .to(path, {
+            fillOpacity: 1,
+            duration: 0.7,
+            ease: 'power2.in'
+        }, '-=0.5')
+        .to(path, {
+            strokeOpacity: 0,
+            duration: 0.5,
+            ease: 'power1.out'
+        }, '-=0.5');
+}

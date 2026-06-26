@@ -263,18 +263,12 @@ body {
     }
 }
 
-#logo {
-    /* animation: flicker 1.5s infinite alternate; */
-    font-size: 2.1em;
-    padding: 0.5em;
-    background: linear-gradient(185deg, #0a4a6e 0%, #0a4a6e 50%, var(--neon-text-color-blue) 50%, var(--neon-text-color-blue) 100%);
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-    color: transparent;
-    display: inline-block;
-    text-stroke: 2px black;
-    -webkit-text-stroke: 2px black;
+#logo-svg {
+    height: 160px;
+    width: auto;
+    display: block;
+    overflow: visible;
+    filter: drop-shadow(0 0 12px rgba(23, 158, 199, 0.55));
 }
 
 #subtitle {

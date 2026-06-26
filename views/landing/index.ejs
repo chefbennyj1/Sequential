@@ -44,7 +44,7 @@
   <script type="module">
 
     import { loadSection } from '/services/public/PageManager.js';
-    import { init as landingPageInit } from '/views/landing/landingPage.js';
+    import { init as landingPageInit, animateLogo } from '/views/landing/landingPage.js';
     import { imageMaskReveal, loadCSS, loadScript } from '/libs/Utility.js';
 
 
@@ -81,6 +81,8 @@
             loader.classList.add("hidden");
           }
         });
+
+        setTimeout(() => animateLogo(), 300);
 
         const landingPage = document.querySelector('.landing-page');
         landingPage.classList.add('active');
