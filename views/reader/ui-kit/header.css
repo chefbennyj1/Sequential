@@ -98,3 +98,59 @@ header .page-nav-buttons {
 #logo {
   display: flex;
 }
+
+/* User profile dropdown */
+header .user-profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  position: relative;
+}
+
+header .user-profile .avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid rgba(0, 0, 0, 0.3);
+}
+
+header .dropdown {
+  display: none;
+  flex-direction: column;
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  min-width: 140px;
+  background: rgba(20, 20, 30, 0.92);
+  border: 2px solid black;
+  box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.8);
+  border-radius: 4px;
+  z-index: 2000;
+  overflow: hidden;
+}
+
+header .dropdown.show {
+  display: flex;
+}
+
+header .dropdown a,
+header .dropdown button {
+  padding: 10px 14px;
+  color: white;
+  text-decoration: none;
+  font-size: var(--text-sm, 0.8rem);
+  font-family: var(--font-family-comic-bold);
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  width: 100%;
+  letter-spacing: 1px;
+}
+
+header .dropdown a:hover,
+header .dropdown button:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
