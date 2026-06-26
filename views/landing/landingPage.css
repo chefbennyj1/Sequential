@@ -1,3 +1,5 @@
+@import url('/views/shared/styles/fonts.css');
+
 html,
 body {
     overflow: hidden;
@@ -30,6 +32,9 @@ body {
 #loading-logo {
     display: block;
     overflow: visible;
+    position: absolute;
+    height: 50dvh;
+    top: 5%;
     filter: drop-shadow(0 0 16px rgba(23, 158, 199, 0.4));
 }
 
@@ -57,11 +62,11 @@ body {
 }
 
 #enter-btn {
-    display: none;
+    display: block;
     text-decoration: none;
     color: var(--neon-text-color-blue);
     font-family: var(--font-family-kablam);
-    font-size: 1.5rem;
+    font-size: 5.5rem;
     letter-spacing: 2px;
     z-index: 10;
     transition: all 0.3s ease;
