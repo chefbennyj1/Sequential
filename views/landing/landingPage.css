@@ -18,7 +18,19 @@ body {
     align-items: center;
     justify-content: center;
     gap: 24px;
-    background: var(--fade-color);
+    background: #f7efe6;
+}
+
+#logo-svg-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#loading-logo {
+    display: block;
+    overflow: visible;
+    filter: drop-shadow(0 0 16px rgba(23, 158, 199, 0.4));
 }
 
 .initializing-text-container {
@@ -53,6 +65,7 @@ body {
     letter-spacing: 2px;
     z-index: 10;
     transition: all 0.3s ease;
+    padding-top: 15%;
 }
 
 #enter-btn:hover {
