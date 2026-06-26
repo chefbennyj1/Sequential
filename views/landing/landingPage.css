@@ -60,7 +60,7 @@ body {
     display: none;
     text-decoration: none;
     color: var(--neon-text-color-blue);
-    font-family: 'Consolas', monospace;
+    font-family: var(--font-family-kablam);
     font-size: 1.5rem;
     letter-spacing: 2px;
     z-index: 10;
