@@ -5,6 +5,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link rel="preload" href="/views/shared/styles/fonts/KaBlam.ttf" as="font" type="font/ttf" crossorigin>
+  <link rel="preload" href="/views/shared/styles/fonts/KaBlamUnder.ttf" as="font" type="font/ttf" crossorigin>
   <style>
     @font-face {
       font-family: "Ka Blam";
@@ -12,7 +13,12 @@
       font-display: swap;
     }
     :root {
-      --font-family-kablam: "Ka Blam", sans-serif;
+      --font-family-kablam: "Ka Blam Under", sans-serif;
+    }
+    @font-face {
+      font-family: "Ka Blam Under";
+      src: url("/views/shared/styles/fonts/KaBlamUnder.ttf") format("truetype");
+      font-display: swap;
     }
     body {
       overflow: hidden;
