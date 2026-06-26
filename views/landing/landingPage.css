@@ -1,4 +1,8 @@
-@import url('/views/shared/styles/fonts.css');
+@font-face {
+    font-family: "Ka Blam";
+    src: url("/views/shared/styles/fonts/Ka Blam.ttf") format("truetype");
+    font-display: swap;
+}
 
 html,
 body {
@@ -82,6 +86,7 @@ body {
     --fade-color: whitesmoke;
     --neon-text-color-blue: rgb(23, 158, 199);
     --neon-border-color-purple: rgb(199, 10, 206);
+    --font-family-kablam: "Ka Blam", sans-serif;
 }
 
 /* GLOBAL LOGO (e.g. in Header) */
