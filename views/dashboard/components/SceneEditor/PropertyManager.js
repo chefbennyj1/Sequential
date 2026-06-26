@@ -345,32 +345,19 @@ export class PropertyManager {
             tailSkew: this.container.querySelector('#prop-tail-skew').value ? this.container.querySelector('#prop-tail-skew').value + 'deg' : '',
             tailScale: this.container.querySelector('#prop-tail-scale').value
         };
-        if (item.displayType.type === 'Pause') {
-            item.duration = parseInt(this.container.querySelector('#prop-duration').value) || 1000;
-        }
     }
 
     toggleVisibility(type) {
         const groups = {
-            char: this.container.querySelector('.prop-group-character'),
-            text: this.container.querySelector('.prop-group-text'),
-            dur: this.container.querySelector('.prop-group-duration'),
-            place: this.container.querySelector('.props-group'),
             curve: this.container.querySelector('.prop-group-curve'),
             font: this.container.querySelector('.prop-group-font'),
             palette: this.container.querySelector('.palette-extraction-row')
         };
-        const isPause = type === 'Pause';
         const isActionText = (type === 'ActionText' || type === 'SoundEffect');
 
-        if (groups.char) isPause ? groups.char.classList.add('hidden') : groups.char.classList.remove('hidden');
-        if (groups.text) isPause ? groups.text.classList.add('hidden') : groups.text.classList.remove('hidden');
-        if (groups.place) isPause ? groups.place.classList.add('hidden') : groups.place.classList.remove('hidden');
-        if (groups.dur) isPause ? groups.dur.classList.remove('hidden') : groups.dur.classList.add('hidden');
         if (groups.curve) isActionText ? groups.curve.classList.remove('hidden') : groups.curve.classList.add('hidden');
         if (groups.font) isActionText ? groups.font.classList.remove('hidden') : groups.font.classList.add('hidden');
-        
-        // AI Constraint
+
         if (groups.palette) {
             const aiEnabled = window.AI_CONFIG?.visionEnabled;
             (aiEnabled && isActionText) ? groups.palette.classList.remove('hidden') : groups.palette.classList.add('hidden');

@@ -52,7 +52,6 @@ function buildDialogueFormHTML() {
                 <option value="InternalMonologue">TextBlock: Internal Monologue</option>
                 <option value="Dialogue">TextBlock: Dialogue</option>
                 <option value="ActionText">Action Text (Minimal)</option>
-                <option value="Pause">Pause</option>
             </select>
         </div>
         <div class="input-field prop-group-character"><label>Character</label><input type="text" id="prop-character" class="glass-input"></div>
@@ -121,9 +120,6 @@ function buildDialogueFormHTML() {
                 <div class="input-field"><label>Curve H</label><input type="number" id="prop-curve-h" class="glass-input" placeholder="100"></div>
                 <div class="input-field"><label>Rotation</label><input type="number" step="0.1" id="prop-rotation" class="glass-input" placeholder="-20"></div>
             </div>
-        </div>
-        <div class="prop-group-duration hidden">
-            <div class="input-field"><label>Duration (ms)</label><input type="number" id="prop-duration" class="glass-input"></div>
         </div>
     </form>`;
 }

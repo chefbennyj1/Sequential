@@ -201,7 +201,7 @@ export class VisualEditorManager {
                         <h4 class="margin-0">Timeline</h4>
                         <div class="glass-tooltip-wrap">
                             <button id="addItemBtn" class="glass glass-btn glass-btn--sm glass-btn--primary">+ Add Dialogue</button>
-                            <div class="glass glass--dark glass-tooltip">Add SpeechBubble, TextBlock, or Pause to page</div>
+                            <div class="glass glass--dark glass-tooltip">Add SpeechBubble or TextBlock to page</div>
                         </div>
                     </div>
                     <div class="timeline-container">
@@ -277,10 +277,6 @@ export class VisualEditorManager {
                         <ion-icon name="flash-outline"></ion-icon>
                         <span>Action Text</span>
                     </div>
-                    <div class="popover-opt cursor-pointer hover-bright padding-8 border-radius-4 flex-row align-center gap-10" data-type="Pause">
-                        <ion-icon name="pause-circle-outline"></ion-icon>
-                        <span>Pause</span>
-                    </div>
                 </div>
             </div>
         `;
@@ -323,8 +319,6 @@ export class VisualEditorManager {
             displayType = { type: 'TextBlock', style: type };
         } else if (type === 'ActionText') {
             displayType = { type: 'ActionText' };
-        } else if (type === 'Pause') {
-            displayType = { type: 'Pause' };
         }
 
         const newItem = {
@@ -332,7 +326,7 @@ export class VisualEditorManager {
             displayOrder: sceneData.length,
             displayType: displayType,
             character: 'New',
-            text: type === 'Pause' ? '' : 'Text',
+            text: 'Text',
             placement: { panel: '.panel-A', bottom: '2%', left: '2%', right: '2%' },
             mediaAction: []
         };
