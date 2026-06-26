@@ -298,7 +298,17 @@ body {
     }
 }
 
+#logo-svg-container {
+    position: relative;
+}
+
 #logo-svg-container #logo-svg {
+    position: absolute;
+    right: 175%;
+    top: 70%;
+    width: 90px;
+    height: 90px;
+    overflow: visible;
     display: block;
     filter: drop-shadow(0 0 12px rgba(23, 158, 199, 0.55));
 }

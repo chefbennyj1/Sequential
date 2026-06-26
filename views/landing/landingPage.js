@@ -155,9 +155,9 @@ export async function animateLogo() {
 
   svg.setAttribute('id', 'logo-svg');
   svg.setAttribute('viewBox', '-10 -10 420 420');
-  svg.setAttribute('width', '160');
-  svg.setAttribute('height', '160');
-  svg.setAttribute('overflow', 'hidden');
+  svg.setAttribute('width', '90');
+  svg.setAttribute('height', '90');
+  svg.setAttribute('overflow', 'visible');
 
   path.setAttribute('id', 'logo-path');
   path.setAttribute('fill', '#fff');
