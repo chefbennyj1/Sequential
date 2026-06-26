@@ -300,6 +300,8 @@ body {
 
 #logo-svg-container {
     position: relative;
+    height: 90px;
+    width: 90px;
 }
 
 #logo-svg-container #logo-svg {
