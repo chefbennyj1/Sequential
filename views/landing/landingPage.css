@@ -9,6 +9,41 @@ body {
     display: none !important;
 }
 
+#loading-page {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    background: var(--fade-color);
+}
+
+.initializing-text-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+}
+
+.initializing-progress {
+    width: 220px;
+    height: 2px;
+    background: rgba(23, 158, 199, 0.25);
+    border-radius: 2px;
+    overflow: hidden;
+}
+
+.initializing-text {
+    font-family: 'Consolas', monospace;
+    font-size: 0.75rem;
+    letter-spacing: 2px;
+    color: var(--neon-text-color-blue);
+    min-height: 1em;
+}
+
 #enter-btn {
     display: none;
     text-decoration: none;
