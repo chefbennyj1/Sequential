@@ -4,28 +4,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="preload" href="/views/shared/styles/fonts/KaBlam.ttf" as="font" type="font/ttf" crossorigin>
-  <link rel="preload" href="/views/shared/styles/fonts/KaBlamUnder.ttf" as="font" type="font/ttf" crossorigin>
-  <style>
-    @font-face {
-      font-family: "Ka Blam";
-      src: url("/views/shared/styles/fonts/KaBlam.ttf") format("truetype");
-      font-display: swap;
-    }
-    :root {
-      --font-family-kablam: "Ka Blam Under", sans-serif;
-    }
-    @font-face {
-      font-family: "Ka Blam Under";
-      src: url("/views/shared/styles/fonts/KaBlamUnder.ttf") format("truetype");
-      font-display: swap;
-    }
-    body {
-      overflow: hidden;
-      margin: 0;
-      padding: 0;
-    }
-  </style>
+  <link rel="stylesheet" href="/views/shared/styles/fonts.css">
+  <link rel="stylesheet" href="/views/landing/landingPage.css">
   <title>Sequential Comic Studio</title>
 </head>
 
@@ -38,25 +18,6 @@
     </div>
     <a id="enter-btn" href="/library">[ login ]</a>
   </div>
-
-  <script type="module">
-    import { loadCSS } from '/libs/Utility.js';
-
-    (async () => {
-      await loadCSS('/views/landing/landingPage.css');
-
-      const enterBtn = document.getElementById('enter-btn');
-      enterBtn.style.display = 'block';
-      gsap.fromTo(enterBtn,
-        { opacity: 0, y: 20 },
-        { opacity: 1, y: 0, duration: 1, delay: 0.5, ease: 'power2.out' }
-      );
-    })();
-  </script>
-
-  <!-- GSAP core -->
-  <script src="libs/gsap/gsap.min.js"></script>
-
 </body>
 
 </html>

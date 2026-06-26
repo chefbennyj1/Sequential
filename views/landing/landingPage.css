@@ -1,6 +1,6 @@
 @font-face {
-    font-family: "Ka Blam";
-    src: url("/views/shared/styles/fonts/KaBlam.ttf") format("truetype");
+    font-family: "Ka Blam Under";
+    src: url("/views/shared/styles/fonts/KaBlamUnder.ttf") format("truetype");
     font-display: swap;
 }
 
@@ -69,7 +69,7 @@ body {
     display: block;
     text-decoration: none;
     color: var(--neon-text-color-blue);
-    font-family: var(--font-family-kablam);
+    font-family: var(--font-family-comic-bold);
     font-size: 5.5rem;
     letter-spacing: 2px;
     z-index: 10;
