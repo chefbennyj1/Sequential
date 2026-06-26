@@ -263,7 +263,7 @@ body {
     }
 }
 
-#logo-svg {
+#logo-svg-container #logo-svg {
     height: 160px;
     width: auto;
     display: block;

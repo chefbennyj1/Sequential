@@ -141,27 +141,39 @@ function loginButton() {
   }
 }
 
-export function animateLogo() {
-    const path = document.getElementById('logo-path');
-    if (!path || typeof gsap === 'undefined') return;
+export async function animateLogo() {
+    const container = document.getElementById('logo-svg-container');
+    if (!container || typeof gsap === 'undefined') return;
+
+    const res = await fetch('/resources/logo.svg');
+    const svgText = await res.text();
+
+    const parser = new DOMParser();
+    const svgDoc = parser.parseFromString(svgText, 'image/svg+xml');
+    const svg = svgDoc.querySelector('svg');
+    const path = svgDoc.querySelector('path');
+
+    svg.setAttribute('id', 'logo-svg');
+    svg.setAttribute('viewBox', '0 0 400 400');
+    svg.removeAttribute('width');
+    svg.removeAttribute('height');
+
+    path.setAttribute('id', 'logo-path');
+    path.setAttribute('fill', '#0a4a6e');
+    path.setAttribute('fill-opacity', '0');
+    path.setAttribute('fill-rule', 'evenodd');
+    path.setAttribute('stroke', 'rgb(23, 158, 199)');
+    path.setAttribute('stroke-width', '8');
+    path.setAttribute('stroke-linecap', 'round');
+    path.setAttribute('stroke-linejoin', 'round');
+
+    container.appendChild(svg);
 
     const len = path.getTotalLength();
     gsap.set(path, { strokeDasharray: len, strokeDashoffset: len });
 
     gsap.timeline()
-        .to(path, {
-            strokeDashoffset: 0,
-            duration: 2.4,
-            ease: 'power2.inOut'
-        })
-        .to(path, {
-            fillOpacity: 1,
-            duration: 0.7,
-            ease: 'power2.in'
-        }, '-=0.5')
-        .to(path, {
-            strokeOpacity: 0,
-            duration: 0.5,
-            ease: 'power1.out'
-        }, '-=0.5');
+        .to(path, { strokeDashoffset: 0, duration: 2.4, ease: 'power2.inOut' })
+        .to(path, { fillOpacity: 1, duration: 0.7, ease: 'power2.in' }, '-=0.5')
+        .to(path, { strokeOpacity: 0, duration: 0.5, ease: 'power1.out' }, '-=0.5');
 }
