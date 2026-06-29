@@ -2,7 +2,11 @@ const UserModel = require('../models/User.js');
 const bcrypt = require('bcryptjs');
 
 async function getUserByEmail(email) {
-    return await UserModel.findOne({ email });
+    return await UserModel.findOne({ email }).select('-password');
+}
+
+async function updateUserAvatar(userId, avatarUrl) {
+    return await UserModel.findByIdAndUpdate(userId, { avatar: avatarUrl }, { new: true }).select('-password');
 }
 
 async function updateUser(userId, email, currentPassword, newPassword) {
@@ -39,4 +43,4 @@ async function updateUser(userId, email, currentPassword, newPassword) {
     }
 }
 
-module.exports = { getUserByEmail, updateUser };
+module.exports = { getUserByEmail, updateUser, updateUserAvatar };

@@ -139,7 +139,3 @@
 .border-dim {
     border: 1px solid var(--border, #333) !important;
 }
-
-.border-radius-12 {
-    border-radius: 12px !important;
-}

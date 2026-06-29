@@ -29,3 +29,53 @@ input[type="range"] {
 }
 
 /* Dashboard-Specific Polish */
+
+/* --- Universal form control baseline for dashboard sections ---
+   Applies glass-input/glass-select appearance to any bare input or select
+   that hasn't already been given an explicit style class.
+   Excludes: hidden, file, checkbox, radio, color, range, button controls. */
+
+.dashboard-section input:not([type="hidden"]):not([type="file"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not(.glass-input):not(.gov-input):not(.gov-color-input):not(.mono-input),
+.dashboard-section select:not(.glass-select),
+.dashboard-section textarea:not(.glass-textarea) {
+    width: 100%;
+    padding: var(--space-sm) var(--space-md);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--glass-border-subtle);
+    background: var(--glass-white);
+    color: var(--color-text);
+    font-family: var(--font-body);
+    font-size: var(--text-md);
+    outline: none;
+    box-sizing: border-box;
+    transition: border-color var(--dur-fast), box-shadow var(--dur-fast), background var(--dur-fast);
+}
+
+/* backdrop-filter only on inputs/textareas — native selects render it as wavy artifacts */
+.dashboard-section input:not([type="hidden"]):not([type="file"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not(.glass-input):not(.gov-input):not(.gov-color-input):not(.mono-input),
+.dashboard-section textarea:not(.glass-textarea) {
+    backdrop-filter: var(--blur-sm);
+    -webkit-backdrop-filter: var(--blur-sm);
+}
+
+.dashboard-section input:not([type="hidden"]):not([type="file"]):not([type="checkbox"]):not([type="radio"]):not([type="color"]):not([type="range"]):not([type="button"]):not([type="submit"]):not([type="reset"]):not(.glass-input):not(.gov-input):not(.gov-color-input):not(.mono-input):focus,
+.dashboard-section select:not(.glass-select):focus,
+.dashboard-section textarea:not(.glass-textarea):focus {
+    border-color: rgba(94, 231, 223, 0.6);
+    background: var(--glass-white-md);
+    box-shadow: 0 0 0 3px rgba(94, 231, 223, 0.15), var(--shadow-glass);
+}
+
+.dashboard-section select:not(.glass-select) {
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    padding-right: 40px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(255,255,255,0.5)' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+}
+
+[data-theme="light"] .dashboard-section select:not(.glass-select) {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='rgba(15,23,42,0.5)' stroke-width='2' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+}

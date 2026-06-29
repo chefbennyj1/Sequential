@@ -52,7 +52,7 @@ body {
   background-position: center center;
   background-repeat: no-repeat;
   transition: opacity 1s ease-in-out;
-  background: url(/views/auth/background.png) center center / cover no-repeat;
+  background: url(/views/auth/background_2.png) center center / cover no-repeat;
 }
 
 .login {
@@ -124,7 +124,8 @@ input:-webkit-autofill:active {
   background-position: 0 0, 2.5px 2.5px;
   border-color: #000 !important;
   color: #000 !important;
-  box-shadow: 3px 3px 5px #000; /* slightly pressed in */
+  box-shadow: 3px 3px 5px #000;
+  /* slightly pressed in */
 }
 
 form {

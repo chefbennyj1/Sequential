@@ -17,6 +17,8 @@ import ScheduledTaskView from './components/ScheduledTasks/ScheduledTasks.js';
 import { initPlotLab } from './components/PlotLab/PlotLab.js';
 import { initStoryCritic } from './components/StoryCritic/StoryCritic.js';
 import { initStyleLab } from './studio/js/StyleLab.js';
+import { initAccounts } from './sections/accounts/accounts.js';
+import { initUserSettings } from './sections/user-settings/user-settings.js';
 
 // Imported Refactored Modules
 import { initEventHandlers } from './studio/js/EventHandlers.js';
@@ -92,6 +94,12 @@ export async function init(container) {
         if (section === 'style-lab') {
              try { initStyleLab(container); } catch (err) { console.error("StyleLab init failed", err); }
         }
+        if (section === 'accounts') {
+             try { initAccounts(); } catch (err) { console.error("Accounts init failed", err); }
+        }
+        if (section === 'user-settings') {
+             try { initUserSettings(); } catch (err) { console.error("UserSettings init failed", err); }
+        }
     });
 
     // Inject PlotLab CSS
@@ -152,10 +160,15 @@ export async function init(container) {
     if (userNameEl) {
         userNameEl.textContent = user.username;
 
-        // Show Welcome Toast (Liquid Glass style)
         if (window.GlassToast) {
             window.GlassToast.show('info', 'Welcome back, ' + user.username);
         }
+    }
+
+    if (user.avatar) {
+        document.querySelectorAll('#userProfileToggle .avatar').forEach(el => {
+            if (el.tagName === 'IMG') el.src = user.avatar;
+        });
     }
 
     // --- Role-Based UI Filtering ---
@@ -163,8 +176,8 @@ export async function init(container) {
     console.log(`[Dashboard] Initializing for role: ${role}`);
 
     // Define restrictions
-    const moderatorHidden = ['user-settings', 'create-new-volume', 'scheduled-tasks', 'create-new-chapter'];
-    const basicHidden = ['studio', 'scheduled-tasks', 'user-settings'];
+    const moderatorHidden = ['user-settings', 'create-new-volume', 'scheduled-tasks', 'create-new-chapter', 'accounts'];
+    const basicHidden = ['studio', 'scheduled-tasks', 'user-settings', 'accounts'];
 
     const hiddenTargets = role === 'admin' ? [] : (role === 'moderator' ? moderatorHidden : basicHidden);
 

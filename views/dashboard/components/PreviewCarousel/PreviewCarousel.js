@@ -1,25 +1,22 @@
-// views/dashboard/components/PreviewCarousel/PreviewCarousel.js
-
 export function renderPreviewCarousel(pages, carouselElement, currentSeries) {
     carouselElement.innerHTML = '';
-    
+
     if (!pages || pages.length === 0) {
         carouselElement.innerHTML = '<div class="text-muted padding-20">No pages found in this volume.</div>';
         return;
     }
 
+    const ts = Date.now();
+
     pages.forEach((page) => {
         const card = document.createElement('div');
         card.className = 'critic-page-card';
-        
-        // --- THUMBNAIL STRATEGY ---
-        const pageNumPadded = String(page.index).padStart(3, '0');
-        
-        // 1. Primary: High-res Print Export
-        const portraitExportUrl = `/Library/${currentSeries}/Print_Exports/${page.volumeFolder}_Book_Pages/us-portrait/page${pageNumPadded}_PORTRAIT.png`;
-        const ukTableExportUrl = `/Library/${currentSeries}/Print_Exports/${page.volumeFolder}_Book_Pages/uk-table/page${pageNumPadded}_FULL.png`;
 
-        // 2. Secondary Fallback: First Panel Image
+        const pageNumPadded = String(page.index).padStart(3, '0');
+
+        const portraitUrl = `/Library/${currentSeries}/Print_Exports/${page.volumeFolder}_Book_Pages/us-portrait/page${pageNumPadded}_PORTRAIT.png?t=${ts}`;
+        const ukTableUrl  = `/Library/${currentSeries}/Print_Exports/${page.volumeFolder}_Book_Pages/uk-table/page${pageNumPadded}_FULL.png?t=${ts}`;
+
         let panelUrl = '/views/public/images/page-placeholder.png';
         const media = Array.isArray(page.mediaData) ? page.mediaData : (page.mediaData?.media || []);
         if (media.length > 0) {
@@ -27,26 +24,44 @@ export function renderPreviewCarousel(pages, carouselElement, currentSeries) {
             const fileName = firstPanel.url || firstPanel.fileName;
             if (fileName) {
                 const chapterFolder = `chapter-${page.chapterNumber}`;
-                panelUrl = `/Library/${currentSeries}/${page.volumeFolder}/${chapterFolder}/page${page.index}/assets/image/${fileName}`;
+                panelUrl = `/Library/${currentSeries}/${page.volumeFolder}/${chapterFolder}/page${page.index}/assets/image/${fileName}?t=${ts}`;
             }
         }
 
-        // 3. Final Fallback: static placeholder
-        const fallbackUrl = '/views/public/images/page-placeholder.png';
+        const fallbacks = [ukTableUrl, panelUrl, '/views/public/images/page-placeholder.png'];
+        let fallbackIndex = 0;
 
-        card.innerHTML = `
-            <div class="critic-page-thumb">
-                <img src="${portraitExportUrl}" 
-                     alt="Page ${page.index}" 
-                     class="critic-thumb-img"
-                     onerror="if(this.src.includes('_PORTRAIT.png')){ this.src='${ukTableExportUrl}'; } else if(this.src.includes('_FULL.png')){ this.src='${panelUrl}'; } else { this.onerror=null; this.src='${fallbackUrl}'; }">
-            </div>
-            <div class="critic-page-info">
-                <span class="critic-page-id">Page ${page.index}</span>
-                <span class="critic-page-meta">Chapter ${page.chapterNumber}</span>
-            </div>
-        `;
+        const img = document.createElement('img');
+        img.src = portraitUrl;
+        img.alt = `Page ${page.index}`;
+        img.className = 'critic-thumb-img';
+        img.addEventListener('error', function onErr() {
+            if (fallbackIndex < fallbacks.length) {
+                img.src = fallbacks[fallbackIndex++];
+            } else {
+                img.removeEventListener('error', onErr);
+            }
+        });
 
+        const thumb = document.createElement('div');
+        thumb.className = 'critic-page-thumb';
+        thumb.appendChild(img);
+
+        const info = document.createElement('div');
+        info.className = 'critic-page-info';
+
+        const pageId = document.createElement('span');
+        pageId.className = 'critic-page-id';
+        pageId.textContent = `Page ${page.index}`;
+
+        const pageMeta = document.createElement('span');
+        pageMeta.className = 'critic-page-meta';
+        pageMeta.textContent = `Chapter ${page.chapterNumber}`;
+
+        info.appendChild(pageId);
+        info.appendChild(pageMeta);
+        card.appendChild(thumb);
+        card.appendChild(info);
         carouselElement.appendChild(card);
     });
 }

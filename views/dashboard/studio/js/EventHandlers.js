@@ -162,6 +162,16 @@ export function initEventHandlers(container, allSections) {
         });
     }
 
+    const accountSettingsBtn = document.getElementById('accountSettingsBtn');
+    if (accountSettingsBtn) {
+        accountSettingsBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            userMenu?.classList.remove('show');
+            updateUrlState({ tab: 'user-settings' });
+            await switchToSection('user-settings', container);
+        });
+    }
+
     // Global Event Delegation
     container.addEventListener('click', async (e) => {
         const target = e.target.closest('button, li, .glass-tab, .mode-card, .volume-card, .series-card, #accountSettingsBtn');

@@ -29,11 +29,11 @@ export function renderAllPanelsTemplate(panelNames, currentVisualMediaData, acti
             <p class="text-muted margin-b-15">Select any element to edit its asset and alignment.</p>
             <div class="geometry-list margin-b-20">
                 ${allItems.map(item => {
-                    const series = activeSeriesFolder || activeSeriesId;
-                    const { volume, chapter, pageId } = currentVisualContext;
-                    const thumbSrc = item.fileName ? `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${item.fileName}` : null;
-                    
-                    return `
+        const series = activeSeriesFolder || activeSeriesId;
+        const { volume, chapter, pageId } = currentVisualContext;
+        const thumbSrc = item.fileName ? `/api/images/${series}/${volume}/${chapter}/${pageId}/assets/${item.fileName}` : null;
+
+        return `
                         <div class="geometry-item glass glass--bright padding-10 border-radius-8 margin-b-10 flex-row align-center cursor-pointer hover-bright ${item.isFloating ? 'is-floating' : ''}" data-panel="${item.panel}" data-floating="${item.isFloating}">
                             <div class="flex-row align-center gap-10 flex-1">
                                 <div class="geometry-thumb border-dim border-radius-4">
@@ -53,14 +53,14 @@ export function renderAllPanelsTemplate(panelNames, currentVisualMediaData, acti
                             </div>` : ''}
                         </div>
                     `;
-                }).join('')}
+    }).join('')}
             </div>
 
             <div class="flex-row gap-10 margin-b-15 border-dim-bottom padding-b-10">
                 <h5 class="text-accent margin-0 uppercase">Page Settings</h5>
             </div>
 
-            <div class="form-group glass glass--bright padding-20 border-radius-12 border-dim margin-b-30">
+            <div class="form-group glass glass--bright padding-20 border-dim margin-b-30">
                 <div class="header-stack-column margin-b-15">
                     <span class="font-weight-bold font-size-09">Layout Mode</span>
                     <div id="spreadToggleGroup" class="glass glass-toggle">

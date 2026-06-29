@@ -1,0 +1,121 @@
+<div class="accounts dashboard-section hidden glass glass--frosted glass-card">
+    <h3>Accounts</h3>
+
+    <div class="glass-tabs">
+        <div class="glass-tab-list" role="tablist" id="accounts-tab-list">
+            <button class="glass-tab" role="tab" aria-selected="true"  data-accounts-tab="users">All Users</button>
+            <button class="glass-tab" role="tab" aria-selected="false" data-accounts-tab="requests">Pending Requests</button>
+            <button class="glass-tab" role="tab" aria-selected="false" data-accounts-tab="create">Create Account</button>
+        </div>
+
+        <!-- All Users -->
+        <div class="glass-tab-panel is-active" id="accounts-panel-users">
+            <p class="accounts-empty" id="users-empty">No users found.</p>
+            <table class="accounts-table" id="users-table" style="display:none">
+                <thead>
+                    <tr>
+                        <th>Username</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="users-tbody"></tbody>
+            </table>
+        </div>
+
+        <!-- Pending Requests -->
+        <div class="glass-tab-panel" id="accounts-panel-requests">
+            <p class="accounts-empty" id="requests-empty">No pending requests.</p>
+            <table class="accounts-table" id="requests-table" style="display:none">
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Requested</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="requests-tbody"></tbody>
+            </table>
+        </div>
+
+        <!-- Create Account -->
+        <div class="glass-tab-panel" id="accounts-panel-create">
+            <form id="createAccountForm" class="accounts-form" novalidate>
+                <div class="input-field">
+                    <label for="ca__username">Username</label>
+                    <input type="text" id="ca__username" autocomplete="off" required maxlength="50">
+                </div>
+                <div class="input-field">
+                    <label for="ca__email">Email</label>
+                    <input type="email" id="ca__email" autocomplete="off" required>
+                </div>
+                <div class="input-field">
+                    <label for="ca__password">Password</label>
+                    <input type="password" id="ca__password" required minlength="8" maxlength="128">
+                </div>
+                <div class="input-field">
+                    <label for="ca__role">Role</label>
+                    <select id="ca__role">
+                        <option value="basic">Basic</option>
+                        <option value="moderator">Moderator</option>
+                        <option value="admin">Admin</option>
+                    </select>
+                </div>
+                <button type="submit" class="glass glass-btn glass-btn--primary">Create Account</button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<style>
+.accounts {
+    overflow-y: auto;
+    max-height: calc(100vh - 120px);
+}
+
+.accounts h3 { margin-bottom: 16px; }
+
+.accounts-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.85rem;
+}
+.accounts-table th,
+.accounts-table td {
+    padding: 8px 12px;
+    text-align: left;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+}
+.accounts-table th { opacity: 0.6; font-weight: 600; }
+
+.accounts-empty { opacity: 0.5; font-size: 0.85rem; }
+
+.accounts-form {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    align-items: end;
+    max-width: 560px;
+}
+.accounts-form .input-field { margin: 0; }
+.accounts-form button { grid-column: span 2; justify-self: start; }
+
+.accounts-action-btn {
+    padding: 4px 10px;
+    font-size: 0.75rem;
+    border-radius: 4px;
+    border: 1px solid rgba(255,255,255,0.2);
+    background: rgba(255,255,255,0.08);
+    color: inherit;
+    cursor: pointer;
+    margin-right: 4px;
+}
+.accounts-action-btn:hover { background: rgba(255,255,255,0.18); }
+.accounts-action-btn.deny,
+.accounts-action-btn.delete { border-color: rgba(220,60,60,0.5); }
+.accounts-action-btn.deny:hover,
+.accounts-action-btn.delete:hover { background: rgba(220,60,60,0.2); }
+</style>

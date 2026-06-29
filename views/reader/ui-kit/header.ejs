@@ -75,8 +75,15 @@
           const res = await fetch('/api/user');
           if (res.ok) {
               const data = await res.json();
-              const nameEl = document.getElementById('user-name');
-              if (nameEl && data.username) nameEl.textContent = data.username;
+              if (data.ok && data.user) {
+                  const nameEl = document.getElementById('user-name');
+                  if (nameEl && data.user.username) nameEl.textContent = data.user.username;
+                  if (data.user.avatar) {
+                      document.querySelectorAll('#userProfileToggle .avatar').forEach(el => {
+                          if (el.tagName === 'IMG') el.src = data.user.avatar;
+                      });
+                  }
+              }
           }
       } catch (err) {
           console.warn("Could not load user profile.");

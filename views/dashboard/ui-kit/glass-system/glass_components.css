@@ -116,7 +116,7 @@
     --radius-lg: 20px;
     --radius-xl: 24px;
     --radius-2xl: 32px;
-    --radius-full: 12px;
+    --radius-full: 6px;
 
     /* ── Z-index scale ── */
     --z-base: 1;
@@ -373,7 +373,7 @@
        9. COMPONENT: CARD
        -------------------------------------------------------------------------- */
 .glass-card {
-    border-radius: var(--radius-xl);
+    /* border-radius: var(--radius-xl); */
     padding: var(--space-xl);
     transition: transform var(--dur-mid) var(--ease-glass),
         box-shadow var(--dur-mid) var(--ease-glass), background var(--dur-mid);

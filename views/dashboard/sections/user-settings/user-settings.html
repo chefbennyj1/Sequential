@@ -1,26 +1,88 @@
-    <div class="user-settings dashboard-section hidden glass glass--frosted glass-card">
-        <h3>User Settings</h3>
-        <form id="credentials" action="/api/user/update" method="POST">
+<div class="user-settings dashboard-section hidden glass glass--frosted glass-card">
+    <h3>Account Settings</h3>
+
+    <div class="user-settings__layout">
+
+        <!-- Avatar -->
+        <div class="user-settings__avatar-col">
+            <div class="user-settings__avatar-wrap">
+                <img id="settings-avatar-img" src="/views/public/images/avatar.png" alt="Profile photo" class="user-settings__avatar">
+                <button type="button" class="glass glass-btn glass-btn--ghost user-settings__avatar-btn" id="settingsAvatarBtn">Change Photo</button>
+                <input type="file" id="settingsAvatarInput" accept="image/jpeg,image/png,image/gif,image/webp" style="display:none">
+            </div>
+        </div>
+
+        <!-- Credentials -->
+        <form id="credentialsForm" class="user-settings__form" novalidate>
             <div class="input-field">
-                <label for="email">Email</label>
-                <input type="email" id="email" name="email" required />
-                <span class="error-message"></span>
+                <label for="us__email">Email</label>
+                <input type="email" id="us__email" name="email" required>
             </div>
             <div class="input-field">
-                <label for="currentPassword">Current Password</label>
-                <input type="password" id="currentPassword" name="currentPassword" required />
-                <span class="error-message"></span>
+                <label for="us__current-password">Current Password</label>
+                <input type="password" id="us__current-password" name="currentPassword" required>
             </div>
             <div class="input-field">
-                <label for="newPassword">New Password</label>
-                <input type="password" id="newPassword" name="newPassword" required />
-                <span class="error-message"></span>
+                <label for="us__new-password">New Password</label>
+                <input type="password" id="us__new-password" name="newPassword" maxlength="128">
+                <span class="glass-field-hint">Leave blank to keep your current password.</span>
             </div>
             <div class="input-field">
-                <label for="confirmPassword">Confirm New Password</label>
-                <input type="password" id="confirmPassword" name="confirmPassword" required />
-                <span class="error-message"></span>
+                <label for="us__confirm-password">Confirm New Password</label>
+                <input type="password" id="us__confirm-password" name="confirmPassword" maxlength="128">
             </div>
-            <button class="glass glass-btn glass-btn--primary" type="submit">Update</button>
+            <button type="submit" class="glass glass-btn glass-btn--primary">Save Changes</button>
         </form>
+
     </div>
+</div>
+
+<style>
+.user-settings { max-width: 680px; }
+
+.user-settings__layout {
+    display: flex;
+    gap: 40px;
+    align-items: flex-start;
+}
+
+.user-settings__avatar-col {
+    flex-shrink: 0;
+}
+
+.user-settings__avatar-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
+}
+
+.user-settings__avatar {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid var(--glass-border-subtle);
+}
+
+.user-settings__avatar-btn {
+    font-size: var(--text-sm);
+    white-space: nowrap;
+}
+
+.user-settings__form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.user-settings__form .input-field { margin-bottom: 4px; }
+
+.glass-field-hint {
+    font-size: var(--text-xs);
+    opacity: 0.5;
+    margin-top: 4px;
+    display: block;
+}
+</style>

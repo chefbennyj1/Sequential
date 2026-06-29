@@ -57,6 +57,28 @@ const referenceStorage = multer.diskStorage({
 });
 const uploadReference = multer({ storage: referenceStorage });
 
+// --- Multer: User Avatar Upload ---
+const userAvatarStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const userId = req.session.userId;
+        if (!userId) return cb(new Error('Not authenticated'));
+        const dir = path.join(__dirname, `../views/public/images/users/${userId}`);
+        if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+        cb(null, dir);
+    },
+    filename: (req, file, cb) => cb(null, `avatar${path.extname(file.originalname).toLowerCase()}`)
+});
+const uploadUserAvatar = multer({
+    storage: userAvatarStorage,
+    limits: { fileSize: 2 * 1024 * 1024 },
+    fileFilter: (req, file, cb) => {
+        const allowed = ['.jpg', '.jpeg', '.png', '.gif', '.webp'];
+        allowed.includes(path.extname(file.originalname).toLowerCase())
+            ? cb(null, true)
+            : cb(new Error('Only image files are allowed.'));
+    }
+});
+
 // --- TEST ROUTE ---
 router.get('/test', (req, res) => res.json({ ok: true, message: "API is working" }));
 
@@ -122,7 +144,8 @@ router.get('/critic/analyze/:series/:volumeId', isAuth, CriticController.analyze
 // --- USER ROUTES ---
 router.post("/user/register", UserController.registerUser);
 router.get('/user', isAuth, UserController.getUser);
-router.post('/user/update', isAdmin, UserController.updateUser); 
+router.post('/user/update', isAuth, UserController.updateUser);
+router.post('/user/avatar', isAuth, uploadUserAvatar.single('avatar'), UserController.uploadAvatar);
 
 // --- STYLE LAB ROUTES ---
 router.get('/style-lab/:seriesId', isModerator, StyleLabController.getSettings);

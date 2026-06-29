@@ -26,6 +26,10 @@ const userSchema = new Schema({
         type: String,
         enum: ['basic', 'moderator', 'admin'],
         default: 'basic'
+    },
+    avatar: {
+        type: String,
+        default: null
     }
 },
 {

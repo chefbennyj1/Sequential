@@ -33,6 +33,7 @@ const mongoDbURI = 'mongodb://localhost:27017/VeilSite';
 const siteRoutes = require("./routes/routes.js");
 const authRoutes = require("./authentication/authentication.js");
 const apiRoutes = require("./api/api.js");
+const accountRoutes = require("./accounts/accounts.js");
 const contentRoutes = require("./routes/content.js");
 
 const User = require("./models/User.js");
@@ -171,6 +172,7 @@ app.get('/test-swarm', (req, res) => {
 
 app.use("/api", apiRoutes);
 app.use("/authentication", authRoutes);
+app.use("/accounts", accountRoutes);
 
 // Main Site Routes (Must be before content routes to handle /library/series/...)
 app.use("/", siteRoutes);
