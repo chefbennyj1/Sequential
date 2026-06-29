@@ -1,71 +1,76 @@
-    <div class="characters dashboard-section hidden glass glass--frosted glass-card">
-        <button class="glass glass-btn glass-btn--sm glass-btn--ghost back-to-studio-btn studio-back-btn">&larr; Back to Studio</button>
-        <div class="medium-container padding-20">
-            <div class="flex-between margin-b-20">
-                <div class="flex-row-center gap-15">
-                    <h3>Character Manager</h3>
-                    <select id="char-series-select" class="glass-select">
-                        <option value="">Select Series</option>
-                    </select>
-                </div>
-                <button id="create-character-btn" class="glass glass-btn glass-btn--primary" disabled>+ New Character</button>
+<div class="characters dashboard-section hidden glass glass--frosted glass-card">
+    <button class="glass glass-btn glass-btn--sm glass-btn--ghost back-to-studio-btn studio-back-btn">&larr; Back to
+        Studio</button>
+    <div class="medium-container padding-20">
+        <div class="flex-between margin-b-20">
+            <div class="flex-row-center gap-15">
+                <h3>Character Manager</h3>
+                <select id="char-series-select" class="glass-select">
+                    <option value="">Select Series</option>
+                </select>
             </div>
+            <button id="create-character-btn" class="glass glass-btn glass-btn--primary" disabled>+ New
+                Character</button>
+        </div>
 
-            <div id="character-editor-container" class="flex-row gap-20 flex-start">
-                <div id="character-list" class="flex-1 grid-chars"></div>
+        <div id="character-editor-container" class="flex-row gap-20 flex-start">
+            <div id="character-list" class="flex-1 grid-chars"></div>
 
-                <div id="character-form-container" class="character-gov-form glass glass--frosted glass-card hidden">
-                    <div class="gov-header">
-                        <h4 id="form-title">IDENTIFICATION</h4>
-                        <span class="gov-stamp">CLASSIFIED</span>
-                    </div>
-                    
-                    <div class="gov-body">
-                        <div class="gov-main-info">
-                            <div class="gov-field-group">
-                                <label>Designation (Name)</label>
-                                <input type="text" id="char-name" class="glass-input mono" placeholder="e.g. NOVA">
-                            </div>
-                            <div class="gov-field-group">
-                                <label>Color Signature</label>
-                                <input type="color" id="char-color" value="#ffffff" class="gov-color-input" style="width: 100%; height: 40px;">
-                            </div>
-                        </div>
+            <div id="character-form-container" class="character-gov-form glass glass--frosted glass-card hidden">
+                <div class="gov-header">
+                    <h4 id="form-title">IDENTIFICATION</h4>
+                    <span class="gov-stamp">CLASSIFIED</span>
+                </div>
 
-                        <div class="gov-photo-section">
-                            <div class="photo-frame">
-                                <img id="char-avatar-preview" src="/views/public/images/avatar.png" alt="Subject">
-                            </div>
-                            <label class="glass glass-btn glass-btn--sm glass-btn--ghost">
-                                Upload Photo
-                                <input type="file" id="char-avatar-input" accept="image/*" class="hidden">
-                            </label>
-                            <button id="ai-analyze-char-btn" class="glass glass-btn glass-btn--sm glass-btn--ghost margin-t-5" style="background: #1a2a3a; border-color: #00ccff; color: #00ccff;">
-                                AI Scan Profile
-                            </button>
+                <div class="gov-body">
+                    <div class="gov-main-info">
+                        <div class="gov-field-group">
+                            <label>Designation (Name)</label>
+                            <input type="text" id="char-name" class="glass-input mono" placeholder="e.g. NOVA">
                         </div>
                     </div>
 
-                    <div class="gov-full-width">
-                        <label>Profile / Description (Prompt)</label>
-                        <textarea id="char-description" class="glass-input" style="min-height: 100px;"" rows="4" placeholder="Subject details..."></textarea>
+                    <div class="gov-photo-section">
+                        <div class="photo-frame">
+                            <img id="char-avatar-preview" src="/views/public/images/avatar.png" alt="Subject">
+                        </div>
+                        <label class="glass glass-btn glass-btn--sm glass-btn--ghost">
+                            Upload Photo
+                            <input type="file" id="char-avatar-input" accept="image/*" class="hidden">
+                        </label>
+                        <button id="ai-analyze-char-btn"
+                            class="glass glass-btn glass-btn--sm glass-btn--ghost margin-t-5"
+                            style="background: #1a2a3a; border-color: #00ccff; color: #00ccff;">
+                            AI Scan Profile
+                        </button>
                     </div>
+                </div>
 
-                    <div class="gov-full-width">
-                        <label>Reference Imagery</label>
-                        <div class="reference-grid" id="char-references-grid"></div>
-                    </div>
-                    
-                    <label class="glass glass-btn glass-btn--sm glass-btn--ghost text-center margin-t-5 cursor-pointer">
-                        + Add Reference Image
-                        <input type="file" id="char-reference-input" accept="image/*" style="display: none;">
-                    </label>
+                <div class="gov-full-width">
+                    <label>Physical Profile (AI Vision Prompt)</label>
+                    <textarea id="char-description" class="glass-input" style="min-height: 100px;" rows="4" placeholder="Subject physical details..."></textarea>
+                </div>
 
-                    <div class="gov-footer margin-t-20">
-                        <button id="save-character-btn" class="glass glass-btn glass-btn--primary">Save Record</button>
-                        <button id="cancel-character-btn" class="glass glass-btn glass-btn--ghost">Cancel</button>
-                    </div>
+                <div class="gov-full-width" style="margin-top: 15px;">
+                    <label>Dialogue Style & Speech Patterns</label>
+                    <textarea id="char-dialogue-style" class="glass-input" style="min-height: 100px;" rows="4" placeholder="Describe how this character speaks, their attitude, mentality, and accents..."></textarea>
+                </div>
+
+                <div class="gov-full-width">
+                    <label>Reference Imagery</label>
+                    <div class="reference-grid" id="char-references-grid"></div>
+                </div>
+
+                <label class="glass glass-btn glass-btn--sm glass-btn--ghost text-center margin-t-5 cursor-pointer">
+                    + Add Reference Image
+                    <input type="file" id="char-reference-input" accept="image/*" style="display: none;">
+                </label>
+
+                <div class="gov-footer margin-t-20">
+                    <button id="save-character-btn" class="glass glass-btn glass-btn--primary">Save Record</button>
+                    <button id="cancel-character-btn" class="glass glass-btn glass-btn--ghost">Cancel</button>
                 </div>
             </div>
         </div>
     </div>
+</div>

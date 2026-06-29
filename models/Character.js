@@ -11,16 +11,12 @@ const characterSchema = new mongoose.Schema({
     required: true,
     trim: true
   },
-  color: {
-    type: String, // Hex code or CSS color string (e.g., "#00ccff")
-    default: '#ffffff'
-  },
-  voiceId: {
-    type: String, // ElevenLabs Voice ID or similar
-    default: null
-  },
   description: {
     type: String,
+    default: ''
+  },
+  dialogueStylePrompt: {
+    type: String, // Instructions for character's dialogue style (used natively or for LLM)
     default: ''
   },
   image: {

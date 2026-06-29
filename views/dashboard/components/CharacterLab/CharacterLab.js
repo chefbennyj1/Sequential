@@ -6,7 +6,7 @@ export default class CharacterLab {
         try {
             this.container = container;
             if (!container) return; // Guard clause
-            
+
             this.listContainer = container.querySelector('#character-list');
             this.formContainer = container.querySelector('#character-form-container');
             this.createBtn = container.querySelector('#create-character-btn');
@@ -26,7 +26,7 @@ export default class CharacterLab {
             console.warn("[CharacterLab] Missing #char-series-select. Initialization aborted.");
             return;
         }
-        
+
         // Load series list
         try {
             const seriesList = await fetchSeriesAPI();
@@ -39,8 +39,8 @@ export default class CharacterLab {
                     this.seriesSelect.appendChild(opt);
                 });
             }
-        } catch (e) { 
-            console.error("[CharacterLab] Failed to load series:", e); 
+        } catch (e) {
+            console.error("[CharacterLab] Failed to load series:", e);
         }
 
         this.seriesSelect.onchange = (e) => {
@@ -53,10 +53,10 @@ export default class CharacterLab {
         if (this.createBtn) {
             this.createBtn.onclick = () => this.showForm();
         }
-        
+
         const saveBtn = document.getElementById('save-character-btn');
         if (saveBtn) saveBtn.onclick = () => this.saveCharacter();
-        
+
         const cancelBtn = document.getElementById('cancel-character-btn');
         if (cancelBtn) cancelBtn.onclick = () => this.hideForm();
 
@@ -122,7 +122,7 @@ export default class CharacterLab {
             const card = document.createElement('div');
             card.className = 'char-card glass glass--bright glass-card';
             card.innerHTML = `
-                <img src="${char.image || '/views/public/images/avatar.png'}" class="char-avatar" style="border-color: ${char.color}">
+                <img src="${char.image || '/views/public/images/avatar.png'}" class="char-avatar" style="border-color: white">
                 <div class="char-info">
                     <span class="char-name">${char.name}</span>
                     <span class="char-desc">${char.description || 'No description'}</span>
@@ -145,14 +145,14 @@ export default class CharacterLab {
         if (character) {
             this.activeCharacterId = character._id;
             document.getElementById('char-name').value = character.name;
-            document.getElementById('char-color').value = character.color;
             document.getElementById('char-description').value = character.description || '';
+            if(document.getElementById('char-dialogue-style')) document.getElementById('char-dialogue-style').value = character.dialogueStylePrompt || '';
             document.getElementById('char-avatar-preview').src = character.image || '/views/public/images/avatar.png';
             document.getElementById('form-title').innerText = 'EDIT RECORD: ' + character.name;
 
             // Enable uploads
             this.setUploadsState(true);
-            
+
             // Enable AI Scan if image exists
             this.aiScanBtn.disabled = !character.image;
 
@@ -164,8 +164,8 @@ export default class CharacterLab {
         } else {
             this.activeCharacterId = null;
             document.getElementById('char-name').value = '';
-            document.getElementById('char-color').value = '#ffffff';
             document.getElementById('char-description').value = '';
+            if(document.getElementById('char-dialogue-style')) document.getElementById('char-dialogue-style').value = '';
             document.getElementById('char-avatar-preview').src = '/views/public/images/avatar.png';
             document.getElementById('form-title').innerText = 'NEW RECORD';
 
@@ -214,7 +214,7 @@ export default class CharacterLab {
         if (!this.activeCharacterId) {
             return alert("Please Save the character record first to enable AI Profile Scanning.");
         }
-        
+
         const originalText = this.aiScanBtn.textContent;
         this.aiScanBtn.disabled = true;
         this.aiScanBtn.textContent = "Scanning...";
@@ -309,16 +309,16 @@ export default class CharacterLab {
 
     async saveCharacter() {
         const name = document.getElementById('char-name').value;
-        const color = document.getElementById('char-color').value;
         const description = document.getElementById('char-description').value;
+        const dialogueStylePrompt = document.getElementById('char-dialogue-style') ? document.getElementById('char-dialogue-style').value : '';
 
         if (!name) return alert('Name is required');
         if (!this.activeSeriesId) return alert('Series must be selected');
 
         const payload = {
             name,
-            color,
             description,
+            dialogueStylePrompt,
             series: this.activeSeriesId // Include Series ID
         };
 
