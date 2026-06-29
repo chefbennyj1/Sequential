@@ -42,6 +42,17 @@ export async function initPluginManager() {
         }
     }
 
+    // Basic HTML Sanitizer to prevent XSS from malicious plugin.json files
+    function escapeHTML(str) {
+        if (!str) return '';
+        return String(str)
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
     function renderPlugins(plugins) {
         container.innerHTML = '';
         
@@ -53,11 +64,11 @@ export async function initPluginManager() {
             row.innerHTML = `
                 <div class="flex-column gap-5">
                     <div class="flex-row align-center gap-10">
-                        <h4 class="margin-0 text-accent">${plugin.name || plugin.folderName}</h4>
-                        <span class="text-muted font-size-07 glass glass--dark padding-x-10 padding-y-2 border-radius-4">v${plugin.version || '1.0.0'}</span>
+                        <h4 class="margin-0 text-accent">${escapeHTML(plugin.name || plugin.folderName)}</h4>
+                        <span class="text-muted font-size-07 glass glass--dark padding-x-10 padding-y-2 border-radius-4">v${escapeHTML(plugin.version || '1.0.0')}</span>
                     </div>
-                    <p class="text-muted font-size-08 margin-0">${plugin.description || 'No description provided.'}</p>
-                    <span class="text-muted font-size-07 margin-t-5"><ion-icon name="folder-outline"></ion-icon> services/plugins/${plugin.folderName}</span>
+                    <p class="text-muted font-size-08 margin-0">${escapeHTML(plugin.description || 'No description provided.')}</p>
+                    <span class="text-muted font-size-07 margin-t-5"><ion-icon name="folder-outline"></ion-icon> services/plugins/${escapeHTML(plugin.folderName)}</span>
                 </div>
                 
                 <div class="flex-row gap-15 align-center">
