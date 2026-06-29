@@ -19,6 +19,7 @@ import { initStoryCritic } from './components/StoryCritic/StoryCritic.js';
 import { initStyleLab } from './studio/js/StyleLab.js';
 import { initAccounts } from './sections/accounts/accounts.js';
 import { initUserSettings } from './sections/user-settings/user-settings.js';
+import { initPluginManager } from './sections/plugin-manager/plugin-manager.js';
 
 // Imported Refactored Modules
 import { initEventHandlers } from './studio/js/EventHandlers.js';
@@ -33,6 +34,12 @@ export async function init(container) {
         window.socket = io();
         window.socket.on('connect', () => {
             console.log(`[WebSocket] Connected with ID: ${window.socket.id}`);
+        });
+        
+        window.socket.on('plugin_toast', (data) => {
+            if (window.GlassToast) {
+                window.GlassToast.show(data.type || 'info', data.title || 'Notification', data.message || '');
+            }
         });
     } else {
         console.warn("[WebSocket] Socket.io client script not found.");
@@ -99,6 +106,9 @@ export async function init(container) {
         }
         if (section === 'user-settings') {
              try { initUserSettings(); } catch (err) { console.error("UserSettings init failed", err); }
+        }
+        if (section === 'plugin-manager') {
+             try { initPluginManager(); } catch (err) { console.error("PluginManager init failed", err); }
         }
     });
 

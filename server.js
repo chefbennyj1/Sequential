@@ -174,6 +174,12 @@ app.use("/api", apiRoutes);
 app.use("/authentication", authRoutes);
 app.use("/accounts", accountRoutes);
 
+const PORT = process.env.PORT || 3000;
+
+// Plugin System
+const PluginLoader = require('./services/PluginLoader');
+PluginLoader.loadAll(app, { port: PORT });
+
 // Main Site Routes (Must be before content routes to handle /library/series/...)
 app.use("/", siteRoutes);
 
@@ -182,7 +188,7 @@ app.use('/Library', isAuth, contentRoutes);
 app.use('/Library', isAuth, express.static(path.join(__dirname, 'Library')));
 
 
-const PORT = 3000;
+
 var hostname = getLocalIPv4();
 server.listen(PORT, () => {
   console.log(`Website running on http://${hostname}:${PORT}`);

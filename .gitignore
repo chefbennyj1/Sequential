@@ -15,3 +15,6 @@ cache/
 ai_models/
 bin/
 resources/binaries/
+
+# Plugin Repository
+services/plugins/

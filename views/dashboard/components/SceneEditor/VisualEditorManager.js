@@ -509,6 +509,7 @@ export class VisualEditorManager {
                 } catch (e) { console.error(e); }
             };
         }
+
     }
 
     bindEditorEvents(panelSelector) {

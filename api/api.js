@@ -82,6 +82,46 @@ const uploadUserAvatar = multer({
 // --- TEST ROUTE ---
 router.get('/test', (req, res) => res.json({ ok: true, message: "API is working" }));
 
+// --- PLUGIN / SYSTEM NOTIFICATIONS ---
+router.all('/toast', (req, res) => {
+    // Allow if authenticated OR if requested internally by a plugin via localhost
+    const isLocal = req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1';
+    if (!req.session.userId && !isLocal) {
+        return res.status(403).json({ ok: false, message: "Unauthorized" });
+    }
+    
+    const type = req.query.type || req.body.type || 'info';
+    const header = req.query.header || req.body.header || 'Notification';
+    const message = req.query.message || req.body.message || '';
+    
+    if (req.app.locals.io) {
+        req.app.locals.io.emit('plugin_toast', { type, title: header, message });
+    }
+    
+    res.json({ ok: true });
+});
+
+// --- PLUGIN MANAGEMENT ---
+const PluginLoader = require('../services/PluginLoader.js');
+router.get('/plugins/list', isAdmin, (req, res) => {
+    try {
+        const plugins = PluginLoader.getAvailablePlugins();
+        res.json({ ok: true, plugins });
+    } catch (err) {
+        res.status(500).json({ ok: false, message: err.message });
+    }
+});
+
+router.post('/plugins/toggle', isAdmin, (req, res) => {
+    try {
+        const { folderName, enabled } = req.body;
+        PluginLoader.togglePlugin(folderName, enabled);
+        res.json({ ok: true, message: `Plugin ${folderName} set to ${enabled ? 'enabled' : 'disabled'}. Note: Requires server restart to take effect.` });
+    } catch (err) {
+        res.status(500).json({ ok: false, message: err.message });
+    }
+});
+
 // --- SYSTEM SETTINGS ---
 router.get('/settings/global', isAdmin, SystemSettingsController.getGlobalSettings);
 router.put('/settings/global', isAdmin, SystemSettingsController.updateGlobalSettings);
