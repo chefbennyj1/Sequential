@@ -84,10 +84,12 @@ router.get('/test', (req, res) => res.json({ ok: true, message: "API is working"
 
 // --- PLUGIN / SYSTEM NOTIFICATIONS ---
 router.all('/toast', (req, res) => {
-    // Allow if authenticated OR if requested internally by a plugin via localhost
-    const isLocal = req.ip === '127.0.0.1' || req.ip === '::1' || req.ip === '::ffff:127.0.0.1';
-    if (!req.session.userId && !isLocal) {
-        return res.status(403).json({ ok: false, message: "Unauthorized" });
+    // Internal API Security: Validate the runtime secret
+    const incomingSecret = req.headers['x-sequential-secret'];
+    const systemSecret = req.app.locals.systemSecret;
+    
+    if (!systemSecret || incomingSecret !== systemSecret) {
+        return res.status(403).json({ ok: false, message: "Unauthorized: Invalid or missing API Secret" });
     }
     
     const type = req.query.type || req.body.type || 'info';

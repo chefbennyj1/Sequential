@@ -10,6 +10,8 @@ const fs = require('fs'); //file system
 const mime = require('mime-types'); //ensure proper mime types
 const sharp = require('sharp'); //image editing
 const os = require('os');
+
+const crypto = require("crypto");
 const http = require('http');
 const { Server } = require('socket.io');
 
@@ -175,10 +177,13 @@ app.use("/authentication", authRoutes);
 app.use("/accounts", accountRoutes);
 
 const PORT = process.env.PORT || 3000;
+const SYSTEM_SECRET = crypto.randomBytes(32).toString('hex');
+app.locals.systemSecret = SYSTEM_SECRET;
+console.log('[System] Generated runtime API secret for internal plugins.');
 
 // Plugin System
 const PluginLoader = require('./services/PluginLoader');
-PluginLoader.loadAll(app, { port: PORT });
+PluginLoader.loadAll(app, { port: PORT, systemSecret: SYSTEM_SECRET });
 
 // Main Site Routes (Must be before content routes to handle /library/series/...)
 app.use("/", siteRoutes);
