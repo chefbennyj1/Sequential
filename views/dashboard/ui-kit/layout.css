@@ -231,11 +231,39 @@ body {
     overflow: visible !important;
 }
 
-/* The canvas is the only pane that scrolls */
+/* The canvas pane never scrolls; it is capped to the viewport and the
+   layout grid inside flexes and scrolls, keeping Apply pinned on screen */
 #editPageContainer .preview-pane-flex {
-    display: block;
-    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    max-height: calc(100dvh - 220px);
     padding: 30px;
+}
+
+#editPageContainer #activePageToolbar {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+#editPageContainer #activePageToolbar .form-group {
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    min-height: 0;
+}
+
+#editPageContainer .layout-browser-grid {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+/* The outer grid is the scroll region here, not the 400px inner cap */
+#editPageContainer .layout-browser-grid-inner {
+    max-height: none;
 }
 
 #editPageContainer .active-page-header {
