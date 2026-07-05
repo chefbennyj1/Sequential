@@ -413,9 +413,9 @@
 }
 
 .glass-card__title {
-    /* Studio display font from shared fonts.css; --font-display ("Italiana")
-       is a leftover from the borrowed glass system and isn't loaded */
-    font-family: var(--font-family-kablam, var(--font-display));
+    /* System stack (matches layout.css); Ka Blam is uppercase-only and the
+       borrowed --font-display ("Italiana") is never loaded */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     font-size: clamp(1.4rem, 2.5vw, 2rem);
     line-height: 1.15;
     margin-bottom: var(--space-sm);
