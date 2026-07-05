@@ -413,7 +413,9 @@
 }
 
 .glass-card__title {
-    font-family: var(--font-display);
+    /* Studio display font from shared fonts.css; --font-display ("Italiana")
+       is a leftover from the borrowed glass system and isn't loaded */
+    font-family: var(--font-family-kablam, var(--font-display));
     font-size: clamp(1.4rem, 2.5vw, 2rem);
     line-height: 1.15;
     margin-bottom: var(--space-sm);
