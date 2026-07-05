@@ -2,6 +2,7 @@
   "watch": ["*"],
   "ext": "js,ejs,html,css",
   "ignore": [
+    "views/*",
     "Volumes/*",
     "ai_models/*",
     "bin/*",
