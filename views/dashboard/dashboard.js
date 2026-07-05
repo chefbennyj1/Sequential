@@ -41,6 +41,15 @@ export async function init(container) {
                 window.GlassToast.show(data.type || 'info', data.title || 'Notification', data.message || '');
             }
         });
+
+        // Pulse the topbar brain once whenever a vision scan lands
+        window.socket.on('panel_ai_updated', () => {
+            const indicator = document.getElementById('dashboard-ai-indicator');
+            if (!indicator) return;
+            indicator.classList.remove('ai-pulse');
+            void indicator.offsetWidth; // restart the animation if pulses overlap
+            indicator.classList.add('ai-pulse');
+        });
     } else {
         console.warn("[WebSocket] Socket.io client script not found.");
     }

@@ -57,10 +57,52 @@
 .dashboard-section.is-active .mode-card:nth-child(9)  { animation-delay: 360ms; }
 .dashboard-section.is-active .mode-card:nth-child(10) { animation-delay: 405ms; }
 
+/* --- Primary button shimmer sweep --- */
+.glass-btn--primary {
+    position: relative;
+    overflow: hidden;
+}
+
+.glass-btn--primary::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: -45%;
+    width: 35%;
+    background: linear-gradient(105deg,
+        transparent,
+        rgba(255, 255, 255, 0.35),
+        transparent);
+    transform: skewX(-20deg);
+    pointer-events: none;
+}
+
+@keyframes btn-shimmer {
+    to { transform: translateX(420%) skewX(-20deg); }
+}
+
+.glass-btn--primary:hover::after {
+    animation: btn-shimmer 650ms var(--ease-smooth);
+}
+
+/* --- Topbar AI brain: single pulse when a vision scan lands --- */
+@keyframes ai-pulse {
+    0%   { transform: scale(1);    filter: drop-shadow(0 0 0 rgba(0, 204, 255, 0)); }
+    35%  { transform: scale(1.3);  filter: drop-shadow(0 0 10px rgba(0, 204, 255, 0.85)); }
+    100% { transform: scale(1);    filter: drop-shadow(0 0 0 rgba(0, 204, 255, 0)); }
+}
+
+#dashboard-ai-indicator.ai-pulse #dashboard-ai-brain-svg {
+    animation: ai-pulse 900ms var(--ease-liquid);
+}
+
 @media (prefers-reduced-motion: reduce) {
     .mode-card ion-icon,
     .mode-card:hover ion-icon,
-    .dashboard-section.is-active .mode-card {
+    .dashboard-section.is-active .mode-card,
+    .glass-btn--primary::after,
+    #dashboard-ai-indicator.ai-pulse #dashboard-ai-brain-svg {
         animation: none !important;
         transition: none !important;
     }
