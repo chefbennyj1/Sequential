@@ -324,7 +324,6 @@ export function initEventHandlers(container, allSections) {
         if (e.target.id === 'builderSeriesSelect') populateVolumeSelect('builderVolumeSelect', e.target.value);
         if (e.target.id === 'insertSeriesSelect') populateVolumeSelect('insertVolumeSelect', e.target.value);
         if (e.target.id === 'scriptSeriesSelect') populateVolumeSelect('scriptVolumeSelect', e.target.value);
-        if (e.target.id === 'editSeriesSelect') populateVolumeSelect('editVolumeSelect', e.target.value);
         if (e.target.id === 'arrangeSeriesSelect') populateVolumeSelect('arrangeVolumeSelect', e.target.value);
         if (e.target.id === 'exportSeriesSelect') populateVolumeSelect('exportVolumeSelect', e.target.value);
 
