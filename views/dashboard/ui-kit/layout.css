@@ -236,6 +236,9 @@ body {
 #editPageContainer .preview-pane-flex {
     display: flex;
     flex-direction: column;
+    /* Shared class sets align-items: flex-start for the layout editor;
+       in this column layout that shrinks children to content width */
+    align-items: stretch;
     overflow: hidden;
     max-height: calc(100dvh - 220px);
     padding: 30px;
