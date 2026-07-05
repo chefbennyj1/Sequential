@@ -1,7 +1,5 @@
 <div class="page-builder dashboard-section hidden glass glass--frosted glass-card">
     <div class="narrow-container padding-20">
-        <button class="glass glass-btn glass-btn--sm glass-btn--ghost back-to-studio-btn margin-b-20">&larr; Back to
-            Studio</button>
         <div id="pageBuilderAlerts" class="margin-b-20"></div>
 
         <div id="pageBuilderModeSelection" class="page-builder-selection">
@@ -116,41 +114,61 @@
             <div id="scriptStatus" class="builder-status"></div>
         </div>
 
-        <!-- EDIT PAGE -->
-        <div id="editPageContainer" class="hidden">
-            <button class="glass glass-btn glass-btn--sm glass-btn--ghost mode-back-btn margin-b-15">&larr;
-                Back</button>
-            <div class="glass glass--bright glass-card margin-b-30">
-                <div class="flex-row gap-15 margin-b-20">
-                    <div class="form-group flex-1"><label>Series</label><select id="editSeriesSelect"></select></div>
-                    <div class="form-group flex-1"><label>Volume</label><select id="editVolumeSelect" disabled>
-                            <option value="">Select a Series first</option>
-                        </select></div>
-                    <div class="form-group flex-1"><label>Chapter</label><select id="editChapterSelect" disabled>
-                            <option value="">Select a Volume first</option>
-                        </select></div>
-                    <div class="form-group flex-1"><label>Page</label><select id="editPageSelect" disabled>
-                            <option value="">Select a Page</option>
-                        </select></div>
+        <!-- END OF NARROW CONTAINER -->
+    </div>
+
+    <!-- EDIT PAGE (Full Width Dual-Pane Layout) -->
+    <div id="editPageContainer" class="hidden">
+        <div class="editor-header-flex">
+            <button class="glass glass-btn glass-btn--sm glass-btn--ghost mode-back-btn">&larr; Back</button>
+        </div>
+
+        <div class="editor-container-flex">
+            <!-- LEFT TOOLBAR (Sidebar) -->
+            <div class="tools-pane-flex glass glass-card">
+                <h4 class="margin-b-20 uppercase text-accent">Navigation</h4>
+                <div class="form-group margin-b-15">
+                    <label>Series</label>
+                    <select id="editSeriesSelect"></select>
+                </div>
+                <div class="form-group margin-b-15">
+                    <label>Volume</label>
+                    <select id="editVolumeSelect" disabled>
+                        <option value="">Select a Series first</option>
+                    </select>
+                </div>
+                <div class="form-group margin-b-15">
+                    <label>Chapter</label>
+                    <select id="editChapterSelect" disabled>
+                        <option value="">Select a Volume first</option>
+                    </select>
+                </div>
+                <div class="form-group margin-b-15">
+                    <label>Page</label>
+                    <select id="editPageSelect" disabled>
+                        <option value="">Select a Page</option>
+                    </select>
                 </div>
             </div>
 
-            <div id="activePageToolbar" class="hidden">
-                <div class="flex-between glass glass--bright border-accent margin-b-30 padding-20">
-                    <div><span class="text-muted font-size-07 uppercase">Active Page</span>
-                        <h4 id="activePageDisplay" class="text-accent font-size-1-4">None</h4>
-                    </div>
-                    <div class="flex-row gap-15">
+            <!-- RIGHT CANVAS (Work Area) -->
+            <div class="preview-pane-flex glass glass-card">
+                <!-- activePageToolbar acts as the wrapper to keep JS compatibility -->
+                <div id="activePageToolbar" class="hidden">
+                    <div class="flex-between margin-b-30 active-page-header">
+                        <div>
+                            <span class="text-muted font-size-07 uppercase">Active Page</span>
+                            <h4 id="activePageDisplay" class="text-accent font-size-1-4">None</h4>
+                        </div>
                         <button id="openLayoutEditorBtn" class="glass glass-btn glass-btn--primary">Editor</button>
                     </div>
-                </div>
-                <div class="glass glass--bright glass-card margin-b-30">
+
                     <div class="form-group">
-                        <label>Structural Layout</label>
+                        <label class="margin-b-15 uppercase text-accent">Structural Layout</label>
                         <input type="hidden" id="activePageLayoutValue">
                         <div id="activePageLayoutBrowser" class="layout-browser-grid"></div>
                         <button id="applyLayoutBtn"
-                            class="glass glass-btn glass-btn--sm glass-btn--primary width-100 margin-t-15">Apply
+                            class="glass glass-btn glass-btn--primary width-100 margin-t-20">Apply
                             Selected Layout</button>
                     </div>
                 </div>

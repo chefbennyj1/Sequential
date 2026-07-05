@@ -208,6 +208,45 @@ body {
     box-sizing: border-box;
 }
 
+/* --- Page Builder: Edit Page dual-pane (fixed sidebar, scrolling canvas) --- */
+/* Edit mode owns the whole section; collapse the narrow container so it
+   doesn't fight for vertical space with its flex: 1 / overflow-y above. */
+.page-builder:has(#editPageContainer:not(.hidden)) .narrow-container {
+    display: none;
+}
+
+#editPageContainer {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Sidebar holds four selects — no scroll gymnastics needed */
+#editPageContainer .tools-pane-flex {
+    flex: 0 0 320px;
+    max-height: none !important;
+    height: auto;
+    padding: 20px !important;
+    overflow: visible !important;
+}
+
+/* The canvas is the only pane that scrolls */
+#editPageContainer .preview-pane-flex {
+    display: block;
+    overflow-y: auto;
+    padding: 30px;
+}
+
+#editPageContainer .active-page-header {
+    border-bottom: 1px solid var(--glass-border);
+    padding-bottom: 20px;
+}
+
+#editPageContainer .active-page-header h4 {
+    margin: 0;
+}
+
 /* Ensure sections stay stable and don't lift on hover like small cards */
 .dashboard-section.glass-card:hover {
     transform: none !important;
