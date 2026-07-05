@@ -17,12 +17,53 @@
     font-size: 3rem;
     color: var(--accent-aqua);
     margin-bottom: var(--space-md);
-    transition: transform var(--dur-fast) var(--ease-liquid);
+    transition: transform var(--dur-fast) var(--ease-liquid),
+        color var(--dur-fast),
+        filter var(--dur-fast);
+}
+
+/* Comic-panel pop: spring overshoot, settles slightly enlarged */
+@keyframes icon-pop {
+    0%   { transform: scale(1) rotate(0deg); }
+    45%  { transform: scale(1.28) rotate(-7deg); }
+    75%  { transform: scale(1.06) rotate(4deg); }
+    100% { transform: scale(1.14) rotate(0deg); }
 }
 
 .mode-card:hover ion-icon {
-    transform: scale(1.1) rotate(5deg);
+    animation: icon-pop 420ms var(--ease-liquid) both;
     color: var(--accent-violet);
+    filter: drop-shadow(0 4px 14px currentColor);
+}
+
+/* Tactile press */
+.mode-card:active {
+    transform: translateY(-1px) scale(0.97);
+    transition-duration: 80ms;
+}
+
+/* Cards ripple in when their section becomes active */
+.dashboard-section.is-active .mode-card {
+    animation: cascade-in var(--dur-mid) var(--ease-glass) both;
+}
+
+.dashboard-section.is-active .mode-card:nth-child(2)  { animation-delay: 45ms; }
+.dashboard-section.is-active .mode-card:nth-child(3)  { animation-delay: 90ms; }
+.dashboard-section.is-active .mode-card:nth-child(4)  { animation-delay: 135ms; }
+.dashboard-section.is-active .mode-card:nth-child(5)  { animation-delay: 180ms; }
+.dashboard-section.is-active .mode-card:nth-child(6)  { animation-delay: 225ms; }
+.dashboard-section.is-active .mode-card:nth-child(7)  { animation-delay: 270ms; }
+.dashboard-section.is-active .mode-card:nth-child(8)  { animation-delay: 315ms; }
+.dashboard-section.is-active .mode-card:nth-child(9)  { animation-delay: 360ms; }
+.dashboard-section.is-active .mode-card:nth-child(10) { animation-delay: 405ms; }
+
+@media (prefers-reduced-motion: reduce) {
+    .mode-card ion-icon,
+    .mode-card:hover ion-icon,
+    .dashboard-section.is-active .mode-card {
+        animation: none !important;
+        transition: none !important;
+    }
 }
 
 .mode-card .glass-card__title {
