@@ -216,6 +216,10 @@ export function initSceneEditor() {
     const layoutEditor = document.querySelector('.layout-editor');
     if (!layoutEditor) return;
 
+    // Already initialized — managers exist and window/DOM listeners are attached.
+    // Re-running would stack duplicate 'message' and timeline listeners.
+    if (visual) return;
+
     // Instantiate managers
     timeline = new TimelineManager(
         layoutEditor,
