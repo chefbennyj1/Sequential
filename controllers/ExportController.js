@@ -357,7 +357,7 @@ class ExportController {
 
         try {
             const browser = await puppeteer.launch({
-                headless: 'new',
+                headless: true,
                 args: ['--disable-web-security', '--no-sandbox']
             });
             const page = await browser.newPage();
@@ -469,12 +469,12 @@ class ExportController {
                 return;
             }
 
-            const pdfDoc = await PDFDocument.create();
+            const mergedPdf = await PDFDocument.create();
 
             for (let i = 0; i < files.length; i++) {
                 const file = files[i];
                 const imagePath = path.join(exportDir, file);
-                
+
                 if (io) {
                     io.emit('export_progress', {
                         current: totalPages,
@@ -484,19 +484,23 @@ class ExportController {
                     });
                 }
 
-                const imageBytes = fs.readFileSync(imagePath);
-                const image = await pdfDoc.embedPng(imageBytes);
-                
-                const page = pdfDoc.addPage([image.width, image.height]);
-                page.drawImage(image, {
-                    x: 0,
-                    y: 0,
-                    width: image.width,
-                    height: image.height,
-                });
+                // Build a single-page doc per image so each PNG buffer can be GC'd
+                // before the next one loads — avoids holding the entire volume in heap.
+                const singleDoc = await PDFDocument.create();
+                let imageBytes = fs.readFileSync(imagePath);
+                const image = await singleDoc.embedPng(imageBytes);
+                imageBytes = null;
+
+                const singlePage = singleDoc.addPage([image.width, image.height]);
+                singlePage.drawImage(image, { x: 0, y: 0, width: image.width, height: image.height });
+
+                const [copiedPage] = await mergedPdf.copyPages(singleDoc, [0]);
+                mergedPdf.addPage(copiedPage);
+
+                console.log(`[EXPORT] PDF page ${i + 1}/${files.length} embedded.`);
             }
 
-            const pdfBytes = await pdfDoc.save();
+            const pdfBytes = await mergedPdf.save();
             const pdfPath = path.join(exportDir, `${volumeFolderName}_print_ready.pdf`);
             fs.writeFileSync(pdfPath, pdfBytes);
             console.log(`[EXPORT] PDF successfully created at: ${pdfPath}`);
