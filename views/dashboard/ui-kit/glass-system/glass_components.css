@@ -4106,13 +4106,14 @@ label {
     color: var(--color-text);
     width: 340px;
     max-height: 420px;
-    display: flex;
-    flex-direction: column;
     border-radius: var(--radius-lg);
 }
 
+/* Display only while open: an unconditional display would override the
+   UA's [popover] { display: none } and leave the inbox stuck visible */
 .glass-notifications__popover:popover-open {
     display: flex;
+    flex-direction: column;
 }
 
 .glass-notifications__header {
