@@ -25,6 +25,7 @@ import { initPluginManager } from './sections/plugin-manager/plugin-manager.js';
 import { initEventHandlers } from './studio/js/EventHandlers.js';
 import { initFormHandlers } from './studio/js/FormHandlers.js';
 import { initExportManager } from './studio/js/ExportManager.js';
+import { startPresenceHeartbeat } from './studio/js/PluginHooks.js';
 
 export async function init(container) {
     console.log("Initializing Dashboard...");
@@ -193,6 +194,10 @@ export async function init(container) {
     // --- Role-Based UI Filtering ---
     const role = user.role || 'basic';
     console.log(`[Dashboard] Initializing for role: ${role}`);
+
+    // Keep presence-subscribed plugins (e.g. local LLM engines) alive while
+    // the dashboard is open; they shut down once the beats stop.
+    startPresenceHeartbeat();
 
     // Define restrictions
     const moderatorHidden = ['user-settings', 'create-new-volume', 'scheduled-tasks', 'create-new-chapter', 'accounts'];

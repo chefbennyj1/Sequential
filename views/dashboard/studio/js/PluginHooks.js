@@ -11,6 +11,7 @@ import { fetchHookSubscribersAPI, firePluginHookAPI } from '../api/StudioClient.
 
 const subscriberCache = {};
 let activePageToken = null;
+let presenceTimer = null;
 
 async function getSubscribers(hookName) {
     if (!subscriberCache[hookName]) {
@@ -42,4 +43,23 @@ export async function firePageOpenHook(context) {
             window.GlassAnnotations.show(result.source || folderName, result.annotations);
         }
     });
+}
+
+/**
+ * Heartbeat to editor-presence subscribers while the dashboard is open.
+ * Plugins use it to start on first beat and shut themselves down once the
+ * beats stop (closing the tab ends the interval with the page).
+ */
+export function startPresenceHeartbeat(intervalMs = 30000) {
+    if (presenceTimer) return;
+
+    const beat = async () => {
+        const subscribers = await getSubscribers('editor-presence');
+        subscribers.forEach((folderName) => {
+            firePluginHookAPI(folderName, 'editor-presence', {});
+        });
+    };
+
+    beat();
+    presenceTimer = setInterval(beat, intervalMs);
 }
