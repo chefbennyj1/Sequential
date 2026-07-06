@@ -232,6 +232,38 @@ export async function init(container) {
         };
     }
 
+    // --- Notification bell ---
+    const myUserId = user._id || user.id;
+
+    (async () => {
+        try {
+            const res = await fetch('/api/notifications');
+            const data = await res.json();
+            if (!data.ok) return;
+            // glass_component.js loads via a plain script tag; wait for it briefly
+            for (let i = 0; i < 10 && !window.GlassNotifications; i++) {
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+            if (window.GlassNotifications) window.GlassNotifications.init(data.notifications);
+        } catch (err) {
+            console.warn('[Dashboard] Notification init failed:', err.message);
+        }
+    })();
+
+    if (window.socket) {
+        window.socket.on('notification', (n) => {
+            if (n.user !== myUserId) return; // broadcast channel; keep only our own
+            if (window.GlassNotifications) window.GlassNotifications.add(n);
+        });
+    }
+
+    // Clicking a linked notification opens that page in the editor
+    document.addEventListener('glass:notification:select', (e) => {
+        const link = e.detail.notification?.link;
+        if (!link || !link.pageId) return;
+        openVisualEditor(link.volume, link.chapter, link.pageId, 'landscape', link.series || null, link.seriesFolder || null);
+    });
+
     // Define restrictions
     const moderatorHidden = ['user-settings', 'create-new-volume', 'scheduled-tasks', 'create-new-chapter', 'accounts'];
     const basicHidden = ['studio', 'scheduled-tasks', 'user-settings', 'accounts'];

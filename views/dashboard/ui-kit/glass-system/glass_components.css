@@ -4064,3 +4064,124 @@ label {
 [data-theme="light"] .glass-annotations__entry:hover {
     background: rgba(15, 23, 42, 0.06);
 }
+
+/* --------------------------------------------------------------------------
+   33. COMPONENT: NOTIFICATIONS
+   Topbar bell with unread dot; inbox popover shares the annotations'
+   native-popover positioning.
+   -------------------------------------------------------------------------- */
+.glass-notifications__bell {
+    position: relative;
+    display: flex;
+    align-items: center;
+    background: none;
+    border: none;
+    color: var(--color-text);
+    font-size: 1.3rem;
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity var(--dur-fast);
+}
+
+.glass-notifications__bell:hover {
+    opacity: 1;
+}
+
+.glass-notifications__dot {
+    position: absolute;
+    top: -1px;
+    right: -1px;
+    width: 9px;
+    height: 9px;
+    border-radius: 50%;
+    background: var(--accent-rose);
+}
+
+.glass-notifications__popover {
+    position: fixed;
+    inset: auto;
+    left: var(--glass-pop-left, 0px);
+    top: var(--glass-pop-top, 0px);
+    margin: 0;
+    color: var(--color-text);
+    width: 340px;
+    max-height: 420px;
+    display: flex;
+    flex-direction: column;
+    border-radius: var(--radius-lg);
+}
+
+.glass-notifications__popover:popover-open {
+    display: flex;
+}
+
+.glass-notifications__header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    border-bottom: 1px solid var(--glass-border);
+}
+
+.glass-notifications__title {
+    font-size: var(--text-sm);
+    font-weight: 600;
+}
+
+.glass-notifications__readall {
+    background: none;
+    border: none;
+    color: var(--accent-aqua);
+    font-size: var(--text-2xs);
+    cursor: pointer;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.glass-notifications__list {
+    overflow-y: auto;
+    padding: var(--space-2xs);
+}
+
+.glass-notifications__empty {
+    padding: var(--space-md);
+    text-align: center;
+    font-size: var(--text-sm);
+    opacity: 0.55;
+}
+
+.glass-notifications__entry {
+    padding: var(--space-sm);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background var(--dur-fast);
+}
+
+.glass-notifications__entry:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+[data-theme="light"] .glass-notifications__entry:hover {
+    background: rgba(15, 23, 42, 0.06);
+}
+
+.glass-notifications__entry.is-unread {
+    border-left: 2px solid var(--accent-aqua);
+}
+
+.glass-notifications__meta {
+    font-size: var(--text-2xs);
+    opacity: 0.55;
+    margin-bottom: 2px;
+}
+
+.glass-notifications__entry-title {
+    font-size: var(--text-sm);
+    font-weight: 500;
+}
+
+.glass-notifications__body {
+    font-size: var(--text-xs);
+    opacity: 0.75;
+    margin-top: 2px;
+}

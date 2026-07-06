@@ -560,6 +560,147 @@
     };
 
     /* ======================================================================
+         GlassNotifications
+         Topbar bell with unread dot and a native-popover inbox. Render-only
+         plus read-state API calls; navigation is delegated via the
+         glass:notification:select event so this component knows nothing
+         about the studio's routing.
+         ====================================================================== */
+    var GlassNotifications = {
+        items: [],
+        popover: null,
+        bell: null,
+        dot: null,
+        list: null,
+
+        init: function (items) {
+            this.items = items || [];
+            this.build();
+            this.renderList();
+        },
+
+        /** Add or update (matched by _id) one notification, e.g. from a socket push. */
+        add: function (item) {
+            this.items = this.items.filter(function (existing) {
+                return existing._id !== item._id;
+            });
+            this.items.unshift(item);
+            this.renderList();
+        },
+
+        unreadCount: function () {
+            return this.items.filter(function (n) { return !n.read; }).length;
+        },
+
+        build: function () {
+            var host = document.getElementById("notificationBell");
+            if (!host || this.bell) return;
+
+            this.bell = document.createElement("button");
+            this.bell.type = "button";
+            this.bell.className = "glass-notifications__bell";
+            this.bell.setAttribute("aria-label", "Notifications");
+            this.bell.innerHTML = '<ion-icon name="notifications-outline"></ion-icon>';
+
+            this.dot = document.createElement("span");
+            this.dot.className = "glass-notifications__dot hidden";
+            this.bell.appendChild(this.dot);
+
+            this.popover = document.createElement("div");
+            this.popover.className = "glass glass--frosted glass-notifications__popover";
+            this.popover.id = "glass-notifications-pop";
+            this.popover.setAttribute("popover", "");
+            this.popover.setAttribute("role", "dialog");
+            this.popover.setAttribute("aria-label", "Notifications");
+            this.bell.setAttribute("popovertarget", this.popover.id);
+
+            var header = document.createElement("div");
+            header.className = "glass-notifications__header";
+            header.innerHTML =
+                '<span class="glass-notifications__title">Notifications</span>' +
+                '<button type="button" class="glass-notifications__readall">Mark all read</button>';
+            header.querySelector(".glass-notifications__readall").addEventListener("click", this.markAllRead.bind(this));
+            this.popover.appendChild(header);
+
+            this.list = document.createElement("div");
+            this.list.className = "glass-notifications__list";
+            this.popover.appendChild(this.list);
+
+            var self = this;
+            this.popover.addEventListener("toggle", function (evt) {
+                if (evt.newState === "open") {
+                    GlassAnnotations.position(self.popover, self.bell, {});
+                }
+            });
+
+            host.appendChild(this.bell);
+            host.appendChild(this.popover);
+        },
+
+        renderList: function () {
+            if (!this.list) return;
+            this.dot.classList.toggle("hidden", this.unreadCount() === 0);
+            this.list.innerHTML = "";
+
+            if (!this.items.length) {
+                var empty = document.createElement("div");
+                empty.className = "glass-notifications__empty";
+                empty.textContent = "Nothing yet.";
+                this.list.appendChild(empty);
+                return;
+            }
+
+            var self = this;
+            this.items.forEach(function (n) {
+                var entry = document.createElement("div");
+                entry.className = "glass-notifications__entry" + (n.read ? "" : " is-unread");
+
+                var meta = document.createElement("div");
+                meta.className = "glass-notifications__meta";
+                meta.textContent = (n.source || "System") + " - " + new Date(n.createdAt).toLocaleString();
+
+                var title = document.createElement("div");
+                title.className = "glass-notifications__entry-title";
+                title.textContent = n.title;
+
+                entry.appendChild(meta);
+                entry.appendChild(title);
+
+                if (n.body) {
+                    var body = document.createElement("div");
+                    body.className = "glass-notifications__body";
+                    body.textContent = n.body;
+                    entry.appendChild(body);
+                }
+
+                entry.addEventListener("click", function () {
+                    self.markRead(n);
+                    emit(entry, "notification:select", { notification: n });
+                    self.popover.hidePopover();
+                });
+
+                self.list.appendChild(entry);
+            });
+        },
+
+        markRead: function (n) {
+            if (!n.read) {
+                n.read = true;
+                this.renderList();
+                fetch("/api/notifications/" + n._id + "/read", { method: "PUT" })
+                    .catch(function () { /* read state re-syncs on next load */ });
+            }
+        },
+
+        markAllRead: function () {
+            this.items.forEach(function (n) { n.read = true; });
+            this.renderList();
+            fetch("/api/notifications/read-all", { method: "PUT" })
+                .catch(function () { /* read state re-syncs on next load */ });
+        }
+    };
+
+    /* ======================================================================
          GlassConfirm
          Promise-based confirm dialog. Resolves true on confirm.
          ====================================================================== */
@@ -1180,6 +1321,7 @@
     window.GlassToast = GlassToast;
     window.GlassAnnotations = GlassAnnotations;
     window.GlassConfirm = GlassConfirm;
+    window.GlassNotifications = GlassNotifications;
     window.GlassStepper = GlassStepper;
     window.GlassNavTabs = GlassNavTabs;
     window.GlassToggle = GlassToggle;

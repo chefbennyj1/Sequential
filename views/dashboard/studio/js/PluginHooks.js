@@ -37,13 +37,38 @@ export async function fireEditorHook(hookName, context) {
     subscribers.forEach(async (folderName) => {
         const result = await firePluginHookAPI(folderName, hookName, context);
 
-        if (activeFireSeq !== seq) return;
         if (!result.ok || !Array.isArray(result.annotations) || !result.annotations.length) return;
+
+        // Record in the notification bell even when the response is stale --
+        // results that land after the user moved on are the ones they'd miss
+        postHookNotification(result.source || folderName, result.annotations, context);
+
+        if (activeFireSeq !== seq) return;
 
         if (window.GlassAnnotations) {
             window.GlassAnnotations.show(result.source || folderName, result.annotations);
         }
     });
+}
+
+function postHookNotification(source, annotations, context) {
+    const extra = annotations.length > 1 ? ` (+${annotations.length - 1} more)` : '';
+    fetch('/api/notifications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            source,
+            title: `${annotations.length} note${annotations.length > 1 ? 's' : ''} on ${context.pageId}`,
+            body: annotations[0].note + extra,
+            link: {
+                series: context.series,
+                seriesFolder: context.seriesFolder,
+                volume: context.volume,
+                chapter: context.chapter,
+                pageId: context.pageId
+            }
+        })
+    }).catch(err => console.log('[PluginHooks] Notification post failed:', err.message));
 }
 
 /**
