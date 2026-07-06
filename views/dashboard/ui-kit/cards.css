@@ -127,15 +127,4 @@
     margin-top: 2px;
 }
 
-/* Background Utility Classes */
-.bg-dark {
-    background-color: #111 !important;
-}
-
-.bg-panel {
-    background-color: var(--panel, #222) !important;
-}
-
-.border-dim {
-    border: 1px solid var(--border, #333) !important;
-}
+/* Background/border utilities live in utilities.css */

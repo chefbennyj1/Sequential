@@ -133,11 +133,11 @@ export function renderPanelSettings(panelSelector, entry, isCustom, ptPos, ptSca
                 </div>
                 <div class="flex-row gap-5 margin-t-5">
                     <div class="glass-tooltip-wrap flex-1">
-                        <button id="visual-flip-h" class="glass glass-btn glass-btn--sm glass-btn--ghost w-full">Flip Horizontal</button>
+                        <button id="visual-flip-h" class="glass glass-btn glass-btn--sm glass-btn--ghost width-100">Flip Horizontal</button>
                         <div class="glass glass--dark glass-tooltip">Flip image horizontally</div>
                     </div>
                     <div class="glass-tooltip-wrap flex-1">
-                        <button id="visual-flip-v" class="glass glass-btn glass-btn--sm glass-btn--ghost w-full">Flip Vertical</button>
+                        <button id="visual-flip-v" class="glass glass-btn glass-btn--sm glass-btn--ghost width-100">Flip Vertical</button>
                         <div class="glass glass--dark glass-tooltip">Flip image vertically</div>
                     </div>
                 </div>

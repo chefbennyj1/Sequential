@@ -31,17 +31,6 @@ a:hover {
   opacity: 0.8;
 }
 
-.text-accent { color: var(--accent); }
-.text-muted { color: var(--muted); }
-.text-danger { color: #ff6b6b; }
-
-.font-size-07 { font-size: 0.7rem; }
-.font-size-08 { font-size: 0.8rem; }
-.font-size-09 { font-size: 0.9rem; }
-.font-size-1-1 { font-size: 1.1rem; }
-
-.font-weight-bold { font-weight: 700; }
-.uppercase { text-transform: uppercase; }
+/* Text/typography utilities live in utilities.css */
 .italic { font-style: italic; }
 .mono { font-family: 'Consolas', 'Monaco', 'Courier New', monospace; }
-.truncate { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

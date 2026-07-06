@@ -884,7 +884,7 @@ export class VisualEditorManager {
                     <h3 class="margin-0">${title}</h3>
                 </div>
                 <div class="glass-modal__body">
-                    <input type="text" class="glass-input w-full" value="${defaultValue}" />
+                    <input type="text" class="glass-input width-100" value="${defaultValue}" />
                 </div>
                 <div class="glass-modal__footer justify-end">
                     <button class="glass glass-btn" id="gp-cancel">Cancel</button>

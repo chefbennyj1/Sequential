@@ -24,7 +24,7 @@ export async function renderLayoutBrowser(containerId, hiddenInputId, currentLay
         header.style = "display:flex; justify-content:space-between; align-items:center; width:100%; margin-bottom:15px; padding:0 10px;";
         
         const title = document.createElement('span');
-        title.className = "text-muted font-size-08 text-uppercase letter-spacing-1";
+        title.className = "text-muted font-size-08 uppercase letter-spacing-1";
         title.textContent = "Layout Templates";
         header.appendChild(title);
 
