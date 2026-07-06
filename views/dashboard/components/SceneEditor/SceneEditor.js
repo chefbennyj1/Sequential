@@ -14,7 +14,7 @@ import {
 } from '../../studio/api/StudioClient.js';
 import { updateUrlState } from '../../studio/js/Navigation.js';
 import { switchToSection } from '../../studio/js/EventHandlers.js';
-import { firePageOpenHook } from '../../studio/js/PluginHooks.js';
+import { fireEditorHook } from '../../studio/js/PluginHooks.js';
 
 // Sub-Managers
 import { TimelineManager } from './TimelineManager.js';
@@ -172,7 +172,7 @@ async function syncEditorContext(volume, chapter, pageId, seriesId, silent = fal
 
         // Fire-and-forget: notify subscribed plugins that a page opened
         if (!silent) {
-            firePageOpenHook({
+            fireEditorHook('page-open', {
                 series: activeSeriesId,
                 seriesFolder: activeSeriesFolder,
                 volume,
@@ -328,7 +328,22 @@ export function initSceneEditor() {
                 return;
             }
             visual.showDialogueProperties(currentSceneData[index], properties,
-                async () => saveSceneData(currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, currentSceneData, activeSeriesId),
+                async () => {
+                    const result = await saveSceneData(currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, currentSceneData, activeSeriesId);
+                    if (result.ok) {
+                        // Fire-and-forget: let subscribed plugins scan the saved dialogue
+                        fireEditorHook('scene-saved', {
+                            series: activeSeriesId,
+                            seriesFolder: activeSeriesFolder,
+                            volume: currentSceneInfo.volume,
+                            chapter: currentSceneInfo.chapter,
+                            pageId: currentSceneInfo.pageId,
+                            scene: currentSceneData,
+                            characters: properties.availableCharacters || []
+                        });
+                    }
+                    return result;
+                },
                 async (delItem) => handleSceneDelete(delItem, currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, activeSeriesId)
             );
         }

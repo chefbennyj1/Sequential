@@ -21,20 +21,20 @@ async function getSubscribers(hookName) {
 }
 
 /**
- * Notify subscribed plugins that a page was opened in the editor.
- * Fire-and-forget: results render as annotation badges when they arrive,
- * and are dropped if the user has already moved to another page.
+ * Notify subscribed plugins of an editor lifecycle event (e.g. 'page-open',
+ * 'scene-saved'). Fire-and-forget: results render as annotation badges when
+ * they arrive, and are dropped if the user has already moved to another page.
  */
-export async function firePageOpenHook(context) {
+export async function fireEditorHook(hookName, context) {
     const token = `${context.volume}/${context.chapter}/${context.pageId}`;
     activePageToken = token;
 
     if (window.GlassAnnotations) window.GlassAnnotations.clear();
 
-    const subscribers = await getSubscribers('page-open');
+    const subscribers = await getSubscribers(hookName);
 
     subscribers.forEach(async (folderName) => {
-        const result = await firePluginHookAPI(folderName, 'page-open', context);
+        const result = await firePluginHookAPI(folderName, hookName, context);
 
         if (activePageToken !== token) return;
         if (!result.ok || !Array.isArray(result.annotations) || !result.annotations.length) return;

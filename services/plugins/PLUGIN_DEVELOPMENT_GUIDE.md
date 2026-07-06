@@ -103,6 +103,9 @@ At runtime the dashboard asks `GET /api/plugins/hooks/{hookName}` for the folder
 
 ### Available Hooks
 
+#### `scene-saved`
+Fired when the writer clicks Save Changes in the Dialogue Properties panel. This is the right hook for content analysis (the Proof-Reader uses it): it runs exactly when the text changes, instead of re-scanning on every page open. Same payload and response contract as `page-open` below.
+
 #### `page-open`
 Fired when a page opens in the editor (fire-and-forget; slow responses are fine and stale ones are dropped if the user has moved to another page).
 
