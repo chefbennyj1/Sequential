@@ -54,7 +54,9 @@ export async function fetchCharactersAPI(seriesId) {
     try {
         const query = seriesId ? `?series=${seriesId}` : '';
         const res = await fetch(`/api/characters${query}`);
-        return await res.json();
+        const data = await res.json();
+        // The API wraps the list in { ok, characters }; callers want the array
+        return Array.isArray(data) ? data : (data.characters || []);
     } catch (err) {
         console.error("Error fetching characters:", err);
         return [];
