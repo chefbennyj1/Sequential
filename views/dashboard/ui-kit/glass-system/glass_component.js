@@ -560,6 +560,42 @@
     };
 
     /* ======================================================================
+         GlassConfirm
+         Promise-based confirm dialog. Resolves true on confirm.
+         ====================================================================== */
+    var GlassConfirm = {
+        show: function (title, message, confirmLabel) {
+            return new Promise(function (resolve) {
+                var backdrop = document.createElement("div");
+                backdrop.className = "glass-modal-backdrop";
+                backdrop.innerHTML =
+                    '<div class="glass-modal glass-modal--sm">' +
+                    '<div class="glass-modal__header"><h3 class="margin-0">' + title + "</h3></div>" +
+                    '<div class="glass-modal__body"><p class="margin-0 text-muted">' + message + "</p></div>" +
+                    '<div class="glass-modal__footer justify-end">' +
+                    '<button class="glass glass-btn glass-btn--ghost" id="gc-cancel">Cancel</button>' +
+                    '<button class="glass glass-btn glass-btn--danger" id="gc-confirm">' + (confirmLabel || "Confirm") + "</button>" +
+                    "</div></div>";
+                document.body.appendChild(backdrop);
+                requestAnimationFrame(function () {
+                    backdrop.classList.add("is-open");
+                });
+
+                var close = function (result) {
+                    backdrop.classList.remove("is-open");
+                    backdrop.addEventListener("transitionend", function () {
+                        backdrop.remove();
+                    }, { once: true });
+                    resolve(result);
+                };
+
+                backdrop.querySelector("#gc-cancel").onclick = function () { close(false); };
+                backdrop.querySelector("#gc-confirm").onclick = function () { close(true); };
+            });
+        }
+    };
+
+    /* ======================================================================
          GlassStepper
          ====================================================================== */
     var GlassStepper = {
@@ -1143,6 +1179,7 @@
     window.GlassDropdown = GlassDropdown;
     window.GlassToast = GlassToast;
     window.GlassAnnotations = GlassAnnotations;
+    window.GlassConfirm = GlassConfirm;
     window.GlassStepper = GlassStepper;
     window.GlassNavTabs = GlassNavTabs;
     window.GlassToggle = GlassToggle;

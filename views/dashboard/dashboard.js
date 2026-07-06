@@ -199,6 +199,39 @@ export async function init(container) {
     // the dashboard is open; they shut down once the beats stop.
     startPresenceHeartbeat();
 
+    // --- Server power controls (admin only) ---
+    const restartBtn = document.getElementById('restartServerBtn');
+    const shutdownBtn = document.getElementById('shutdownServerBtn');
+    if (role === 'admin' && restartBtn && shutdownBtn) {
+        restartBtn.classList.remove('hidden');
+        shutdownBtn.classList.remove('hidden');
+
+        restartBtn.onclick = async () => {
+            const confirmed = await window.GlassConfirm.show('Restart Server',
+                'The server and all plugin processes will stop, then start fresh. The dashboard reloads when it is back.', 'Restart');
+            if (!confirmed) return;
+            await fetch('/api/system/restart', { method: 'POST' });
+            if (window.GlassToast) window.GlassToast.show('info', 'Restarting', 'Waiting for the server to come back...', 0);
+            // Give the old process time to exit before polling for the new one
+            setTimeout(() => {
+                const poll = setInterval(async () => {
+                    try {
+                        const res = await fetch('/api/test', { cache: 'no-store' });
+                        if (res.ok) { clearInterval(poll); location.reload(); }
+                    } catch (err) { /* still down; keep polling */ }
+                }, 2000);
+            }, 5000);
+        };
+
+        shutdownBtn.onclick = async () => {
+            const confirmed = await window.GlassConfirm.show('Shut Down Server',
+                'The server and all plugin processes will stop. You will need to start it again manually.', 'Shut Down');
+            if (!confirmed) return;
+            await fetch('/api/system/shutdown', { method: 'POST' });
+            if (window.GlassToast) window.GlassToast.show('info', 'Server stopped', 'You can close this tab.', 0);
+        };
+    }
+
     // Define restrictions
     const moderatorHidden = ['user-settings', 'create-new-volume', 'scheduled-tasks', 'create-new-chapter', 'accounts'];
     const basicHidden = ['studio', 'scheduled-tasks', 'user-settings', 'accounts'];

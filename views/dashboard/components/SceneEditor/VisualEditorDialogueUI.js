@@ -2,38 +2,10 @@
 import { pushSceneUpdate } from './VisualEditorSync.js';
 
 /**
- * Glass-styled confirm dialog. Returns a Promise<boolean>.
+ * Glass-styled confirm dialog (delegates to the shared ui-kit component).
  */
 function glassConfirm(title, message) {
-    return new Promise(resolve => {
-        const backdrop = document.createElement('div');
-        backdrop.className = 'glass-modal-backdrop';
-        backdrop.innerHTML = `
-            <div class="glass-modal glass-modal--sm">
-                <div class="glass-modal__header">
-                    <h3 class="margin-0">${title}</h3>
-                </div>
-                <div class="glass-modal__body">
-                    <p class="margin-0 text-muted">${message}</p>
-                </div>
-                <div class="glass-modal__footer justify-end">
-                    <button class="glass glass-btn glass-btn--ghost" id="gc-cancel">Cancel</button>
-                    <button class="glass glass-btn glass-btn--danger" id="gc-confirm">Delete</button>
-                </div>
-            </div>
-        `;
-        document.body.appendChild(backdrop);
-        requestAnimationFrame(() => backdrop.classList.add('is-open'));
-
-        const close = (result) => {
-            backdrop.classList.remove('is-open');
-            backdrop.addEventListener('transitionend', () => backdrop.remove(), { once: true });
-            resolve(result);
-        };
-
-        backdrop.querySelector('#gc-cancel').onclick = () => close(false);
-        backdrop.querySelector('#gc-confirm').onclick = () => close(true);
-    });
+    return window.GlassConfirm.show(title, message, 'Delete');
 }
 
 /**

@@ -133,6 +133,39 @@ router.post('/plugins/toggle', isAdmin, (req, res) => {
     }
 });
 
+// --- SYSTEM POWER (shutdown / restart from the dashboard) ---
+
+// Boots a fresh server after this process exits. The delay lets the old
+// process release port 3000 before the new one binds it.
+function relaunchDetached() {
+    const { spawn } = require('child_process');
+    const nodePath = process.argv[0];
+    const script = process.argv[1];
+    if (process.platform === 'win32') {
+        const command = `Start-Sleep -Seconds 2; & '${nodePath.replace(/'/g, "''")}' '${script.replace(/'/g, "''")}'`;
+        spawn('powershell.exe', ['-NoProfile', '-WindowStyle', 'Hidden', '-Command', command],
+            { detached: true, stdio: 'ignore', cwd: process.cwd() }).unref();
+    } else {
+        spawn('/bin/sh', ['-c', `sleep 2; "${nodePath}" "${script}"`],
+            { detached: true, stdio: 'ignore', cwd: process.cwd() }).unref();
+    }
+}
+
+router.post('/system/shutdown', isAdmin, async (req, res) => {
+    console.log('[System] Shutdown requested from the dashboard.');
+    res.json({ ok: true, message: 'Server shutting down.' });
+    await PluginLoader.shutdownAll();
+    setTimeout(() => process.exit(0), 500);
+});
+
+router.post('/system/restart', isAdmin, async (req, res) => {
+    console.log('[System] Restart requested from the dashboard.');
+    res.json({ ok: true, message: 'Server restarting.' });
+    await PluginLoader.shutdownAll();
+    relaunchDetached();
+    setTimeout(() => process.exit(0), 500);
+});
+
 // --- SYSTEM SETTINGS ---
 router.get('/settings/global', isAdmin, SystemSettingsController.getGlobalSettings);
 router.put('/settings/global', isAdmin, SystemSettingsController.updateGlobalSettings);

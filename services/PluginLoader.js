@@ -95,6 +95,26 @@ class PluginLoader {
         return plugins;
     }
 
+    // Call every loaded plugin's optional shutdown() so nothing a plugin
+    // spawned (child processes, watchers) outlives the server. Each plugin
+    // gets 5 seconds; failures are logged, never fatal.
+    async shutdownAll() {
+        const entries = Object.entries(this.loadedPlugins);
+        console.log(`[PluginLoader] Shutting down ${entries.length} plugin(s)...`);
+        await Promise.allSettled(entries.map(async ([name, plugin]) => {
+            if (typeof plugin.shutdown !== 'function') return;
+            try {
+                await Promise.race([
+                    Promise.resolve(plugin.shutdown()),
+                    new Promise((_, reject) => setTimeout(() => reject(new Error('shutdown timed out (5s)')), 5000))
+                ]);
+                console.log(`[PluginLoader] ${name} shut down.`);
+            } catch (err) {
+                console.error(`[PluginLoader] ${name} shutdown failed:`, err.message);
+            }
+        }));
+    }
+
     // Enabled plugins whose manifest subscribes to the given lifecycle hook.
     // The dashboard queries this so it never has to know plugin names.
     getHookSubscribers(hookName) {

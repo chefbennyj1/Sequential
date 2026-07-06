@@ -133,3 +133,12 @@ Annotations render as a severity-colored badge in the editor header (`GlassAnnot
 
 #### `editor-presence`
 A heartbeat POSTed roughly every 30 seconds while the dashboard is open, with an empty payload. The beats themselves are the signal: use them to start expensive background processes on the first beat and shut them down once the beats stop. `Local-Llm-Engine` is the reference implementation - it starts llama-server on the first beat and a watchdog frees the memory after 2 minutes of silence, so the model dies with the dashboard but survives a browser refresh.
+
+## 7. Graceful Shutdown
+If your plugin spawns processes or holds resources that outlive a request (like the Local LLM Engine's llama-server), implement an optional `shutdown()` method on your plugin object. The Plugin Loader calls it when an admin shuts down or restarts the server from the dashboard, waiting up to 5 seconds per plugin, so nothing your plugin started is left running after the app exits.
+
+```javascript
+shutdown() {
+    this.stop(); // kill child processes, clear timers, flush pending writes
+}
+```
