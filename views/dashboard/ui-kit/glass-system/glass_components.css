@@ -4004,6 +4004,7 @@ label {
     left: var(--glass-pop-left, 0px);
     top: var(--glass-pop-top, 0px);
     margin: 0;
+    color: var(--color-text);
     min-width: 280px;
     max-width: 380px;
     max-height: 320px;
