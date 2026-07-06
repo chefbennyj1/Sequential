@@ -6,6 +6,7 @@ class PluginLoader {
     constructor() {
         this.pluginsDir = path.join(__dirname, 'plugins');
         this.loadedPlugins = {};
+        this.loadedManifests = {};
     }
 
     loadAll(app, config = {}) {
@@ -56,6 +57,7 @@ class PluginLoader {
                     pluginRouter.use(`/${folder}`, subRouter);
 
                     this.loadedPlugins[folder] = pluginInstance;
+                    this.loadedManifests[folder] = manifest;
                 } else {
                     console.log(`[PluginLoader] Skipping disabled plugin: ${manifest.name}`);
                 }
@@ -91,6 +93,15 @@ class PluginLoader {
             }
         }
         return plugins;
+    }
+
+    // Enabled plugins whose manifest subscribes to the given lifecycle hook.
+    // The dashboard queries this so it never has to know plugin names.
+    getHookSubscribers(hookName) {
+        return Object.keys(this.loadedManifests).filter(folder => {
+            const hooks = this.loadedManifests[folder].hooks || [];
+            return hooks.includes(hookName);
+        });
     }
 
     togglePlugin(folderName, enabled) {

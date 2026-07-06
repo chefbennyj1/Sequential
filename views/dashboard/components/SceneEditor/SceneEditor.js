@@ -14,6 +14,7 @@ import {
 } from '../../studio/api/StudioClient.js';
 import { updateUrlState } from '../../studio/js/Navigation.js';
 import { switchToSection } from '../../studio/js/EventHandlers.js';
+import { firePageOpenHook } from '../../studio/js/PluginHooks.js';
 
 // Sub-Managers
 import { TimelineManager } from './TimelineManager.js';
@@ -169,6 +170,19 @@ async function syncEditorContext(volume, chapter, pageId, seriesId, silent = fal
         if (properties) properties.setAvailableData(characters || [], panelNames);
         if (timeline) timeline.setData(currentSceneData, characters || []);
 
+        // Fire-and-forget: notify subscribed plugins that a page opened
+        if (!silent) {
+            firePageOpenHook({
+                series: activeSeriesId,
+                seriesFolder: activeSeriesFolder,
+                volume,
+                chapter,
+                pageId,
+                scene: currentSceneData,
+                characters: characters || []
+            });
+        }
+
         const layoutEditor = document.querySelector('.layout-editor');
         if (layoutEditor && !silent) {
             layoutEditor.classList.toggle('is-spread', !!panelData.isSpread);
@@ -264,10 +278,17 @@ export function initSceneEditor() {
     visual.timeline = timeline;
     visual.properties = properties;
 
+    // Plugin annotations: clicking an entry selects the flagged scene item
+    layoutEditor.addEventListener('glass:annotation:select', (e) => {
+        const index = currentSceneData.findIndex(item => item.id == e.detail.targetId);
+        if (index !== -1) visual.selectSceneItem(index);
+    });
+
     // Close button (visual editor header)
     const closeEditorBtn = document.getElementById('closeEditorBtn');
     if (closeEditorBtn) {
         closeEditorBtn.onclick = async () => {
+            if (window.GlassAnnotations) window.GlassAnnotations.clear();
             await returnToPageEdit();
             const toolsPane = document.querySelector('.layout-editor .tools-pane');
             if (toolsPane) toolsPane.innerHTML = '';

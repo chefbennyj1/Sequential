@@ -422,6 +422,138 @@
     };
 
     /* ======================================================================
+         GlassAnnotations
+         Generic renderer for plugin-supplied page annotations.
+         Plugins return { targetId, severity, title, note } objects via the
+         hook API; this component knows nothing about who produced them.
+         ====================================================================== */
+    var GlassAnnotations = {
+        ORDER: { error: 3, warning: 2, info: 1 },
+        uid: 0,
+
+        clear: function () {
+            var region = document.getElementById("editorAnnotations");
+            if (region) region.innerHTML = "";
+        },
+
+        /**
+         * Render an annotation badge whose popover uses the native Popover API
+         * (top layer, light dismiss). options.anchor targets any element by
+         * selector or reference; options.placement is "under" (default) or
+         * "over". Without options the popover anchors under its own badge.
+         */
+        show: function (source, annotations, options) {
+            options = options || {};
+            var region = document.getElementById("editorAnnotations");
+            if (!region || !annotations || !annotations.length) return;
+
+            var self = this;
+            var worst = annotations.reduce(function (acc, a) {
+                return (self.ORDER[a.severity] || 0) > (self.ORDER[acc] || 0)
+                    ? a.severity
+                    : acc;
+            }, "info");
+
+            var group = document.createElement("div");
+            group.className = "glass-annotations__group";
+
+            var badge = document.createElement("button");
+            badge.type = "button";
+            badge.className =
+                "glass-annotations__badge glass-annotations__badge--" + worst;
+            badge.textContent = source + " (" + annotations.length + ")";
+            badge.setAttribute("aria-haspopup", "true");
+            badge.setAttribute("aria-expanded", "false");
+
+            var popover = document.createElement("div");
+            popover.className = "glass glass--frosted glass-annotations__popover";
+            popover.setAttribute("role", "dialog");
+            popover.setAttribute("aria-label", source + " annotations");
+            popover.setAttribute("popover", "");
+            popover.id = "glass-annotations-pop-" + ++this.uid;
+            badge.setAttribute("popovertarget", popover.id);
+
+            annotations.forEach(function (a) {
+                var entry = document.createElement("div");
+                entry.className = "glass-annotations__entry";
+                if (a.targetId) entry.dataset.targetId = a.targetId;
+
+                var dot = document.createElement("span");
+                dot.className =
+                    "glass-annotations__dot glass-annotations__dot--" +
+                    (a.severity || "info");
+
+                var body = document.createElement("div");
+                body.className = "glass-annotations__body";
+
+                if (a.title) {
+                    var title = document.createElement("div");
+                    title.className = "glass-annotations__title";
+                    title.textContent = a.title;
+                    body.appendChild(title);
+                }
+
+                var note = document.createElement("div");
+                note.className = "glass-annotations__note";
+                note.textContent = a.note || "";
+                body.appendChild(note);
+
+                entry.appendChild(dot);
+                entry.appendChild(body);
+
+                entry.addEventListener("click", function () {
+                    emit(entry, "annotation:select", {
+                        targetId: a.targetId || null,
+                        source: source
+                    });
+                    popover.hidePopover();
+                });
+
+                popover.appendChild(entry);
+            });
+
+            popover.addEventListener("toggle", function (evt) {
+                var open = evt.newState === "open";
+                badge.setAttribute("aria-expanded", open ? "true" : "false");
+                if (open) GlassAnnotations.position(popover, badge, options);
+            });
+
+            group.appendChild(badge);
+            group.appendChild(popover);
+            region.appendChild(group);
+        },
+
+        /**
+         * Place an open popover against its anchor. Native popovers live in
+         * the top layer, so coordinates are viewport-fixed and immune to
+         * ancestor overflow or z-index.
+         */
+        position: function (popover, badge, options) {
+            var anchor = badge;
+            if (options.anchor) {
+                anchor =
+                    typeof options.anchor === "string"
+                        ? document.querySelector(options.anchor)
+                        : options.anchor;
+                if (!anchor) anchor = badge;
+            }
+
+            var rect = anchor.getBoundingClientRect();
+            var left = rect.right - popover.offsetWidth;
+            var top =
+                options.placement === "over"
+                    ? rect.top - popover.offsetHeight - 8
+                    : rect.bottom + 8;
+
+            left = Math.max(8, Math.min(left, window.innerWidth - popover.offsetWidth - 8));
+            top = Math.max(8, Math.min(top, window.innerHeight - popover.offsetHeight - 8));
+
+            popover.style.setProperty("--glass-pop-left", left + "px");
+            popover.style.setProperty("--glass-pop-top", top + "px");
+        }
+    };
+
+    /* ======================================================================
          GlassStepper
          ====================================================================== */
     var GlassStepper = {
@@ -1004,6 +1136,7 @@
     window.GlassAccordion = GlassAccordion;
     window.GlassDropdown = GlassDropdown;
     window.GlassToast = GlassToast;
+    window.GlassAnnotations = GlassAnnotations;
     window.GlassStepper = GlassStepper;
     window.GlassNavTabs = GlassNavTabs;
     window.GlassToggle = GlassToggle;

@@ -3950,3 +3950,116 @@ label {
     color: rgba(15, 23, 42, 0.72);
     opacity: 1;
 }
+
+/* --------------------------------------------------------------------------
+       32. COMPONENT: ANNOTATIONS
+       Generic badges + popover for plugin-supplied page annotations.
+       -------------------------------------------------------------------------- */
+.glass-annotations {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-left: auto;
+    margin-right: var(--space-md);
+}
+
+.glass-annotations__group {
+    position: relative;
+}
+
+.glass-annotations__badge {
+    font-size: var(--text-xs);
+    font-family: var(--font-body);
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    background: transparent;
+    border: 1px solid currentColor;
+    cursor: pointer;
+    opacity: 0.75;
+    transition: opacity var(--dur-fast);
+}
+
+.glass-annotations__badge:hover,
+.glass-annotations__badge[aria-expanded="true"] {
+    opacity: 1;
+}
+
+.glass-annotations__badge--info {
+    color: var(--accent-aqua);
+}
+
+.glass-annotations__badge--warning {
+    color: var(--accent-amber);
+}
+
+.glass-annotations__badge--error {
+    color: var(--accent-rose);
+}
+
+/* Native Popover API: rendered in the top layer with light dismiss.
+   Anchor coordinates are set by GlassAnnotations.position() as CSS vars. */
+.glass-annotations__popover {
+    position: fixed;
+    inset: auto;
+    left: var(--glass-pop-left, 0px);
+    top: var(--glass-pop-top, 0px);
+    margin: 0;
+    min-width: 280px;
+    max-width: 380px;
+    max-height: 320px;
+    overflow-y: auto;
+    border-radius: var(--radius-lg);
+    padding: var(--space-2xs);
+}
+
+.glass-annotations__entry {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-sm);
+    padding: var(--space-sm);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: background var(--dur-fast);
+}
+
+.glass-annotations__entry:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.glass-annotations__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+}
+
+.glass-annotations__dot--info {
+    background: var(--accent-aqua);
+}
+
+.glass-annotations__dot--warning {
+    background: var(--accent-amber);
+}
+
+.glass-annotations__dot--error {
+    background: var(--accent-rose);
+}
+
+.glass-annotations__title {
+    font-size: var(--text-2xs);
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    opacity: 0.55;
+    margin-bottom: 2px;
+}
+
+.glass-annotations__note {
+    font-size: var(--text-sm);
+    text-align: left;
+}
+
+[data-theme="light"] .glass-annotations__entry:hover {
+    background: rgba(15, 23, 42, 0.06);
+}

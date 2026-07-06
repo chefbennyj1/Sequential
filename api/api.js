@@ -114,6 +114,15 @@ router.get('/plugins/list', isAdmin, (req, res) => {
     }
 });
 
+router.get('/plugins/hooks/:hookName', isModerator, (req, res) => {
+    try {
+        const subscribers = PluginLoader.getHookSubscribers(req.params.hookName);
+        res.json({ ok: true, subscribers });
+    } catch (err) {
+        res.status(500).json({ ok: false, message: err.message });
+    }
+});
+
 router.post('/plugins/toggle', isAdmin, (req, res) => {
     try {
         const { folderName, enabled } = req.body;
