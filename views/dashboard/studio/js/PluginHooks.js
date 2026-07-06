@@ -10,7 +10,7 @@
 import { fetchHookSubscribersAPI, firePluginHookAPI } from '../api/StudioClient.js';
 
 const subscriberCache = {};
-let activePageToken = null;
+let activeFireSeq = 0;
 let presenceTimer = null;
 
 async function getSubscribers(hookName) {
@@ -26,8 +26,9 @@ async function getSubscribers(hookName) {
  * they arrive, and are dropped if the user has already moved to another page.
  */
 export async function fireEditorHook(hookName, context) {
-    const token = `${context.volume}/${context.chapter}/${context.pageId}`;
-    activePageToken = token;
+    // Only the latest dispatch may render: a newer save or page switch
+    // invalidates every response still in flight from older fires.
+    const seq = ++activeFireSeq;
 
     if (window.GlassAnnotations) window.GlassAnnotations.clear();
 
@@ -36,7 +37,7 @@ export async function fireEditorHook(hookName, context) {
     subscribers.forEach(async (folderName) => {
         const result = await firePluginHookAPI(folderName, hookName, context);
 
-        if (activePageToken !== token) return;
+        if (activeFireSeq !== seq) return;
         if (!result.ok || !Array.isArray(result.annotations) || !result.annotations.length) return;
 
         if (window.GlassAnnotations) {

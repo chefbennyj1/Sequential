@@ -454,8 +454,14 @@
                     : acc;
             }, "info");
 
+            // One badge per source: a fresh result replaces the previous one
+            region.querySelectorAll(".glass-annotations__group").forEach(function (g) {
+                if (g.dataset.source === source) g.remove();
+            });
+
             var group = document.createElement("div");
             group.className = "glass-annotations__group";
+            group.dataset.source = source;
 
             var badge = document.createElement("button");
             badge.type = "button";
