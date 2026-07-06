@@ -58,14 +58,13 @@ export async function initPluginManager() {
         
         plugins.forEach(plugin => {
             const row = document.createElement('div');
-            row.className = 'glass glass--bright border-radius-8 flex-row justify-between align-center border-dim';
-            row.style.padding = '20px';
+            row.className = 'glass glass--bright border-radius-8 flex-row justify-between align-center border-dim padding-20';
             
             row.innerHTML = `
                 <div class="flex-column gap-5">
                     <div class="flex-row align-center gap-10">
                         <h4 class="margin-0 text-accent">${escapeHTML(plugin.name || plugin.folderName)}</h4>
-                        <span class="text-muted font-size-07 glass glass--dark padding-x-10 padding-y-2 border-radius-4">v${escapeHTML(plugin.version || '1.0.0')}</span>
+                        <span class="text-muted font-size-07 glass glass--dark padding-x-10 border-radius-4">v${escapeHTML(plugin.version || '1.0.0')}</span>
                     </div>
                     <p class="text-muted font-size-08 margin-0">${escapeHTML(plugin.description || 'No description provided.')}</p>
                     <span class="text-muted font-size-07 margin-t-5"><ion-icon name="folder-outline"></ion-icon> services/plugins/${escapeHTML(plugin.folderName)}</span>

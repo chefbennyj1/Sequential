@@ -134,7 +134,7 @@ export function renderDialogueProperties(container, item, propertiesManager, get
 
     // --- Header ---
     const header = document.createElement('div');
-    header.className = 'flex-row justify-between align-center margin-b-15 padding-x-10';
+    header.className = 'flex-row justify-between align-center margin-b-15 padding-x-10 padding-top-10';
     header.innerHTML = `<h4>Dialogue Properties</h4><button class="glass glass-btn glass-btn--ghost">&larr; Layout Tools</button>`;
 
     const originalOnUpdate = propertiesManager.onUpdate;
