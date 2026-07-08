@@ -3,6 +3,10 @@
 **GEMINI:** idle
 **CLAUDE:** idle
 
+> **Read `WORKING_PRACTICES.md` before starting work.** It covers how to work
+> here — house rules, verification discipline, and this environment's traps.
+> This file covers what the code is; that one covers how not to break it.
+
 # Sequential Comic Server — Agent Navigation Guide
 
 A Node.js/Express platform for creating, reading, and publishing digital comics. MongoDB backend, EJS templates, Socket.io for real-time feedback, Puppeteer for print export, and Gemini AI for automated panel metadata.
