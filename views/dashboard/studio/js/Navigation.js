@@ -3,7 +3,7 @@
 import { openVisualEditor } from '../../components/SceneEditor/SceneEditor.js';
 import { populateVolumeSelect, populateLayoutSelect } from './LibraryManager.js';
 import { setActivePage } from './PageConfigManager.js';
-import { switchToSection } from './EventHandlers.js';
+import { switchToSection, lastStudioSection } from './EventHandlers.js';
 
 // We need a way to call functions that might not be imported yet if we have circular deps.
 // For now, we will assume the Main Dashboard will handle the "Router" logic or we expose setters.
@@ -36,6 +36,10 @@ export async function restoreStateFromUrl(container) {
         const activeItem = container.querySelector('.glass-nav__item--active');
         if (activeItem) tab = activeItem.dataset.page;
     }
+
+    // The hub is gone: fresh entries and legacy ?tab=studio URLs open the
+    // last rail section the writer worked in
+    if (!tab || tab === 'studio') tab = lastStudioSection();
 
     if (tab) {
         const item = container.querySelector(`.glass-tab[data-page="${tab}"]`);

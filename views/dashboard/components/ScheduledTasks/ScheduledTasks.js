@@ -163,15 +163,6 @@ export default class ScheduledTaskView {
         // Vision AI Actions
         this.visionScanBtn.addEventListener('click', () => this.runVisionAI());
         this.visionStopBtn.addEventListener('click', () => this.stopVisionAI());
-        
-        // Back button logic
-        const backBtn = this.container.querySelector('.back-to-studio-btn');
-        if (backBtn) {
-            backBtn.addEventListener('click', () => {
-                this.container.classList.add('hidden');
-                document.querySelector('.studio').classList.remove('hidden');
-            });
-        }
     }
 
     async runLibrarySync() {

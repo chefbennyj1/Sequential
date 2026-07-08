@@ -279,13 +279,18 @@ export async function init(container) {
         }
     });
 
-    // Studio cards (if visible)
-    const modeCards = container.querySelectorAll('.mode-card');
-    modeCards.forEach(card => {
-        if (hiddenTargets.includes(card.dataset.target)) {
-            card.style.display = 'none';
-        }
-    });
+    // Studio rail: basic users have no studio tools at all; others lose
+    // the same targets their role hid on the old hub cards
+    const studioRail = container.querySelector('#studioRail');
+    if (studioRail && role === 'basic') {
+        studioRail.style.display = 'none';
+    } else if (studioRail) {
+        studioRail.querySelectorAll('.studio-rail__btn').forEach(btn => {
+            if (hiddenTargets.includes(btn.dataset.target)) {
+                btn.style.display = 'none';
+            }
+        });
+    }
 
     if (role === 'moderator' || role === 'basic') {
         // Specific sub-tool restrictions (e.g. within Page Builder)
@@ -310,8 +315,6 @@ export async function init(container) {
             settingsTab.classList.add('glass-nav__item--active');
         }
 
-        container.querySelector('.studio').classList.add('hidden');
-        container.querySelector('.library-settings').classList.remove('hidden');
     }
 
     // Admins see everything (default state of dashboard.html)

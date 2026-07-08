@@ -19,6 +19,31 @@ let arrangeManager;
 // Fragment load cache — prevents duplicate fetches
 const _loadedSections = new Set();
 
+// Sections reachable from the persistent studio rail; the "studio" tab and
+// fresh entries resolve to the last one the writer used.
+export const STUDIO_SECTIONS = [
+    'page-builder', 'characters', 'plot-lab', 'story-critic', 'style-lab',
+    'export-tool', 'create-new-volume', 'edit-volume', 'create-new-chapter',
+    'library-settings'
+];
+
+export function lastStudioSection() {
+    const saved = localStorage.getItem('sequential_last_studio_section');
+    return STUDIO_SECTIONS.includes(saved) ? saved : 'page-builder';
+}
+
+/**
+ * Highlight the studio rail button for the visible section (clearing it for
+ * non-rail sections) and remember rail sections as the landing default.
+ */
+function syncStudioRail(container, section) {
+    container.querySelectorAll('#studioRail .studio-rail__btn').forEach(btn =>
+        btn.classList.toggle('is-active', btn.dataset.target === section));
+    if (STUDIO_SECTIONS.includes(section)) {
+        localStorage.setItem('sequential_last_studio_section', section);
+    }
+}
+
 /**
  * Switches the visible dashboard section and triggers any necessary data population.
  */
@@ -80,6 +105,11 @@ export async function switchToSection(targetPage, container) {
     targetSection.classList.add('is-active');
     targetSection.classList.remove('hidden');
 
+    // Sync the studio rail highlight the moment the section becomes visible —
+    // before the (potentially slow) data populate below — so the active tool
+    // never lags behind the click. Non-rail sections clear the highlight.
+    syncStudioRail(container, targetPage);
+
     // Trigger Population Logic based on the section
     const popTasks = [];
     if (targetPage === 'create-new-volume') popTasks.push(populateSeriesSelect('createVolumeSeriesSelect'));
@@ -140,6 +170,7 @@ function loadSelectedPage() {
 export function initEventHandlers(container, allSections) {
     if (!arrangeManager) arrangeManager = new ArrangeManager();
 
+
     // User Menu Toggle (Topbar)
     const userProfileToggle = document.getElementById('userProfileToggle');
     const userMenu = document.getElementById('userMenu');
@@ -167,17 +198,25 @@ export function initEventHandlers(container, allSections) {
 
     // Global Event Delegation
     container.addEventListener('click', async (e) => {
-        const target = e.target.closest('button, li, .glass-tab, .mode-card, .volume-card, .series-card, #accountSettingsBtn');
+        const target = e.target.closest('button, li, .glass-tab, .volume-card, .series-card, #accountSettingsBtn');
         if (!target) return;
 
-        // Topbar Navigation
+        // Topbar Navigation ("Studio" resolves to the last rail section)
         if (target.classList.contains('glass-tab') && target.closest('#main-navigation')) {
-            const page = target.dataset.page;
+            let page = target.dataset.page;
             if (!page) return;
+            if (page === 'studio') page = lastStudioSection();
             updateUrlState({ tab: page });
-            
+
             // Note: active state handled inside switchToSection for glass-tabs
             await switchToSection(page, container);
+        }
+
+        // Studio rail
+        const railBtn = target.closest('.studio-rail__btn');
+        if (railBtn && railBtn.dataset.target) {
+            updateUrlState({ tab: railBtn.dataset.target });
+            await switchToSection(railBtn.dataset.target, container);
         }
 
         // Account Settings Link
@@ -185,17 +224,6 @@ export function initEventHandlers(container, allSections) {
             e.preventDefault();
             updateUrlState({ tab: 'user-settings' });
             await switchToSection('user-settings', container);
-        }
-
-        // STUDIO HUB: Mode Cards
-        if (target.classList.contains('mode-card') && target.closest('.studio')) {
-            const targetPage = target.dataset.target;
-            if (targetPage) await switchToSection(targetPage, container);
-        }
-
-        // BACK TO STUDIO Buttons
-        if (target.classList.contains('back-to-studio-btn')) {
-            await switchToSection('studio', container);
         }
 
         // --- Deep Link Openers (from Page Builder) ---

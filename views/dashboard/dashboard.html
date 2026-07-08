@@ -55,5 +55,60 @@
     </div>
 </header>
 
-<!-- MAIN CONTENT MOUNT POINT — sections are injected here dynamically -->
-<main id="main-content" class="main-content"></main>
+<!-- APP BODY: persistent studio tool rail + section mount point -->
+<div class="app-body">
+    <nav id="studioRail" class="studio-rail glass glass--frosted" aria-label="Studio tools">
+        <!-- Daily workspaces -->
+        <button type="button" class="studio-rail__btn" data-target="page-builder"
+            title="Page Builder" aria-label="Page Builder">
+            <ion-icon name="layers-outline"></ion-icon>
+        </button>
+        <button type="button" class="studio-rail__btn" data-target="characters"
+            title="Character Lab" aria-label="Character Lab">
+            <ion-icon name="people-outline"></ion-icon>
+        </button>
+        <button type="button" class="studio-rail__btn" data-target="plot-lab"
+            title="Plot Lab" aria-label="Plot Lab">
+            <ion-icon name="bulb-outline"></ion-icon>
+        </button>
+        <button type="button" class="studio-rail__btn" data-target="story-critic"
+            title="Story Critic" aria-label="Story Critic">
+            <ion-icon name="analytics-outline"></ion-icon>
+        </button>
+        <button type="button" class="studio-rail__btn" data-target="style-lab"
+            title="Style Lab" aria-label="Style Lab">
+            <ion-icon name="color-palette-outline"></ion-icon>
+        </button>
+        <button type="button" class="studio-rail__btn" data-target="export-tool"
+            title="Print Exporter" aria-label="Print Exporter">
+            <ion-icon name="print-outline"></ion-icon>
+        </button>
+
+        <div class="studio-rail__divider" role="separator"></div>
+
+        <!-- Series structure -->
+        <button type="button" class="studio-rail__btn" data-target="create-new-volume"
+            title="Create Volume" aria-label="Create Volume">
+            <ion-icon name="book-outline"></ion-icon>
+        </button>
+        <button type="button" class="studio-rail__btn" data-target="edit-volume"
+            title="Edit Volume" aria-label="Edit Volume">
+            <ion-icon name="create-outline"></ion-icon>
+        </button>
+        <button type="button" class="studio-rail__btn" data-target="create-new-chapter"
+            title="New Chapter" aria-label="New Chapter">
+            <ion-icon name="bookmarks-outline"></ion-icon>
+        </button>
+
+        <div class="studio-rail__divider" role="separator"></div>
+
+        <!-- Configuration -->
+        <button type="button" class="studio-rail__btn" data-target="library-settings"
+            title="Library Settings" aria-label="Library Settings">
+            <ion-icon name="settings-outline"></ion-icon>
+        </button>
+    </nav>
+
+    <!-- MAIN CONTENT MOUNT POINT — sections are injected here dynamically -->
+    <main id="main-content" class="main-content"></main>
+</div>

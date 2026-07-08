@@ -20,6 +20,16 @@ body {
     position: relative;
 }
 
+/* Studio rail + section mount side by side under the topbar */
+.app-body {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    align-items: stretch;
+    position: relative;
+    z-index: 10;
+}
+
 #main-content, .main-content {
     margin-left: 0 !important;
     flex: 1 !important;

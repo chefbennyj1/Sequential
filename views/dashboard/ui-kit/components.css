@@ -66,6 +66,65 @@
 .dashboard-section.is-active .mode-card:nth-child(9)  { animation-delay: 360ms; }
 .dashboard-section.is-active .mode-card:nth-child(10) { animation-delay: 405ms; }
 
+/* --- Studio rail (persistent left icon bar for all studio sections) --- */
+.studio-rail {
+    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 14px 8px;
+    border-radius: 0;
+    border-right: 1px solid var(--glass-border);
+    z-index: 20;
+}
+
+.studio-rail__btn {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: background var(--dur-fast), color var(--dur-fast);
+}
+
+.studio-rail__btn ion-icon {
+    font-size: 1.5rem;
+}
+
+.studio-rail__btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--color-text);
+}
+
+.studio-rail__btn.is-active {
+    color: var(--accent-aqua);
+}
+
+.studio-rail__btn.is-active::before {
+    content: "";
+    position: absolute;
+    left: -8px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    border-radius: var(--radius-full);
+    background: var(--accent-aqua);
+}
+
+.studio-rail__divider {
+    width: 26px;
+    height: 1px;
+    background: var(--glass-border);
+    margin: 6px 0;
+}
+
 /* --- Page Builder tool rail (persistent left icon bar) --- */
 .pb-toolbar {
     flex: 0 0 auto;
