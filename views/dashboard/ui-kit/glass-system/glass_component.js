@@ -437,6 +437,48 @@
         },
 
         /**
+         * Render a non-interactive placeholder badge while a source's scan is
+         * still in flight. A real result replaces it via show(); a clean or
+         * failed result removes it via settle().
+         */
+        pending: function (source) {
+            var region = document.getElementById("editorAnnotations");
+            if (!region) return;
+
+            region.querySelectorAll(".glass-annotations__group").forEach(function (g) {
+                if (g.dataset.source === source) g.remove();
+            });
+
+            var group = document.createElement("div");
+            group.className = "glass-annotations__group";
+            group.dataset.source = source;
+            group.dataset.pending = "true";
+
+            var badge = document.createElement("span");
+            badge.className =
+                "glass-annotations__badge glass-annotations__badge--pending";
+            badge.setAttribute("role", "status");
+            badge.setAttribute("aria-label", source + " is reviewing this page");
+            badge.textContent = source;
+
+            var dot = document.createElement("span");
+            dot.className = "glass-annotations__pending-dot";
+            badge.appendChild(dot);
+
+            group.appendChild(badge);
+            region.appendChild(group);
+        },
+
+        /** Remove a source's pending badge; real badges are left alone. */
+        settle: function (source) {
+            var region = document.getElementById("editorAnnotations");
+            if (!region) return;
+            region.querySelectorAll(".glass-annotations__group").forEach(function (g) {
+                if (g.dataset.source === source && g.dataset.pending) g.remove();
+            });
+        },
+
+        /**
          * Render an annotation badge whose popover uses the native Popover API
          * (top layer, light dismiss). options.anchor targets any element by
          * selector or reference; options.placement is "under" (default) or

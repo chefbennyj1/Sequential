@@ -9,8 +9,12 @@
 
 import { fetchHookSubscribersAPI, firePluginHookAPI } from '../api/StudioClient.js';
 
+const PENDING_BADGE_DELAY_MS = 1000;
+
 const subscriberCache = {};
-let activeFireSeq = 0;
+let fireSeq = 0;
+let activePageToken = null;
+const latestSeqByPage = {};
 let presenceTimer = null;
 
 async function getSubscribers(hookName) {
@@ -26,24 +30,42 @@ async function getSubscribers(hookName) {
  * they arrive, and are dropped if the user has already moved to another page.
  */
 export async function fireEditorHook(hookName, context) {
-    // Only the latest dispatch may render: a newer save or page switch
-    // invalidates every response still in flight from older fires.
-    const seq = ++activeFireSeq;
+    const token = `${context.volume}/${context.chapter}/${context.pageId}`;
+    const seq = ++fireSeq;
+    activePageToken = token;
 
     if (window.GlassAnnotations) window.GlassAnnotations.clear();
 
     const subscribers = await getSubscribers(hookName);
 
+    // Only dispatches somebody answers supersede in-flight scans of this
+    // page; re-entering a page (a subscriber-less page-open) must not veto
+    // a slow scan that is still coming back for it.
+    if (subscribers.length > 0) latestSeqByPage[token] = seq;
+
     subscribers.forEach(async (folderName) => {
+        // Show a "working" badge only if the scan is still in flight after a
+        // beat -- cache hits resolve instantly and must not flash it
+        const pendingTimer = setTimeout(() => {
+            if (activePageToken !== token || latestSeqByPage[token] !== seq) return;
+            if (window.GlassAnnotations) window.GlassAnnotations.pending(folderName);
+        }, PENDING_BADGE_DELAY_MS);
+
         const result = await firePluginHookAPI(folderName, hookName, context);
+        clearTimeout(pendingTimer);
+
+        const stillCurrent = activePageToken === token && latestSeqByPage[token] === seq;
+        if (stillCurrent && window.GlassAnnotations) {
+            window.GlassAnnotations.settle(folderName);
+        }
 
         if (!result.ok || !Array.isArray(result.annotations) || !result.annotations.length) return;
 
-        // Record in the notification bell even when the response is stale --
+        // Record in the notification bell even when the badge is not shown --
         // results that land after the user moved on are the ones they'd miss
         postHookNotification(result.source || folderName, result.annotations, context);
 
-        if (activeFireSeq !== seq) return;
+        if (!stillCurrent) return; // viewer moved on, or a newer scan superseded this one
 
         if (window.GlassAnnotations) {
             window.GlassAnnotations.show(result.source || folderName, result.annotations);

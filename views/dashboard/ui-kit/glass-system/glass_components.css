@@ -110,7 +110,7 @@
     --text-4xl: 2.8rem;
 
     /* ── Radius scale ── */
-    --radius-xs: 6px;
+    --radius-xs: 2px;
     --radius-sm: 10px;
     --radius-md: 14px;
     --radius-lg: 20px;
@@ -3996,6 +3996,34 @@ label {
     color: var(--accent-rose);
 }
 
+.glass-annotations__badge--pending {
+    color: var(--color-text-muted);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    cursor: default;
+}
+
+.glass-annotations__pending-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: currentColor;
+    animation: glass-annotations-pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes glass-annotations-pulse {
+
+    0%,
+    100% {
+        opacity: 0.25;
+    }
+
+    50% {
+        opacity: 1;
+    }
+}
+
 /* Native Popover API: rendered in the top layer with light dismiss.
    Anchor coordinates are set by GlassAnnotations.position() as CSS vars. */
 .glass-annotations__popover {
@@ -4153,7 +4181,7 @@ label {
 
 .glass-notifications__entry {
     padding: var(--space-sm);
-    border-radius: var(--radius-md);
+    border-radius: var(--radius-xs);
     cursor: pointer;
     transition: background var(--dur-fast);
 }
@@ -4167,7 +4195,7 @@ label {
 }
 
 .glass-notifications__entry.is-unread {
-    border-left: 2px solid var(--accent-aqua);
+    border-left: 2px solid var(--accent-rose);
 }
 
 .glass-notifications__meta {
