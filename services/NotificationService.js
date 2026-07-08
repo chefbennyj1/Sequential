@@ -26,16 +26,12 @@ class NotificationService {
     return notification;
   }
 
-  async markRead(id, userId) {
-    return await Notification.findOneAndUpdate(
-      { _id: id, user: userId },
-      { read: true },
-      { new: true }
-    );
+  async remove(id, userId) {
+    return await Notification.findOneAndDelete({ _id: id, user: userId });
   }
 
-  async markAllRead(userId) {
-    return await Notification.updateMany({ user: userId, read: false }, { read: true });
+  async clearAll(userId) {
+    return await Notification.deleteMany({ user: userId });
   }
 }
 

@@ -170,8 +170,8 @@ router.post('/system/restart', isAdmin, async (req, res) => {
 const NotificationController = require('../controllers/NotificationController.js');
 router.get('/notifications', isAuth, (req, res) => NotificationController.list(req, res));
 router.post('/notifications', isAuth, (req, res) => NotificationController.create(req, res));
-router.put('/notifications/read-all', isAuth, (req, res) => NotificationController.markAllRead(req, res));
-router.put('/notifications/:id/read', isAuth, (req, res) => NotificationController.markRead(req, res));
+router.delete('/notifications', isAuth, (req, res) => NotificationController.clearAll(req, res));
+router.delete('/notifications/:id', isAuth, (req, res) => NotificationController.remove(req, res));
 
 // --- SYSTEM SETTINGS ---
 router.get('/settings/global', isAdmin, SystemSettingsController.getGlobalSettings);

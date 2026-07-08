@@ -603,8 +603,9 @@
 
     /* ======================================================================
          GlassNotifications
-         Topbar bell with unread dot and a native-popover inbox. Render-only
-         plus read-state API calls; navigation is delegated via the
+         Topbar bell with unread dot and a native-popover inbox. Notifications
+         live until acted on: selecting one or clearing all deletes them, here
+         and in the store. Navigation is delegated via the
          glass:notification:select event so this component knows nothing
          about the studio's routing.
          ====================================================================== */
@@ -660,8 +661,8 @@
             header.className = "glass-notifications__header";
             header.innerHTML =
                 '<span class="glass-notifications__title">Notifications</span>' +
-                '<button type="button" class="glass-notifications__readall">Mark all read</button>';
-            header.querySelector(".glass-notifications__readall").addEventListener("click", this.markAllRead.bind(this));
+                '<button type="button" class="glass-notifications__readall">Clear all</button>';
+            header.querySelector(".glass-notifications__readall").addEventListener("click", this.clearAll.bind(this));
             this.popover.appendChild(header);
 
             this.list = document.createElement("div");
@@ -716,7 +717,7 @@
                 }
 
                 entry.addEventListener("click", function () {
-                    self.markRead(n);
+                    self.remove(n);
                     emit(entry, "notification:select", { notification: n });
                     self.popover.hidePopover();
                 });
@@ -725,20 +726,21 @@
             });
         },
 
-        markRead: function (n) {
-            if (!n.read) {
-                n.read = true;
-                this.renderList();
-                fetch("/api/notifications/" + n._id + "/read", { method: "PUT" })
-                    .catch(function () { /* read state re-syncs on next load */ });
-            }
+        /** Acting on a notification consumes it: gone from the list and the store. */
+        remove: function (n) {
+            this.items = this.items.filter(function (existing) {
+                return existing._id !== n._id;
+            });
+            this.renderList();
+            fetch("/api/notifications/" + n._id, { method: "DELETE" })
+                .catch(function () { /* list re-syncs on next load */ });
         },
 
-        markAllRead: function () {
-            this.items.forEach(function (n) { n.read = true; });
+        clearAll: function () {
+            this.items = [];
             this.renderList();
-            fetch("/api/notifications/read-all", { method: "PUT" })
-                .catch(function () { /* read state re-syncs on next load */ });
+            fetch("/api/notifications", { method: "DELETE" })
+                .catch(function () { /* list re-syncs on next load */ });
         }
     };
 

@@ -31,25 +31,25 @@ class NotificationController {
     }
   }
 
-  async markRead(req, res) {
+  async remove(req, res) {
     try {
-      const notification = await NotificationService.markRead(req.params.id, req.session.userId);
+      const notification = await NotificationService.remove(req.params.id, req.session.userId);
       if (!notification) {
         return res.status(404).json({ ok: false, message: 'Notification not found.' });
       }
-      res.json({ ok: true, notification });
+      res.json({ ok: true });
     } catch (err) {
-      console.error('[NotificationController] Mark read failed:', err);
+      console.error('[NotificationController] Remove failed:', err);
       res.status(500).json({ ok: false, message: err.message });
     }
   }
 
-  async markAllRead(req, res) {
+  async clearAll(req, res) {
     try {
-      await NotificationService.markAllRead(req.session.userId);
+      await NotificationService.clearAll(req.session.userId);
       res.json({ ok: true });
     } catch (err) {
-      console.error('[NotificationController] Mark all read failed:', err);
+      console.error('[NotificationController] Clear all failed:', err);
       res.status(500).json({ ok: false, message: err.message });
     }
   }
