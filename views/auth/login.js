@@ -125,6 +125,11 @@ export function init() {
       const formData = new FormData(loginForm);
       const data = Object.fromEntries(formData.entries());
 
+      // Session-expiry redirects arrive as /login?returnTo=<working page>;
+      // send it along so a successful login lands back there
+      const returnTo = new URLSearchParams(window.location.search).get('returnTo');
+      if (returnTo) data.returnTo = returnTo;
+
       try {
         const response = await fetch(loginForm.action, {
           method: 'POST',

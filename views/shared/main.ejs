@@ -68,7 +68,9 @@
                     // This prevents Puppeteer from being kicked to the login page by a side-fetch (like header AI check)
                     if (!exportSecret) {
                         console.warn("[Auth] Session expired or unauthorized. Redirecting to login...");
-                        window.location.href = '/login';
+                        // Carry the working location along so login can return the user to it
+                        const returnTo = encodeURIComponent(window.location.pathname + window.location.search);
+                        window.location.href = '/login?returnTo=' + returnTo;
                     } else {
                         console.error("[Auth] Export unauthorized for URL:", url);
                     }

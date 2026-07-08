@@ -96,6 +96,17 @@ export async function openVisualEditor(volume, chapter, pageId, mode = 'landscap
     const container = document.getElementById('dashboard');
     if (container) await switchToSection('layout-editor', container);
 
+    // Mirror the open page into the URL so refresh and post-login return land here
+    updateUrlState({
+        tab: 'layout-editor',
+        vol: volume,
+        chap: chapter,
+        page: pageId,
+        series: activeSeriesId,
+        seriesFolder: activeSeriesFolder,
+        mode
+    });
+
     const layoutEditor = document.querySelector('.layout-editor');
     if (!layoutEditor) {
         console.error("[SceneEditor] .layout-editor not found in DOM");

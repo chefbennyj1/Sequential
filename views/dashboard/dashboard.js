@@ -172,7 +172,8 @@ export async function init(container) {
     try {
         user = await getCurrentUser();
     } catch (e) {
-        window.location.href = "/login";
+        window.location.href = "/login?returnTo=" +
+            encodeURIComponent(window.location.pathname + window.location.search);
         return;
     }
 

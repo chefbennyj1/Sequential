@@ -23,8 +23,13 @@ const loginLimiter = rateLimit({
 //LOGIN THE USER
 router.post('/login', loginLimiter, async (req, res) => {
 
-  const { email, password } = req.body;
-  
+  const { email, password, returnTo } = req.body;
+
+  // Only ever return to an internal path ('//' would be protocol-relative)
+  const isInternalPath = typeof returnTo === 'string' &&
+    returnTo.startsWith('/') && !returnTo.startsWith('//');
+  const destination = isInternalPath ? returnTo : '/library';
+
   try {
     const user = await UserModel.findOne({ email });
 
@@ -55,10 +60,10 @@ router.post('/login', loginLimiter, async (req, res) => {
     };
     
     if (req.headers.accept && req.headers.accept.includes('application/json')) {
-      return res.json({ ok: true, redirect: '/library' });
+      return res.json({ ok: true, redirect: destination });
     }
-    
-    res.redirect('/library');
+
+    res.redirect(destination);
 
   } catch (err) {
     console.error("Login Error:", err);

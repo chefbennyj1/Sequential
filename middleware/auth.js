@@ -22,7 +22,7 @@ exports.isAuth = (req, res, next) => {
     return res.status(401).json({ ok: false, message: "Unauthorized" });
   }
 
-  res.redirect('/login');
+  res.redirect('/login?returnTo=' + encodeURIComponent(req.originalUrl));
 };
 
 /**
@@ -50,7 +50,7 @@ function checkAccess(req, res, next, allowedRoles, fallbackRoute, errorMessage) 
         if (req.xhr || req.originalUrl.startsWith('/api')) {
             return res.status(401).json({ ok: false, message: "Unauthorized" });
         }
-        return res.redirect('/login');
+        return res.redirect('/login?returnTo=' + encodeURIComponent(req.originalUrl));
     }
 
     if (allowedRoles.includes(req.session.role)) {
