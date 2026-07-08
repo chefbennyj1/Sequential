@@ -3,7 +3,8 @@ import {
     fetchSingleVolumeWithChapters,
     fetchSceneData,
     fetchPagePanels,
-    fetchMedia
+    fetchMedia,
+    fetchSeriesAPI
 } from '../api/StudioClient.js';
 import { renderLayoutBrowser } from '../../components/LayoutBrowser/LayoutBrowser.js';
 
@@ -71,6 +72,19 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
     const applyLayoutBtn = document.getElementById('applyLayoutBtn');
 
     if (!toolbar || !display) return;
+
+    // Deep links may omit the series; resolve it the same way the editor does
+    if (!seriesId) {
+        try {
+            const series = (await fetchSeriesAPI())[0];
+            if (series) {
+                seriesId = series._id;
+                seriesFolder = seriesFolder || series.folderName;
+            }
+        } catch (e) {
+            console.error('[PageConfig] Could not resolve series', e);
+        }
+    }
 
     toolbar.classList.remove('hidden');
     display.textContent = `${vol} / ${chap} / ${page}`;

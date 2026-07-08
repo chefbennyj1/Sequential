@@ -13,6 +13,7 @@ import {
     fetchMedia
 } from '../../studio/api/StudioClient.js';
 import { updateUrlState } from '../../studio/js/Navigation.js';
+import { activatePageBuilderPane } from '../../studio/js/PageBuilderModes.js';
 import { switchToSection } from '../../studio/js/EventHandlers.js';
 import { fireEditorHook } from '../../studio/js/PluginHooks.js';
 
@@ -63,9 +64,8 @@ async function returnToPageEdit() {
     await switchToSection('page-builder', container);
 
     document.querySelector('.layout-editor')?.classList.remove('is-spread');
-    document.getElementById('editPageContainer')?.classList.remove('hidden');
+    activatePageBuilderPane('editPageContainer');
     document.getElementById('activePageToolbar')?.classList.remove('hidden');
-    document.getElementById('pageBuilderModeSelection')?.classList.add('hidden');
 
     if (currentSceneInfo.volume) {
         updateUrlState({

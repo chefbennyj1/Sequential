@@ -9,6 +9,7 @@ import {
     showChaptersForVolume
 } from './LibraryManager.js';
 import { setActivePage } from './PageConfigManager.js';
+import { activatePageBuilderPane, visiblePageBuilderPane } from './PageBuilderModes.js';
 import { openVisualEditor } from '../../components/SceneEditor/SceneEditor.js';
 import ArrangeManager from './ArrangeManager.js';
 
@@ -95,17 +96,9 @@ export async function switchToSection(targetPage, container) {
         ]));
         popTasks.push(populateLayoutSelect());
 
-        const modeSel = document.getElementById('pageBuilderModeSelection');
-        const createCont = document.getElementById('createPageContainer');
-        const editCont = document.getElementById('editPageContainer');
-        const insertCont = document.getElementById('insertPageContainer');
-        
-        if (modeSel && modeSel.classList.contains('hidden') &&    
-            createCont.classList.contains('hidden') &&
-            editCont.classList.contains('hidden') &&
-            insertCont.classList.contains('hidden')) {
-             modeSel.classList.remove('hidden');
-        }
+        // Persistent tool rail: keep whichever pane was open highlighted,
+        // or land on Edit Page when entering fresh
+        activatePageBuilderPane(visiblePageBuilderPane() || 'editPageContainer');
     }
 
     await Promise.all(popTasks);
@@ -212,40 +205,10 @@ export function initEventHandlers(container, allSections) {
         }
 
 
-        // Page Builder Internal Mode Cards
-        if (target.closest('#modeCreateBtn')) {
-            populateSeriesSelect('builderSeriesSelect');
-            populateLayoutSelect();
-            document.getElementById('pageBuilderModeSelection').classList.add('hidden');
-            document.getElementById('createPageContainer').classList.remove('hidden');
-        }
-        if (target.closest('#modeInsertBtn')) {
-            populateSeriesSelect('insertSeriesSelect');
-            document.getElementById('pageBuilderModeSelection').classList.add('hidden');
-            document.getElementById('insertPageContainer').classList.remove('hidden');
-        }
-        if (target.closest('#modeEditBtn')) {
-            populateSeriesSelect('editSeriesSelect');
-            document.getElementById('pageBuilderModeSelection').classList.add('hidden');
-            document.getElementById('editPageContainer').classList.remove('hidden');
-        }
-        if (target.closest('#modeArrangeBtn')) {
-            populateSeriesSelect('arrangeSeriesSelect');
-            document.getElementById('pageBuilderModeSelection').classList.add('hidden');
-            document.getElementById('arrangePagesContainer').classList.remove('hidden');
-        }
-        if (target.closest('#modeScriptBtn')) {
-            populateSeriesSelect('scriptSeriesSelect');
-            document.getElementById('pageBuilderModeSelection').classList.add('hidden');
-            document.getElementById('exportScriptContainer').classList.remove('hidden');
-        }
-        if (target.classList.contains('mode-back-btn')) {
-            document.getElementById('pageBuilderModeSelection').classList.remove('hidden');
-            document.getElementById('createPageContainer').classList.add('hidden');
-            document.getElementById('editPageContainer').classList.add('hidden');
-            document.getElementById('insertPageContainer').classList.add('hidden');
-            document.getElementById('arrangePagesContainer').classList.add('hidden');
-            document.getElementById('exportScriptContainer').classList.add('hidden');
+        // Page Builder tool rail
+        const pbTool = target.closest('.pb-tool');
+        if (pbTool && pbTool.dataset.pane) {
+            activatePageBuilderPane(pbTool.dataset.pane);
         }
 
         // Generate Script Logic

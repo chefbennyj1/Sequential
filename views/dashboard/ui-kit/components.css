@@ -66,6 +66,57 @@
 .dashboard-section.is-active .mode-card:nth-child(9)  { animation-delay: 360ms; }
 .dashboard-section.is-active .mode-card:nth-child(10) { animation-delay: 405ms; }
 
+/* --- Page Builder tool rail (persistent left icon bar) --- */
+.pb-toolbar {
+    flex: 0 0 auto;
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 12px 8px;
+    border-right: 1px solid var(--glass-border);
+}
+
+.pb-tool {
+    position: relative;
+    width: 42px;
+    height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: background var(--dur-fast), color var(--dur-fast);
+}
+
+.pb-tool ion-icon {
+    font-size: 1.4rem;
+}
+
+.pb-tool:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--color-text);
+}
+
+.pb-tool.is-active {
+    color: var(--accent-aqua);
+}
+
+/* Active tool marker: slim bar hugging the rail's edge */
+.pb-tool.is-active::before {
+    content: "";
+    position: absolute;
+    left: -8px;
+    top: 8px;
+    bottom: 8px;
+    width: 2px;
+    border-radius: var(--radius-full);
+    background: var(--accent-aqua);
+}
+
 /* --- Primary button shimmer sweep --- */
 .glass-btn--primary {
     position: relative;
