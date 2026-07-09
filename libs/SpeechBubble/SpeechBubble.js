@@ -1,7 +1,21 @@
 import { loadCSS } from '/libs/Utility.js';
 
 class SpeechBubble {
-  static customTags = {}; // Cache tags per series
+  static customTags = {}; // Cache tags per series (per document)
+
+  /**
+   * Drop the cached custom tags (and their stylesheet) so the next render
+   * re-fetches the current tags.json/tags.css. The editor preview is a
+   * long-lived document that re-renders in place, so without this it would
+   * keep serving whatever tags it first loaded; the viewer, a fresh document
+   * each visit, never needed it. Call before re-rendering a scene.
+   */
+  static refreshCustomTags(series = null) {
+    if (series) delete SpeechBubble.customTags[series];
+    else SpeechBubble.customTags = {};
+    document.querySelectorAll('link[href*="/custom/speechBubble/tags.css"]')
+      .forEach(link => link.remove());
+  }
 
   constructor(parentElement, options) {
     this.parentElement = parentElement;
@@ -45,12 +59,15 @@ class SpeechBubble {
     // Create the promise and store it in the cache immediately so subsequent bubbles wait for it
     SpeechBubble.customTags[series] = (async () => {
         try {
-            const jsonUrl = `/Library/${series}/custom/speechBubble/tags.json`;
+            // Cache-bust so an edited tags file is never served stale from the
+            // browser HTTP cache (paired with refreshCustomTags on re-render)
+            const bust = `?t=${Date.now()}`;
+            const jsonUrl = `/Library/${series}/custom/speechBubble/tags.json${bust}`;
             const cssUrl = `/Library/${series}/custom/speechBubble/tags.css`;
-            
+
             // Load custom styling dynamically and await it to prevent FOUC (Flash of Unstyled Content)
-            await loadCSS(cssUrl).catch(e => console.log(`No custom speech bubble CSS found for ${series}`));
-            
+            await loadCSS(cssUrl, true).catch(e => console.log(`No custom speech bubble CSS found for ${series}`));
+
             const response = await fetch(jsonUrl);
             if (response.ok) {
                 const data = await response.json();

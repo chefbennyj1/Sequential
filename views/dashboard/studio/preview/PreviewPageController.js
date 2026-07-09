@@ -1,4 +1,5 @@
 import { initScene } from "/services/public/SceneManager.js";
+import SpeechBubble from "/libs/SpeechBubble/SpeechBubble.js";
 import { fetchScene, loadCSS } from "/libs/Utility.js";
 
 export class PreviewPageController {
@@ -100,6 +101,11 @@ export class PreviewPageController {
             // 2. DOM-based purge (Safety fallback)
             // This ensures that even if tracking was lost, the DOM is actually clean.
             this.container.querySelectorAll('.speech-bubble-container, .text-block-container, .action-text-container').forEach(el => el.remove());
+
+            // 3. Drop cached custom bubble tags so edits to tags.json/tags.css
+            // show up on the next render -- this preview document is long-lived,
+            // so it would otherwise keep the tags it first loaded.
+            SpeechBubble.refreshCustomTags(this.params.series);
 
             const pageInfo = { ...this.params, pageId: this.pageId, pageIndex: 0 }; 
             this.sceneController = await initScene(this.container, pageInfo, sceneData, mediaData);
