@@ -12,10 +12,10 @@ import { fetchHookSubscribersAPI, firePluginHookAPI } from '../api/StudioClient.
 const PENDING_BADGE_DELAY_MS = 1000;
 
 const subscriberCache = {};
-let fireSeq = 0;
 let activePageToken = null;
-const latestSeqByPage = {};
 let presenceTimer = null;
+const pendingTimers = {};        // `${token}::${source}` -> pending-badge timeout
+let socketListenerAttached = false;
 
 async function getSubscribers(hookName) {
     if (!subscriberCache[hookName]) {
@@ -25,50 +25,83 @@ async function getSubscribers(hookName) {
 }
 
 /**
+ * Long-running scans (e.g. the Proof-Reader) acknowledge the hook immediately
+ * and push their result back over Socket.io instead of holding the request
+ * open -- otherwise repeated saves stack long-held connections and stall the
+ * editor's Save button. This listener renders those pushed results.
+ */
+function ensureSocketListener() {
+    if (socketListenerAttached || !window.socket) return;
+    socketListenerAttached = true;
+
+    window.socket.on('plugin_annotations', ({ source, target, annotations }) => {
+        if (!source || !target) return;
+        const token = `${target.volume}/${target.chapter}/${target.pageId}`;
+        const key = `${token}::${source}`;
+
+        clearTimeout(pendingTimers[key]);
+        delete pendingTimers[key];
+        if (window.GlassAnnotations) window.GlassAnnotations.settle(source);
+
+        if (!Array.isArray(annotations) || !annotations.length) return;
+
+        // Record in the bell even when the badge is not shown -- a result that
+        // lands after the writer moved on is the one they'd otherwise miss.
+        postHookNotification(source, annotations, target);
+
+        if (token === activePageToken && window.GlassAnnotations) {
+            window.GlassAnnotations.show(source, annotations);
+        }
+    });
+}
+
+/**
  * Notify subscribed plugins of an editor lifecycle event (e.g. 'page-open',
- * 'scene-saved'). Fire-and-forget: results render as annotation badges when
- * they arrive, and are dropped if the user has already moved to another page.
+ * 'scene-saved'). Fire-and-forget: a plugin either answers synchronously with
+ * annotations, or acks with { pending: true } and delivers later over the
+ * socket. Badges are dropped if the writer has already moved to another page.
  */
 export async function fireEditorHook(hookName, context) {
+    ensureSocketListener();
     const token = `${context.volume}/${context.chapter}/${context.pageId}`;
-    const seq = ++fireSeq;
     activePageToken = token;
 
     if (window.GlassAnnotations) window.GlassAnnotations.clear();
 
     const subscribers = await getSubscribers(hookName);
-
-    // Only dispatches somebody answers supersede in-flight scans of this
-    // page; re-entering a page (a subscriber-less page-open) must not veto
-    // a slow scan that is still coming back for it.
-    if (subscribers.length > 0) latestSeqByPage[token] = seq;
+    // Scope any async (socket-delivered) result back to this client only.
+    const payload = { ...context, socketId: window.socket?.id };
 
     subscribers.forEach(async (folderName) => {
         // Show a "working" badge only if the scan is still in flight after a
-        // beat -- cache hits resolve instantly and must not flash it
-        const pendingTimer = setTimeout(() => {
-            if (activePageToken !== token || latestSeqByPage[token] !== seq) return;
-            if (window.GlassAnnotations) window.GlassAnnotations.pending(folderName);
+        // beat -- cache hits / fast acks must not flash it.
+        const preTimer = setTimeout(() => {
+            if (activePageToken === token && window.GlassAnnotations) window.GlassAnnotations.pending(folderName);
         }, PENDING_BADGE_DELAY_MS);
 
-        const result = await firePluginHookAPI(folderName, hookName, context);
-        clearTimeout(pendingTimer);
+        const result = await firePluginHookAPI(folderName, hookName, payload);
+        clearTimeout(preTimer);
+        const source = result.source || folderName;
 
-        const stillCurrent = activePageToken === token && latestSeqByPage[token] === seq;
-        if (stillCurrent && window.GlassAnnotations) {
-            window.GlassAnnotations.settle(folderName);
+        if (result.pending) {
+            // Real annotations arrive over the socket. Keep a pending badge
+            // going (keyed by source so the socket handler can cancel it).
+            if (window.GlassAnnotations) window.GlassAnnotations.settle(folderName);
+            const key = `${token}::${source}`;
+            clearTimeout(pendingTimers[key]);
+            pendingTimers[key] = setTimeout(() => {
+                if (activePageToken === token && window.GlassAnnotations) window.GlassAnnotations.pending(source);
+            }, PENDING_BADGE_DELAY_MS);
+            return;
         }
 
+        // Synchronous plugin: annotations came back in the response.
+        if (window.GlassAnnotations) window.GlassAnnotations.settle(folderName);
         if (!result.ok || !Array.isArray(result.annotations) || !result.annotations.length) return;
 
-        // Record in the notification bell even when the badge is not shown --
-        // results that land after the user moved on are the ones they'd miss
-        postHookNotification(result.source || folderName, result.annotations, context);
-
-        if (!stillCurrent) return; // viewer moved on, or a newer scan superseded this one
-
-        if (window.GlassAnnotations) {
-            window.GlassAnnotations.show(result.source || folderName, result.annotations);
+        postHookNotification(source, result.annotations, context);
+        if (activePageToken === token && window.GlassAnnotations) {
+            window.GlassAnnotations.show(source, result.annotations);
         }
     });
 }
