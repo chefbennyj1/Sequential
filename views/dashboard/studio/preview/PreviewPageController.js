@@ -11,6 +11,7 @@ export class PreviewPageController {
         this.sceneController = null;
         this.renderedDialogueItems = [];
         this.mediaData = [];
+        this.renderSeq = 0;
     }
 
     async init() {
@@ -88,12 +89,19 @@ export class PreviewPageController {
     }
 
     async renderScene(sceneData, mediaData) {
+        // Renders overlap: every await below yields, and updateScene messages can
+        // arrive per keystroke. Only the newest render may touch the DOM — a stale
+        // render appending after a newer purge leaves ghost bubbles with the same
+        // data-id. The sequence token makes every older run abort or tear down.
+        const seq = ++this.renderSeq;
         try {
             await Promise.all([
                 loadCSS('/libs/SpeechBubble/SpeechBubble.css'),
                 loadCSS('/libs/TextBlock/TextBlock.css'),
                 loadCSS('/libs/ActionText/ActionText.css')
             ]);
+
+            if (seq !== this.renderSeq) return;
 
             // 1. Logic-based cleanup
             if (this.sceneController && this.sceneController.cleanup) this.sceneController.cleanup();
@@ -107,8 +115,17 @@ export class PreviewPageController {
             // so it would otherwise keep the tags it first loaded.
             SpeechBubble.refreshCustomTags(this.params.series);
 
-            const pageInfo = { ...this.params, pageId: this.pageId, pageIndex: 0 }; 
-            this.sceneController = await initScene(this.container, pageInfo, sceneData, mediaData);
+            const pageInfo = { ...this.params, pageId: this.pageId, pageIndex: 0 };
+            const controller = await initScene(this.container, pageInfo, sceneData, mediaData);
+
+            if (seq !== this.renderSeq) {
+                // A newer render superseded us while initScene was appending —
+                // destroy everything this run created so no ghosts survive.
+                if (controller && controller.cleanup) controller.cleanup();
+                return;
+            }
+
+            this.sceneController = controller;
 
             if (this.sceneController && this.sceneController.visualItems) {
                 this.renderedDialogueItems = this.sceneController.visualItems;

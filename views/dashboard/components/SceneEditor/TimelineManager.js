@@ -143,6 +143,7 @@ export class TimelineManager {
             li.addEventListener('drop', (e) => this.handleDrop(e, index));
             li.addEventListener('dragend', () => {
                 li.classList.remove('is-dragging');
+                this.dragSrcIndex = -1;
                 this.list.querySelectorAll('.scene-item').forEach(i => i.classList.remove('over'));
             });
 
@@ -154,6 +155,12 @@ export class TimelineManager {
 
     handleDrop(e, destIndex) {
         e.stopPropagation();
+        // A stale source index (list re-rendered mid-drag) would splice out the
+        // wrong item and insert a second reference to the dragged one — the same
+        // object aliased at two indices, which the server then persists as two
+        // items. Bail unless both indices are current and valid.
+        if (this.dragSrcIndex < 0 || this.dragSrcIndex >= this.currentSceneData.length) return;
+        if (destIndex < 0 || destIndex >= this.currentSceneData.length) return;
         if (this.dragSrcIndex !== destIndex) {
             const item = this.currentSceneData[this.dragSrcIndex];
             this.currentSceneData.splice(this.dragSrcIndex, 1);

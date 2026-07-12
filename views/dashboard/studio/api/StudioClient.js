@@ -182,6 +182,23 @@ export async function saveSceneData(volume, chapter, pageId, sceneData, seriesId
     }
 }
 
+/**
+ * Merge the canonical scene returned by saveScene back into the live client array.
+ * The server reassigns ids on duplicates and rewrites displayOrder; if the client
+ * keeps its own version, ids on disk and in memory diverge and every later save
+ * compounds the drift. Mutates items in place so open editor forms keep their
+ * object references. Order and length are preserved by the server, so a length
+ * mismatch means the response is not ours to adopt.
+ */
+export function adoptServerScene(localScene, serverScene) {
+    if (!Array.isArray(localScene) || !Array.isArray(serverScene)) return;
+    if (localScene.length !== serverScene.length) return;
+    serverScene.forEach((serverItem, i) => {
+        localScene[i].id = serverItem.id;
+        localScene[i].displayOrder = serverItem.displayOrder;
+    });
+}
+
 export async function saveMediaAPI(volume, chapter, pageId, media, seriesId) {
     if (!seriesId) throw new Error("seriesId is required");
     try {

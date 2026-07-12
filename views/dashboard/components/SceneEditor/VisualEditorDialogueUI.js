@@ -142,8 +142,14 @@ export function renderDialogueProperties(container, item, propertiesManager, get
     };
 
     propertiesManager.populate(item);
+    // Debounce keystrokes: each onUpdate re-renders the whole preview scene, so
+    // firing per character floods the iframe with overlapping renders.
+    let inputDebounce = null;
     scroll.querySelectorAll('input, select, textarea').forEach(el => {
-        el.addEventListener('input', () => propertiesManager.onUpdate());
+        el.addEventListener('input', () => {
+            clearTimeout(inputDebounce);
+            inputDebounce = setTimeout(() => propertiesManager.onUpdate(), 120);
+        });
     });
 
     // --- Sticky footer: Save + Delete side by side, always visible ---

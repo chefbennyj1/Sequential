@@ -1,5 +1,5 @@
 // views/dashboard/components/SceneEditor/VisualEditorManager.js
-import { fetchMedia, saveSceneData } from '../../studio/api/StudioClient.js';
+import { fetchMedia, saveSceneData, adoptServerScene } from '../../studio/api/StudioClient.js';
 import { openFileBrowser } from '../FileBrowser/FileBrowser.js';
 import { renderPanelSettings, renderAllPanelsTemplate } from './VisualEditorUI.js';
 import { renderDialogueProperties } from './VisualEditorDialogueUI.js';
@@ -29,29 +29,17 @@ export class VisualEditorManager {
         this.assetManager = new VisualEditorAssetManager(this.currentVisualContext, this.currentVisualMediaData, this.activeSeriesId);
 
         this.initSocketListeners();
-        this.initMessageListeners();
+        // Iframe 'message' events are handled exclusively by SceneEditor's window
+        // listener, which context-switches (spreads) before delegating here.
+        // A second listener in this class used to double-handle panelSelected /
+        // panelDragged / assetUploaded and let this manager's page context drift
+        // from SceneEditor's scene data.
     }
 
     initSocketListeners() {
         if (!window.socket) return;
         window.socket.on('panel_ai_updated', (data) => this.handleAiUpdated(data));
         window.socket.on('panel_ai_error', (data) => this.handleAiError(data));
-    }
-
-    initMessageListeners() {
-        window.addEventListener('message', (e) => {
-            const { type, panel, assetType, fileName } = e.data;
-
-            if (type === 'assetUploaded') {
-                this.updateCache(panel, assetType, fileName);
-            }
-            if (type === 'panelDragged') {
-                this.updatePosition(e.data);
-            }
-            if (type === 'panelSelected') {
-                this.loadPanel(e.data, this.activeSeriesId);
-            }
-        });
     }
 
     handleAiUpdated(data) {
@@ -352,22 +340,30 @@ export class VisualEditorManager {
         const item = sceneData[index];
         if (!item) return;
 
+        // Pin the destination page now: the form can outlive a context switch,
+        // and its save must write this array to the page it belongs to — not to
+        // whatever page the live context points at by save time.
+        const ctx = { ...this.currentVisualContext };
+
         if (this.timeline) {
             this.timeline.setSelectedIndex(index);
         }
 
         this.showDialogueProperties(item, this.properties, async () => {
-            await saveSceneData(this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, sceneData, this.activeSeriesId);
+            const res = await saveSceneData(ctx.volume, ctx.chapter, ctx.pageId, sceneData, this.activeSeriesId);
+            if (res?.ok && res.scene) adoptServerScene(sceneData, res.scene);
+            return res;
         }, async (delItem) => {
             const idx = sceneData.findIndex(i => i.id == delItem.id);
             if (idx !== -1) {
                 sceneData.splice(idx, 1);
                 sceneData.forEach((itm, i) => itm.displayOrder = i);
-                await saveSceneData(this.currentVisualContext.volume, this.currentVisualContext.chapter, this.currentVisualContext.pageId, sceneData, this.activeSeriesId);
+                const res = await saveSceneData(ctx.volume, ctx.chapter, ctx.pageId, sceneData, this.activeSeriesId);
+                if (res?.ok && res.scene) adoptServerScene(sceneData, res.scene);
                 this.loadPanel({ panel: null }, this.activeSeriesId);
                 const iframe = document.getElementById('pagePreviewFrame');
                 if (iframe) {
-                    pushSceneUpdate(iframe, sceneData, this.currentVisualMediaData, this.currentVisualContext.pageId);
+                    pushSceneUpdate(iframe, sceneData, this.currentVisualMediaData, ctx.pageId);
                 }
             }
         });

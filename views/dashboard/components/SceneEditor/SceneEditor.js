@@ -7,6 +7,7 @@
 import {
     fetchSceneData,
     saveSceneData,
+    adoptServerScene,
     fetchPagePanels,
     fetchSeriesAPI,
     fetchCharactersAPI,
@@ -33,19 +34,27 @@ let activeSeriesFolder = null;
 
 /**
  * Delete a scene item, persist, and refresh the timeline.
+ * Takes the scene array and page context as a captured pair so the delete
+ * always writes the array back to the page it belongs to, even if the editor
+ * has context-switched (spread partner click, page navigation) since the
+ * dialogue form opened.
  */
-async function handleSceneDelete(item, volume, chapter, pageId, seriesId) {
-    const idx = currentSceneData.findIndex(i => i.id == item.id);
+async function handleSceneDelete(item, sceneArr, info) {
+    const idx = sceneArr.findIndex(i => i.id == item.id);
     if (idx === -1) return;
 
-    currentSceneData.splice(idx, 1);
+    sceneArr.splice(idx, 1);
+    sceneArr.forEach((itm, i) => itm.displayOrder = i);
 
     try {
-        const res = await saveSceneData(volume, chapter, pageId, currentSceneData, seriesId);
+        const res = await saveSceneData(info.volume, info.chapter, info.pageId, sceneArr, info.seriesId);
         if (res.ok) {
-            timeline.setData(currentSceneData, properties.availableCharacters);
-            const iframe = document.getElementById('pagePreviewFrame');
-            if (iframe) pushSceneUpdate(iframe, currentSceneData, visual.currentVisualMediaData, pageId);
+            if (res.scene) adoptServerScene(sceneArr, res.scene);
+            if (sceneArr === currentSceneData) {
+                timeline.setData(currentSceneData, properties.availableCharacters);
+                const iframe = document.getElementById('pagePreviewFrame');
+                if (iframe) pushSceneUpdate(iframe, currentSceneData, visual.currentVisualMediaData, info.pageId);
+            }
         } else {
             throw new Error(res.message);
         }
@@ -163,15 +172,25 @@ async function syncEditorContext(volume, chapter, pageId, seriesId, silent = fal
             fetchMedia(volume, chapter, pageId, activeSeriesId)
         ]);
 
-        currentSceneData = (scene || []).sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
+        // Build everything locally first, then commit in one block below.
+        // A throw between partial assignments used to leave the editor
+        // split-brained: context pointing at the new page while the timeline
+        // still held the old page's items — the next save then wrote the old
+        // page's dialogue into the new page's file.
+        const newSceneData = (scene || []).sort((a, b) => (a.displayOrder || 0) - (b.displayOrder || 0));
 
-        // Flag orphaned dialogue items
+        // Flag orphaned dialogue items (guard displayType: items written by
+        // external scripts may not have one)
         const panelNames = panelData.panels || [];
-        currentSceneData.forEach(item => {
-            if (item.displayType.type === 'SpeechBubble' || (item.displayType.type === 'TextBlock' && item.placement?.panel)) {
+        newSceneData.forEach(item => {
+            const type = item.displayType?.type;
+            if (type === 'SpeechBubble' || (type === 'TextBlock' && item.placement?.panel)) {
                 item.isOrphaned = !!(item.placement?.panel && !panelNames.includes(item.placement.panel));
             }
         });
+
+        // --- Atomic commit ---
+        currentSceneData = newSceneData;
 
         if (visual) {
             visual.currentVisualMediaData = Array.isArray(mediaRes) ? mediaRes : (mediaRes.media || []);
@@ -201,6 +220,17 @@ async function syncEditorContext(volume, chapter, pageId, seriesId, silent = fal
 
     } catch (err) {
         console.error("[SceneEditor] Failed to sync context", err);
+        // Fail safe: never leave the previous page's items where a save could
+        // write them into this page's file.
+        currentSceneData = [];
+        if (visual) {
+            visual.currentVisualMediaData = [];
+            visual.currentVisualContext = { volume, chapter, pageId };
+        }
+        if (timeline) timeline.setData(currentSceneData, properties?.availableCharacters || []);
+        if (window.GlassToast) {
+            window.GlassToast.show('error', 'Page Sync Failed', 'Could not load this page\'s dialogue. Reopen the page before editing.');
+        }
     }
 }
 
@@ -246,23 +276,29 @@ export function initSceneEditor() {
     if (visual) return;
 
     // Instantiate managers
+    // Persist the given scene array to the given page, adopt the canonical ids
+    // the server returns, and refresh the preview. Array and context travel as a
+    // captured pair so a mid-flight context switch cannot redirect the write.
+    const persistScene = (sceneArr, info) => {
+        return saveSceneData(info.volume, info.chapter, info.pageId, sceneArr, activeSeriesId).then((res) => {
+            if (res?.ok && res.scene) adoptServerScene(sceneArr, res.scene);
+            const iframe = document.getElementById('pagePreviewFrame');
+            if (iframe) pushSceneUpdate(iframe, sceneArr, visual.currentVisualMediaData, info.pageId);
+            return res;
+        });
+    };
+
     timeline = new TimelineManager(
         layoutEditor,
         (index) => visual.selectSceneItem(index),
         (newData, newIndex) => {
             currentSceneData = newData;
             visual.selectSceneItem(newIndex);
-            saveSceneData(currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, currentSceneData, activeSeriesId).then(() => {
-                const iframe = document.getElementById('pagePreviewFrame');
-                if (iframe) pushSceneUpdate(iframe, currentSceneData, visual.currentVisualMediaData, currentSceneInfo.pageId);
-            });
+            persistScene(currentSceneData, { ...currentSceneInfo });
         },
         (index) => {
             duplicateSceneItem(index);
-            saveSceneData(currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, currentSceneData, activeSeriesId).then(() => {
-                const iframe = document.getElementById('pagePreviewFrame');
-                if (iframe) pushSceneUpdate(iframe, currentSceneData, visual.currentVisualMediaData, currentSceneInfo.pageId);
-            });
+            persistScene(currentSceneData, { ...currentSceneInfo });
         }
     );
 
@@ -333,29 +369,34 @@ export function initSceneEditor() {
         if (e.data.type === 'panelDragged') visual.updatePosition(e.data);
 
         if (e.data.type === 'dialogueSelected') {
-            const index = currentSceneData.findIndex(item => item.id == e.data.id);
+            // Capture array + context as one pair: the form may stay open across
+            // a context switch, and its save must target the page it came from.
+            const sceneArr = currentSceneData;
+            const info = { ...currentSceneInfo, seriesId: activeSeriesId };
+            const index = sceneArr.findIndex(item => item.id == e.data.id);
             if (index === -1) {
                 console.warn(`[SceneEditor] Dialogue ID ${e.data.id} not found on page ${pageId}`);
                 return;
             }
-            visual.showDialogueProperties(currentSceneData[index], properties,
+            visual.showDialogueProperties(sceneArr[index], properties,
                 async () => {
-                    const result = await saveSceneData(currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, currentSceneData, activeSeriesId);
+                    const result = await saveSceneData(info.volume, info.chapter, info.pageId, sceneArr, info.seriesId);
                     if (result.ok) {
+                        if (result.scene) adoptServerScene(sceneArr, result.scene);
                         // Fire-and-forget: let subscribed plugins scan the saved dialogue
                         fireEditorHook('scene-saved', {
                             series: activeSeriesId,
                             seriesFolder: activeSeriesFolder,
-                            volume: currentSceneInfo.volume,
-                            chapter: currentSceneInfo.chapter,
-                            pageId: currentSceneInfo.pageId,
-                            scene: currentSceneData,
+                            volume: info.volume,
+                            chapter: info.chapter,
+                            pageId: info.pageId,
+                            scene: sceneArr,
                             characters: properties.availableCharacters || []
                         });
                     }
                     return result;
                 },
-                async (delItem) => handleSceneDelete(delItem, currentSceneInfo.volume, currentSceneInfo.chapter, currentSceneInfo.pageId, activeSeriesId)
+                async (delItem) => handleSceneDelete(delItem, sceneArr, info)
             );
         }
 
