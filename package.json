@@ -12,11 +12,9 @@
   "description": "",
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
-    "adm-zip": "^0.5.17",
     "axios": "^1.16.0",
     "bcryptjs": "^3.0.2",
     "connect-mongo": "^6.0.0",
-    "connect-mongodb-session": "^5.0.0",
     "dotenv": "^17.2.3",
     "ejs": "^3.1.10",
     "express": "^5.1.0",
@@ -31,9 +29,5 @@
     "socket.io": "^4.8.3",
     "three": "^0.180.0",
     "uuid": "^13.0.0"
-  },
-  "devDependencies": {
-    "opentype.js": "^2.0.0",
-    "ttf2woff2": "^8.0.1"
   }
 }
