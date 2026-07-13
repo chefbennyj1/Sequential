@@ -6,6 +6,7 @@ const { getSeriesFolderName, findVolumeId } = require('../services/HierarchyLook
 const Volume = require("../models/Volume");
 const Series = require("../models/Series");
 const VolumeService = require("../services/VolumeService");
+const LayoutService = require("../services/LayoutService");
 
 async function savePageDataAndSync(pageData, pageJsonPath, volume, chapter, pageId, seriesFolderName) {
     if (!pageData.header) pageData.header = {};
@@ -66,13 +67,18 @@ exports.saveMedia = async (req, res) => {
 exports.getMedia = async (req, res) => {
   const { series, volume, chapter, pageId } = req.params;
   try {
-    const { pageJsonPath } = await getPagePaths(series, volume, chapter, pageId);
+    const { pageDir, pageJsonPath } = await getPagePaths(series, volume, chapter, pageId);
 
     if (fs.existsSync(pageJsonPath)) {
       const pageData = JSON.parse(fs.readFileSync(pageJsonPath, "utf8"));
-      res.json({ ok: true, media: pageData.media || [], header: pageData.header || {} });
+      res.json({
+        ok: true,
+        media: pageData.media || [],
+        header: pageData.header || {},
+        isSpread: LayoutService.resolveIsSpread(pageDir, pageId, pageData.header)
+      });
     } else {
-      res.json({ ok: true, media: [], header: {} });
+      res.json({ ok: true, media: [], header: {}, isSpread: false });
     }
   } catch (e) {
     res.status(500).json({ ok: false, message: "Failed to parse page data" });

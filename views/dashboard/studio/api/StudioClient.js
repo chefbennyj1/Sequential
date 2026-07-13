@@ -267,10 +267,12 @@ export async function fetchPagePanels(volume, chapter, pageId, seriesId) {
     try {
         const res = await fetch(`/api/editor/panels/${seriesId}/${volume}/${chapter}/${pageId}`);
         const data = await res.json();
-        return data.ok ? { panels: data.panels, layoutClass: data.layoutClass } : { panels: [], layoutClass: null };
+        return data.ok
+            ? { panels: data.panels, layoutClass: data.layoutClass, isSpread: !!data.isSpread }
+            : { panels: [], layoutClass: null, isSpread: false };
     } catch (err) {
         console.error("Error fetching panels:", err);
-        return { panels: [], layoutClass: null };
+        return { panels: [], layoutClass: null, isSpread: false };
     }
 }
 

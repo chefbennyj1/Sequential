@@ -111,6 +111,24 @@ class LayoutService {
     }
 
     /**
+     * A page is part of a spread if its own header says so, or — legacy data
+     * where only the left page was marked — if its left-hand partner does.
+     */
+    static resolveIsSpread(pageDir, pageId, header) {
+        if (header?.spread && header.spread.type !== 'none') return true;
+        const match = pageId.match(/page(\d+)/i);
+        if (!match) return false;
+        const partnerPath = path.join(path.dirname(pageDir), `page${parseInt(match[1]) - 1}`, 'page.json');
+        if (!fs.existsSync(partnerPath)) return false;
+        try {
+            const partner = JSON.parse(fs.readFileSync(partnerPath, 'utf8'));
+            return partner.header?.spread?.type === 'left';
+        } catch {
+            return false;
+        }
+    }
+
+    /**
      * Resolves all available panels for a page by parsing its layout template and CSS.
      */
     static async getPanels(series, volume, chapter, pageId) {
@@ -128,22 +146,7 @@ class LayoutService {
         if (fs.existsSync(atomicPath)) {
             const atomic = JSON.parse(fs.readFileSync(atomicPath, 'utf8'));
             atomicMedia = atomic.media || [];
-            if (atomic.header?.spread && atomic.header.spread.type !== 'none') isSpread = true;
-            
-            // Partner check if not explicitly marked
-            if (!isSpread) {
-                const match = pageId.match(/page(\d+)/i);
-                if (match) {
-                    const pageNum = parseInt(match[1]);
-                    const prevPageId = `page${pageNum - 1}`;
-                    const prevAtomicPath = path.join(seriesPath, "Volumes", volume, chapter, prevPageId, 'page.json');
-                    if (fs.existsSync(prevAtomicPath)) {
-                        const prevAtomic = JSON.parse(fs.readFileSync(prevAtomicPath, 'utf8'));
-                        if (prevAtomic.header?.spread && prevAtomic.header.spread.type === 'left') isSpread = true;
-                    }
-                }
-            }
-            
+            isSpread = LayoutService.resolveIsSpread(pageDir, pageId, atomic.header);
             layoutId = atomic.header?.layout?.id ?? layoutId;
         }
 
