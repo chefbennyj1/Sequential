@@ -7,10 +7,20 @@
  */
 import { populateSeriesSelect, populateLayoutSelect } from './LibraryManager.js';
 
+/**
+ * The Layout pane only makes sense with an active page; without one it shows
+ * an empty state that routes the writer to the navigation popover.
+ */
+export function syncLayoutPaneState() {
+    const hasPage = !!document.getElementById('openLayoutEditorBtn')?.dataset.page;
+    document.getElementById('layoutEmptyState')?.classList.toggle('hidden', hasPage);
+    document.getElementById('layoutBrowserWrap')?.classList.toggle('hidden', !hasPage);
+}
+
 const PANES = {
     createPageContainer: () => { populateSeriesSelect('builderSeriesSelect'); populateLayoutSelect(); },
     insertPageContainer: () => populateSeriesSelect('insertSeriesSelect'),
-    editPageContainer: () => populateSeriesSelect('editSeriesSelect'),
+    layoutPageContainer: syncLayoutPaneState,
     arrangePagesContainer: () => populateSeriesSelect('arrangeSeriesSelect'),
     exportScriptContainer: () => populateSeriesSelect('scriptSeriesSelect')
 };

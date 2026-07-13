@@ -9,9 +9,9 @@
             title="Insert Page" aria-label="Insert Page">
             <ion-icon name="git-branch-outline"></ion-icon>
         </button>
-        <button type="button" class="pb-tool" id="modeEditBtn" data-pane="editPageContainer"
-            title="Edit Page" aria-label="Edit Page">
-            <ion-icon name="create-outline"></ion-icon>
+        <button type="button" class="pb-tool" id="modeLayoutBtn" data-pane="layoutPageContainer"
+            title="Page Layout" aria-label="Page Layout">
+            <ion-icon name="grid-outline"></ion-icon>
         </button>
         <button type="button" class="pb-tool" id="modeArrangeBtn" data-pane="arrangePagesContainer"
             title="Arrange Pages" aria-label="Arrange Pages">
@@ -24,8 +24,46 @@
     </nav>
 
     <div class="pb-workarea">
+    <!-- Persistent context bar: active-page breadcrumb (opens navigation) + Editor launcher -->
+    <div id="activePageToolbar" class="pb-context-bar">
+        <div class="pb-context-nav">
+            <button type="button" id="activePageCrumb" class="pb-crumb" aria-haspopup="true"
+                aria-expanded="false">
+                <span class="text-muted font-size-07 uppercase">Active Page</span>
+                <span id="activePageDisplay" class="pb-crumb__path text-accent">Select a page</span>
+                <ion-icon name="chevron-down-outline"></ion-icon>
+            </button>
+            <div id="pageNavPopover" class="pb-nav-popover glass glass--dark glass-card hidden">
+                <div class="form-group margin-b-15">
+                    <label>Series</label>
+                    <select id="editSeriesSelect"></select>
+                </div>
+                <div class="form-group margin-b-15">
+                    <label>Volume</label>
+                    <select id="editVolumeSelect" disabled>
+                        <option value="">Select a Series first</option>
+                    </select>
+                </div>
+                <div class="form-group margin-b-15">
+                    <label>Chapter</label>
+                    <select id="editChapterSelect" disabled>
+                        <option value="">Select a Volume first</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Page</label>
+                    <select id="editPageSelect" disabled>
+                        <option value="">Select a Page</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <button id="openLayoutEditorBtn" class="glass glass-btn glass-btn--primary" disabled>Editor</button>
+    </div>
+
+    <div id="pageBuilderAlerts" class="pb-alerts"></div>
+
     <div class="narrow-container padding-20">
-        <div id="pageBuilderAlerts" class="margin-b-20"></div>
 
         <!-- CREATE PAGE -->
         <div id="createPageContainer" class="glass glass--dark glass-card hidden">
@@ -108,58 +146,20 @@
         <!-- END OF NARROW CONTAINER -->
     </div>
 
-    <!-- EDIT PAGE (Full Width Dual-Pane Layout) -->
-    <div id="editPageContainer" class="hidden">
-        <div class="editor-container-flex">
-            <!-- LEFT TOOLBAR (Sidebar) -->
-            <div class="tools-pane-flex glass glass-card">
-                <h4 class="margin-b-20 uppercase text-accent">Navigation</h4>
-                <div class="form-group margin-b-15">
-                    <label>Series</label>
-                    <select id="editSeriesSelect"></select>
-                </div>
-                <div class="form-group margin-b-15">
-                    <label>Volume</label>
-                    <select id="editVolumeSelect" disabled>
-                        <option value="">Select a Series first</option>
-                    </select>
-                </div>
-                <div class="form-group margin-b-15">
-                    <label>Chapter</label>
-                    <select id="editChapterSelect" disabled>
-                        <option value="">Select a Volume first</option>
-                    </select>
-                </div>
-                <div class="form-group margin-b-15">
-                    <label>Page</label>
-                    <select id="editPageSelect" disabled>
-                        <option value="">Select a Page</option>
-                    </select>
-                </div>
-            </div>
-
-            <!-- RIGHT CANVAS (Work Area) -->
-            <div class="preview-pane-flex glass glass-card">
-                <!-- activePageToolbar acts as the wrapper to keep JS compatibility -->
-                <div id="activePageToolbar" class="hidden">
-                    <div class="flex-between margin-b-30 active-page-header">
-                        <div>
-                            <span class="text-muted font-size-07 uppercase">Active Page</span>
-                            <h4 id="activePageDisplay" class="text-accent font-size-1-4">None</h4>
-                        </div>
-                        <button id="openLayoutEditorBtn" class="glass glass-btn glass-btn--primary">Editor</button>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="margin-b-15 uppercase text-accent">Structural Layout</label>
-                        <input type="hidden" id="activePageLayoutValue">
-                        <div id="activePageLayoutBrowser" class="layout-browser-grid"></div>
-                        <button id="applyLayoutBtn"
-                            class="glass glass-btn glass-btn--primary width-100 margin-t-20">Apply
-                            Selected Layout</button>
-                    </div>
-                </div>
-            </div>
+    <!-- PAGE LAYOUT (full-width template browser for the active page) -->
+    <div id="layoutPageContainer" class="hidden">
+        <div id="layoutEmptyState" class="pb-empty-state hidden">
+            <ion-icon name="grid-outline"></ion-icon>
+            <p class="text-muted">No active page selected.</p>
+            <button type="button" id="layoutEmptyPickBtn" class="glass glass-btn glass-btn--primary">Select a
+                Page</button>
+        </div>
+        <div id="layoutBrowserWrap" class="pb-layout-wrap">
+            <label class="margin-b-15 uppercase text-accent">Structural Layout</label>
+            <input type="hidden" id="activePageLayoutValue">
+            <div id="activePageLayoutBrowser" class="layout-browser-grid"></div>
+            <button id="applyLayoutBtn" class="glass glass-btn glass-btn--primary width-100 margin-t-20">Apply
+                Selected Layout</button>
         </div>
     </div>
     <!-- END OF WORKAREA -->

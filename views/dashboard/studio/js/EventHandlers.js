@@ -22,14 +22,14 @@ const _loadedSections = new Set();
 // Sections reachable from the persistent studio rail; the "studio" tab and
 // fresh entries resolve to the last one the writer used.
 export const STUDIO_SECTIONS = [
-    'page-builder', 'characters', 'plot-lab', 'story-critic', 'style-lab',
-    'export-tool', 'create-new-volume', 'edit-volume', 'create-new-chapter',
-    'library-settings'
+    'layout-editor', 'page-builder', 'characters', 'plot-lab', 'story-critic',
+    'style-lab', 'export-tool', 'create-new-volume', 'edit-volume',
+    'create-new-chapter', 'library-settings'
 ];
 
 export function lastStudioSection() {
     const saved = localStorage.getItem('sequential_last_studio_section');
-    return STUDIO_SECTIONS.includes(saved) ? saved : 'page-builder';
+    return STUDIO_SECTIONS.includes(saved) ? saved : 'layout-editor';
 }
 
 /**
@@ -127,14 +127,31 @@ export async function switchToSection(targetPage, container) {
         popTasks.push(populateLayoutSelect());
 
         // Persistent tool rail: keep whichever pane was open highlighted,
-        // or land on Edit Page when entering fresh
-        activatePageBuilderPane(visiblePageBuilderPane() || 'editPageContainer');
+        // or land on Page Layout when entering fresh
+        activatePageBuilderPane(visiblePageBuilderPane() || 'layoutPageContainer');
     }
 
     await Promise.all(popTasks);
     
     // Dispatch completion event
     container.dispatchEvent(new CustomEvent('sectionShown', { detail: { section: targetPage } }));
+}
+
+/**
+ * The active-page breadcrumb doubles as the navigation trigger; the popover
+ * holds the series/volume/chapter/page cascade that used to live in a sidebar.
+ */
+function toggleNavPopover(force) {
+    const popover = document.getElementById('pageNavPopover');
+    if (!popover) return;
+    const show = force ?? popover.classList.contains('hidden');
+    popover.classList.toggle('hidden', !show);
+    document.getElementById('activePageCrumb')?.setAttribute('aria-expanded', String(show));
+    // Preload only if the section switch hasn't populated the cascade yet,
+    // so reopening the popover never resets an in-progress selection
+    if (show && !document.getElementById('editSeriesSelect')?.options.length) {
+        populateSeriesSelect('editSeriesSelect');
+    }
 }
 
 function loadSelectedPage() {
@@ -165,6 +182,7 @@ function loadSelectedPage() {
 
     setActivePage(vol, chap, pageId, seriesId, seriesFolder);
     updateUrlState({ tab: 'page-builder', vol, chap, page: pageId, series: seriesId, seriesFolder });
+    toggleNavPopover(false);
 }
 
 export function initEventHandlers(container, allSections) {
@@ -185,6 +203,14 @@ export function initEventHandlers(container, allSections) {
             userMenu.classList.remove('show');
         });
     }
+
+    // Navigation popover closes on any click outside it (the empty-state
+    // button is exempt: its own handler is the one opening it)
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.pb-context-nav') && !e.target.closest('#layoutEmptyPickBtn')) {
+            toggleNavPopover(false);
+        }
+    });
 
     const accountSettingsBtn = document.getElementById('accountSettingsBtn');
     if (accountSettingsBtn) {
@@ -224,6 +250,11 @@ export function initEventHandlers(container, allSections) {
             e.preventDefault();
             updateUrlState({ tab: 'user-settings' });
             await switchToSection('user-settings', container);
+        }
+
+        // Active-page breadcrumb (and the Layout pane's empty state) opens navigation
+        if (target.id === 'activePageCrumb' || target.id === 'layoutEmptyPickBtn') {
+            toggleNavPopover();
         }
 
         // --- Deep Link Openers (from Page Builder) ---

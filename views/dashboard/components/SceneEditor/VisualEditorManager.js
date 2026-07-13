@@ -1,7 +1,8 @@
 // views/dashboard/components/SceneEditor/VisualEditorManager.js
-import { fetchMedia, saveSceneData, adoptServerScene } from '../../studio/api/StudioClient.js';
+import { fetchMedia, saveSceneData, adoptServerScene, fetchSingleVolumeWithChapters } from '../../studio/api/StudioClient.js';
 import { openFileBrowser } from '../FileBrowser/FileBrowser.js';
 import { renderPanelSettings, renderAllPanelsTemplate } from './VisualEditorUI.js';
+import { renderLayoutBrowser } from '../LayoutBrowser/LayoutBrowser.js';
 import { renderDialogueProperties } from './VisualEditorDialogueUI.js';
 import { pushPanelSelect, syncPreviewLive, pushMediaPersisted, pushSceneUpdate } from './VisualEditorSync.js';
 import { VisualEditorAssetManager } from './VisualEditorAssetManager.js';
@@ -23,7 +24,9 @@ export class VisualEditorManager {
         this.currentVisualContext = {}; // { volume, chapter, pageId }
         this.selectedPanelSelector = null;
         this.isSpread = false;
-        this.activeTab = 'panels';
+        this.activeTab = 'panels'; // 'layout' | 'panels' | 'timeline' — mirrors the left rail
+        this.currentLayoutId = null;
+        this.loadEpoch = 0; // last-call-wins guard for overlapping loadPanel fetches
 
         // Initialize Asset Manager
         this.assetManager = new VisualEditorAssetManager(this.currentVisualContext, this.currentVisualMediaData, this.activeSeriesId);
@@ -126,8 +129,9 @@ export class VisualEditorManager {
         const { volume, chapter, pageId, panel } = data;
         const selector = panel;
         this.selectedPanelSelector = selector;
+        const ticket = ++this.loadEpoch;
 
-        // Context Switch Logic: If a specific pageId is provided in the message, 
+        // Context Switch Logic: If a specific pageId is provided in the message,
         // we must update our internal context to match that page (essential for spreads)
         if (volume && chapter && pageId) {
             this.currentVisualContext = { volume, chapter, pageId };
@@ -135,15 +139,22 @@ export class VisualEditorManager {
             this.assetManager.setContext(this.currentVisualContext, seriesId);
 
             const res = await fetchMedia(volume, chapter, pageId, seriesId);
+
+            // A newer loadPanel started while we were fetching: its context is
+            // already committed, so landing this media would split-brain the pane
+            if (ticket !== this.loadEpoch) return;
+
             this.currentVisualMediaData = res.media || [];
             this.assetManager.mediaData = this.currentVisualMediaData;
             this.isSpread = !!res.isSpread;
+            this.currentLayoutId = res.header?.layout?.id || null;
         }
 
         const iframe = document.getElementById('pagePreviewFrame');
         let panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
-        
+
         await this.render(panelNames);
+        if (ticket !== this.loadEpoch) return;
         if (selector) pushPanelSelect(iframe, selector, pageId);
     }
 
@@ -156,15 +167,21 @@ export class VisualEditorManager {
     }
 
     renderDirectory(panelNames) {
-        // Tab switching header
-        const tabsHtml = `
-            <div class="editor-tabs flex-row border-dim-bottom margin-b-15">
-                <button class="tab-btn flex-1 padding-y-10 text-center font-weight-bold ${this.activeTab === 'panels' ? 'active' : ''}" data-tab="panels">Panels</button>
-                <button class="tab-btn flex-1 padding-y-10 text-center font-weight-bold ${this.activeTab === 'timeline' ? 'active' : ''}" data-tab="timeline">Timeline</button>
-            </div>
-        `;
+        this.syncModeRail();
 
-        if (this.activeTab === 'panels') {
+        if (this.activeTab === 'layout') {
+            this.toolsPane.innerHTML = `
+                <div class="tab-content fade-in">
+                    <h4 class="margin-0 margin-b-15">Page Layout</h4>
+                    <input type="hidden" id="editorLayoutValue">
+                    <div id="editorLayoutBrowser" class="layout-browser-grid"></div>
+                    <button id="editorApplyLayoutBtn"
+                        class="glass glass-btn glass-btn--primary width-100 margin-t-15">Apply Selected Layout</button>
+                </div>
+            `;
+            renderLayoutBrowser('editorLayoutBrowser', 'editorLayoutValue', this.currentLayoutId);
+            this.bindLayoutTabEvents();
+        } else if (this.activeTab === 'panels') {
             const panelsHtml = renderAllPanelsTemplate(
                 panelNames,
                 this.currentVisualMediaData,
@@ -175,7 +192,6 @@ export class VisualEditorManager {
             );
 
             this.toolsPane.innerHTML = `
-                ${tabsHtml}
                 <div class="tab-content fade-in">
                     ${panelsHtml}
                 </div>
@@ -183,7 +199,6 @@ export class VisualEditorManager {
             this.bindDirectoryEvents();
         } else {
             this.toolsPane.innerHTML = `
-                ${tabsHtml}
                 <div class="tab-content fade-in">
                     <div class="flex-row justify-between align-center margin-b-15">
                         <h4 class="margin-0">Timeline</h4>
@@ -206,23 +221,71 @@ export class VisualEditorManager {
 
             this.bindTimelineTabEvents();
         }
-
-        this.bindTabClickEvents();
     }
 
-    bindTabClickEvents() {
-        const tabs = this.toolsPane.querySelectorAll('.tab-btn');
-        tabs.forEach(tab => {
-            tab.onclick = () => {
-                const selectedTab = tab.dataset.tab;
-                if (this.activeTab !== selectedTab) {
-                    this.activeTab = selectedTab;
-                    const iframe = document.getElementById('pagePreviewFrame');
-                    const panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
-                    this.renderDirectory(panelNames);
-                }
+    /** Left icon rail (Layout / Panels / Timeline) drives which form the pane shows. */
+    bindModeRail() {
+        document.querySelectorAll('#editorToolbar .pb-tool').forEach(btn => {
+            btn.onclick = () => {
+                if (this.activeTab === btn.dataset.mode) return;
+                this.activeTab = btn.dataset.mode;
+                this.selectedPanelSelector = null;
+                const iframe = document.getElementById('pagePreviewFrame');
+                const panelNames = (iframe && iframe.contentWindow?.GEMINI_PANELS) ? iframe.contentWindow.GEMINI_PANELS : [];
+                this.renderDirectory(panelNames);
             };
         });
+    }
+
+    syncModeRail() {
+        document.querySelectorAll('#editorToolbar .pb-tool').forEach(btn =>
+            btn.classList.toggle('is-active', btn.dataset.mode === this.activeTab));
+    }
+
+    bindLayoutTabEvents() {
+        const applyBtn = document.getElementById('editorApplyLayoutBtn');
+        if (!applyBtn) return;
+
+        applyBtn.onclick = async () => {
+            const layoutFile = document.getElementById('editorLayoutValue')?.value;
+            const { volume, chapter, pageId } = this.currentVisualContext;
+            if (!layoutFile || !volume) return;
+
+            const oldText = applyBtn.textContent;
+            applyBtn.disabled = true;
+            applyBtn.textContent = 'Applying...';
+
+            try {
+                // change-layout wants the volume's database id, not its folder
+                const volumeObj = await fetchSingleVolumeWithChapters(volume, this.activeSeriesId);
+                const res = await fetch('/api/editor/change-layout', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        volumeId: volumeObj._id,
+                        chapterId: chapter,
+                        pageId,
+                        layout: layoutFile,
+                        mode: 'portrait'
+                    })
+                });
+                const result = await res.json();
+                if (!result.ok) throw new Error(result.message || 'Layout change failed');
+
+                this.currentLayoutId = layoutFile.replace('.html', '');
+                if (window.GlassToast) {
+                    window.GlassToast.show('success', 'Layout Updated', `Page structure changed to ${this.currentLayoutId}.`);
+                }
+                // Reload the preview; its previewReady message re-syncs panels/media
+                document.getElementById('pagePreviewFrame')?.contentWindow?.location.reload();
+            } catch (e) {
+                console.error('[VisualEditor] Layout apply failed', e);
+                if (window.GlassToast) window.GlassToast.show('error', 'Layout Change Failed', e.message);
+            } finally {
+                applyBtn.textContent = oldText;
+                applyBtn.disabled = false;
+            }
+        };
     }
 
     bindTimelineTabEvents() {
@@ -379,6 +442,10 @@ export class VisualEditorManager {
     }
 
     renderPanelEditor(panelSelector) {
+        // A panel drill-down is part of Panels mode; keep the rail honest
+        this.activeTab = 'panels';
+        this.syncModeRail();
+
         const normalizePanel = (p) => p ? p.replace(/^\./, '') : '';
         const normalizedSelector = normalizePanel(panelSelector);
         const entry = this.currentVisualMediaData.find(m => normalizePanel(m.panel) === normalizedSelector) || { panel: panelSelector, type: 'image' };

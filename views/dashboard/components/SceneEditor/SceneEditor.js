@@ -23,6 +23,8 @@ import { TimelineManager } from './TimelineManager.js';
 import { PropertyManager } from './PropertyManager.js';
 import { VisualEditorManager } from './VisualEditorManager.js';
 import { pushSceneUpdate } from './VisualEditorSync.js';
+import { initEditorTabs, openEditorTab, markActiveTab, setTabLoading } from './EditorTabs.js';
+import { createPagePicker } from '../PagePicker/PagePicker.js';
 
 let timeline, properties, visual;
 
@@ -31,6 +33,11 @@ let currentSceneData = [];
 let currentSceneInfo = {};
 let activeSeriesId = null;
 let activeSeriesFolder = null;
+
+// Context-switch epoch: every switch takes a ticket, and only the holder of
+// the latest ticket may commit its fetched state. Rapid tab/partner clicks
+// therefore resolve last-click-wins instead of last-response-wins.
+let contextEpoch = 0;
 
 /**
  * Delete a scene item, persist, and refresh the timeline.
@@ -73,8 +80,7 @@ async function returnToPageEdit() {
     await switchToSection('page-builder', container);
 
     document.querySelector('.layout-editor')?.classList.remove('is-spread');
-    activatePageBuilderPane('editPageContainer');
-    document.getElementById('activePageToolbar')?.classList.remove('hidden');
+    activatePageBuilderPane('layoutPageContainer');
 
     if (currentSceneInfo.volume) {
         updateUrlState({
@@ -133,7 +139,19 @@ export async function openVisualEditor(volume, chapter, pageId, mode = 'landscap
         return;
     }
 
-    await syncEditorContext(volume, chapter, pageId, seriesId, false);
+    // Leave the blank slate: show the canvas, arm the mode rail
+    document.getElementById('editorEmptyState')?.classList.add('hidden');
+    iframe.classList.remove('hidden');
+    document.querySelectorAll('#editorToolbar .pb-tool').forEach(b => { b.disabled = false; });
+
+    const tabCtx = { volume, chapter, pageId, seriesId: activeSeriesId, seriesFolder: activeSeriesFolder };
+    openEditorTab(tabCtx);
+    setTabLoading(tabCtx, true);
+
+    const isCurrent = await syncEditorContext(volume, chapter, pageId, seriesId, false);
+
+    setTabLoading(tabCtx, false);
+    if (!isCurrent) return; // superseded by a newer switch — its opener owns the canvas
 
     const folder = activeSeriesFolder || 'unknown';
     const targetUrl = new URL(`${window.location.origin}/api/editor/preview/${folder}/${volume || 'volume-1'}/${chapter || 'chapter-1'}/${pageId || 'page0'}`);
@@ -145,8 +163,11 @@ export async function openVisualEditor(volume, chapter, pageId, mode = 'landscap
 
 /**
  * Sync scene data, media, and characters for the current page into all managers.
+ * Returns false if a newer context switch started while this one was fetching —
+ * the stale results are discarded untouched and the caller must not proceed.
  */
 async function syncEditorContext(volume, chapter, pageId, seriesId, silent = false) {
+    const epoch = ++contextEpoch;
     currentSceneInfo = { volume, chapter, pageId };
 
     if (!activeSeriesId || (seriesId && activeSeriesId !== seriesId)) {
@@ -171,6 +192,10 @@ async function syncEditorContext(volume, chapter, pageId, seriesId, silent = fal
             activeSeriesId ? fetchCharactersAPI(activeSeriesId) : Promise.resolve([]),
             fetchMedia(volume, chapter, pageId, activeSeriesId)
         ]);
+
+        // A newer switch started while we were fetching: discard everything.
+        // Last click wins; the newer switch owns all editor state from here.
+        if (epoch !== contextEpoch) return false;
 
         // Build everything locally first, then commit in one block below.
         // A throw between partial assignments used to leave the editor
@@ -218,7 +243,13 @@ async function syncEditorContext(volume, chapter, pageId, seriesId, silent = fal
             layoutEditor.classList.toggle('is-spread', !!panelData.isSpread);
         }
 
+        return true;
+
     } catch (err) {
+        // Superseded mid-fetch: the newer switch owns the editor state, so the
+        // failsafe reset below would clobber ITS data, not protect ours.
+        if (epoch !== contextEpoch) return false;
+
         console.error("[SceneEditor] Failed to sync context", err);
         // Fail safe: never leave the previous page's items where a save could
         // write them into this page's file.
@@ -231,6 +262,7 @@ async function syncEditorContext(volume, chapter, pageId, seriesId, silent = fal
         if (window.GlassToast) {
             window.GlassToast.show('error', 'Page Sync Failed', 'Could not load this page\'s dialogue. Reopen the page before editing.');
         }
+        return true;
     }
 }
 
@@ -324,6 +356,71 @@ export function initSceneEditor() {
 
     visual.timeline = timeline;
     visual.properties = properties;
+
+    // Left mode rail: Layout / Panels / Timeline
+    visual.bindModeRail();
+
+    // Page picker popover — opened by the + tab and the blank-slate button
+    let pagePicker;
+    const toggleEditorPicker = (force) => {
+        const pop = document.getElementById('editorPagePicker');
+        if (!pop) return;
+        const show = force ?? pop.classList.contains('hidden');
+        pop.classList.toggle('hidden', !show);
+        if (show) pagePicker?.load();
+    };
+
+    const pickerContainer = document.getElementById('editorPagePicker');
+    if (pickerContainer) {
+        pagePicker = createPagePicker(pickerContainer, (pick) => {
+            toggleEditorPicker(false);
+            openVisualEditor(pick.vol, pick.chap, pick.pageId, 'portrait', pick.seriesId, pick.seriesFolder);
+        });
+    }
+
+    document.getElementById('editorEmptyOpenBtn')?.addEventListener('click', () => toggleEditorPicker(true));
+
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('#editorPagePicker') &&
+            !e.target.closest('.page-tab__add') &&
+            !e.target.closest('#editorEmptyOpenBtn')) {
+            toggleEditorPicker(false);
+        }
+    });
+
+    // Blank slate: the editor with no page open — canvas placeholder, rail
+    // disarmed, no stale context a save or hook could land on
+    const showEditorBlankSlate = () => {
+        currentSceneInfo = {};
+        currentSceneData = [];
+        if (window.GlassAnnotations) window.GlassAnnotations.clear();
+        const iframe = document.getElementById('pagePreviewFrame');
+        if (iframe) {
+            iframe.classList.add('hidden');
+            iframe.src = 'about:blank';
+        }
+        document.getElementById('editorEmptyState')?.classList.remove('hidden');
+        document.querySelectorAll('#editorToolbar .pb-tool').forEach(b => { b.disabled = true; });
+        const toolsPane = document.querySelector('.layout-editor .tools-pane');
+        if (toolsPane) toolsPane.innerHTML = '';
+        updateUrlState({ tab: 'layout-editor' });
+    };
+
+    // Open-page tabs: highlight instantly, then debounce the actual context
+    // switch so flipping across tabs only loads the one the writer lands on
+    let pendingTabSwitch;
+    initEditorTabs({
+        onSelect: (tab) => {
+            markActiveTab(tab);
+            clearTimeout(pendingTabSwitch);
+            pendingTabSwitch = setTimeout(() => {
+                openVisualEditor(tab.volume, tab.chapter, tab.pageId, 'portrait', tab.seriesId, tab.seriesFolder);
+            }, 150);
+        },
+        onAdd: () => toggleEditorPicker(),
+        // Last tab closed: back to the blank slate, not out of the editor
+        onEmpty: showEditorBlankSlate
+    });
 
     // Plugin annotations: clicking an entry selects the flagged scene item
     layoutEditor.addEventListener('glass:annotation:select', (e) => {

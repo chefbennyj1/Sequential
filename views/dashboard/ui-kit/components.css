@@ -176,6 +176,179 @@
     background: var(--accent-aqua);
 }
 
+/* --- Page Builder context bar (active-page breadcrumb + Editor launcher) --- */
+.pb-context-bar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 15px;
+    padding: 10px 20px;
+    border-bottom: 1px solid var(--glass-border);
+}
+
+/* Positioning context for the navigation popover */
+.pb-context-nav {
+    position: relative;
+    min-width: 0;
+}
+
+.pb-crumb {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 6px 10px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: background var(--dur-fast);
+}
+
+.pb-crumb:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.pb-crumb__path {
+    font-size: 1.05rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.pb-crumb[aria-expanded="true"] ion-icon {
+    transform: rotate(180deg);
+}
+
+.pb-nav-popover {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    width: 340px;
+    padding: 20px;
+    z-index: 200;
+}
+
+.pb-alerts:not(:empty) {
+    margin: 12px 20px 0;
+}
+
+/* --- Visual editor: open-page tab strip --- */
+.page-tabs {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    overflow-x: auto;
+    scrollbar-width: none;
+}
+
+.page-tabs::-webkit-scrollbar {
+    display: none;
+}
+
+.page-tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 6px 5px 12px;
+    border: 1px solid transparent;
+    border-radius: var(--radius-md);
+    color: var(--color-text-muted);
+    font-size: 0.8rem;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background var(--dur-fast), color var(--dur-fast);
+}
+
+.page-tab:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--color-text);
+}
+
+.page-tab.is-active {
+    color: var(--accent-aqua);
+    border-color: var(--glass-border);
+}
+
+.page-tab.is-loading .page-tab__label {
+    animation: page-tab-pulse 1s ease-in-out infinite;
+}
+
+@keyframes page-tab-pulse {
+    50% { opacity: 0.35; }
+}
+
+.page-tab__close {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: inherit;
+    cursor: pointer;
+    opacity: 0.5;
+}
+
+.page-tab__close:hover {
+    opacity: 1;
+    background: rgba(255, 255, 255, 0.15);
+}
+
+/* "Add to your session": opens the page picker */
+.page-tab__add {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: 1px dashed var(--glass-border);
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--color-text-muted);
+    cursor: pointer;
+    transition: background var(--dur-fast), color var(--dur-fast);
+}
+
+.page-tab__add:hover {
+    background: rgba(255, 255, 255, 0.08);
+    color: var(--color-text);
+}
+
+/* Editor mode rail sleeps until a page is open */
+.pb-tool:disabled {
+    opacity: 0.35;
+    pointer-events: none;
+}
+
+/* Blank-slate placeholder fills the editor canvas (parent aligns flex-start) */
+.preview-pane-flex > .pb-empty-state {
+    align-self: stretch;
+    width: 100%;
+}
+
+/* Layout pane placeholder shown until a page is active */
+.pb-empty-state {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+}
+
+.pb-empty-state ion-icon {
+    font-size: 2.6rem;
+    color: var(--color-text-muted);
+}
+
 /* --- Primary button shimmer sweep --- */
 .glass-btn--primary {
     position: relative;

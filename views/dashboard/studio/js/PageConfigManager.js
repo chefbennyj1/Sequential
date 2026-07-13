@@ -7,6 +7,7 @@ import {
     fetchSeriesAPI
 } from '../api/StudioClient.js';
 import { renderLayoutBrowser } from '../../components/LayoutBrowser/LayoutBrowser.js';
+import { syncLayoutPaneState } from './PageBuilderModes.js';
 
 /**
  * Checks for orphaned dialogue items and displays a warning banner.
@@ -86,7 +87,6 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
         }
     }
 
-    toolbar.classList.remove('hidden');
     display.textContent = `${vol} / ${chap} / ${page}`;
 
     // PERSISTENCE: Save this context so we can restore it on reload
@@ -100,8 +100,10 @@ export async function setActivePage(vol, chap, page, seriesId = null, seriesFold
             btn.dataset.page = page;
             if (seriesId) btn.dataset.series = seriesId;
             if (seriesFolder) btn.dataset.seriesFolder = seriesFolder;
+            btn.disabled = false;
         }
     });
+    syncLayoutPaneState();
 
     const alertsContainer = document.getElementById('pageBuilderAlerts');
     if (alertsContainer) {

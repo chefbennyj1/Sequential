@@ -231,74 +231,38 @@ body {
     flex-direction: column;
 }
 
-/* --- Page Builder: Edit Page dual-pane (fixed sidebar, scrolling canvas) --- */
-/* Edit mode owns the whole section; collapse the narrow container so it
+/* --- Page Builder: full-width Layout pane (template browser) --- */
+/* Layout mode owns the whole workarea; collapse the narrow container so it
    doesn't fight for vertical space with its flex: 1 / overflow-y above. */
-.page-builder:has(#editPageContainer:not(.hidden)) .narrow-container {
+.page-builder:has(#layoutPageContainer:not(.hidden)) .narrow-container {
     display: none;
 }
 
-#editPageContainer {
+#layoutPageContainer {
     flex: 1;
     min-height: 0;
     display: flex;
     flex-direction: column;
+    padding: 20px;
 }
 
-/* Sidebar holds four selects — no scroll gymnastics needed */
-#editPageContainer .tools-pane-flex {
-    flex: 0 0 320px;
-    max-height: none !important;
-    height: auto;
-    padding: 20px !important;
-    overflow: visible !important;
-}
-
-/* The canvas pane never scrolls; it is capped to the viewport and the
-   layout grid inside flexes and scrolls, keeping Apply pinned on screen */
-#editPageContainer .preview-pane-flex {
-    display: flex;
-    flex-direction: column;
-    /* Shared class sets align-items: flex-start for the layout editor;
-       in this column layout that shrinks children to content width */
-    align-items: stretch;
-    overflow: hidden;
-    max-height: calc(100dvh - 220px);
-    padding: 30px;
-}
-
-#editPageContainer #activePageToolbar {
+/* The grid is the scroll region, keeping Apply pinned on screen */
+#layoutPageContainer .pb-layout-wrap {
     display: flex;
     flex-direction: column;
     flex: 1;
     min-height: 0;
 }
 
-#editPageContainer #activePageToolbar .form-group {
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    min-height: 0;
-}
-
-#editPageContainer .layout-browser-grid {
+#layoutPageContainer .layout-browser-grid {
     flex: 1;
     min-height: 0;
     overflow-y: auto;
 }
 
 /* The outer grid is the scroll region here, not the 400px inner cap */
-#editPageContainer .layout-browser-grid-inner {
+#layoutPageContainer .layout-browser-grid-inner {
     max-height: none;
-}
-
-#editPageContainer .active-page-header {
-    border-bottom: 1px solid var(--glass-border);
-    padding-bottom: 20px;
-}
-
-#editPageContainer .active-page-header h4 {
-    margin: 0;
 }
 
 /* Ensure sections stay stable and don't lift on hover like small cards */
