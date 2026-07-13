@@ -9,7 +9,7 @@ import {
     fetchSeriesAPI,
     fetchSeriesDetailsAPI
 } from '../api/StudioClient.js';
-import { getFolderNameFromPath } from './Navigation.js';
+import { getFolderNameFromPath } from './PathUtils.js';
 import { renderCard, renderChapterCard, renderSeriesCard } from '../../components/CardBuilder/CardBuilder.js';
 
 /**

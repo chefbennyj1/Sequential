@@ -1,141 +1,20 @@
 import { updateUrlState } from './Navigation.js';
+import { switchToSection, lastStudioSection } from './SectionRouter.js';
 import {
     populateSeriesSelect,
     populateVolumeSelect,
     populateChapterSelect,
     populateEditPageSelect,
-    populateLayoutSelect,
     showVolumesForSeries,
     showChaptersForVolume
 } from './LibraryManager.js';
 import { setActivePage } from './PageConfigManager.js';
-import { activatePageBuilderPane, visiblePageBuilderPane } from './PageBuilderModes.js';
+import { activatePageBuilderPane } from './PageBuilderModes.js';
 import { openVisualEditor } from '../../components/SceneEditor/SceneEditor.js';
 import ArrangeManager from './ArrangeManager.js';
 
 let currentSceneInfo = {};
 let arrangeManager;
-
-// Fragment load cache — prevents duplicate fetches
-const _loadedSections = new Set();
-
-// Sections reachable from the persistent studio rail; the "studio" tab and
-// fresh entries resolve to the last one the writer used.
-export const STUDIO_SECTIONS = [
-    'layout-editor', 'page-builder', 'characters', 'plot-lab', 'story-critic',
-    'style-lab', 'export-tool', 'create-new-volume', 'edit-volume',
-    'create-new-chapter', 'library-settings'
-];
-
-export function lastStudioSection() {
-    const saved = localStorage.getItem('sequential_last_studio_section');
-    return STUDIO_SECTIONS.includes(saved) ? saved : 'layout-editor';
-}
-
-/**
- * Highlight the studio rail button for the visible section (clearing it for
- * non-rail sections) and remember rail sections as the landing default.
- */
-function syncStudioRail(container, section) {
-    container.querySelectorAll('#studioRail .studio-rail__btn').forEach(btn =>
-        btn.classList.toggle('is-active', btn.dataset.target === section));
-    if (STUDIO_SECTIONS.includes(section)) {
-        localStorage.setItem('sequential_last_studio_section', section);
-    }
-}
-
-/**
- * Switches the visible dashboard section and triggers any necessary data population.
- */
-export async function switchToSection(targetPage, container) {
-    console.log(`[Dashboard] Attempting switch to section: ${targetPage}`);
-
-    const mountPoint = container.querySelector('#main-content');
-    if (!mountPoint) {
-        console.warn('[Dashboard] #main-content mount point not found.');
-        return;
-    }
-
-    // --- Lazy-load fragment if not already in DOM ---
-    if (!_loadedSections.has(targetPage)) {
-        const fragmentUrl = `/views/dashboard/sections/${targetPage}/${targetPage}.html`;
-        try {
-            const res = await fetch(fragmentUrl);
-            if (!res.ok) {
-                console.warn(`[Dashboard] Fragment not found: ${fragmentUrl} (${res.status})`);
-                return;
-            }
-            const html = await res.text();
-            const temp = document.createElement('div');
-            temp.innerHTML = html.trim();
-            // Append ALL top-level nodes — fragments can have multiple sibling roots
-            const docFrag = document.createDocumentFragment();
-            while (temp.firstChild) docFrag.appendChild(temp.firstChild);
-            mountPoint.appendChild(docFrag);
-            _loadedSections.add(targetPage);
-            console.log(`[Dashboard] Fragment loaded and mounted: ${targetPage}`);
-            container.dispatchEvent(new CustomEvent('fragmentLoaded', { detail: { section: targetPage } }));
-        } catch (err) {
-            console.error(`[Dashboard] Failed to fetch fragment for '${targetPage}':`, err);
-            return;
-        }
-    }
-
-    // --- Existing visibility logic (UNCHANGED from original) ---
-    const allSections = mountPoint.querySelectorAll('.dashboard-section, .glass-tab-panel');
-    const targetSection = mountPoint.querySelector('.' + targetPage);
-
-    if (!targetSection) {
-        console.warn(`[Dashboard] Target section not found after fetch: .${targetPage}`);
-        return;
-    }
-
-    const tabs = container.querySelectorAll('.glass-tab');
-    tabs.forEach(tab => {
-        const isActive = tab.dataset.page === targetPage;
-        tab.setAttribute('aria-selected', String(isActive));
-        tab.setAttribute('tabindex', isActive ? '0' : '-1');
-    });
-
-    allSections.forEach(s => {
-        s.classList.remove('is-active');
-        s.classList.add('hidden');
-    });
-
-    targetSection.classList.add('is-active');
-    targetSection.classList.remove('hidden');
-
-    // Sync the studio rail highlight the moment the section becomes visible —
-    // before the (potentially slow) data populate below — so the active tool
-    // never lags behind the click. Non-rail sections clear the highlight.
-    syncStudioRail(container, targetPage);
-
-    // Trigger Population Logic based on the section
-    const popTasks = [];
-    if (targetPage === 'create-new-volume') popTasks.push(populateSeriesSelect('createVolumeSeriesSelect'));
-    if (targetPage === 'edit-volume') popTasks.push(populateSeriesSelect('volumeSeriesSelect'));
-    if (targetPage === 'create-new-chapter') popTasks.push(populateSeriesSelect('chapterSeriesSelect'));
-    if (targetPage === 'export-tool') popTasks.push(populateSeriesSelect('exportSeriesSelect'));
-    if (targetPage === 'characters') popTasks.push(populateSeriesSelect('char-series-select'));
-    if (targetPage === 'page-builder') {
-        popTasks.push(populateSeriesSelect([
-            'builderSeriesSelect',
-            'insertSeriesSelect',
-            'scriptSeriesSelect',
-            'editSeriesSelect'
-        ]));
-        popTasks.push(populateLayoutSelect());
-
-        // Persistent tool rail: keep whichever pane was open highlighted,
-        // or land on Page Layout when entering fresh
-        activatePageBuilderPane(visiblePageBuilderPane() || 'layoutPageContainer');
-    }
-
-    await Promise.all(popTasks);
-    
-    // Dispatch completion event
-    container.dispatchEvent(new CustomEvent('sectionShown', { detail: { section: targetPage } }));
-}
 
 /**
  * The active-page breadcrumb doubles as the navigation trigger; the popover

@@ -1,12 +1,10 @@
 // views/dashboard/js/Navigation.js
 
-import { openVisualEditor } from '../../components/SceneEditor/SceneEditor.js';
-import { populateVolumeSelect, populateLayoutSelect } from './LibraryManager.js';
-import { setActivePage } from './PageConfigManager.js';
-import { switchToSection, lastStudioSection } from './EventHandlers.js';
+import { switchToSection, lastStudioSection } from './SectionRouter.js';
 
-// We need a way to call functions that might not be imported yet if we have circular deps.
-// For now, we will assume the Main Dashboard will handle the "Router" logic or we expose setters.
+// Deep-link targets live above this module in the dependency graph
+// (SceneEditor, PageConfigManager), so they register themselves here at
+// startup instead of being imported — see dashboard.js.
 let _handlers = {};
 
 export function registerNavigationHandlers(handlers) {
@@ -59,19 +57,13 @@ export async function restoreStateFromUrl(container) {
         // --- Deep Link State Restoration ---
         if (vol && chap && page) {
             console.log(`[Navigation] Deep-linking into: ${tab} (${vol}/${chap}/${page})`);
-            
+
             // Dispatch to registered handlers immediately (The UI is now ready)
-            if (tab === 'layout-editor') {
-                openVisualEditor(vol, chap, page, 'portrait', series, seriesFolder);
+            if (tab === 'layout-editor' && _handlers.openVisualEditor) {
+                _handlers.openVisualEditor(vol, chap, page, 'portrait', series, seriesFolder);
             } else if (tab === 'page-builder' && _handlers.setActivePage) {
                 _handlers.setActivePage(vol, chap, page, series, seriesFolder);
             }
         }
     }
-}
-
-export function getFolderNameFromPath(vPath) {
-    if (!vPath) return 'unknown';
-    const parts = vPath.split(/[\\/]/).filter(p => p.length > 0);
-    return parts.length > 0 ? parts[parts.length - 1] : 'unknown';
 }

@@ -15,7 +15,7 @@ import {
 } from '../../studio/api/StudioClient.js';
 import { updateUrlState } from '../../studio/js/Navigation.js';
 import { activatePageBuilderPane } from '../../studio/js/PageBuilderModes.js';
-import { switchToSection } from '../../studio/js/EventHandlers.js';
+import { switchToSection } from '../../studio/js/SectionRouter.js';
 import { fireEditorHook } from '../../studio/js/PluginHooks.js';
 
 // Sub-Managers

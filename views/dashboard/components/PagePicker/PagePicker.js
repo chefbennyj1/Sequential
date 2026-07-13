@@ -6,7 +6,7 @@ import {
     fetchChaptersAPI,
     fetchChapterDetailsAPI
 } from '../../studio/api/StudioClient.js';
-import { getFolderNameFromPath } from '../../studio/js/Navigation.js';
+import { getFolderNameFromPath } from '../../studio/js/PathUtils.js';
 
 /**
  * Self-contained series → volume → chapter → page cascade.
