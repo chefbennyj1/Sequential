@@ -304,7 +304,10 @@ export class PropertyManager {
     updateItem(item) {
         if (!item) return;
 
-        item.id = this.container.querySelector('#prop-id').value;
+        // Never take item.id from the form: #prop-id is display-only. The form
+        // can hold another item's id (mis-populate) or a stale one (server
+        // reassigns ids on save) — writing it back forges identity and lets one
+        // bubble overwrite another.
         let type = this.container.querySelector('#prop-type').value;
         if (['Narrator', 'InternalMonologue', 'Dialogue'].includes(type)) {
             item.displayType = { type: 'TextBlock', style: type };

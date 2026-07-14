@@ -325,7 +325,9 @@ export function initSceneEditor() {
         (index) => visual.selectSceneItem(index),
         (newData, newIndex) => {
             currentSceneData = newData;
-            visual.selectSceneItem(newIndex);
+            // Keep the dragged item highlighted but don't open its properties —
+            // a reorder is not a request to edit (properties open on dblclick)
+            timeline.setSelectedIndex(newIndex);
             persistScene(currentSceneData, { ...currentSceneInfo });
         },
         (index) => {
@@ -502,8 +504,12 @@ export function initSceneEditor() {
             const index = currentSceneData.findIndex(item => item.id == id);
             if (index !== -1) {
                 Object.assign(currentSceneData[index].placement, placement);
-                // If dialogue properties panel is open, update inputs in real-time
-                if (properties.form) properties.populate(currentSceneData[index]);
+                // Live-update the open properties form — but only if it is showing
+                // THIS item. Repopulating it with a different bubble's data makes
+                // the form's next save clone that bubble over the one it was
+                // opened for (the duplicate/overwrite bug).
+                const formId = properties.form?.querySelector('#prop-id')?.value;
+                if (formId && formId == id) properties.populate(currentSceneData[index]);
             }
         }
     });

@@ -16,8 +16,22 @@ export class TimelineManager {
     }
 
     initEventListeners() {
-        // --- Event Delegation on Container: Click & Context Menu ---
+        // --- Event Delegation on Container: Click, Double-Click & Context Menu ---
+        // Single click only highlights: items are draggable, and opening the
+        // properties form on every click made drag-reordering unusable.
         this.container.addEventListener('click', (e) => {
+            const item = e.target.closest('.scene-item');
+            if (item) {
+                // Highlight in place — a re-render here would replace the node
+                // between the two clicks of a double-click and swallow it
+                this.selectedItemIndex = parseInt(item.dataset.index);
+                this.container.querySelectorAll('#sceneTreeList .scene-item')
+                    .forEach(el => el.classList.toggle('selected', el === item));
+            }
+        });
+
+        // Double click opens the properties form.
+        this.container.addEventListener('dblclick', (e) => {
             const item = e.target.closest('.scene-item');
             if (item) {
                 const index = parseInt(item.dataset.index);
