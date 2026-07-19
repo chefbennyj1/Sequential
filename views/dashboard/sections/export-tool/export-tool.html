@@ -1,7 +1,10 @@
     <div class="export-tool dashboard-section hidden glass glass--frosted glass-card">
         <div class="medium-container padding-20">
             <h3>Print Exporter</h3>
-            <p>Render high-resolution PNGs of an entire volume.</p>
+            <p>Render high-resolution PNGs, then combine them into print-ready PDFs.</p>
+
+            <h4 class="text-accent margin-t-30">1 &mdash; Choose what to export</h4>
+            <p class="font-size-07 text-muted">The series, volume, and preset chosen here apply to both steps below.</p>
 
             <div class="form-group margin-t-20">
                 <label for="exportSeriesSelect">Select Series:</label>
@@ -23,6 +26,8 @@
                     <option value="a4-landscape-letterbox">A4 Landscape (16:9 Letterbox)</option>
                 </select>
             </div>
+
+            <h4 class="text-accent margin-t-30">2 &mdash; Render pages to PNG</h4>
 
             <div class="form-group margin-t-20">
                 <label for="exportTargetPage">Target Page (Optional):</label>
@@ -56,8 +61,8 @@
                 <p id="exportStatusMsg" style="margin-top: 5px; color: var(--cyber-primary, #00ff41); font-size: 0.8rem;"></p>
             </div>
 
-            <h3 class="margin-t-30">Combine to PDF</h3>
-            <p>Build a print-ready PDF from already-exported PNGs. No re-rendering.</p>
+            <h4 class="text-accent margin-t-30">3 &mdash; Combine PNGs to PDF</h4>
+            <p>Build a print-ready PDF from already-exported PNGs &mdash; no re-rendering. Uses the series, volume, and preset selected in step 1.</p>
 
             <div class="form-group margin-t-20">
                 <label>Chapters:</label>
