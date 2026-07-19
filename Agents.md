@@ -196,6 +196,7 @@ server.js                        Entry point — middleware, routes, MongoDB, So
 | Method + Path | Controller |
 |---|---|
 | `POST /editor/export-volume/:series/:volume` | `ExportController.exportVolume` |
+| `POST /editor/combine-pdf/:series/:volume` | `ExportController.combinePdf` — build PDF from existing PNGs; `?preset=&chapters=1,3-5` (blank = whole volume) |
 | `POST /editor/export-script/:series/:volume` | `ExportController.exportScript` |
 
 **Characters**

@@ -37,6 +37,7 @@ export function initExportManager(container) {
                         startExportBtn.innerHTML = 'Start Background Export <ion-icon size="small" name="print"></ion-icon>';
                         startExportBtn.style.pointerEvents = 'auto';
                     }
+                    resetPdfButton();
                     if (isError) statusMsg.style.color = 'red';
                     else statusMsg.style.color = 'var(--cyber-primary, #00ff41)';
                     
@@ -55,6 +56,7 @@ export function initExportManager(container) {
                 await loadVolumePages(e.target.value, carousel);
             } else {
                 carousel.innerHTML = '<div class="text-muted padding-20">Select a volume to preview pages.</div>';
+                populatePdfChapterList(null);
             }
         });
     }
@@ -87,8 +89,7 @@ export function initExportManager(container) {
             const targetPage = targetPageInput ? targetPageInput.value.trim() : '';
 
                 // Standardize on Portrait, remove Landscape option as requested.
-                const portrait = true; 
-                const pdf = document.getElementById('exportPdfOption').checked;   
+                const portrait = true;
 
                 let confirmMsg = 'Are you sure you want to export ' + optionText + ' (' + presetText + ') to High-Res PNGs?';
                 if (targetPage) {
@@ -134,7 +135,7 @@ export function initExportManager(container) {
                         return;
                     }
 
-                    let fetchUrl = '/api/editor/export-volume/' + cleanSeries + '/' + cleanVolume + '?portrait=' + portrait + '&pdf=' + pdf + '&preset=' + preset;
+                    let fetchUrl = '/api/editor/export-volume/' + cleanSeries + '/' + cleanVolume + '?portrait=' + portrait + '&preset=' + preset;
                     if (targetPage) fetchUrl += '&targetPage=' + encodeURIComponent(targetPage);
 
                 const res = await fetch(fetchUrl, { method: 'POST' });        
@@ -159,6 +160,93 @@ export function initExportManager(container) {
             }
         });
     }
+
+    const buildPdfBtn = document.getElementById('buildPdfBtn');
+    if (buildPdfBtn) {
+        buildPdfBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            const seriesSelect = document.getElementById('exportSeriesSelect');
+            const presetSelect = document.getElementById('exportPresetSelect');
+            const statusMsg = document.getElementById('exportStatusMsg');
+
+            const cleanSeries = seriesSelect.options[seriesSelect.selectedIndex]?.getAttribute('data-folder');
+            const cleanVolume = volumeSelect.options[volumeSelect.selectedIndex]?.getAttribute('data-folder');
+
+            if (!cleanSeries || !cleanVolume) {
+                alert('Please select a series and volume first.');
+                return;
+            }
+
+            const checked = Array.from(document.querySelectorAll('#pdfChapterList input:checked')).map(cb => cb.value);
+            const preset = presetSelect ? presetSelect.value : 'uk-table';
+            const scopeText = checked.length ? 'chapters ' + checked.join(', ') : 'the entire volume';
+
+            if (!confirm('Build a PDF from the existing "' + preset + '" exports for ' + scopeText + '?')) return;
+
+            const progressContainer = document.getElementById('exportProgressContainer');
+            if (progressContainer) progressContainer.classList.remove('hidden');
+            document.getElementById('export-progress-bar').style.width = '0%';
+            document.getElementById('exportProgressPercent').textContent = '0%';
+            document.getElementById('exportProgressLabel').textContent = 'Combining PDF...';
+
+            buildPdfBtn.innerHTML = 'Building PDF... <ion-icon size="small" name="hourglass"></ion-icon>';
+            buildPdfBtn.style.pointerEvents = 'none';
+
+            try {
+                let url = '/api/editor/combine-pdf/' + cleanSeries + '/' + cleanVolume + '?preset=' + preset;
+                if (checked.length) url += '&chapters=' + encodeURIComponent(checked.join(','));
+
+                const res = await fetch(url, { method: 'POST' });
+                const result = await res.json();
+
+                if (result.ok) {
+                    statusMsg.style.color = 'var(--cyber-primary, #00ff41)';
+                    statusMsg.textContent = result.message;
+                    if (result.missingPages && result.missingPages.length) {
+                        statusMsg.textContent += ' Missing renders for pages: ' + result.missingPages.join(', ');
+                    }
+                } else {
+                    statusMsg.style.color = 'red';
+                    statusMsg.textContent = 'PDF build failed: ' + result.message;
+                    resetPdfButton();
+                }
+            } catch (err) {
+                console.error('Error starting PDF build:', err);
+                statusMsg.style.color = 'red';
+                statusMsg.textContent = 'Failed to contact server for PDF build.';
+                resetPdfButton();
+            }
+        });
+    }
+}
+
+function resetPdfButton() {
+    const btn = document.getElementById('buildPdfBtn');
+    if (btn) {
+        btn.innerHTML = 'Build PDF <ion-icon size="small" name="document-outline"></ion-icon>';
+        btn.style.pointerEvents = 'auto';
+    }
+}
+
+function populatePdfChapterList(volumeData) {
+    const list = document.getElementById('pdfChapterList');
+    if (!list) return;
+
+    if (!volumeData || !volumeData.chapters || volumeData.chapters.length === 0) {
+        list.innerHTML = '<p class="font-size-07 text-muted">Select a volume to list its chapters.</p>';
+        return;
+    }
+
+    list.innerHTML = volumeData.chapters
+        .slice()
+        .sort((a, b) => a.chapterNumber - b.chapterNumber)
+        .map(chap =>
+            '<label class="glass-check-label">' +
+                '<input type="checkbox" value="' + chap.chapterNumber + '">' +
+                '<span class="glass-check-box"></span>' +
+                '<span>Chapter ' + chap.chapterNumber + ' (' + (chap.pages ? chap.pages.length : 0) + ' pages)</span>' +
+            '</label>'
+        ).join('');
 }
 
 async function loadVolumePages(volumeId, carousel) {
@@ -177,8 +265,11 @@ async function loadVolumePages(volumeId, carousel) {
         const volumeData = await fetchSingleVolumeWithChapters(volumeId, seriesFolderName);
         if (!volumeData || !volumeData.chapters) {
             carousel.innerHTML = '<div class="text-danger padding-20">Failed to load volume structure.</div>';
+            populatePdfChapterList(null);
             return;
         }
+
+        populatePdfChapterList(volumeData);
 
         const pages = [];
         const volumeFolderName = volumeData.volumePath ? volumeData.volumePath.split(/[\\/]/).filter(Boolean).pop() : `volume-${volumeData.index}`;

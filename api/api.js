@@ -214,6 +214,7 @@ router.post('/editor/create-chapter', isAdmin, PageStructureController.createCha
 
 // --- EXPORT ROUTES ---
 router.post('/editor/export-volume/:series/:volume', isAdmin, ExportController.exportVolume);
+router.post('/editor/combine-pdf/:series/:volume', isAdmin, ExportController.combinePdf);
 router.post('/editor/export-script/:series/:volume', isModerator, ExportController.exportScript);
 
 // --- CHARACTERS ---

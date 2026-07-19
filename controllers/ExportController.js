@@ -10,6 +10,23 @@ const INTERNAL_SECRET = process.env.INTERNAL_EXPORT_SECRET;
 
 
 class ExportController {
+    static async _findSeries(seriesTitle) {
+        const mongoose = require('mongoose');
+        const query = {
+            $or: [
+                { folderName: seriesTitle },
+                { title: seriesTitle }
+            ]
+        };
+
+        // If seriesTitle is a valid MongoDB ID, add it to the query
+        if (mongoose.Types.ObjectId.isValid(seriesTitle)) {
+            query.$or.push({ _id: seriesTitle });
+        }
+
+        return Series.findOne(query).populate('libraryRoot');
+    }
+
     static async exportVolume(req, res) {
         const { series: seriesTitle, volume: volumeFolderName } = req.params;
         const { portrait, pdf, preset } = req.query;
@@ -17,21 +34,7 @@ class ExportController {
         console.log(`[EXPORT] Request received for Series: "${seriesTitle}", Volume: "${volumeFolderName}"`);
 
         try {
-            const mongoose = require('mongoose');
-            const query = {
-                $or: [
-                    { folderName: seriesTitle },
-                    { title: seriesTitle }
-                ]
-            };
-
-            // If seriesTitle is a valid MongoDB ID, add it to the query
-            if (mongoose.Types.ObjectId.isValid(seriesTitle)) {
-                query.$or.push({ _id: seriesTitle });
-            }
-
-            console.log(`[EXPORT] Searching Series with query:`, JSON.stringify(query));
-            const series = await Series.findOne(query).populate('libraryRoot');
+            const series = await ExportController._findSeries(seriesTitle);
 
             if (!series) {
                 console.warn(`[EXPORT] Series not found for: "${seriesTitle}"`);
@@ -108,6 +111,113 @@ class ExportController {
             console.error('Export Error:', error);
             if (!res.headersSent) res.status(500).json({ ok: false, message: error.message });
         }
+    }
+
+    static async combinePdf(req, res) {
+        const { series: seriesTitle, volume: volumeFolderName } = req.params;
+        const { preset, chapters } = req.query;
+
+        console.log(`[EXPORT] PDF combine request for "${seriesTitle}" / "${volumeFolderName}" (chapters: ${chapters || 'all'})`);
+
+        try {
+            const series = await ExportController._findSeries(seriesTitle);
+            if (!series) return res.status(404).json({ ok: false, message: 'Series not found' });
+
+            const rootPath = series.sourcePath || path.join(series.libraryRoot.path, series.folderName);
+            const volumePath = path.join(rootPath, 'Volumes', volumeFolderName);
+            if (!fs.existsSync(volumePath)) return res.status(404).json({ ok: false, message: 'Volume folder not found' });
+
+            const activePreset = preset || 'uk-table';
+            const exportDir = path.join(rootPath, 'Print_Exports', volumeFolderName + '_Book_Pages', activePreset);
+            if (!fs.existsSync(exportDir)) {
+                return res.status(404).json({ ok: false, message: `No exported PNGs found for preset "${activePreset}". Run a print export first.` });
+            }
+
+            const requested = ExportController._parseChapterSelection(chapters);
+
+            const chapterDirs = fs.readdirSync(volumePath)
+                .filter(d => d.startsWith('chapter-'))
+                .sort((a, b) => parseInt(a.replace('chapter-', '')) - parseInt(b.replace('chapter-', '')));
+
+            const usedChapters = [];
+            const wantedPages = [];
+            for (const dir of chapterDirs) {
+                const chapterNum = parseInt(dir.replace('chapter-', ''));
+                if (requested && !requested.includes(chapterNum)) continue;
+                usedChapters.push(chapterNum);
+                fs.readdirSync(path.join(volumePath, dir), { withFileTypes: true })
+                    .filter(d => d.isDirectory() && /^page\d+$/.test(d.name))
+                    .forEach(d => wantedPages.push(parseInt(d.name.replace('page', ''))));
+            }
+
+            if (wantedPages.length === 0) return res.status(400).json({ ok: false, message: 'No pages found for the selected chapters.' });
+
+            const available = fs.readdirSync(exportDir).filter(f => f.endsWith('.png'));
+            const files = [];
+            const missing = [];
+            for (const pageNum of wantedPages.sort((a, b) => a - b)) {
+                const padded = String(pageNum).padStart(3, '0');
+                const match = available.find(f => f.startsWith(`page${padded}`));
+                if (match) files.push(match);
+                else missing.push(pageNum);
+            }
+
+            if (files.length === 0) return res.status(400).json({ ok: false, message: 'None of the selected pages have exported PNGs. Run a print export first.' });
+
+            const outputBaseName = requested
+                ? `${volumeFolderName}_chapter-${usedChapters.join('-')}`
+                : volumeFolderName;
+
+            res.json({
+                ok: true,
+                message: `Combining ${files.length} pages into PDF...`,
+                totalPages: files.length,
+                missingPages: missing
+            });
+
+            const io = req.app.locals.io;
+            await ExportController.convertToPDF(exportDir, outputBaseName, io, files.length, files);
+
+            if (io) {
+                const missingNote = missing.length ? ` (${missing.length} selected pages have no render: ${missing.join(', ')})` : '';
+                io.emit('export_progress', {
+                    current: files.length,
+                    total: files.length,
+                    pageId: 'Complete',
+                    status: `PDF Complete: ${outputBaseName}_print_ready.pdf — ${files.length} pages${missingNote}`
+                });
+            }
+
+        } catch (error) {
+            console.error('[EXPORT] PDF Combine Error:', error);
+            if (!res.headersSent) return res.status(500).json({ ok: false, message: error.message });
+            if (req.app.locals.io) {
+                req.app.locals.io.emit('export_progress', { current: 0, total: 1, pageId: 'PDF Error', status: 'PDF combine failed: ' + error.message });
+            }
+        }
+    }
+
+    static _parseChapterSelection(raw) {
+        if (!raw || !raw.trim()) return null;
+
+        const numbers = new Set();
+        for (const token of raw.split(',')) {
+            const part = token.trim();
+            if (!part) continue;
+
+            const range = part.match(/^(\d+)\s*-\s*(\d+)$/);
+            if (range) {
+                const from = parseInt(range[1]);
+                const to = parseInt(range[2]);
+                for (let n = Math.min(from, to); n <= Math.max(from, to); n++) numbers.add(n);
+                continue;
+            }
+
+            const single = parseInt(part);
+            if (!isNaN(single)) numbers.add(single);
+        }
+
+        return numbers.size ? [...numbers] : null;
     }
 
     static async exportScript(req, res) {
@@ -460,10 +570,10 @@ class ExportController {
         }
     }
 
-    static async convertToPDF(exportDir, volumeFolderName, io = null, totalPages = 1) {
+    static async convertToPDF(exportDir, outputBaseName, io = null, totalPages = 1, files = null) {
         console.log(`[EXPORT] Converting PNGs to PDF...`);
         try {
-            const files = fs.readdirSync(exportDir).filter(f => f.endsWith('.png')).sort();
+            if (!files) files = fs.readdirSync(exportDir).filter(f => f.endsWith('.png')).sort();
             if (files.length === 0) {
                 console.log(`[EXPORT] No PNG files found in ${exportDir} to convert.`);
                 return;
@@ -501,7 +611,7 @@ class ExportController {
             }
 
             const pdfBytes = await mergedPdf.save();
-            const pdfPath = path.join(exportDir, `${volumeFolderName}_print_ready.pdf`);
+            const pdfPath = path.join(exportDir, `${outputBaseName}_print_ready.pdf`);
             fs.writeFileSync(pdfPath, pdfBytes);
             console.log(`[EXPORT] PDF successfully created at: ${pdfPath}`);
 
