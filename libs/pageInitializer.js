@@ -1,6 +1,22 @@
 // libs/pageInitializer.js
 import { fetchScene, fetchMedia, loadCSS, imageMaskReveal, resolveMediaUrl } from '/libs/Utility.js';
 import { initScene } from '/services/public/SceneManager.js';
+import { applyExportMatchScale } from '/libs/ExportMatchScale.js';
+
+// The reader's page is sized in vh (page.css: 94vh), so its actual on-screen
+// height depends on the browser window — unlike the editor's preview pane,
+// it can change after load if the reader resizes their window. One listener,
+// set up once, re-applies the scale to every currently-loaded page (offsetHeight
+// is transform-invariant — see ExportMatchScale.js — so it's safe to reapply
+// to inactive/preloaded pages too, not just the visible one).
+let resizeListenerAttached = false;
+function ensureResizeListener() {
+    if (resizeListenerAttached) return;
+    resizeListenerAttached = true;
+    window.addEventListener('resize', () => {
+        document.querySelectorAll('.section-container.page').forEach(applyExportMatchScale);
+    });
+}
 
 /**
  * Page Initializer
@@ -52,11 +68,20 @@ export async function init(container, pageInfo, cachedScene = null, cachedMedia 
         return;
     }
 
+    ensureResizeListener();
+
+    // Match export's bubble/text-block sizing (see libs/ExportMatchScale.js).
+    // offsetHeight is used there specifically so this is safe to call right
+    // here regardless of whether this page is currently active, entering, or
+    // sitting off-screen mid zoom-scroll-out (viewer.css transforms don't
+    // affect it) — no need to gate this on any active/visible check.
+    applyExportMatchScale(pageContainer);
+
     container.addEventListener('view_visible', async () => {
         if (!container.classList.contains("active")) return;
 
         window.isRevealing = false;
-        
+
         if (sceneController?.restart) sceneController.restart();
     });
 

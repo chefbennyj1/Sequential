@@ -277,10 +277,16 @@ class ExportController {
 
     static async _injectPrintStyles(page, BLEED_WIDTH, BLEED_HEIGHT, preset) {
         return await page.evaluate(async (viewportW, viewportH, currentPreset) => {
-            const baseFontSize = 16; 
+            const baseFontSize = 16;
             const baseHeight = 1080;
             const scaleFactor = viewportH / baseHeight;
             const scaledFontSize = (baseFontSize * scaleFactor).toFixed(2) + 'px';
+            // Speech bubble text specifically, per Ben (2026-07-21): "slightly larger"
+            // than the rest of the scaled sizing. Keep this in sync with
+            // BUBBLE_FONT_SCALE in libs/ExportMatchScale.js — that file mirrors this
+            // exact formula for the editor and reader, and both must move together.
+            const BUBBLE_FONT_SCALE = 1.1;
+            const bubbleFontSize = (baseFontSize * scaleFactor * BUBBLE_FONT_SCALE).toFixed(2) + 'px';
             const bleedPx = 35; // 3mm @ 300DPI
             const hideList = ['.viewer-controls', '.nav-zone', '#loading-overlay', 'header', '.page-nav-buttons', '.debug-info', '#loading-page'];
             hideList.forEach(s => { document.querySelectorAll(s).forEach(el => el.style.display = 'none'); });
@@ -421,23 +427,27 @@ class ExportController {
             const overrideStyle = document.createElement('style');
             overrideStyle.textContent = `
                 .speech-bubble-container { width: var(--bubble-width, auto) !important; min-width: 100px !important; }
-                .page .super-bubble { font-size: ${scaledFontSize} !important; padding: ${(10 * scaleFactor).toFixed(2)}px ${(15 * scaleFactor).toFixed(2)}px !important; border-width: ${(3 * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; }
-                .page .speech-text { font-size: ${scaledFontSize} !important; line-height: 1.1 !important; -webkit-text-stroke: 0px transparent !important; }
-                .page .text-block { 
-                    font-size: ${scaledFontSize} !important; 
-                    padding: ${(15 * scaleFactor).toFixed(2)}px !important; 
-                    line-height: 1.1 !important; 
-                    border-width: ${(4 * scaleFactor).toFixed(2)}px !important; 
+                .page .super-bubble { font-size: ${bubbleFontSize} !important; padding: ${(10 * scaleFactor).toFixed(2)}px ${(15 * scaleFactor).toFixed(2)}px !important; border-width: ${(3 * scaleFactor).toFixed(2)}px !important; line-height: 1.1 !important; }
+                .page .speech-text { font-size: ${bubbleFontSize} !important; line-height: 1.1 !important; -webkit-text-stroke: 0px transparent !important; }
+                .page .text-block {
+                    font-size: ${scaledFontSize} !important;
+                    padding: ${(15 * scaleFactor).toFixed(2)}px !important;
+                    line-height: 1.1 !important;
+                    border-width: ${(4 * scaleFactor).toFixed(2)}px !important;
                 }
                 .page .tail-container::before, .page .tail-container::after { border-width: ${(15 * scaleFactor).toFixed(2)}px !important; }
-                
-                /* Catch-all for any text elements and custom system bubbles */
-                .page .speech-text, 
-                .page .text-block, 
-                .page .monologue-bubble, 
-                .page .system-header,
-                .page .system-bubble .speech-text { 
-                    font-size: ${scaledFontSize} !important; 
+
+                /* Catch-all for any remaining text elements and custom system bubbles.
+                   .speech-text is deliberately absent here — it's already set above
+                   with bubbleFontSize, and re-listing it here at scaledFontSize would
+                   win (later in source order) and silently erase the bubble bump. */
+                .page .text-block,
+                .page .monologue-bubble,
+                .page .system-header {
+                    font-size: ${scaledFontSize} !important;
+                }
+                .page .system-bubble .speech-text {
+                    font-size: ${bubbleFontSize} !important;
                 }
 
                 /* Scale down Action Text in print */

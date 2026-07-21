@@ -1,6 +1,7 @@
 import { initScene } from "/services/public/SceneManager.js";
 import SpeechBubble from "/libs/SpeechBubble/SpeechBubble.js";
 import { fetchScene, loadCSS } from "/libs/Utility.js";
+import { applyExportMatchScale } from "/libs/ExportMatchScale.js";
 
 export class PreviewPageController {
     constructor(container, pageId, params, globalControls) {
@@ -12,6 +13,7 @@ export class PreviewPageController {
         this.renderedDialogueItems = [];
         this.mediaData = [];
         this.renderSeq = 0;
+        this.resizeObserver = null;
     }
 
     async init() {
@@ -20,6 +22,26 @@ export class PreviewPageController {
             sectionContainer.classList.add(this.pageId);
         }
         await this.loadExistingMedia();
+        this._setupScaleObserver();
+    }
+
+    // The preview pane renders the page at whatever physical size the dashboard
+    // chrome leaves it, which is almost always smaller than a print export.
+    // applyExportMatchScale (libs/ExportMatchScale.js) rescales root font-size
+    // and brute-forces bubble/text-block sizing to match export's own formula —
+    // see that file for the full rationale (also used by the reader).
+    _applyScale() {
+        const pageEl = this.container.querySelector('.section-container') || this.container.querySelector('.page-layout');
+        applyExportMatchScale(pageEl);
+    }
+
+    _setupScaleObserver() {
+        const pageEl = this.container.querySelector('.section-container') || this.container.querySelector('.page-layout');
+        if (!pageEl) return;
+        this._applyScale();
+        if (this.resizeObserver) this.resizeObserver.disconnect();
+        this.resizeObserver = new ResizeObserver(() => this._applyScale());
+        this.resizeObserver.observe(pageEl);
     }
 
     async loadExistingMedia() {
