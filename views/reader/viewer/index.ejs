@@ -9,8 +9,6 @@
         <link rel="stylesheet" href="/views/reader/viewer/page.css">
         <style>
             :root {
-                --bubble-font-size: ${volume.series.settings?.bubbleFontSize || '0.8rem'};
-                --text-block-font-size: ${volume.series.settings?.textBlockFontSize || '0.8em'};
                 --action-font-size: ${volume.series.settings?.actionTextFontSize || '2.5rem'};
                 --bubble-font: ${volume.series.settings?.primaryFontFamily || 'inherit'};
                 --action-font: ${volume.series.settings?.actionFontFamily || 'inherit'};
@@ -26,7 +24,6 @@
                 --ben-day-dot-color: ${volume.series.settings?.benDayDotColor || '#ffff00'};
             }
             .page .text-block-container, .page .text-block {
-                font-size: var(--text-block-font-size) !important;
                 font-family: var(--bubble-font);
             }
         </style>

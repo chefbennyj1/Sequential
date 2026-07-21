@@ -354,12 +354,18 @@ export class PropertyManager {
         const groups = {
             curve: this.container.querySelector('.prop-group-curve'),
             font: this.container.querySelector('.prop-group-font'),
+            fontSize: this.container.querySelector('.prop-group-fontsize'),
             palette: this.container.querySelector('.palette-extraction-row')
         };
         const isActionText = (type === 'ActionText' || type === 'SoundEffect');
 
         if (groups.curve) isActionText ? groups.curve.classList.remove('hidden') : groups.curve.classList.add('hidden');
         if (groups.font) isActionText ? groups.font.classList.remove('hidden') : groups.font.classList.add('hidden');
+        // Font size is brute-forced from page height for SpeechBubble/TextBlock
+        // (see libs/ExportMatchScale.js) — the per-item value is never read for
+        // those types anymore, only for ActionText, so the field would silently
+        // do nothing if left visible.
+        if (groups.fontSize) isActionText ? groups.fontSize.classList.remove('hidden') : groups.fontSize.classList.add('hidden');
 
         if (groups.palette) {
             const aiEnabled = window.AI_CONFIG?.visionEnabled;

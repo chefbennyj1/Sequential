@@ -7,8 +7,6 @@ import ActionText from '/libs/ActionText/ActionText.js';
 
 let activeSeriesId = null;
 let currentSettings = {
-    bubbleFontSize: "0.8rem",
-    textBlockFontSize: "0.8em",
     actionTextFontSize: "2.5rem",
     primaryFontFamily: "",
     actionFontFamily: "Ka Blam",
@@ -24,8 +22,6 @@ let currentSettings = {
 };
 
 const DEFAULTS = {
-    bubbleFontSize: "0.8rem",
-    textBlockFontSize: "0.8em",
     actionTextFontSize: "2.5rem",
     primaryFontFamily: "",
     actionFontFamily: "Ka Blam",
@@ -46,10 +42,6 @@ export function initStyleLab(container) {
     const actionFontSelect = document.getElementById('styleLabActionFontSelect');
     const controls = document.getElementById('style-lab-controls');
 
-    const bubbleSlider = document.getElementById('bubbleFontSizeSlider');
-    const bubbleValueDisplay = document.getElementById('bubbleFontSizeValue');
-    const textBlockSlider = document.getElementById('textBlockFontSizeSlider');
-    const textBlockValueDisplay = document.getElementById('textBlockFontSizeValue');
     const actionSlider = document.getElementById('actionTextFontSizeSlider');
     const actionValueDisplay = document.getElementById('actionTextFontSizeValue');
 
@@ -80,21 +72,7 @@ export function initStyleLab(container) {
         renderPreview();
     });
 
-    // Font Size Listeners
-    bubbleSlider.addEventListener('input', (e) => {
-        const val = e.target.value + 'rem';
-        currentSettings.bubbleFontSize = val;
-        bubbleValueDisplay.textContent = val;
-        updatePreviewStyles();
-    });
-
-    textBlockSlider.addEventListener('input', (e) => {
-        const val = e.target.value + 'em';
-        currentSettings.textBlockFontSize = val;
-        textBlockValueDisplay.textContent = val;
-        updatePreviewStyles();
-    });
-
+    // Font Size Listener
     actionSlider.addEventListener('input', (e) => {
         const val = e.target.value + 'rem';
         currentSettings.actionTextFontSize = val;
@@ -173,10 +151,6 @@ async function loadSeriesSettings() {
 }
 
 function updateUIFromSettings() {
-    const bubbleSlider = document.getElementById('bubbleFontSizeSlider');
-    const bubbleValueDisplay = document.getElementById('bubbleFontSizeValue');
-    const textBlockSlider = document.getElementById('textBlockFontSizeSlider');
-    const textBlockValueDisplay = document.getElementById('textBlockFontSizeValue');
     const actionSlider = document.getElementById('actionTextFontSizeSlider');
     const actionValueDisplay = document.getElementById('actionTextFontSizeValue');
     const fontSelect = document.getElementById('styleLabFontSelect');
@@ -190,12 +164,6 @@ function updateUIFromSettings() {
     const mColor = document.getElementById('monologueColorPicker');
     const mBorder = document.getElementById('monologueBorderPicker');
     const mDot = document.getElementById('monologueDotPicker');
-
-    bubbleSlider.value = parseFloat(currentSettings.bubbleFontSize);
-    bubbleValueDisplay.textContent = currentSettings.bubbleFontSize;
-
-    textBlockSlider.value = parseFloat(currentSettings.textBlockFontSize);
-    textBlockValueDisplay.textContent = currentSettings.textBlockFontSize;
 
     actionSlider.value = parseFloat(currentSettings.actionTextFontSize);
     actionValueDisplay.textContent = currentSettings.actionTextFontSize;
@@ -297,7 +265,6 @@ function updatePreviewStyles() {
     const actionFont = currentSettings.actionFontFamily || 'inherit';
 
     // Apply Variables to the whole preview pane
-    previewPane.style.setProperty('--bubble-font-size', currentSettings.bubbleFontSize);
     previewPane.style.setProperty('--action-font-size', currentSettings.actionTextFontSize);
 
     // Independent Font Families
@@ -314,10 +281,11 @@ function updatePreviewStyles() {
     previewPane.style.setProperty('--monologue-border', currentSettings.monologueBorder);
     previewPane.style.setProperty('--monologue-dot', currentSettings.monologueDot);
 
-    // Text Blocks (NARRATOR)
+    // Text Blocks (NARRATOR) — font-size is brute-forced from page height on
+    // real pages (see libs/ExportMatchScale.js), so only font-family is a real
+    // setting here; the preview intentionally no longer offers a size control.
     const textBlocks = previewPane.querySelectorAll('.text-block-container');
     textBlocks.forEach(tb => {
-        tb.style.fontSize = currentSettings.textBlockFontSize;
         tb.style.fontFamily = uiFont;
     });
 

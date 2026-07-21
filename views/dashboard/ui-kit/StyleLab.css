@@ -13,10 +13,6 @@
     padding: 40px;
 }
 
-#bubbleFontSizeSlider, #textBlockFontSizeSlider {
-    accent-color: var(--color-three);
-}
-
 .mono {
     font-family: 'Consolas', 'Monaco', monospace;
 }

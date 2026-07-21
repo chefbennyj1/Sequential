@@ -48,7 +48,7 @@ function buildDialogueFormHTML() {
             </div>
             <div class="input-field"><label>Tail Skew</label><input type="number" id="prop-tail-skew" class="glass-input" placeholder="25"></div>
             <div class="input-field"><label>Tail Scale</label><input type="text" id="prop-tail-scale" class="glass-input" placeholder="1.0"></div>
-            <div class="input-field">
+            <div class="input-field prop-group-fontsize">
                 <label>Font Size</label>
                 <input type="text" id="prop-font-size" class="glass-input" placeholder="0.85rem">
             </div>

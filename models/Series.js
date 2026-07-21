@@ -33,8 +33,6 @@ const seriesSchema = new Schema({
         ref: 'Volume'
     }],
     settings: {
-        bubbleFontSize: { type: String, default: "0.8rem" },
-        textBlockFontSize: { type: String, default: "0.8em" },
         actionTextFontSize: { type: String, default: "2.5rem" },
         primaryFontFamily: { type: String, default: "" },
         actionFontFamily: { type: String, default: "Ka Blam" },
