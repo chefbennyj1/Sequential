@@ -323,6 +323,30 @@ body {
     min-width: 0;
 }
 
+.preview-scale-notice {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    right: 8px;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    background: var(--glass-dark);
+    border: 1px solid var(--glass-border);
+    color: var(--muted, #9a9a9a);
+    font-size: 0.75rem;
+    line-height: 1.3;
+    pointer-events: none;
+}
+
+.preview-scale-notice ion-icon {
+    flex-shrink: 0;
+    font-size: 1rem;
+}
+
 .tools-pane-flex {
     flex: 1;
     padding: 0 !important;
