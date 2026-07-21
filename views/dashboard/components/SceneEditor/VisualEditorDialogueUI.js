@@ -87,7 +87,7 @@ function buildDialogueFormHTML() {
                 <input type="number" step="0.1" id="prop-outline-size" class="glass-input" placeholder="1.0">
             </div>
             <div class="prop-group-curve">
-                <div class="input-field"><label>SVG Curve Path</label><input type="text" id="prop-curve" class="glass-input" placeholder="M 10,90 Q 150,10 290,90"></div>
+                <div class="input-field"><label>Curve (0 = straight, + = up, − = down)</label><input type="number" id="prop-curve" class="glass-input" placeholder="0" min="-60" max="60" step="1" title="Negative curves the text down, 0 is straight, positive curves the text up."></div>
                 <div class="input-field"><label>Curve W</label><input type="number" id="prop-curve-w" class="glass-input" placeholder="300"></div>
                 <div class="input-field"><label>Curve H</label><input type="number" id="prop-curve-h" class="glass-input" placeholder="100"></div>
                 <div class="input-field"><label>Rotation</label><input type="number" step="0.1" id="prop-rotation" class="glass-input" placeholder="-20"></div>

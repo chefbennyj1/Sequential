@@ -116,8 +116,12 @@ class ActionText {
             container.style.setProperty('--action-stroke-width', '0px');
         }
 
-        // DEFAULT: Always render curved unless explicitly set to 'none' or 'false'
-        if (this.options.curve === 'none' || this.options.curve === false) {
+        // Curve dispatch: 'none'/false, or an explicit numeric 0, renders flat text.
+        // Blank/unset keeps the legacy default arc (see _renderCurved) so existing pages don't shift.
+        const curveNum = parseFloat(this.options.curve);
+        const isExplicitZero = this.options.curve !== '' && this.options.curve != null && !isNaN(curveNum) && curveNum === 0;
+
+        if (this.options.curve === 'none' || this.options.curve === false || isExplicitZero) {
             this._renderStandard(container);
         } else {
             this._renderCurved(container);
@@ -175,13 +179,27 @@ class ActionText {
                 const h = parseInt(this.options.curveHeight) || 150; // Increased base height slightly to prevent vertical clipping
                 const pathId = `path-${Math.random().toString(36).substr(2, 9)}`;
         
-                // DEFAULT CURVE: Subtle upward arc stretched with a wide buffer to prevent endpoint clipping
+                // Wide buffer on both baseline endpoints prevents endpoint clipping at any curve amount.
                 const pathBuffer = 200;
-                let curvePath = `M -${pathBuffer},${h-30} Q ${w/2},10 ${w+pathBuffer},${h-30}`;
-        
-                // If a specific path is provided (not 'auto', not null), use it.
-                if (this.options.curve && this.options.curve !== 'auto' && this.options.curve !== true) {
-                    curvePath = this.options.curve;
+                const baselineY = h - 30;
+
+                // Curve modes, in priority order:
+                //  1. A plain signed number (the simple curve control): + up, - down, magnitude = px the
+                //     midpoint deviates from the baseline. 0 never reaches here (handled in render()).
+                //  2. A raw SVG path string (legacy power-user override from before the numeric control existed).
+                //  3. Blank/unrecognized: the original default subtle upward arc, kept byte-identical so
+                //     pages saved before this control existed don't visually shift.
+                const rawCurve = this.options.curve;
+                const curveNum = parseFloat(rawCurve);
+                let curvePath;
+
+                if (rawCurve !== '' && rawCurve != null && !isNaN(curveNum)) {
+                    const controlY = baselineY - curveNum;
+                    curvePath = `M -${pathBuffer},${baselineY} Q ${w/2},${controlY} ${w+pathBuffer},${baselineY}`;
+                } else if (typeof rawCurve === 'string' && rawCurve.trim().toUpperCase().startsWith('M')) {
+                    curvePath = rawCurve;
+                } else {
+                    curvePath = `M -${pathBuffer},${baselineY} Q ${w/2},10 ${w+pathBuffer},${baselineY}`;
                 }
         
                 container.innerHTML = `
