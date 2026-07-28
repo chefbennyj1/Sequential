@@ -352,3 +352,39 @@ GlobalSettings
 - `page.json` is the source of truth for page config; the MongoDB Volume cache is derived from it via sync.
 - The Viewer bypasses the DB cache and reads `page.json` directly via `libs/pageInitializer.js`.
 - Spread mode groups 2 pages per slot; `exportSecret` mode forces single-page rendering for Puppeteer.
+
+---
+
+## Angled Layout Templates
+
+Layouts that cut panels on a diagonal (`2_Panel_Angled_Split`,
+`4_Panel_Vertical_Angled_Split`, `4_Panel_Staggered_Angled_Split`) use
+`clip-path` rather than grid areas. Read the comment block in
+`4_Panel_Vertical_Angled_Split.html` before building or editing one — it
+documents the full method. The four traps worth knowing up front:
+
+- **Never hand-tune two panels against each other.** `clip-path` percentages
+  resolve against each panel's *own* box, so a shared cut has different numbers
+  in each. Define every cut in page coordinates (0-100 across the page), take
+  each panel's bounding box, then convert. Seams then meet by construction.
+- **Gutters come from shifting both endpoints of a cut on one axis** — X for a
+  near-vertical cut, Y for a near-horizontal one — by an equal amount, in
+  opposite directions for the two panels. Equal shifts keep the edges parallel
+  so the gutter stays a constant width. Use a length (px), not a percentage, or
+  it varies with panel box size.
+- **`clip-path` is applied after `filter`**, so `filter: drop-shadow()` on a
+  clipped panel is generated and then clipped away — it renders nothing.
+  `box-shadow` is clipped off too. A panel shadow requires an
+  `absolute; inset: 0` wrapper around the panel (a static one collapses, since
+  `filter` establishes a containing block) plus `pointer-events` handling so the
+  stacked wrappers do not eat editor clicks. Deliberately not used.
+- **A two-class layout selector loses to `base-comic-layout.css`.** It styles
+  `.section-container.page.page-layout`, so `.page-layout.layout-x { padding }`
+  or `{ background }` is silently ignored. `2_Panel_Angled_Split` shipped with
+  two dead declarations for that reason. Match the full selector when
+  overriding.
+
+Panel borders cannot be `border` (clip-path cuts it off). The panel div keeps
+base's black background and takes the outer polygon; the img takes the same
+polygon pulled in by `--edge`. Do not add a wrapper *inside* a panel for this —
+`libs/pageInitializer.js` clears `panel.innerHTML` before every render.
