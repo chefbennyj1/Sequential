@@ -80,6 +80,30 @@ the running app doing the thing while you watch. The recipe that works here:
    - Node resolves modules from the *script's* directory: scripts outside
      the repo must `require('E:/Sequential Comic Server/node_modules/...')`.
 
+### Layout templates: render them standalone
+
+Don't verify a layout template by loading a page in the studio and looking at
+it. The page scales with the viewport, the gutters you are judging are a few
+pixels wide, and you cannot see a box that is the wrong size — only the clipped
+result of it.
+
+```bash
+node utils/renderLayoutPreview.js                     # list templates
+node utils/renderLayoutPreview.js 6_Panel out.png     # render + measure
+```
+
+No server, no login, no Mongo — it inlines `base-comic-layout.css` in place of
+the server-relative `@import` and renders the file directly. It puts labelled
+placeholder art in every panel (a framed card with corner ticks, so whatever
+`object-fit` crops shows up as a missing edge) and prints each panel's measured
+box as a percentage of the page.
+
+**The measurement table is the point, not the screenshot.** Compare it against
+the box table in the template's comment. That is what catches a corner shifted
+in the wrong direction, and it is how the drop-shadow that rendered *nothing*
+was found — the screenshot just looked fine. A change-a-number-and-remeasure
+loop runs in seconds; a browser refresh-and-squint loop does not converge.
+
 ## Reporting back to Ben
 
 - **Lead with the outcome**, then evidence. Verdict, steps, findings.
