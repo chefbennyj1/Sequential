@@ -48,14 +48,32 @@
 
     THE PANEL FRAME. clip-path cuts a border off with everything else, so the
     4px black edge every other layout gets from base-comic-layout's
-    .panel { border } cannot be used here. Instead the panel div IS the frame:
-    it keeps base's black background and takes the outer polygon, while the
-    img takes the same polygon pulled in by --edge on the same axes. The img
-    is a direct child sized 100%/100% (see libs/pageInitializer.js), so it
-    shares the panel's coordinate space exactly and the offsets carry over
-    unchanged. Black then shows as an even border all the way round.
-    Do not add a wrapper div for this - pageInitializer clears panel.innerHTML
-    before every render and would delete it.
+    .panel { border } cannot be used here. Instead each panel's ::after paints
+    the frame ON TOP as a ring: an oversized rectangle with the panel's shape,
+    inset by --edge, punched out of it as a hole via polygon(evenodd, ...).
+    The pseudo-element belongs to the panel, so the panel's own clip-path trims
+    the ring's outer edge back to the panel shape for free - which is why the
+    rectangle can be oversized, guaranteeing coverage at the page edge without
+    any extra arithmetic.
+
+    Do NOT draw the frame by clipping the img to an inset polygon instead. The
+    img is a direct child sized 100%/100%, so it shares the panel's coordinate
+    space and that looks equivalent - but clip-path is resolved in an element's
+    LOCAL space, before its own transform. page.json media entries routinely
+    carry a transform (page77 panel-B has scale(1.10) with a shifted
+    transform-origin, saved while framing the art), and that scales the img's
+    clip along with the picture: border doubled on one side, gone on the other.
+    The ring has no such coupling; the art can be scaled, panned or replaced and
+    the frame does not move.
+
+    Do not add a wrapper div for this either - pageInitializer clears
+    panel.innerHTML before every render and would delete it. Pseudo-elements
+    survive because they are not part of innerHTML.
+
+    z-index 10 keeps the ring above both the img and any overlayImage (z-index
+    5). It cannot cover dialogue: SceneManager renders every bubble to the page
+    layer, not into the panel (see its "ALWAYS render to the page layer"). It is
+    pointer-events: none so it cannot swallow editor clicks on the panel.
 
     THE PAGE MARGIN. The white edge around the page is a border here, not the
     padding the grid layouts use: absolutely positioned panels resolve against
@@ -127,8 +145,15 @@
     );
 }
 
-.layout-vertical-angled-split-4-panel .panel-A > * {
-    clip-path: polygon(
+.layout-vertical-angled-split-4-panel .panel-A::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #000;
+    pointer-events: none;
+    z-index: 10;
+    clip-path: polygon(evenodd,
+        -2px -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(100% + 2px), -2px calc(100% + 2px),
         var(--edge) var(--edge),
         calc(80% - var(--cut) - var(--edge) + var(--skewV)) var(--edge),
         calc(100% - var(--cut) - var(--edge)) calc(100% - var(--cut) - var(--edge)),
@@ -150,8 +175,15 @@
     );
 }
 
-.layout-vertical-angled-split-4-panel .panel-B > * {
-    clip-path: polygon(
+.layout-vertical-angled-split-4-panel .panel-B::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #000;
+    pointer-events: none;
+    z-index: 10;
+    clip-path: polygon(evenodd,
+        -2px -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(100% + 2px), -2px calc(100% + 2px),
         calc(var(--cut) + var(--edge) + var(--skewV)) var(--edge),
         calc(100% - var(--edge)) var(--edge),
         calc(100% - var(--edge)) calc(100% - var(--cut) - var(--edge) - var(--skewH)),
@@ -173,8 +205,15 @@
     );
 }
 
-.layout-vertical-angled-split-4-panel .panel-C > * {
-    clip-path: polygon(
+.layout-vertical-angled-split-4-panel .panel-C::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #000;
+    pointer-events: none;
+    z-index: 10;
+    clip-path: polygon(evenodd,
+        -2px -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(100% + 2px), -2px calc(100% + 2px),
         var(--edge) calc(var(--cut) + var(--edge) + var(--skewH)),
         calc(83.333% - var(--cut) - var(--edge)) calc(16.667% + var(--cut) + var(--edge)),
         calc(100% - var(--cut) - var(--edge) - var(--skewV)) calc(100% - var(--edge)),
@@ -196,8 +235,15 @@
     );
 }
 
-.layout-vertical-angled-split-4-panel .panel-D > * {
-    clip-path: polygon(
+.layout-vertical-angled-split-4-panel .panel-D::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #000;
+    pointer-events: none;
+    z-index: 10;
+    clip-path: polygon(evenodd,
+        -2px -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(100% + 2px), -2px calc(100% + 2px),
         calc(var(--cut) + var(--edge)) calc(var(--cut) + var(--edge)),
         calc(100% - var(--edge)) calc(20% + var(--cut) + var(--edge) - var(--skewH)),
         calc(100% - var(--edge)) calc(100% - var(--edge)),

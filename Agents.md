@@ -393,7 +393,18 @@ documents the full method. The four traps worth knowing up front:
   two dead declarations for that reason. Match the full selector when
   overriding.
 
-Panel borders cannot be `border` (clip-path cuts it off). The panel div keeps
-base's black background and takes the outer polygon; the img takes the same
-polygon pulled in by `--edge`. Do not add a wrapper *inside* a panel for this —
-`libs/pageInitializer.js` clears `panel.innerHTML` before every render.
+Panel borders cannot be `border` (clip-path cuts it off). Each panel's
+`::after` paints the frame on top as a ring — the panel shape inset by `--edge`
+punched out of an oversized rectangle via `polygon(evenodd, ...)` — which the
+panel's own clip-path then trims back to the panel shape.
+
+**Do not draw the frame by clipping the `img` to an inset polygon.** It looks
+equivalent (the img shares the panel's coordinate space) but `clip-path` is
+resolved in an element's local space *before its own transform*, and
+`page.json` media entries routinely carry one — `page77` panel-B has
+`scale(1.10)` with a shifted `transform-origin`, saved while framing the art.
+That scales the img's clip with the picture: border doubled on one side, gone
+on the other. Placeholder art in a test render will never show this; art with a
+saved transform will. A wrapper element inside the panel is not an option
+either — `libs/pageInitializer.js` clears `panel.innerHTML` before every
+render. Pseudo-elements survive because they are not part of `innerHTML`.

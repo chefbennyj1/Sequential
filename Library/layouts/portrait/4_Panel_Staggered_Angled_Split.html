@@ -84,8 +84,15 @@
     );
 }
 
-.layout-staggered-angled-split-4-panel .panel-A > * {
-    clip-path: polygon(
+.layout-staggered-angled-split-4-panel .panel-A::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #000;
+    pointer-events: none;
+    z-index: 10;
+    clip-path: polygon(evenodd,
+        -2px -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(100% + 2px), -2px calc(100% + 2px),
         var(--edge) var(--edge),
         calc(100% - var(--cut) - var(--edge) - var(--skewVt)) var(--edge),
         calc(80.645% - var(--cut) - var(--edge)) calc(100% - var(--cut) - var(--edge)),
@@ -107,8 +114,15 @@
     );
 }
 
-.layout-staggered-angled-split-4-panel .panel-B > * {
-    clip-path: polygon(
+.layout-staggered-angled-split-4-panel .panel-B::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #000;
+    pointer-events: none;
+    z-index: 10;
+    clip-path: polygon(evenodd,
+        -2px -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(100% + 2px), -2px calc(100% + 2px),
         calc(24% + var(--cut) + var(--edge) - var(--skewVt)) var(--edge),
         calc(100% - var(--edge)) var(--edge),
         calc(100% - var(--edge)) calc(100% - var(--cut) - var(--edge) - var(--skewH)),
@@ -130,8 +144,15 @@
     );
 }
 
-.layout-staggered-angled-split-4-panel .panel-C > * {
-    clip-path: polygon(
+.layout-staggered-angled-split-4-panel .panel-C::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #000;
+    pointer-events: none;
+    z-index: 10;
+    clip-path: polygon(evenodd,
+        -2px -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(100% + 2px), -2px calc(100% + 2px),
         var(--edge) calc(var(--cut) + var(--edge) + var(--skewH)),
         calc(100% - var(--cut) - var(--edge)) calc(5.357% + var(--cut) + var(--edge)),
         calc(64% - var(--cut) - var(--edge) + var(--skewVb)) calc(100% - var(--edge)),
@@ -153,8 +174,15 @@
     );
 }
 
-.layout-staggered-angled-split-4-panel .panel-D > * {
-    clip-path: polygon(
+.layout-staggered-angled-split-4-panel .panel-D::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #000;
+    pointer-events: none;
+    z-index: 10;
+    clip-path: polygon(evenodd,
+        -2px -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(100% + 2px), -2px calc(100% + 2px),
         calc(10.714% + var(--cut) + var(--edge)) calc(var(--cut) + var(--edge)),
         calc(100% - var(--edge)) calc(16.981% + var(--cut) + var(--edge) - var(--skewH)),
         calc(100% - var(--edge)) calc(100% - var(--edge)),

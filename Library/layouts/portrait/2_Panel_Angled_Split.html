@@ -21,10 +21,12 @@
 
     A sits above H so its corners on H shift up by --cut; B sits below so its
     corners shift down. The page shows through the difference as an even white
-    gutter. The panel div carries base-comic-layout's black background and takes
-    the outer polygon, while the img takes the same polygon pulled in by --edge,
-    which is what draws the black panel border that clip-path otherwise makes
-    impossible.
+    gutter. The black panel border - which clip-path otherwise makes impossible,
+    since it cuts a real border off - is painted on top by each panel's ::after
+    as a ring: the panel shape inset by --edge, punched out of an oversized
+    rectangle. Never draw it by clipping the img instead; media entries carry
+    transforms that would scale that clip along with the artwork. Panel B on
+    page77 is the case that proves it.
 
     This replaces a hand-tuned version built on overlapping flex items
     (height:120%/140%, top:-40%) whose clip-path percentages resolved against
@@ -98,8 +100,15 @@
     );
 }
 
-.layout-angled-split-2-panel .panel-A > * {
-    clip-path: polygon(
+.layout-angled-split-2-panel .panel-A::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #000;
+    pointer-events: none;
+    z-index: 10;
+    clip-path: polygon(evenodd,
+        -2px -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(100% + 2px), -2px calc(100% + 2px),
         var(--edge) var(--edge),
         calc(100% - var(--edge)) var(--edge),
         calc(100% - var(--edge)) calc(50% - var(--cut) - var(--edge) + var(--skew)),
@@ -121,8 +130,15 @@
     );
 }
 
-.layout-angled-split-2-panel .panel-B > * {
-    clip-path: polygon(
+.layout-angled-split-2-panel .panel-B::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: #000;
+    pointer-events: none;
+    z-index: 10;
+    clip-path: polygon(evenodd,
+        -2px -2px, calc(100% + 2px) -2px, calc(100% + 2px) calc(100% + 2px), -2px calc(100% + 2px),
         var(--edge) calc(42.857% + var(--cut) + var(--edge) - var(--skew)),
         calc(100% - var(--edge)) calc(var(--cut) + var(--edge) + var(--skew)),
         calc(100% - var(--edge)) calc(100% - var(--edge)),
