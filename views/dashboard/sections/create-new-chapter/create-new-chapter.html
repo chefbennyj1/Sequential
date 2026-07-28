@@ -1,6 +1,6 @@
     <div class="create-new-chapter dashboard-section hidden glass glass--frosted glass-card">
         <h3>Create New Chapter</h3>
-        <p class="text-muted margin-b-20">This will create the next chapter folder and the first page within it.</p>
+        <p class="text-muted margin-b-20">Append a chapter at the end, or insert one in the middle and shift everything after it up by one.</p>
         <form id="chapter-info">
             <div class="form-group">
                 <label>Select Series</label>
@@ -19,6 +19,7 @@
                 <input type="text" id="chapterTitle" name="title" placeholder="e.g. The Neon Rain" />
             </div>
             <button class="glass glass-btn glass-btn--primary width-100" type="submit" id="createChapterBtn">Initialize Chapter</button>
+            <button class="glass glass-btn glass-btn--ghost width-100 margin-t-10" type="button" id="insertChapterBtn">Insert &amp; Shift Chapters</button>
         </form>
         <div id="chapterStatus" class="builder-status"></div>
     </div>

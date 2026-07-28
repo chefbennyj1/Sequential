@@ -326,6 +326,7 @@ async function checkSpreadIntegrity(chapterPath, insertIdx) {
 
                     if (oldParity !== newParity) {
                         compromised.push({
+                            chapter: path.basename(chapterPath),
                             pageId: page.name,
                             oldIndex: page.num,
                             newIndex: page.num + 1,
@@ -361,6 +362,36 @@ async function tryRename(oldP, newP, retries = 5) {
             }
         }
     }
+}
+
+/**
+ * Shared by insertPage and insertChapter: safely shifts a list of numbered
+ * folders (pages OR chapters) up by one slot each, without collisions.
+ *
+ * items: [{ oldPath, newPath, tempPath, label }] — label is just for error
+ * messages, so a lock on "page113" and a lock on "chapter-9" report clearly.
+ *
+ * Three phases, run over the WHOLE list each time (not interleaved per item):
+ *   0. Lock check — a non-destructive rename-and-back on every item, so a
+ *      single locked folder is caught before ANYTHING actually moves.
+ *   1. Temp rename — every item moves to a throwaway name first, so a folder
+ *      being renamed to a slot another item currently occupies can never collide
+ *      (this is why items must be pre-sorted highest-number-first by the caller).
+ *   2. Final rename — every item moves from its temp name to its real new name.
+ */
+async function shiftNumberedFolders(items) {
+    for (const item of items) {
+        try {
+            const testPath = item.oldPath + "_LOCK_TEST";
+            await fs.promises.rename(item.oldPath, testPath);
+            await fs.promises.rename(testPath, item.oldPath);
+        } catch (e) {
+            throw new Error(`PRE-FLIGHT ERROR: "${item.label}" is currently locked by another process. Please close all applications (VS Code, File Explorer, etc.) that might be using this folder and try again.`);
+        }
+    }
+
+    for (const item of items) await tryRename(item.oldPath, item.tempPath);
+    for (const item of items) await tryRename(item.tempPath, item.newPath);
 }
 
 async function insertPage({ series, volume: volumeFolderName, chapter: chapterFolderName, insertPoint }) {
@@ -410,31 +441,16 @@ async function insertPage({ series, volume: volumeFolderName, chapter: chapterFo
                 newName: `page${page.num + 1}`,
                 oldPath: path.join(currentChapPath, page.name),
                 newPath: path.join(currentChapPath, `page${page.num + 1}`),
-                tempPath: path.join(currentChapPath, `${page.name}_TEMP_SHIFT`)
+                tempPath: path.join(currentChapPath, `${page.name}_TEMP_SHIFT`),
+                label: `${currentChapName}/${page.name}`
             });
         }
     }
 
-    // Verify all folders can be touched (Pre-flight)
-    for (const item of foldersToMove) {
-        try {
-            // Attempt a non-destructive rename test to see if file is locked
-            const testPath = item.oldPath + "_LOCK_TEST";
-            await fs.promises.rename(item.oldPath, testPath);
-            await fs.promises.rename(testPath, item.oldPath);
-        } catch (e) {
-            throw new Error(`PRE-FLIGHT ERROR: The folder "${item.chapName}/${item.oldName}" is currently locked by another process. Please close all applications (VS Code, File Explorer, etc.) that might be using this folder and try again.`);
-        }
-    }
+    await shiftNumberedFolders(foldersToMove);
 
-    // --- PHASE 1: TEMP RENAME (Avoid collisions) ---
+    // --- INTERNAL UPDATES (rename assets/etc. that carry the old page name, fix header) ---
     for (const item of foldersToMove) {
-        await tryRename(item.oldPath, item.tempPath);
-    }
-
-    // --- PHASE 2: FINAL RENAME & INTERNAL UPDATES ---
-    for (const item of foldersToMove) {
-        await tryRename(item.tempPath, item.newPath);
         await updateInternalFiles(item.newPath, item.oldName, item.newName);
     }
 
@@ -480,9 +496,145 @@ async function insertPage({ series, volume: volumeFolderName, chapter: chapterFo
         finalMessage += ` WARNING: ${compromisedSpreads.length} page spread(s) were compromised by this shift. Check your page settings.`;
     }
 
-    return { 
-        ok: true, 
+    return {
+        ok: true,
         message: finalMessage,
+        compromisedSpreads: compromisedSpreads.length > 0 ? compromisedSpreads : null
+    };
+}
+
+/**
+ * Inserts a brand-new chapter at chapterIndex, shifting that chapter and every
+ * chapter after it up by one — and every PAGE inside all of them by one too,
+ * since page numbers are global across the volume, not per-chapter. The new
+ * chapter is scaffolded with a single starter page (matching createChapter's
+ * own page.json/js/css template); use the studio's existing Insert Page
+ * feature afterward to add more.
+ *
+ * Reuses shiftNumberedFolders/checkSpreadIntegrity/updateInternalFiles from
+ * insertPage rather than re-implementing the lock-check/temp-rename dance —
+ * a chapter shift is that same operation one level up, run twice (once for
+ * every page in every affected chapter, once for the chapter folders
+ * themselves).
+ */
+async function insertChapter({ series, volume: volumeFolderName, chapterIndex, title }) {
+
+    const seriesFolderName = await getSeriesFolderName(series);
+    if (!seriesFolderName) throw new Error("Series folder name is required for insertChapter");
+
+    const seriesPath = await resolveSeriesPath(seriesFolderName);
+    const volumePath = path.join(seriesPath, 'Volumes', volumeFolderName);
+    if (!fs.existsSync(volumePath)) throw new Error("Volume directory not found");
+
+    const insertIdx = parseInt(chapterIndex);
+    if (isNaN(insertIdx)) throw new Error("Invalid chapter index");
+
+    const chapterDirs = await getSortedSubdirectories(volumePath, 'chapter-');
+    const chapterNums = chapterDirs
+        .map(name => parseInt(name.replace('chapter-', ''), 10))
+        .filter(n => !isNaN(n));
+
+    // Every chapter at or after the insertion point shifts up by one. Highest
+    // first, same reason insertPage sorts descending: nothing can collide with
+    // a slot that hasn't been vacated yet.
+    const chaptersToShift = chapterNums.filter(n => n >= insertIdx).sort((a, b) => b - a);
+
+    if (chaptersToShift.length === 0) {
+        // Nothing occupies this slot or anything after it — this is really just
+        // an append. Don't duplicate that logic, hand off to createChapter.
+        return createChapter({ seriesFolderName, volumeFolderName, title, chapterIndex: insertIdx });
+    }
+
+    // --- PHASE 0: PRE-FLIGHT — every page in every shifting chapter, and the chapters themselves ---
+    const pageMoves = [];
+    const chapterMoves = [];
+    let compromisedSpreads = [];
+    let newChapterFirstPageNum = null; // the page slot the new chapter's starter page will take over
+
+    for (const num of chaptersToShift) {
+        const oldChapName = `chapter-${num}`;
+        const newChapName = `chapter-${num + 1}`;
+        const oldChapPath = path.join(volumePath, oldChapName);
+
+        chapterMoves.push({
+            oldPath: oldChapPath,
+            newPath: path.join(volumePath, newChapName),
+            tempPath: path.join(volumePath, `${oldChapName}_TEMP_SHIFT`),
+            label: oldChapName
+        });
+
+        if (fs.existsSync(path.join(oldChapPath, '.ignore-shift'))) continue;
+
+        // Every page in this chapter shifts — same spread-integrity check
+        // insertPage uses, just applied to the whole chapter (insertIdx 0 = don't skip any page).
+        const chapterCompromised = await checkSpreadIntegrity(oldChapPath, 0);
+        compromisedSpreads = compromisedSpreads.concat(chapterCompromised);
+
+        const pageDirs = (await fs.promises.readdir(oldChapPath, { withFileTypes: true }))
+            .filter(d => d.isDirectory() && d.name.startsWith('page'))
+            .map(d => ({ name: d.name, num: parseInt(d.name.replace(/\D/g, '')) || 0 }))
+            .sort((a, b) => b.num - a.num);
+
+        if (num === insertIdx && pageDirs.length > 0) {
+            // The lowest page number in the chapter we're displacing is the slot
+            // the new chapter's own first page takes over.
+            newChapterFirstPageNum = pageDirs[pageDirs.length - 1].num;
+        }
+
+        for (const page of pageDirs) {
+            pageMoves.push({
+                oldPath: path.join(oldChapPath, page.name),
+                newPath: path.join(oldChapPath, `page${page.num + 1}`),
+                tempPath: path.join(oldChapPath, `${page.name}_TEMP_SHIFT`),
+                label: `${oldChapName}/${page.name}`,
+                oldName: page.name,
+                newName: `page${page.num + 1}`
+            });
+        }
+    }
+
+    if (newChapterFirstPageNum === null) {
+        throw new Error(`Chapter ${insertIdx} exists but has no pages (or they're all marked .ignore-shift) — cannot determine the new chapter's starting page number.`);
+    }
+
+    // --- PHASE 1: shift every PAGE first, while chapters still have their OLD folder names ---
+    await shiftNumberedFolders(pageMoves);
+    for (const item of pageMoves) {
+        await updateInternalFiles(item.newPath, item.oldName, item.newName);
+    }
+
+    // --- PHASE 2: shift the CHAPTER folders themselves ---
+    await shiftNumberedFolders(chapterMoves);
+
+    // --- PHASE 3: scaffold the new chapter with a single starter page ---
+    const newChapterFolderName = `chapter-${insertIdx}`;
+    const newChapterPath = path.join(volumePath, newChapterFolderName);
+    const firstPageName = `page${newChapterFirstPageNum}`;
+    const firstPagePath = path.join(newChapterPath, firstPageName);
+
+    await fs.promises.mkdir(firstPagePath, { recursive: true });
+    await fs.promises.mkdir(path.join(firstPagePath, "assets", "image"), { recursive: true });
+
+    const pageJson = {
+        header: { version: "2.0", layout: { id: "Standard_Page", html: "Standard_Page.html", css: "" } },
+        media: [], scene: []
+    };
+    await fs.promises.writeFile(path.join(firstPagePath, 'page.json'), JSON.stringify(pageJson, null, 2));
+    await fs.promises.writeFile(path.join(firstPagePath, 'page.js'), DEFAULT_JS);
+    await fs.promises.writeFile(path.join(firstPagePath, 'page.css'), DEFAULT_CSS(firstPageName));
+
+    await syncVolumeToDB(seriesFolderName, volumeFolderName);
+
+    let finalMessage = `Chapter ${insertIdx} inserted. Shifted ${chapterMoves.length} chapter(s) and ${pageMoves.length} page(s).`;
+    if (compromisedSpreads.length > 0) {
+        finalMessage += ` WARNING: ${compromisedSpreads.length} page spread(s) were compromised by this shift. Check your page settings.`;
+    }
+
+    return {
+        ok: true,
+        message: finalMessage,
+        chapter: newChapterFolderName,
+        pageId: firstPageName,
         compromisedSpreads: compromisedSpreads.length > 0 ? compromisedSpreads : null
     };
 }
@@ -657,4 +809,4 @@ async function updateVolumesFromFS() {
     }
 }
 
-module.exports = { createVolume, populatePagesFromFS: updateChaptersFromFS, updateChaptersFromFS, syncSinglePage, insertPage, createChapter, getChapterRange, reorderPages, updateVolumesFromFS };
+module.exports = { createVolume, populatePagesFromFS: updateChaptersFromFS, updateChaptersFromFS, syncSinglePage, insertPage, insertChapter, createChapter, getChapterRange, reorderPages, updateVolumesFromFS };

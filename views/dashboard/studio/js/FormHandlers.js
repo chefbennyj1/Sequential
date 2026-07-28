@@ -293,6 +293,44 @@ export function initFormHandlers(container) {
         };
     }
 
+    // Insert Chapter (shifts the target chapter and everything after it up by
+    // one, plus every page inside all of them) — same fields as Create Chapter,
+    // different endpoint, so it's a plain button rather than the form's submit.
+    const insertChapterBtn = document.getElementById('insertChapterBtn');
+    if (insertChapterBtn) {
+        insertChapterBtn.onclick = async () => {
+            const status = document.getElementById('chapterStatus');
+            const { vol, seriesId } = getSelectionData('chapter');
+            const chapterIndex = document.getElementById('chapterIndex').value;
+            const title = document.getElementById('chapterTitle').value;
+
+            if (!vol || !chapterIndex) {
+                status.textContent = "Please select a volume and enter a chapter index.";
+                status.className = "builder-status text-accent";
+                return;
+            }
+
+            const confirmed = window.GlassConfirm
+                ? await window.GlassConfirm.show('Insert Chapter', `This will shift chapter ${chapterIndex} and everything after it (chapters and pages) up by one. Continue?`, 'Insert')
+                : confirm(`This will shift chapter ${chapterIndex} and everything after it up by one. Continue?`);
+            if (!confirmed) return;
+
+            await handleApiFormSubmit({
+                btn: insertChapterBtn,
+                status,
+                loadingText: "Shifting...",
+                loadingStatusText: "Shifting chapters and pages, this may take a moment...",
+                originalBtnText: "Insert & Shift Chapters",
+                successMsg: "Success! Chapters shifted and new chapter inserted.",
+                fetchCall: () => apiPost('/api/editor/insert-chapter', { series: seriesId, volume: vol, chapterIndex, title }),
+                onSuccess: (data) => {
+                    updateStatus(status, "Success! " + data.message + ". Syncing database...", 'success');
+                    redirectAfterSuccess(vol, data.chapter, data.pageId, seriesId);
+                }
+            });
+        };
+    }
+
     // Library Settings Form Submission
     initLibrarySettings();
 

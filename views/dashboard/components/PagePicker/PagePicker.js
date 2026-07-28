@@ -86,7 +86,14 @@ export function createPagePicker(container, onPick) {
             const parts = (p.path || '').replace(/\\/g, '/').split('/').filter(Boolean);
             const last = parts[parts.length - 1] || '';
             const pageId = last.includes('.') ? parts[parts.length - 2] : last;
-            if (pageId) addOption(pageSel, pageId, `Page ${p.index} (${pageId})`);
+            if (!pageId) return;
+            // header is already in the cached page data (see VolumeService's
+            // updateChaptersFromFS) — a lightweight, non-modal way to surface
+            // a spread an insert/shift knocked out of print alignment, right
+            // where the writer is already looking to pick a page.
+            const isBroken = !!p.header?.spread?.isBroken;
+            const label = isBroken ? `⚠ Page ${p.index} (${pageId})` : `Page ${p.index} (${pageId})`;
+            addOption(pageSel, pageId, label);
         });
         pageSel.disabled = pageSel.options.length <= 1;
     });

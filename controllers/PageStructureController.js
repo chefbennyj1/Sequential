@@ -6,6 +6,41 @@ const { getSeriesFolderName, findVolumeId } = require('../services/HierarchyLook
 const Volume = require("../models/Volume");
 const Series = require("../models/Series");
 const VolumeService = require("../services/VolumeService");
+const NotificationService = require("../services/NotificationService");
+
+/**
+ * Shared by insertChapter/insertPage: alerts the acting user when a shift
+ * broke print-spread alignment (see checkSpreadIntegrity in VolumeService.js).
+ * Links to the FIRST broken page by its post-shift name — compromisedSpreads
+ * entries carry both oldIndex/pageId (pre-shift, already stale by the time
+ * this runs) and newIndex (the folder's actual current name), so newIndex is
+ * what must be used here.
+ */
+async function notifyCompromisedSpreads(req, { series, volume, compromisedSpreads }) {
+  if (!compromisedSpreads || compromisedSpreads.length === 0) return;
+  if (!req.session?.userId) return;
+
+  const first = [...compromisedSpreads].sort((a, b) => a.newIndex - b.newIndex)[0];
+  const firstPageId = `page${first.newIndex}`;
+
+  const title = compromisedSpreads.length === 1
+    ? "1 page spread broken by an insert"
+    : `${compromisedSpreads.length} page spreads broken by an insert`;
+
+  const body = `Inserting pages pushed ${compromisedSpreads.length} page(s) out of print-spread alignment, starting at ${firstPageId}. Insert one more page immediately before it to restore alignment for the rest of the book.`;
+
+  try {
+    await NotificationService.create({
+      user: req.session.userId,
+      source: 'System',
+      title,
+      body,
+      link: { series, volume, chapter: first.chapter, pageId: firstPageId }
+    }, req.app.locals.io);
+  } catch (err) {
+    console.error("[PageStructureController] Failed to create spread-break notification:", err);
+  }
+}
 
 exports.createPage = async (req, res) => {
   const { series, volume, chapter, pageId, layout } = req.body;
@@ -103,6 +138,7 @@ exports.insertPage = async (req, res) => {
   }
   try {
     const result = await VolumeService.insertPage({ series, volume, chapter, insertPoint });
+    await notifyCompromisedSpreads(req, { series, volume, compromisedSpreads: result.compromisedSpreads });
     res.json(result);
   } catch (err) {
     console.error("Insert Page Error:", err);
@@ -134,6 +170,21 @@ exports.getChapterRange = async (req, res) => {
     res.json({ ok: true, range });
   } catch (err) {
     console.error("Get Chapter Range Error:", err);
+    res.status(500).json({ ok: false, message: err.message });
+  }
+};
+
+exports.insertChapter = async (req, res) => {
+  const { series, volume, chapterIndex, title } = req.body;
+  if (!series || !volume || chapterIndex === undefined) {
+    return res.status(400).json({ ok: false, message: "Missing required fields" });
+  }
+  try {
+    const result = await VolumeService.insertChapter({ series, volume, chapterIndex, title });
+    await notifyCompromisedSpreads(req, { series, volume, compromisedSpreads: result.compromisedSpreads });
+    res.json(result);
+  } catch (err) {
+    console.error("Insert Chapter Error:", err);
     res.status(500).json({ ok: false, message: err.message });
   }
 };

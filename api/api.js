@@ -211,6 +211,7 @@ router.post('/editor/create-page', isAdmin, PageStructureController.createPage);
 router.post('/editor/insert-page', isAdmin, PageStructureController.insertPage);
 router.post('/editor/reorder-pages', isAdmin, PageStructureController.reorderPages);
 router.post('/editor/create-chapter', isAdmin, PageStructureController.createChapter);
+router.post('/editor/insert-chapter', isAdmin, PageStructureController.insertChapter);
 
 // --- EXPORT ROUTES ---
 router.post('/editor/export-volume/:series/:volume', isAdmin, ExportController.exportVolume);
