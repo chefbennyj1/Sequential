@@ -76,6 +76,22 @@
     overflow: hidden;
     --cut: 5px;
     --edge: 4px;
+    /*
+        Border slope correction, applied where a cut meets a page edge. Such a
+        corner is inset on BOTH axes, but moving --edge along a sloped line also
+        moves you along it, so without this term the inner edge lands off the
+        true inset line and the border tapers while still averaging --edge.
+
+        --skewH = |H slope| * --edge, --skewV = |V slope| * --edge, both in px
+        on the 6.625:10.25 content box:
+            H rises 20% of the page height across its width -> 0.3132 -> 1.25px
+            V runs  20% of the page width  down its height  -> 0.1277 -> 0.51px
+        H slopes down to the right and V to the right going down, so on H the
+        left end moves up and the right end down; on V the top end moves left
+        and the bottom end right.
+    */
+    --skewH: 1.25px;
+    --skewV: 0.51px;
 }
 
 /* White page margin. Border, not padding - see THE PAGE MARGIN above. */
@@ -114,9 +130,9 @@
 .layout-vertical-angled-split-4-panel .panel-A > * {
     clip-path: polygon(
         var(--edge) var(--edge),
-        calc(80% - var(--cut) - var(--edge)) var(--edge),
+        calc(80% - var(--cut) - var(--edge) + var(--skewV)) var(--edge),
         calc(100% - var(--cut) - var(--edge)) calc(100% - var(--cut) - var(--edge)),
-        var(--edge) calc(80% - var(--cut) - var(--edge))
+        var(--edge) calc(80% - var(--cut) - var(--edge) + var(--skewH))
     );
 }
 
@@ -136,9 +152,9 @@
 
 .layout-vertical-angled-split-4-panel .panel-B > * {
     clip-path: polygon(
-        calc(var(--cut) + var(--edge)) var(--edge),
+        calc(var(--cut) + var(--edge) + var(--skewV)) var(--edge),
         calc(100% - var(--edge)) var(--edge),
-        calc(100% - var(--edge)) calc(100% - var(--cut) - var(--edge)),
+        calc(100% - var(--edge)) calc(100% - var(--cut) - var(--edge) - var(--skewH)),
         calc(16.667% + var(--cut) + var(--edge)) calc(83.333% - var(--cut) - var(--edge))
     );
 }
@@ -159,9 +175,9 @@
 
 .layout-vertical-angled-split-4-panel .panel-C > * {
     clip-path: polygon(
-        var(--edge) calc(var(--cut) + var(--edge)),
+        var(--edge) calc(var(--cut) + var(--edge) + var(--skewH)),
         calc(83.333% - var(--cut) - var(--edge)) calc(16.667% + var(--cut) + var(--edge)),
-        calc(100% - var(--cut) - var(--edge)) calc(100% - var(--edge)),
+        calc(100% - var(--cut) - var(--edge) - var(--skewV)) calc(100% - var(--edge)),
         var(--edge) calc(100% - var(--edge))
     );
 }
@@ -183,9 +199,9 @@
 .layout-vertical-angled-split-4-panel .panel-D > * {
     clip-path: polygon(
         calc(var(--cut) + var(--edge)) calc(var(--cut) + var(--edge)),
-        calc(100% - var(--edge)) calc(20% + var(--cut) + var(--edge)),
+        calc(100% - var(--edge)) calc(20% + var(--cut) + var(--edge) - var(--skewH)),
         calc(100% - var(--edge)) calc(100% - var(--edge)),
-        calc(20% + var(--cut) + var(--edge)) calc(100% - var(--edge))
+        calc(20% + var(--cut) + var(--edge) - var(--skewV)) calc(100% - var(--edge))
     );
 }
 </style>

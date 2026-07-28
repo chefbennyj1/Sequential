@@ -49,6 +49,25 @@
     overflow: hidden;
     --cut: 5px;
     --edge: 4px;
+    /*
+        Slope correction for the border, applied where the cut meets a page
+        edge. Such a corner is inset on BOTH axes - by --edge in x for the page
+        edge, by --edge in y for the cut - but moving --edge along x on a sloped
+        line also moves you along it, so without this term the inner edge lands
+        off the true inset line and tilts against the outer one. That tilts the
+        border from 2.1px at one end of the page to 5.9px at the other while
+        still averaging 4px in the middle, which is easy to miss.
+
+        --skew = |cut slope in px| * --edge. Here the cut drops 30% of the page
+        height across its full width, so on the 6.625:10.25 content box the
+        slope is 0.3 * (contentH / contentW) = 0.4697, giving 1.88px. The
+        content box aspect shifts by under half a percent across any sane
+        viewport, so a fixed length is accurate to a hundredth of a pixel.
+
+        The left end of the cut moves down by --skew, the right end up, which is
+        simply following the line rather than cutting across it.
+    */
+    --skew: 1.88px;
 }
 
 /* White page margin. Border, not padding - see above. */
@@ -83,8 +102,8 @@
     clip-path: polygon(
         var(--edge) var(--edge),
         calc(100% - var(--edge)) var(--edge),
-        calc(100% - var(--edge)) calc(50% - var(--cut) - var(--edge)),
-        var(--edge) calc(100% - var(--cut) - var(--edge))
+        calc(100% - var(--edge)) calc(50% - var(--cut) - var(--edge) + var(--skew)),
+        var(--edge) calc(100% - var(--cut) - var(--edge) - var(--skew))
     );
 }
 
@@ -104,8 +123,8 @@
 
 .layout-angled-split-2-panel .panel-B > * {
     clip-path: polygon(
-        var(--edge) calc(42.857% + var(--cut) + var(--edge)),
-        calc(100% - var(--edge)) calc(var(--cut) + var(--edge)),
+        var(--edge) calc(42.857% + var(--cut) + var(--edge) - var(--skew)),
+        calc(100% - var(--edge)) calc(var(--cut) + var(--edge) + var(--skew)),
         calc(100% - var(--edge)) calc(100% - var(--edge)),
         var(--edge) calc(100% - var(--edge))
     );

@@ -378,6 +378,15 @@ documents the full method. The four traps worth knowing up front:
   `absolute; inset: 0` wrapper around the panel (a static one collapses, since
   `filter` establishes a containing block) plus `pointer-events` handling so the
   stacked wrappers do not eat editor clicks. Deliberately not used.
+- **Insetting a corner on two axes needs a slope term.** Where a cut meets a
+  page edge, that corner is inset by `--edge` on *both* axes — but moving
+  `--edge` along x on a sloped line also moves you along the line, so the inner
+  edge lands off the true inset line and tilts against the outer one. The border
+  then tapers across the page while still averaging `--edge` in the middle,
+  which is easy to miss. Add `--skew = |cut slope in px| * --edge` to the
+  corner's other axis, signed so it follows the line. Measure it with
+  `utils/renderLayoutPreview.js` — the 2-panel layout shipped with a border
+  running 1.5px to 5.0px before this was caught.
 - **A two-class layout selector loses to `base-comic-layout.css`.** It styles
   `.section-container.page.page-layout`, so `.page-layout.layout-x { padding }`
   or `{ background }` is silently ignored. `2_Panel_Angled_Split` shipped with
