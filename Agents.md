@@ -352,6 +352,17 @@ GlobalSettings
 - `page.json` is the source of truth for page config; the MongoDB Volume cache is derived from it via sync.
 - The Viewer bypasses the DB cache and reads `page.json` directly via `libs/pageInitializer.js`.
 - Spread mode groups 2 pages per slot; `exportSecret` mode forces single-page rendering for Puppeteer.
+- **Page numbers are global across a volume, not per-chapter.** `chapter-1` ends
+  at page14, `chapter-2` starts at page15. So "is this page id free?" can only be
+  answered at the volume level — use `VolumeService.findPageOwner`, never a
+  `readdir` of the target chapter. Adding a page to the end of a chapter that
+  isn't the last one is an **insert**, not a create: `page59` already exists and
+  every later chapter has to shift. `VolumeService.insertPage` does that shift;
+  `createPage` cannot and now refuses. Duplicates are invisible in the studio and
+  only bite at print time, because `ExportController` names renders by page
+  number alone (`page060_FULL.png`) — of two page60s, whichever renders second
+  silently overwrites the other. `VolumeService.checkVolumeIntegrity` audits a
+  volume; the export refuses to run when it finds a collision.
 
 ---
 

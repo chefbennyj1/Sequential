@@ -162,6 +162,18 @@ export function initFormHandlers(container) {
                 fetchCall: () => fetch(`/api/editor/next-page-id?series=${seriesId}&volume=${vol}&chapter=${chap}`),
                 onSuccess: (data) => {
                     pageInput.value = data.nextPageId;
+
+                    // Page numbers run continuously across the volume, so the
+                    // slot after this chapter's last page belongs to the next
+                    // chapter unless this is the final one. Create Page cannot
+                    // make room -- only Insert Page shifts the later chapters.
+                    if (data.available === false) {
+                        updateStatus(status,
+                            `${data.nextPageId} already exists in ${data.ownedBy}. ` +
+                            `Use Insert Page at index ${data.insertPoint} instead — it shifts ${data.ownedBy} ` +
+                            `and every later chapter to make room.`,
+                            'error');
+                    }
                 }
             });
         };
@@ -190,7 +202,7 @@ export function initFormHandlers(container) {
             const range = await fetchChapterRange(seriesId, vol, chap);
             if (range && range.count > 0) {
                 if (insertPoint < range.min || insertPoint > (range.max + 1)) {
-                    const confirmMsg = `WARNING: The selected chapter (${chap}) typically contains pages ${range.min} to ${range.max}.n\n` +
+                    const confirmMsg = `WARNING: The selected chapter (${chap}) typically contains pages ${range.min} to ${range.max}.\n\n` +
                                      `You are attempting to insert page ${insertPoint}.\n\n` +
                                      `This may cause structural issues if this chapter isn't the correct place for that index.\n\n` +
                                      `Are you sure you want to proceed?`;

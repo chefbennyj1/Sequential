@@ -347,6 +347,103 @@ async function checkSpreadIntegrity(chapterPath, insertIdx) {
     return compromised;
 }
 
+/**
+ * Which chapter in this volume owns a given page id, or null if it is free.
+ *
+ * Page numbers run continuously across a whole volume (chapter-1 ends at 14,
+ * chapter-2 starts at 15), so "is this id available?" can only be answered at
+ * the volume level. Checking only the target chapter is what allowed a second
+ * page60 to be created in chapter-5 while chapter-6 already held one.
+ */
+async function findPageOwner(volumePath, pageId) {
+    const chapterFolders = await getSortedSubdirectories(volumePath, 'chapter-');
+    for (const chapFolder of chapterFolders) {
+        if (fs.existsSync(path.join(volumePath, chapFolder, pageId))) return chapFolder;
+    }
+    return null;
+}
+
+/**
+ * Audits a volume's page numbering and reports every number claimed by more
+ * than one chapter.
+ *
+ * A duplicate is invisible in the studio -- both pages open and edit fine --
+ * and only shows up at print time, because ExportController names its output
+ * by page number alone (page060_FULL.png). Of two pages numbered 60, whichever
+ * chapter renders second silently overwrites the other's PNG. That is how four
+ * finished chapter-5 pages went missing from a volume export.
+ *
+ * Duplicates are errors; gaps are only reported, not judged. A gap is usually
+ * a page the author pulled on purpose, a duplicate never is.
+ */
+async function checkVolumeIntegrity(volumePath) {
+    const chapterFolders = await getSortedSubdirectories(volumePath, 'chapter-');
+    const owners = new Map();
+
+    for (const chapFolder of chapterFolders) {
+        const chapterPath = path.join(volumePath, chapFolder);
+        const pageDirs = (await fs.promises.readdir(chapterPath, { withFileTypes: true }))
+            .filter(d => d.isDirectory() && /^page\d+$/.test(d.name));
+
+        for (const dir of pageDirs) {
+            const num = parseInt(dir.name.replace('page', ''), 10);
+            if (!owners.has(num)) owners.set(num, []);
+            owners.get(num).push(chapFolder);
+        }
+    }
+
+    const numbers = [...owners.keys()].sort((a, b) => a - b);
+
+    const duplicates = numbers
+        .filter(n => owners.get(n).length > 1)
+        .map(n => ({ pageNumber: n, pageId: `page${n}`, chapters: owners.get(n) }));
+
+    const gaps = [];
+    for (let n = numbers.length ? numbers[0] : 0; n < (numbers[numbers.length - 1] || 0); n++) {
+        if (!owners.has(n)) gaps.push(n);
+    }
+
+    return {
+        ok: duplicates.length === 0,
+        volume: path.basename(volumePath),
+        totalPages: numbers.reduce((sum, n) => sum + owners.get(n).length, 0),
+        distinctPages: numbers.length,
+        firstPage: numbers.length ? numbers[0] : null,
+        lastPage: numbers.length ? numbers[numbers.length - 1] : null,
+        duplicates,
+        gaps
+    };
+}
+
+/**
+ * Sweeps every volume of every series, returning a report for each one whose
+ * page numbering has broken. Runs off the library scan so a duplicate surfaces
+ * even when it arrived out of band -- a page folder renamed in Explorer, or one
+ * moved between chapters by hand -- not just when the studio caused it.
+ */
+async function checkAllVolumesIntegrity() {
+    const broken = [];
+    const seriesDocs = await Series.find({}, 'folderName title');
+
+    for (const seriesDoc of seriesDocs) {
+        let volumesDir;
+        try {
+            volumesDir = path.join(await resolveSeriesPath(seriesDoc.folderName), 'Volumes');
+        } catch (err) {
+            console.error(`[Integrity] Could not resolve path for series "${seriesDoc.folderName}":`, err.message);
+            continue;
+        }
+
+        for (const volumeFolder of await getSortedSubdirectories(volumesDir, 'volume-')) {
+            const report = await checkVolumeIntegrity(path.join(volumesDir, volumeFolder));
+            if (report.ok) continue;
+            broken.push({ series: seriesDoc.folderName, seriesTitle: seriesDoc.title, ...report });
+        }
+    }
+
+    return broken;
+}
+
 async function tryRename(oldP, newP, retries = 5) {
     for (let i = 0; i < retries; i++) {
         try {
@@ -809,4 +906,4 @@ async function updateVolumesFromFS() {
     }
 }
 
-module.exports = { createVolume, populatePagesFromFS: updateChaptersFromFS, updateChaptersFromFS, syncSinglePage, insertPage, insertChapter, createChapter, getChapterRange, reorderPages, updateVolumesFromFS };
+module.exports = { createVolume, populatePagesFromFS: updateChaptersFromFS, updateChaptersFromFS, syncSinglePage, insertPage, insertChapter, createChapter, getChapterRange, reorderPages, updateVolumesFromFS, findPageOwner, checkVolumeIntegrity, checkAllVolumesIntegrity };

@@ -54,7 +54,9 @@ class ExportController {
             if (!fs.existsSync(exportDir)) fs.mkdirSync(exportDir, { recursive: true });
 
             const pagesToRender = [];
-            const chapters = fs.readdirSync(volumePath).filter(d => d.startsWith('chapter-')).sort();
+            const chapters = fs.readdirSync(volumePath)
+                .filter(d => d.startsWith('chapter-'))
+                .sort((a, b) => parseInt(a.replace('chapter-', '')) - parseInt(b.replace('chapter-', '')));
             const targetPage = req.query.targetPage ? req.query.targetPage.trim() : null;
 
             for (const chapter of chapters) {
@@ -90,6 +92,33 @@ class ExportController {
 
                     pagesToRender.push({ chapter, page: pageId, isSpread: false, isLegacyWide });
                 }
+            }
+
+            // Output is named by page number alone (page060_FULL.png), so two
+            // chapters claiming the same number do not fail here -- the one
+            // rendered second silently overwrites the first, and the export
+            // reports success while quietly dropping finished pages. Refuse
+            // instead, and name the chapters so it can be fixed.
+            const owners = new Map();
+            for (const target of pagesToRender) {
+                const num = parseInt(target.page.replace('page', ''));
+                if (!owners.has(num)) owners.set(num, []);
+                owners.get(num).push(target.chapter);
+            }
+            const collisions = [...owners.entries()]
+                .filter(([, chaps]) => chaps.length > 1)
+                .sort((a, b) => a[0] - b[0]);
+
+            if (collisions.length > 0) {
+                const detail = collisions.map(([num, chaps]) => `page${num} (${chaps.join(' + ')})`).join(', ');
+                console.error(`[EXPORT] ABORTED: duplicate page numbers in ${volumeFolderName} -- ${detail}`);
+                return res.status(409).json({
+                    ok: false,
+                    message: `Export aborted: ${collisions.length} page number(s) exist in more than one chapter -- ${detail}. ` +
+                        `Renders are named by page number, so one page would overwrite the other. ` +
+                        `Use Insert Page to renumber the later chapter, then export again.`,
+                    collisions: collisions.map(([num, chapters]) => ({ pageId: `page${num}`, chapters }))
+                });
             }
 
             res.json({ ok: true, message: `Started background export of ${pagesToRender.length} pages.`, totalPages: pagesToRender.length });
@@ -140,22 +169,25 @@ class ExportController {
                 .sort((a, b) => parseInt(a.replace('chapter-', '')) - parseInt(b.replace('chapter-', '')));
 
             const usedChapters = [];
-            const wantedPages = [];
+            // A Set, not an array: if two chapters claim the same page number
+            // there is still only one PNG for it, and pushing the number twice
+            // embedded that single render twice in the finished book.
+            const wantedPages = new Set();
             for (const dir of chapterDirs) {
                 const chapterNum = parseInt(dir.replace('chapter-', ''));
                 if (requested && !requested.includes(chapterNum)) continue;
                 usedChapters.push(chapterNum);
                 fs.readdirSync(path.join(volumePath, dir), { withFileTypes: true })
                     .filter(d => d.isDirectory() && /^page\d+$/.test(d.name))
-                    .forEach(d => wantedPages.push(parseInt(d.name.replace('page', ''))));
+                    .forEach(d => wantedPages.add(parseInt(d.name.replace('page', ''))));
             }
 
-            if (wantedPages.length === 0) return res.status(400).json({ ok: false, message: 'No pages found for the selected chapters.' });
+            if (wantedPages.size === 0) return res.status(400).json({ ok: false, message: 'No pages found for the selected chapters.' });
 
             const available = fs.readdirSync(exportDir).filter(f => f.endsWith('.png'));
             const files = [];
             const missing = [];
-            for (const pageNum of wantedPages.sort((a, b) => a - b)) {
+            for (const pageNum of [...wantedPages].sort((a, b) => a - b)) {
                 const padded = String(pageNum).padStart(3, '0');
                 const match = available.find(f => f.startsWith(`page${padded}`));
                 if (match) files.push(match);
